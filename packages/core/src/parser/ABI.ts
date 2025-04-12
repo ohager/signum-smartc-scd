@@ -63,6 +63,18 @@ export class ABI {
     return this.abi.maps;
   }
 
+  getStateVariables(): VariableDefinition[] {
+    return this.abi.stateLayout.filter(
+      (variable) => variable.type !== "struct",
+    );
+  }
+
+  getStructs(): VariableDefinition[] {
+    return this.abi.stateLayout.filter(
+      (variable) => variable.type === "struct",
+    );
+  }
+
   getTransactions(): TransactionDefinition[] {
     return this.abi.transactions;
   }

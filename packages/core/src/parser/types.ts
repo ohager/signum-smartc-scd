@@ -13,13 +13,14 @@ export type MapType = {
 
 export interface VariableDefinition {
   name: string;
-  type: string;
+  type: DataType & "struct";
   description?: string;
   initializable?: boolean;
   constant?: boolean;
+  // for structs only
   fields?: Array<{
     name: string;
-    type: string;
+    type: DataType;
   }>;
 }
 

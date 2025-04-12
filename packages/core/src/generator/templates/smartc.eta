@@ -1,0 +1,62 @@
+#program name <%= it.contractName %>
+
+#program description <%= it.description %>
+
+#program activationAmount <%= it.activationAmount %>
+
+
+<% Object.keys(it.pragmas).forEach(function(key) { %>
+#pragma <%= key %> <%= it.pragmas[key] %>
+
+<% }) %>
+
+// Magic codes for methods
+<% for (const fn of it.functions) { %>
+#define <%= fn.name.toUpperCase() %> <%= fn.code %>
+<% } %>
+
+// Maps
+<% for (const map of it.maps) { %>
+#define MAP_<%= map.name.toUpperCase() %>_<%= map.key1.name.toUpperCase() %>  <%= map.key1.value %>
+<% } %>
+
+
+// State variables
+<% for (const svar of it.stateVars) { %>
+long <%= svar.name %>;
+<% } %>
+
+
+// Structs
+<% for (const struct of it.structs) { %>
+struct <%= struct.name.toUpperCase() %> {
+    <% for (const field of struct.fields) { %>
+    long <%= field.name %>;
+    <% } %>
+} <%= struct.name %>;
+<% } %>
+
+
+void main() {
+    while ((currentTx.txId = getNextTx()) != 0) {
+        currentTx.sender = getSender(currentTx.txId);
+        readMessage(currentTx.txId, 0, currentTx.message);
+
+        switch(currentTx.message[0]) {
+        <% for (const fn of it.functions) { %>
+            case <%= fn.name.toUpperCase() %>:
+                <%= fn.name %>(<% for (let i = 0; i < fn.args.length; i++) { %>currentTx.message[<%= i + 1 %>]<% if (i < fn.args.length - 1) { %>, <% } } %>);
+                break;
+        <% } %>
+        }
+    }
+}
+
+
+// Function stubs
+<% for (const fn of it.functions) { %>
+void <%= fn.name %>(<% for (let i = 0; i < fn.args.length; i++) { %>long <%= fn.args[i].name %><% if (i < fn.args.length - 1) { %>, <% } } %>) {
+    // TODO: Implement <%= fn.name %>
+
+}
+<% } %>

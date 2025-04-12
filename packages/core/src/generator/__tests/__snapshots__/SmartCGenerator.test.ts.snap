@@ -1,0 +1,50 @@
+// Bun Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SmartCGenerator should generate SmartC code 1`] = `
+"#program name TestContract
+#program description A test contract
+#program activationAmount 1000000
+
+#pragma maxAuxVars 3
+#pragma verboseAssembly true
+#pragma optimizationLevel 3
+#pragma version 2.2.1
+#pragma codeStackPages 0
+#pragma userStackPages 0
+
+// Magic codes for methods
+#define TESTFUNCTION 100
+// Maps
+#define MAP_TESTMAP_KEY1  1
+
+// State variables
+long owner;
+
+
+// Structs
+struct STATS {
+        long counter;
+        long balance;
+    } stats;
+
+
+void main() {
+    while ((currentTx.txId = getNextTx()) != 0) {
+        currentTx.sender = getSender(currentTx.txId);
+        readMessage(currentTx.txId, 0, currentTx.message);
+
+        switch(currentTx.message[0]) {
+                    case TESTFUNCTION:
+                testFunction(currentTx.message[1], currentTx.message[2]);
+                break;
+                }
+    }
+}
+
+
+// Function stubs
+void testFunction(long param1, long param2) {
+    // TODO: Implement testFunction
+}
+"
+`;
