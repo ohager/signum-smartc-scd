@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test"
+import { describe, expect, it } from "bun:test";
 import { ABI } from "../ABI";
 
 const mockABI = {
@@ -11,7 +11,7 @@ const mockABI = {
     optimizationLevel: 3,
     version: "2.2.1",
     codeStackPages: 0,
-    userStackPages: 0
+    userStackPages: 0,
   },
   functions: [
     {
@@ -19,25 +19,25 @@ const mockABI = {
       code: "1",
       args: [
         { name: "param1", type: "number" },
-        { name: "param2", type: "address" }
-      ]
-    }
+        { name: "param2", type: "address" },
+      ],
+    },
   ],
   stateLayout: [
-      {
-        name: "owner",
-        type: "address",
-        initializable: true,
-        constant: true
-      },
-      {
-        name: "stats",
-        type: "struct",
-        fields: [
-          { name: "counter", type: "number" },
-          { name: "balance", type: "amount" }
-        ]
-      }
+    {
+      name: "owner",
+      type: "address",
+      initializable: true,
+      constant: true,
+    },
+    {
+      name: "stats",
+      type: "struct",
+      fields: [
+        { name: "counter", type: "number" },
+        { name: "balance", type: "amount" },
+      ],
+    },
   ],
   maps: [
     {
@@ -47,28 +47,31 @@ const mockABI = {
         type: "number",
         description: "Main Key",
         constant: true,
-        value: "1"
+        value: "1",
       },
       key2: {
         name: "addr",
         description: "Address",
         type: "address",
-        constant: false
+        constant: false,
       },
       value: {
         name: "value",
         description: "Value",
         constant: false,
-        oneOf: [{
-          name: "SOME_CONSTANT_1",
-          value : "1"
-        }, {
-          name: "SOME_CONSTANT_2",
-          value : "2"
-        }]
-      }
-    }
-  ]
+        oneOf: [
+          {
+            name: "SOME_CONSTANT_1",
+            value: "1",
+          },
+          {
+            name: "SOME_CONSTANT_2",
+            value: "2",
+          },
+        ],
+      },
+    },
+  ],
 };
 
 describe("ABI", () => {
@@ -81,50 +84,54 @@ describe("ABI", () => {
           type: "address",
           initializable: true,
           constant: true,
-          index: 4
+          index: 4,
         },
-        { name: "stats.counter", type: "number", index:5 },
-        { name: "stats.balance", type: "amount", index:6 }
+        { name: "stats.counter", type: "number", index: 5 },
+        { name: "stats.balance", type: "amount", index: 6 },
       ]);
-      expect(abi.getMaps()).toEqual([{
+      expect(abi.getMaps()).toEqual([
+        {
           name: "testMap",
           key1: {
             name: "key1",
             type: "number",
             description: "Main Key",
             constant: true,
-            value: "1"
+            value: "1",
           },
           key2: {
             name: "addr",
             description: "Address",
             type: "address",
-            constant: false
+            constant: false,
           },
           value: {
             name: "value",
             description: "Value",
             constant: false,
-            oneOf: [{
-              name: "SOME_CONSTANT_1",
-              value : "1"
-            }, {
-              name: "SOME_CONSTANT_2",
-              value : "2"
-            }]
-          }
-          }
-      ])
+            oneOf: [
+              {
+                name: "SOME_CONSTANT_1",
+                value: "1",
+              },
+              {
+                name: "SOME_CONSTANT_2",
+                value: "2",
+              },
+            ],
+          },
+        },
+      ]);
       expect(abi.getFunctions()).toEqual([
         {
           name: "testFunction",
           code: 1n,
           args: [
             { name: "param1", type: "number" },
-            { name: "param2", type: "address" }
-          ]
-        }
-      ])
+            { name: "param2", type: "address" },
+          ],
+        },
+      ]);
       expect(abi.getContractInfo()).toEqual({
         name: "TestContract",
         description: "A test contract",
@@ -135,13 +142,13 @@ describe("ABI", () => {
           optimizationLevel: 3,
           version: "2.2.1",
           codeStackPages: 0,
-          userStackPages: 0
-        }
-      })
+          userStackPages: 0,
+        },
+      });
     });
 
     it("should throw on invalid ABI", () => {
       expect(() => ABI.parse({})).toThrow();
     });
-  })
+  });
 });

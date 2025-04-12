@@ -1,5 +1,4 @@
-
-export type DataType =  Array<DataType> |  String | Boolean |  bigint;
+export type DataType = Array<DataType> | String | Boolean | bigint;
 export type MapType = {
   name: string;
   description?: string;
@@ -10,7 +9,7 @@ export type MapType = {
     name: string;
     value: string;
   }>;
-}
+};
 
 export interface VariableDefinition {
   name: string;
@@ -33,7 +32,11 @@ export interface MapDefinition {
 
 export interface TransactionDefinition {
   name: string;
-  kind: 'sendAmountAndMessage' | 'sendBalance' | 'sendQuantity' | 'sendQuantityAndAmount';
+  kind:
+    | "sendAmountAndMessage"
+    | "sendBalance"
+    | "sendQuantity"
+    | "sendQuantityAndAmount";
   inputs: Array<{
     name: string;
     type: DataType;
@@ -49,7 +52,6 @@ export interface FunctionDefinition {
     type: DataType;
   }[];
 }
-
 
 export interface ABIType {
   contractName: string;

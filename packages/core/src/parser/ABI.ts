@@ -1,10 +1,16 @@
-import Ajv from 'ajv';
-import schema from './abi-schema.json';
-import type { FunctionDefinition, ABIType, MapDefinition, VariableDefinition, TransactionDefinition } from './types';
+import Ajv from "ajv";
+import schema from "./abi-schema.json";
+import type {
+  FunctionDefinition,
+  ABIType,
+  MapDefinition,
+  VariableDefinition,
+  TransactionDefinition,
+} from "./types";
 
 /**
-* This is the ABI class which provides convenience functions for further tooling.
-*/
+ * This is the ABI class which provides convenience functions for further tooling.
+ */
 export class ABI {
   private static ajv = new Ajv();
   private static validate = ABI.ajv.compile<ABIType>(schema);
@@ -23,21 +29,22 @@ export class ABI {
 
   getStateLayout() {
     let currentIndex = this.abi.pragmas.maxAuxVars + 1;
-    const layout: (VariableDefinition & {index: number})[] = [];
+    const layout: (VariableDefinition & { index: number })[] = [];
     for (const variable of this.abi.stateLayout) {
-      if (variable.type === 'struct') {
+      if (variable.type === "struct") {
         // Handle struct fields
-        const fields = variable.fields?.map(field => ({
-          ...field,
-          name: `${variable.name}.${field.name}`,
-          index: currentIndex++
-        })) || [];
+        const fields =
+          variable.fields?.map((field) => ({
+            ...field,
+            name: `${variable.name}.${field.name}`,
+            index: currentIndex++,
+          })) || [];
 
         layout.push(...fields);
       } else {
         layout.push({
           ...variable,
-          index: currentIndex++
+          index: currentIndex++,
         });
       }
     }
@@ -46,9 +53,9 @@ export class ABI {
   }
 
   getFunctions(): FunctionDefinition[] {
-    return this.abi.functions.map(f => ({
+    return this.abi.functions.map((f) => ({
       ...f,
-      code: BigInt(f.code)
+      code: BigInt(f.code),
     }));
   }
 
@@ -65,8 +72,7 @@ export class ABI {
       name: this.abi.contractName,
       description: this.abi.description,
       activationAmount: BigInt(this.abi.activationAmount),
-      pragmas: this.abi.pragmas
+      pragmas: this.abi.pragmas,
     };
   }
-
 }
