@@ -3,10 +3,12 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "test": "bun test --watch"
+    "test": "bun test --watch",
+    "prepare": "husky"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "husky": "^9.1.7"
   },
   "peerDependencies": {
     "typescript": "^5"
