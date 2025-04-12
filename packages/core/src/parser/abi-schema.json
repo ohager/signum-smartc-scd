@@ -1,0 +1,186 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SmartC ABI Schema",
+  "definitions": {
+    "DataType": {
+      "type": "string",
+      "enum": [
+        "address",
+        "amount",
+        "boolean",
+        "number",
+        "array",
+        "string",
+        "txId"
+      ]
+    },
+    "MapType": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "constant": { "type": "boolean", "default": false },
+        "type": { "$ref": "#/definitions/DataType" },
+        "value": { "type": "string" },
+        "oneOf": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "value"],
+            "properties": {
+              "name": { "type": "string" },
+              "value": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "type": "object",
+  "required": [
+    "contractName",
+    "activationAmount",
+    "pragmas",
+    "functions",
+    "stateLayout",
+    "maps"
+  ],
+  "properties": {
+    "contractName": {
+      "type": "string",
+      "description": "Name of the smart contract"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the contract's purpose"
+    },
+    "activationAmount": {
+      "type": "string",
+      "pattern": "^[0-9_]+$",
+      "description": "Amount required to activate the contract"
+    },
+    "codeStackPages": { "type": "number", "minimum": 0, "maximum": 10 },
+    "userStackPages": { "type": "number", "minimum": 0, "maximum": 10 },
+    "pragmas": {
+      "type": "object",
+      "properties": {
+        "maxAuxVars": { "type": "number", "minimum": 0, "maximum": 10 },
+        "maxConstVars": { "type": "number", "minimum": 0, "maximum": 10 },
+        "optimizationLevel": { "type": "number", "minimum": 0, "maximum": 4 },
+        "version": { "type": "string" },
+        "reuseAssignedVar": { "type": "boolean" },
+        "verboseAssembly": { "type": "boolean" },
+        "verboseScope": { "type": "boolean" }
+      }
+    },
+    "functions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "code", "args"],
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "code": { "type": "string" },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "type"],
+              "properties": {
+                "name": { "type": "string" },
+                "type": { "$ref": "#/definitions/DataType" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "stateLayout": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "type"],
+        "properties": {
+          "name": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": [
+              "address",
+              "string",
+              "boolean",
+              "amount",
+              "number",
+              "struct",
+              "array"
+            ]
+          },
+          "description": { "type": "string" },
+          "initializable": { "type": "boolean" },
+          "constant": { "type": "boolean" },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "type"],
+              "properties": {
+                "name": { "type": "string" },
+                "type": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "maps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "key1", "key2", "value"],
+        "properties": {
+          "name": { "type": "string" },
+          "key1": {
+            "$ref": "#/definitions/MapType"
+          },
+          "key2": {
+            "$ref": "#/definitions/MapType"
+          },
+          "value": {
+            "$ref": "#/definitions/MapType"
+          }
+        }
+      }
+    },
+    "transactions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "kind", "inputs"],
+        "properties": {
+          "name": { "type": "string" },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "sendAmountAndMessage",
+              "sendBalance",
+              "sendQuantity",
+              "sendQuantityAndAmount"
+            ]
+          },
+          "inputs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "type"],
+              "properties": {
+                "name": { "type": "string" },
+                "type": { "$ref": "#/definitions/DataType" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,190 @@
+{
+  "contractName": "VeridiBlocStockContract",
+  "description": "A contract for managing stock of materials",
+  "activationAmount": "1_0000_0000",
+  "pragmas": {
+    "maxAuxVars": "3",
+    "verboseAssembly": true,
+    "optimizationLevel": "3",
+    "version": "2.2.1",
+    "codeStackPages": 0,
+    "userStackPages": 0
+  },
+  "functions": [
+    {
+      "name": "registerIncomingMaterial",
+      "code": 1,
+      "args": [
+        { "name": "quantity", "type": "number" },
+        { "name": "originId", "type": "txId" }
+      ]
+    },
+    {
+      "name": "registerOutgoingMaterialByWeight",
+      "code": 2,
+      "args": [{ "name": "quantity", "type": "number" }]
+    },
+    {
+      "name": "registerOutgoingMaterialByLotIds",
+      "description": "Registers outgoing material by multiple lot IDs - Can send up to 124 lot IDs as additional arguments",
+      "code": 21,
+      "args": [
+        { "name": "lotIdCount", "type": "number" },
+        { "name": "zero", "type": "number" },
+        { "name": "zero", "type": "number" },
+        { "name": "lotIds", "type": "number[]" }
+      ]
+    },
+    {
+      "name": "registerOutgoingMaterialByLotIdAndWeight",
+      "code": 22,
+      "args": [
+        { "name": "quantity", "type": "number" },
+        { "name": "lotId", "type": "txId" }
+      ]
+    },
+    {
+      "name": "registerMaterialReceipt",
+      "code": 3,
+      "args": [
+        { "name": "lotId", "type": "txId" },
+        { "name": "acknowledgedQuantity", "type": "number" }
+      ]
+    }
+  ],
+  "stateLayout": [
+    {
+      "name": "owner",
+      "type": "address",
+      "initializable": true,
+      "constant": true
+    },
+    {
+      "name": "certificateContractId",
+      "type": "address",
+      "initializable": true,
+      "constant": true
+    },
+    {
+      "name": "stockMode",
+      "type": "string",
+      "description": "'L' for LotIDs, 'W' for Weight, 'LW' for Lot with Weight (Partial usage)",
+      "initializable": true,
+      "constant": true
+    },
+    {
+      "name": "isIntermediate",
+      "description": "Intermediates are not eligible for emitting certificates",
+      "type": "boolean",
+      "initializable": true,
+      "constant": true
+    },
+    {
+      "name": "usageFee",
+      "type": "amount",
+      "initializable": true,
+      "constant": false
+    },
+    {
+      "name": "isInternal",
+      "description": "internal means a contract used by business internally as additional internal stock, and thus adds owner as own business partner to allow lot receipts",
+      "type": "boolean",
+      "initializable": true,
+      "constant": false
+    },
+    {
+      "name": "isPaused",
+      "type": "boolean",
+      "constant": false
+    },
+    {
+      "name": "stats",
+      "type": "struct",
+      "fields": [
+        { "name": "stockQuantity", "type": "amount" },
+        { "name": "generatedLotsCount", "type": "number" },
+        { "name": "receiptsCount", "type": "number" }
+      ]
+    }
+  ],
+  "maps": [
+    {
+      "name": "incoming",
+      "key1": {
+        "name": "key1",
+        "description": "Main Key",
+        "constant": true,
+        "value": "1"
+      },
+      "key2": {
+        "name": "originId",
+        "description": "Origin ID",
+        "type": "txId",
+        "constant": false
+      },
+      "value": {
+        "name": "value",
+        "description": "Value",
+        "type": "amount",
+        "constant": false
+      }
+    },
+    {
+      "name": "errors",
+      "key1": {
+        "name": "key1",
+        "description": "Error Key",
+        "constant": true,
+        "value": "99"
+      },
+      "key2": {
+        "name": "transactionId",
+        "description": "The causing transaction ID",
+        "type": "txId",
+        "constant": false
+      },
+      "value": {
+        "name": "code",
+        "description": "The Error Code",
+        "constant": false,
+        "oneOf": [
+          { "name": "ERROR_CODE_NO_STOCK", "value": "1" },
+          { "name": "ERROR_CODE_INVALID_OR_EMPTY_LOT", "value": "2" },
+          { "name": "ERROR_CODE_NO_PERMISSION", "value": "3" },
+          { "name": "ERROR_CODE_MATERIAL_RECEIVED_ALREADY", "value": "4" },
+          { "name": "ERROR_CODE_FEE_TOO_LOW", "value": "5" },
+          { "name": "ERROR_CODE_WRONG_STOCK_ACTION", "value": "6" }
+        ]
+      }
+    }
+  ],
+  "transactions": [
+    {
+      "name": "EmitCertificateToken",
+      "kind": "sendAmountAndMessage",
+      "inputs": [
+        { "name": "certificateContractActivationFee", "type": "amount" },
+        { "name": "acknowledgedQuantity", "type": "number" },
+        { "name": "beneficiary", "type": "address" },
+        { "name": "certificateContractId", "type": "address" }
+      ]
+    },
+    {
+      "name": "PullFunds1",
+      "kind": "sendBalance",
+      "inputs": [
+        { "name": "sender", "type": "address" },
+        { "name": "quantity", "type": "amount" }
+      ]
+    },
+    {
+      "name": "PullFunds2",
+      "kind": "sendQuantity",
+      "inputs": [
+        { "name": "quantity", "type": "amount" },
+        { "name": "tokenId", "type": "address" },
+        { "name": "recipient", "type": "address" }
+      ]
+    }
+  ]
+}
