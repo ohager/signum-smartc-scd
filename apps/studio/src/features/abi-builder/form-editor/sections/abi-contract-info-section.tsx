@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { ABIType } from "@signum-smartc-abi/core/parser";
-import { useForm } from "react-hook-form";
+import { useForm, useFormContext } from "react-hook-form";
 import { HelpCircleIcon } from "lucide-react";
 import {
   Tooltip,
@@ -20,7 +20,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 export function ABIContractInfoSection() {
-  const form = useForm<ABIType>();
+  const form = useFormContext<ABIType>();
+
   return (
     <AccordionItem value="contract-info">
       <AccordionTrigger>Contract Information</AccordionTrigger>
@@ -67,7 +68,8 @@ export function ABIContractInfoSection() {
                     </TooltipTrigger>
                     <TooltipContent>
                       This is the minimum amount required to activate/run the
-                      contract.
+                      contract. It should be more than the maximum execution
+                      fee.
                     </TooltipContent>
                   </Tooltip>
                 </FormLabel>

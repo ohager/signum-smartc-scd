@@ -14,7 +14,7 @@ import { ABI, type ABIType } from "@signum-smartc-abi/core/parser";
 import { useForm } from "react-hook-form";
 
 const InitialState = {
-  activationAmount: 0.5,
+  activationAmount: "0.5",
   contractName: "",
   description: "",
   pragmas: {
