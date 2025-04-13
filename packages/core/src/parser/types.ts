@@ -1,4 +1,4 @@
-export type DataType = Array<DataType> | String | Boolean | bigint;
+export type DataType = Array<DataType> | String | Boolean;
 export type MapType = {
   name: string;
   description?: string;
@@ -13,7 +13,7 @@ export type MapType = {
 
 export interface VariableDefinition {
   name: string;
-  type: DataType & "struct";
+  type: DataType;
   description?: string;
   initializable?: boolean;
   constant?: boolean;
@@ -47,7 +47,7 @@ export interface TransactionDefinition {
 export interface FunctionDefinition {
   name: string;
   description?: string;
-  code: bigint;
+  code: string;
   args: {
     name: string;
     type: DataType;
@@ -57,7 +57,7 @@ export interface FunctionDefinition {
 export interface ABIType {
   contractName: string;
   description?: string;
-  activationAmount: bigint;
+  activationAmount: string;
   pragmas: {
     maxAuxVars: number;
     verboseAssembly: boolean;

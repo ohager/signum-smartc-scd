@@ -6,6 +6,11 @@
     "test": "bun test --watch",
     "prepare": "husky"
   },
+  "exports": {
+    "./abi-schema.json": "./src/parser/abi-schema.json",
+    "./generator": "./src/generator/index.ts",
+    "./parser": "./src/parser/index.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "husky": "^9.1.7"

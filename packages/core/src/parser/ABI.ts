@@ -52,30 +52,27 @@ export class ABI {
     return layout;
   }
 
-  getFunctions(): FunctionDefinition[] {
-    return this.abi.functions.map((f) => ({
-      ...f,
-      code: BigInt(f.code),
-    }));
+  getFunctions(): Readonly<FunctionDefinition[]> {
+    return this.abi.functions;
   }
 
-  getMaps(): MapDefinition[] {
+  getMaps(): Readonly<MapDefinition[]> {
     return this.abi.maps;
   }
 
-  getStateVariables(): VariableDefinition[] {
+  getStateVariables(): Readonly<VariableDefinition[]> {
     return this.abi.stateLayout.filter(
       (variable) => variable.type !== "struct",
     );
   }
 
-  getStructs(): VariableDefinition[] {
+  getStructs(): Readonly<VariableDefinition[]> {
     return this.abi.stateLayout.filter(
       (variable) => variable.type === "struct",
     );
   }
 
-  getTransactions(): TransactionDefinition[] {
+  getTransactions(): Readonly<TransactionDefinition[]> {
     return this.abi.transactions;
   }
 
@@ -83,7 +80,7 @@ export class ABI {
     return {
       name: this.abi.contractName,
       description: this.abi.description,
-      activationAmount: BigInt(this.abi.activationAmount),
+      activationAmount: this.abi.activationAmount,
       pragmas: this.abi.pragmas,
     };
   }

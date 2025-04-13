@@ -125,7 +125,7 @@ describe("ABI", () => {
       expect(abi.getFunctions()).toEqual([
         {
           name: "testFunction",
-          code: 1n,
+          code: "1",
           args: [
             { name: "param1", type: "number" },
             { name: "param2", type: "address" },
@@ -135,7 +135,7 @@ describe("ABI", () => {
       expect(abi.getContractInfo()).toEqual({
         name: "TestContract",
         description: "A test contract",
-        activationAmount: 100000000n,
+        activationAmount: "100000000",
         pragmas: {
           maxAuxVars: 3,
           verboseAssembly: true,
