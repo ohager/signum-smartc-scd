@@ -1,7 +1,7 @@
 import Ajv from "ajv";
 import schema from "./abi-schema.json";
 import type {
-  FunctionDefinition,
+  MethodDefinition,
   ABIType,
   MapDefinition,
   VariableDefinition,
@@ -52,8 +52,8 @@ export class ABI {
     return layout;
   }
 
-  getFunctions(): Readonly<FunctionDefinition[]> {
-    return this.abi.functions;
+  getMethods(): Readonly<MethodDefinition[]> {
+    return this.abi.methods;
   }
 
   getMaps(): Readonly<MapDefinition[]> {

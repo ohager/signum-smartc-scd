@@ -6,12 +6,18 @@
       "type": "string",
       "enum": [
         "address",
-        "amount",
-        "boolean",
-        "number",
-        "array",
         "string",
-        "txId"
+        "boolean",
+        "long",
+        "amount",
+        "txId",
+        "address[]",
+        "string[]",
+        "boolean[]",
+        "long[]",
+        "amount[]",
+        "txId[]",
+        "struct"
       ]
     },
     "MapType": {
@@ -42,7 +48,7 @@
     "contractName",
     "activationAmount",
     "pragmas",
-    "functions",
+    "methods",
     "stateLayout",
     "maps"
   ],
@@ -74,7 +80,7 @@
         "verboseScope": { "type": "boolean" }
       }
     },
-    "functions": {
+    "methods": {
       "type": "array",
       "items": {
         "type": "object",

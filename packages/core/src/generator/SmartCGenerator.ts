@@ -14,7 +14,7 @@ export class SmartCGenerator {
       description: this.abi.getContractInfo().description,
       activationAmount: this.abi.getContractInfo().activationAmount,
       pragmas: this.abi.getContractInfo().pragmas,
-      functions: this.abi.getFunctions(),
+      methods: this.abi.getMethods(),
       stateVars: this.abi.getStateVariables(),
       structs: this.abi.getStructs(),
       maps: this.abi.getMaps(),

@@ -1,27 +1,41 @@
-export type DataType = Array<DataType> | String | Boolean;
+export type DataType =
+  | "address"
+  | "string"
+  | "boolean"
+  | "long"
+  | "amount"
+  | "txId"
+  | "address[]"
+  | "string[]"
+  | "boolean[]"
+  | "long[]"
+  | "amount[]"
+  | "txId[]"
+  | "struct";
+
 export type MapType = {
   name: string;
   description?: string;
-  type?: string;
+  type?: DataType;
   constant?: boolean;
-  value?: DataType;
+  value?: string;
   oneOf?: Array<{
     name: string;
     value: string;
   }>;
 };
 
-export interface VariableDefinition {
+export interface ValueDefinition {
   name: string;
   type: DataType;
+}
+
+export interface VariableDefinition extends ValueDefinition {
   description?: string;
   initializable?: boolean;
   constant?: boolean;
   // for structs only
-  fields?: Array<{
-    name: string;
-    type: DataType;
-  }>;
+  fields?: ValueDefinition[];
 }
 
 export interface MapDefinition {
@@ -31,6 +45,13 @@ export interface MapDefinition {
   value: MapType;
 }
 
+export interface MethodDefinition {
+  name: string;
+  description?: string;
+  code: string;
+  args: ValueDefinition[];
+}
+
 export interface TransactionDefinition {
   name: string;
   kind:
@@ -38,20 +59,7 @@ export interface TransactionDefinition {
     | "sendBalance"
     | "sendQuantity"
     | "sendQuantityAndAmount";
-  inputs: Array<{
-    name: string;
-    type: DataType;
-  }>;
-}
-
-export interface FunctionDefinition {
-  name: string;
-  description?: string;
-  code: string;
-  args: {
-    name: string;
-    type: DataType;
-  }[];
+  inputs: ValueDefinition[];
 }
 
 export interface ABIType {
@@ -66,7 +74,7 @@ export interface ABIType {
     codeStackPages?: number;
     userStackPages?: number;
   };
-  functions: FunctionDefinition[];
+  methods: MethodDefinition[];
   stateLayout: VariableDefinition[];
   maps: MapDefinition[];
   transactions: TransactionDefinition[];

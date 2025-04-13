@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { ABI } from "../ABI";
+import type { ABIType } from "../types";
 
 const mockABI = {
   contractName: "TestContract",
@@ -13,12 +14,12 @@ const mockABI = {
     codeStackPages: 0,
     userStackPages: 0,
   },
-  functions: [
+  methods: [
     {
       name: "testFunction",
       code: "1",
       args: [
-        { name: "param1", type: "number" },
+        { name: "param1", type: "long" },
         { name: "param2", type: "address" },
       ],
     },
@@ -34,7 +35,7 @@ const mockABI = {
       name: "stats",
       type: "struct",
       fields: [
-        { name: "counter", type: "number" },
+        { name: "counter", type: "boolean" },
         { name: "balance", type: "amount" },
       ],
     },
@@ -44,7 +45,7 @@ const mockABI = {
       name: "testMap",
       key1: {
         name: "key1",
-        type: "number",
+        type: "long",
         description: "Main Key",
         constant: true,
         value: "1",
@@ -72,7 +73,7 @@ const mockABI = {
       },
     },
   ],
-};
+} as ABIType;
 
 describe("ABI", () => {
   describe("parse", () => {
@@ -86,7 +87,7 @@ describe("ABI", () => {
           constant: true,
           index: 4,
         },
-        { name: "stats.counter", type: "number", index: 5 },
+        { name: "stats.counter", type: "boolean", index: 5 },
         { name: "stats.balance", type: "amount", index: 6 },
       ]);
       expect(abi.getMaps()).toEqual([
@@ -94,7 +95,7 @@ describe("ABI", () => {
           name: "testMap",
           key1: {
             name: "key1",
-            type: "number",
+            type: "long",
             description: "Main Key",
             constant: true,
             value: "1",
@@ -122,12 +123,12 @@ describe("ABI", () => {
           },
         },
       ]);
-      expect(abi.getFunctions()).toEqual([
+      expect(abi.getMethods()).toEqual([
         {
           name: "testFunction",
           code: "1",
           args: [
-            { name: "param1", type: "number" },
+            { name: "param1", type: "long" },
             { name: "param2", type: "address" },
           ],
         },

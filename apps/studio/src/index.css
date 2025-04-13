@@ -1,1 +1,7 @@
 @import "../styles/globals.css";
+
+@theme {
+  --color-signum-blue: #0066ff;
+  --color-signum-lightblue: #0099ff;
+  --color-signum-green: #00ff88;
+}

@@ -15,12 +15,12 @@ const mockABI = {
     codeStackPages: 0,
     userStackPages: 0,
   },
-  functions: [
+  methods: [
     {
-      name: "testFunction",
+      name: "testMethod",
       code: "100",
       args: [
-        { name: "param1", type: "number" },
+        { name: "param1", type: "long" },
         { name: "param2", type: "address" },
       ],
     },
@@ -36,7 +36,7 @@ const mockABI = {
       name: "stats",
       type: "struct",
       fields: [
-        { name: "counter", type: "number" },
+        { name: "counter", type: "long" },
         { name: "balance", type: "amount" },
       ],
     },
@@ -46,7 +46,7 @@ const mockABI = {
       name: "testMap",
       key1: {
         name: "key1",
-        type: "number",
+        type: "long",
         description: "Main Key",
         constant: true,
         value: "1",

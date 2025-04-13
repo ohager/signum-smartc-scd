@@ -1,19 +1,14 @@
-import { Button } from "@/components/ui/button";
-import { ABIContractInfoSection } from "./sections/abi-contract-info-section";
-import { Accordion } from "@/components/ui/accordion";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Form } from "@/components/ui/form";
-import { ABI, type ABIType } from "@signum-smartc-abi/core/parser";
-import { useForm } from "react-hook-form";
+import { StepABIContractInfo } from "./steps/step-abi-contract-info";
+import { type ABIType } from "@signum-smartc-abi/core/parser";
+import { Wizard, type WizardStepProps } from "@/components/ui/wizard";
+import { StepABIPragmas } from "./steps/step-abi-pragmas";
+import { StepABIMethods } from "./steps/step-abi-methods";
+import { Component } from "react";
+import { StepABIMaps } from "./steps/step-abi-maps";
+import { StepABITransactions } from "./steps/step-abi-transactions";
+import { StepABIStateLayout } from "./steps/step-abi-state-layout";
 
-const InitialState = {
+const InitialState: ABIType = {
   activationAmount: "0.5",
   contractName: "",
   description: "",
@@ -23,38 +18,68 @@ const InitialState = {
     maxAuxVars: 3,
     version: "2.2.1",
   },
-  functions: [],
+  methods: [],
   transactions: [],
   maps: [],
   stateLayout: [],
 };
 
+const steps = [
+  {
+    title: "Contract Info",
+    description: "Define here the contracts basic information",
+    component: StepABIContractInfo,
+  },
+  {
+    title: "Pragmas",
+    description: "Allows to configure some of the compiler features (Pragmas)",
+    component: StepABIPragmas,
+  },
+  {
+    title: "Callable Methods",
+    description: "Define your public/callable methods here",
+    component: StepABIMethods,
+  },
+  {
+    title: "State Layout",
+    description: "Describe your publicly accessible state (variables)",
+    component: StepABIStateLayout,
+  },
+  {
+    title: "Maps",
+    description: "Configure optional kkv-Maps (Storage)",
+    component: StepABIMaps,
+  },
+  {
+    title: "Transactions",
+    description: "Describe what transactions your contract will dispatch",
+    component: StepABITransactions,
+  },
+];
+
+const StepComponents = steps.map((step) => step.component);
+
+const WizardStepRenderer = (props: WizardStepProps<ABIType, unknown>) => {
+  const StepComponent = StepComponents[props.step - 1];
+  return StepComponent ? <StepComponent {...props} /> : null;
+};
+
 export function ABIFormEditor() {
-  const form = useForm<ABIType>({
-    defaultValues: { ...InitialState },
-  });
+  const handleOnFinish = (data: ABIType) => {
+    console.log(data);
+  };
 
   return (
-    <Card className="w-full p-4 lg:w-1/2 mx-auto">
-      <CardHeader>
-        <CardTitle>ABI Form Editor</CardTitle>
-        <CardDescription>
-          Here you can edit the contracts interface using forms.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <Accordion type="single" collapsible className="w-full">
-            <ABIContractInfoSection />
-            {/* Other sections with Suspense */}
-          </Accordion>
-        </Form>
-      </CardContent>
-      <CardFooter>
-        <Button type="submit" form="abi-form">
-          Save
-        </Button>
-      </CardFooter>
-    </Card>
+    <Wizard
+      steps={steps}
+      initialState={{ ...InitialState }}
+      onFinish={handleOnFinish}
+    >
+      {(props) => (
+        <div className="min-h-[200px] w-full py-2">
+          <WizardStepRenderer {...props} />
+        </div>
+      )}
+    </Wizard>
   );
 }

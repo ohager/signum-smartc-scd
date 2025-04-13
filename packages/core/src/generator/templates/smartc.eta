@@ -11,8 +11,8 @@
 <% }) %>
 
 // Magic codes for methods
-<% for (const fn of it.functions) { %>
-#define <%= fn.name.toUpperCase() %> <%= fn.code %>
+<% for (const m of it.methods) { %>
+#define <%= m.name.toUpperCase() %> <%= m.code %>
 <% } %>
 
 // Maps
@@ -43,9 +43,9 @@ void main() {
         readMessage(currentTx.txId, 0, currentTx.message);
 
         switch(currentTx.message[0]) {
-        <% for (const fn of it.functions) { %>
-            case <%= fn.name.toUpperCase() %>:
-                <%= fn.name %>(<% for (let i = 0; i < fn.args.length; i++) { %>currentTx.message[<%= i + 1 %>]<% if (i < fn.args.length - 1) { %>, <% } } %>);
+        <% for (const method of it.methods) { %>
+            case <%= method.name.toUpperCase() %>:
+                <%= method.name %>(<% for (let i = 0; i < method.args.length; i++) { %>currentTx.message[<%= i + 1 %>]<% if (i < method.args.length - 1) { %>, <% } } %>);
                 break;
         <% } %>
         }
@@ -53,10 +53,11 @@ void main() {
 }
 
 
+
 // Function stubs
-<% for (const fn of it.functions) { %>
-void <%= fn.name %>(<% for (let i = 0; i < fn.args.length; i++) { %>long <%= fn.args[i].name %><% if (i < fn.args.length - 1) { %>, <% } } %>) {
-    // TODO: Implement <%= fn.name %>
+<% for (const method of it.methods) { %>
+void <%= method.name %>(<% for (let i = 0; i < method.args.length; i++) { %>long <%= method.args[i].name %><% if (i < method.args.length - 1) { %>, <% } } %>) {
+    // TODO: Implement <%= method.name %>
 
 }
 <% } %>
