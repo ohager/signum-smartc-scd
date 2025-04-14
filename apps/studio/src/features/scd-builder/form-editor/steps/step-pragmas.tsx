@@ -2,7 +2,7 @@ import { Input } from "@/components/ui/input";
 import { FieldLabel } from "@/components/ui/field-label";
 import type { StepProps } from "./step-props";
 
-export function StepABIPragmas({ updateData, data, setCanProceed }: StepProps) {
+export function StepPragmas({ updateData, data }: StepProps) {
   return (
     <div className="flex flex-col gap-y-4">
       <section>

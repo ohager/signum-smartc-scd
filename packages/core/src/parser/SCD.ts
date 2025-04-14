@@ -1,8 +1,8 @@
 import Ajv from "ajv";
-import schema from "./abi-schema.json";
+import schema from "./scd-schema.json";
 import type {
   MethodDefinition,
-  ABIType,
+  SCDType,
   MapDefinition,
   VariableDefinition,
   TransactionDefinition,
@@ -11,26 +11,26 @@ import type {
 /**
  * This is the ABI class which provides convenience functions for further tooling.
  */
-export class ABI {
+export class SCD {
   private static ajv = new Ajv();
-  private static validate = ABI.ajv.compile<ABIType>(schema);
+  private static validate = SCD.ajv.compile<SCDType>(schema);
 
-  private constructor(private abi: ABIType) {}
+  private constructor(private scd: SCDType) {}
 
   static parse(input: string | object) {
     const valid = this.validate(input);
 
     if (!valid) {
       const errors = this.validate.errors;
-      throw new Error(`Invalid ABI: ${JSON.stringify(errors)}`);
+      throw new Error(`Invalid SCD: ${JSON.stringify(errors)}`);
     }
-    return new ABI(input);
+    return new SCD(input);
   }
 
-  getStateLayout() {
-    let currentIndex = this.abi.pragmas.maxAuxVars + 1;
+  getVariablesLayout() {
+    let currentIndex = this.scd.pragmas.maxAuxVars + 1;
     const layout: (VariableDefinition & { index: number })[] = [];
-    for (const variable of this.abi.stateLayout) {
+    for (const variable of this.scd.variables) {
       if (variable.type === "struct") {
         // Handle struct fields
         const fields =
@@ -53,35 +53,31 @@ export class ABI {
   }
 
   getMethods(): Readonly<MethodDefinition[]> {
-    return this.abi.methods;
+    return this.scd.methods;
   }
 
   getMaps(): Readonly<MapDefinition[]> {
-    return this.abi.maps;
+    return this.scd.maps;
   }
 
-  getStateVariables(): Readonly<VariableDefinition[]> {
-    return this.abi.stateLayout.filter(
-      (variable) => variable.type !== "struct",
-    );
+  getVariables(): Readonly<VariableDefinition[]> {
+    return this.scd.variables.filter((variable) => variable.type !== "struct");
   }
 
   getStructs(): Readonly<VariableDefinition[]> {
-    return this.abi.stateLayout.filter(
-      (variable) => variable.type === "struct",
-    );
+    return this.scd.variables.filter((variable) => variable.type === "struct");
   }
 
   getTransactions(): Readonly<TransactionDefinition[]> {
-    return this.abi.transactions;
+    return this.scd.transactions;
   }
 
   getContractInfo() {
     return {
-      name: this.abi.contractName,
-      description: this.abi.description,
-      activationAmount: this.abi.activationAmount,
-      pragmas: this.abi.pragmas,
+      name: this.scd.contractName,
+      description: this.scd.description,
+      activationAmount: this.scd.activationAmount,
+      pragmas: this.scd.pragmas,
     };
   }
 }

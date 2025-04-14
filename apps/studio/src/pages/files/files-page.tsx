@@ -1,4 +1,4 @@
-import { AbiBuilder } from "@/features/abi-builder";
+import { SCDBuilder } from "@/features/scd-builder";
 import { useProjects } from "@/hooks/use-projects";
 import { Navigate, useParams } from "react-router";
 
@@ -18,8 +18,8 @@ export function FilesPage() {
   }
 
   // TODO: check the files type an render the component accordingly
-  if (file.type === "abi") {
-    return <AbiBuilder file={file} />;
+  if (file.type === "scd") {
+    return <SCDBuilder file={file} />;
   }
 
   if (file.type === "test") {

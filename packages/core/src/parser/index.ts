@@ -1,6 +1,6 @@
-import schema from "./abi-schema.json";
+import schema from "./scd-schema.json";
 
-export { ABI } from "./ABI";
+export { SCD } from "./SCD";
 export * from "./types";
 
-export const ABIJsonSchema = schema;
+export const SCDJsonSchema = schema;

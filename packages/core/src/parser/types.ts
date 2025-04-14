@@ -34,6 +34,8 @@ export interface VariableDefinition extends ValueDefinition {
   description?: string;
   initializable?: boolean;
   constant?: boolean;
+  // if constant and !initializable
+  value?: string;
   // for structs only
   fields?: ValueDefinition[];
 }
@@ -62,7 +64,7 @@ export interface TransactionDefinition {
   inputs: ValueDefinition[];
 }
 
-export interface ABIType {
+export interface SCDType {
   contractName: string;
   description?: string;
   activationAmount: string;
@@ -75,7 +77,7 @@ export interface ABIType {
     userStackPages?: number;
   };
   methods: MethodDefinition[];
-  stateLayout: VariableDefinition[];
+  variables: VariableDefinition[];
   maps: MapDefinition[];
   transactions: TransactionDefinition[];
 }

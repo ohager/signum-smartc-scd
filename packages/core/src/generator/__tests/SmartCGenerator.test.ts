@@ -1,8 +1,8 @@
-import { ABI, type ABIType } from "../../parser";
+import { SCD } from "../../parser";
 import { SmartCGenerator } from "../SmartCGenerator";
 import { describe, expect, it } from "bun:test";
 
-const mockABI = {
+const mockSCD = {
   contractName: "TestContract",
   contractHash: "0x1234567890abcdef",
   description: "A test contract",
@@ -25,7 +25,7 @@ const mockABI = {
       ],
     },
   ],
-  stateLayout: [
+  variables: [
     {
       name: "owner",
       type: "address",
@@ -78,7 +78,7 @@ const mockABI = {
 
 describe("SmartCGenerator", () => {
   it("should generate SmartC code", async () => {
-    const generator = new SmartCGenerator(ABI.parse(mockABI));
+    const generator = new SmartCGenerator(SCD.parse(mockSCD));
     const smartCCode = await generator.generateContract();
     expect(smartCCode).toMatchSnapshot();
   });

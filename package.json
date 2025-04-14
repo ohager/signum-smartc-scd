@@ -1,5 +1,5 @@
 {
-  "name": "signum-smartc-abi",
+  "name": "signum-smartc-scd",
   "type": "module",
   "private": true,
   "devDependencies": {

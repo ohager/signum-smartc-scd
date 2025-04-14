@@ -7,12 +7,13 @@ import { InfoIcon } from "lucide-react";
 
 interface FieldLegendProps {
   text: string;
+  htmlFor?: string;
   tooltip?: string;
 }
 
-export function FieldLabel({ tooltip, text }: FieldLegendProps) {
+export function FieldLabel({ tooltip, text, htmlFor }: FieldLegendProps) {
   return (
-    <legend className="flex flex-row items-center mb-1">
+    <label htmlFor={htmlFor} className="flex flex-row items-center mb-1">
       {text}
       {tooltip && (
         <Tooltip>
@@ -26,6 +27,6 @@ export function FieldLabel({ tooltip, text }: FieldLegendProps) {
           <TooltipContent>{tooltip}</TooltipContent>
         </Tooltip>
       )}
-    </legend>
+    </label>
   );
 }

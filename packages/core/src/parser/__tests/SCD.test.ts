@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
-import { ABI } from "../ABI";
-import type { ABIType } from "../types";
+import { SCD } from "../SCD";
+import type { SCDType } from "../types";
 
-const mockABI = {
+const mockSCD = {
   contractName: "TestContract",
   description: "A test contract",
   activationAmount: "100000000",
@@ -24,7 +24,7 @@ const mockABI = {
       ],
     },
   ],
-  stateLayout: [
+  variables: [
     {
       name: "owner",
       type: "address",
@@ -73,13 +73,13 @@ const mockABI = {
       },
     },
   ],
-} as ABIType;
+} as SCDType;
 
-describe("ABI", () => {
+describe("SCD", () => {
   describe("parse", () => {
-    it("should parse ABI", () => {
-      const abi = ABI.parse(mockABI);
-      expect(abi.getStateLayout()).toEqual([
+    it("should parse SCD", () => {
+      const abi = SCD.parse(mockSCD);
+      expect(abi.getVariablesLayout()).toEqual([
         {
           name: "owner",
           type: "address",
@@ -148,8 +148,8 @@ describe("ABI", () => {
       });
     });
 
-    it("should throw on invalid ABI", () => {
-      expect(() => ABI.parse({})).toThrow();
+    it("should throw on invalid SCD", () => {
+      expect(() => SCD.parse({})).toThrow();
     });
   });
 });

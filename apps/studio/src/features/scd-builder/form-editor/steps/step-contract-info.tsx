@@ -3,11 +3,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { FieldLabel } from "@/components/ui/field-label";
 import { useEffect } from "react";
 import type { StepProps } from "./step-props";
+import { toValidCName } from "@/lib/string";
 
 const MaxNameLength = 32;
 const MaxDescriptionLength = 320;
 
-export function StepABIContractInfo({
+export function StepContractInfo({
   updateData,
   data,
   setCanProceed,
@@ -24,8 +25,9 @@ export function StepABIContractInfo({
           <Input
             value={data.contractName}
             onChange={(e) => {
-              updateData("contractName", e.target.value);
-              setCanProceed(e.target.value.length > 3);
+              const name = toValidCName(e.target.value);
+              updateData("contractName", name);
+              setCanProceed(name.length > 3);
             }}
             maxLength={MaxNameLength}
           />

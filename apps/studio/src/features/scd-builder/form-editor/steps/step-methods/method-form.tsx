@@ -8,6 +8,7 @@ import { MethodCodeInput } from "./method-code-input";
 import { MethodArgumentForm } from "./method-args-form";
 import { FieldLabel } from "@/components/ui/field-label";
 import { PlusIcon, TrashIcon } from "lucide-react";
+import { toValidCName } from "@/lib/string";
 interface Props {
   method: MethodDefinition;
   onUpdate: (updated: MethodDefinition) => void;
@@ -41,7 +42,9 @@ export function MethodForm({ method, onUpdate, onDelete }: Props) {
   return (
     <div className="border p-4 rounded-lg">
       <div className="flex justify-between mb-2">
-        <h3 className="font-medium">Method Details</h3>
+        <h3 className="font-medium">
+          Method Details{method.name ? ` - ${method.name}` : ""}
+        </h3>
         <Button variant="destructive" onClick={onDelete}>
           <TrashIcon />
         </Button>
@@ -52,7 +55,10 @@ export function MethodForm({ method, onUpdate, onDelete }: Props) {
           <FieldLabel text="Name" />
           <Input
             value={method.name}
-            onChange={(e) => onUpdate({ ...method, name: e.target.value })}
+            onChange={(e) => {
+              const name = toValidCName(e.target.value);
+              onUpdate({ ...method, name });
+            }}
             placeholder="Method name"
           />
         </div>

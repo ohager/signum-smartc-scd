@@ -36,6 +36,8 @@ function actionDeleteProject(projectId: string) {
 export function ProjectSidebarItem({ project }: Props) {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  console.log("Files", project.files);
+
   return (
     <SidebarMenuItem>
       <div className="relative flex items-center">

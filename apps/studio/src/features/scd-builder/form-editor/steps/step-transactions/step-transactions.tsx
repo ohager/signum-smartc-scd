@@ -1,6 +1,6 @@
 import type { StepProps } from "../step-props";
 
-export function StepABITransactions({
+export function StepTransactions({
   updateData,
   data,
   setCanProceed,

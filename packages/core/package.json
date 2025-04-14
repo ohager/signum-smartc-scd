@@ -1,5 +1,5 @@
 {
-  "name": "@signum-smartc-abi/core",
+  "name": "@signum-smartc-scd/core",
   "module": "index.ts",
   "type": "module",
   "scripts": {
@@ -7,7 +7,7 @@
     "prepare": "husky"
   },
   "exports": {
-    "./abi-schema.json": "./src/parser/abi-schema.json",
+    "./scd-schema.json": "./src/parser/scd-schema.json",
     "./generator": "./src/generator/index.ts",
     "./parser": "./src/parser/index.ts"
   },

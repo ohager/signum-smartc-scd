@@ -1,14 +1,13 @@
-import { StepABIContractInfo } from "./steps/step-abi-contract-info";
-import { type ABIType } from "@signum-smartc-abi/core/parser";
+import { StepContractInfo } from "./steps/step-contract-info";
+import { type SCDType } from "@signum-smartc-abi/core/parser";
 import { Wizard, type WizardStepProps } from "@/components/ui/wizard";
-import { StepABIPragmas } from "./steps/step-abi-pragmas";
-import { StepABIMethods } from "./steps/step-abi-methods";
-import { Component } from "react";
-import { StepABIMaps } from "./steps/step-abi-maps";
-import { StepABITransactions } from "./steps/step-abi-transactions";
-import { StepABIStateLayout } from "./steps/step-abi-state-layout";
+import { StepPragmas } from "./steps/step-pragmas";
+import { StepMethods } from "./steps/step-methods";
+import { StepMaps } from "./steps/step-maps";
+import { StepTransactions } from "./steps/step-transactions";
+import { StepVariables } from "./steps/step-variables";
 
-const InitialState: ABIType = {
+const InitialState: SCDType = {
   activationAmount: "0.5",
   contractName: "",
   description: "",
@@ -19,53 +18,54 @@ const InitialState: ABIType = {
     version: "2.2.1",
   },
   methods: [],
+  variables: [],
   transactions: [],
   maps: [],
-  stateLayout: [],
 };
 
 const steps = [
   {
     title: "Contract Info",
     description: "Define here the contracts basic information",
-    component: StepABIContractInfo,
+    component: StepContractInfo,
   },
   {
     title: "Pragmas",
     description: "Allows to configure some of the compiler features (Pragmas)",
-    component: StepABIPragmas,
+    component: StepPragmas,
   },
   {
     title: "Callable Methods",
     description: "Define your public/callable methods here",
-    component: StepABIMethods,
+    component: StepMethods,
   },
   {
-    title: "State Layout",
-    description: "Describe your publicly accessible state (variables)",
-    component: StepABIStateLayout,
+    title: "Variables",
+    description:
+      "Describe your global variables, which represent the (public) state of your contract",
+    component: StepVariables,
   },
   {
     title: "Maps",
     description: "Configure optional kkv-Maps (Storage)",
-    component: StepABIMaps,
+    component: StepMaps,
   },
   {
     title: "Transactions",
     description: "Describe what transactions your contract will dispatch",
-    component: StepABITransactions,
+    component: StepTransactions,
   },
 ];
 
 const StepComponents = steps.map((step) => step.component);
 
-const WizardStepRenderer = (props: WizardStepProps<ABIType, unknown>) => {
+const WizardStepRenderer = (props: WizardStepProps<SCDType, unknown>) => {
   const StepComponent = StepComponents[props.step - 1];
   return StepComponent ? <StepComponent {...props} /> : null;
 };
 
-export function ABIFormEditor() {
-  const handleOnFinish = (data: ABIType) => {
+export function SCDFormEditor() {
+  const handleOnFinish = (data: SCDType) => {
     console.log(data);
   };
 

@@ -22,7 +22,7 @@
 
 
 // State variables
-<% for (const svar of it.stateVars) { %>
+<% for (const svar of it.variables) { %>
 long <%= svar.name %>;
 <% } %>
 

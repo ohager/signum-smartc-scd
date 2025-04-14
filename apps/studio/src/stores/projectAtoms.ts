@@ -3,13 +3,13 @@ import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 
 export const projectsAtom = atomWithStorage<Project[]>(
-  "smartc:projects",
+  "scd:projects",
   [],
   {
     getItem: (key: string) => {
       const value = localStorage.getItem(key);
       try {
-        return JSON.parse(value) ?? [];
+        return value ? JSON.parse(value) : [];
       } catch (error) {
         console.error(`Error parsing ${key}:`, error);
         return [];
@@ -27,15 +27,15 @@ export const projectsAtom = atomWithStorage<Project[]>(
   },
 );
 
-export const activeProjectIdAtom = atomWithStorage<string>(
-  "smartc:activeProjectId",
-  "",
+export const activeProjectIdAtom = atomWithStorage<string | null>(
+  "scd:activeProjectId",
+  null,
   localStorage,
   { getOnInit: true },
 );
-export const activeFileIdAtom = atomWithStorage<string>(
-  "smartc:activeFileId",
-  "",
+export const activeFileIdAtom = atomWithStorage<string | null>(
+  "scd:activeFileId",
+  null,
   localStorage,
   { getOnInit: true },
 );

@@ -1,15 +1,14 @@
-import { Card } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { ProjectFile } from "@/types/project";
 import { lazy, Suspense, useState } from "react";
 
-const ABIFormEditor = lazy(() => import("./form-editor"));
+const SCDFormEditor = lazy(() => import("./form-editor"));
 interface Props {
   file: ProjectFile;
 }
 
-export const AbiBuilder = ({ file }: Props) => {
+export const SCDBuilder = ({ file }: Props) => {
   const [mode, setMode] = useState<"form" | "json">("form");
 
   return (
@@ -22,7 +21,7 @@ export const AbiBuilder = ({ file }: Props) => {
 
         <TabsContent value="form">
           <Suspense fallback={<EditorLoadingState />}>
-            <ABIFormEditor />
+            <SCDFormEditor />
           </Suspense>
         </TabsContent>
 

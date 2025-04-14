@@ -37,8 +37,6 @@ export function FileSidebarItem({ file, projectId, isActive }: Props) {
     // Implement file deletion logic here
   };
 
-  console.log("pathname", pathname);
-
   return (
     <SidebarMenuSubItem>
       <div className="relative flex items-center cursor-pointer">

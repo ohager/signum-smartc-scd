@@ -66,7 +66,7 @@ export function LeftSidebar() {
                 </SidebarMenuItem>
               ) : (
                 projects.map((project) => (
-                  <ProjectSidebarItem project={project} />
+                  <ProjectSidebarItem key={project.id} project={project} />
                 ))
               )}
             </SidebarMenu>

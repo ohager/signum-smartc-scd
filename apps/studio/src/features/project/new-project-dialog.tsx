@@ -22,8 +22,8 @@ export function NewProjectDialog() {
 
     addFile({
       projectId,
-      type: "abi",
-      fileName: `${fileName}.abi.json`,
+      type: "scd",
+      fileName: `${fileName.toLowerCase()}.scd.json`,
     });
 
     // addFile({

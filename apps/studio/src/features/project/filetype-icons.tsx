@@ -8,7 +8,7 @@ import {
 
 export const FileTypeIcons = {
   contract: CodeIcon,
-  abi: FileJsonIcon,
+  scd: FileJsonIcon,
   test: FileBadgeIcon,
   doc: FileTextIcon,
 };

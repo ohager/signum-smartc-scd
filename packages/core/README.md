@@ -1,6 +1,6 @@
-# @signum-smartc-abi/core
+# @signum-smartc-scd/core
 
-This is the core package of the Signum Smart Contract ABI.
+This is the core package of the Signum Smart Contract Descriptors (SCD).
 
 To install dependencies:
 
