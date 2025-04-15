@@ -17,7 +17,8 @@
         "long[]",
         "amount[]",
         "txId[]",
-        "struct"
+        "struct",
+        "enum"
       ]
     },
     "MapType": {

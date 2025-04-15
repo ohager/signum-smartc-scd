@@ -61,12 +61,13 @@ export interface MethodDefinition {
 
 export interface TransactionDefinition {
   name: string;
+  description?: string;
   kind:
     | "sendAmountAndMessage"
-    | "sendBalance"
+    | "sendAmount"
+    | "sendMessage"
     | "sendQuantity"
     | "sendQuantityAndAmount";
-  inputs: ValueDefinition[];
 }
 
 export interface SCDType {
