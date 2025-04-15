@@ -17,6 +17,7 @@ import { Dialog, DialogTrigger } from "../dialog";
 import { NewProjectDialog } from "@/features/project/new-project-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
 import { ProjectSidebarItem } from "@/features/project/project-sidebar-item";
+import { useState } from "react";
 
 const footerItems = [
   {
@@ -28,7 +29,7 @@ const footerItems = [
 
 export function LeftSidebar() {
   const { projects } = useProjects();
-
+  const [isOpen, setIsOpen] = useState(false);
   return (
     <Sidebar>
       <SidebarContent>
@@ -36,7 +37,7 @@ export function LeftSidebar() {
           <SidebarGroupLabel>
             <div className="w-full flex justify-between items-center">
               Projects
-              <Dialog>
+              <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogTrigger>
                   <Tooltip delayDuration={1000}>
                     <TooltipTrigger>
@@ -47,7 +48,7 @@ export function LeftSidebar() {
                     </TooltipContent>
                   </Tooltip>
                 </DialogTrigger>
-                <NewProjectDialog />
+                <NewProjectDialog close={() => setIsOpen(false)} />
               </Dialog>
             </div>
           </SidebarGroupLabel>
