@@ -1,3 +1,4 @@
+
 export type DataType =
   | "address"
   | "string"
@@ -11,18 +12,21 @@ export type DataType =
   | "long[]"
   | "amount[]"
   | "txId[]"
-  | "struct";
+  | "struct"
+  | "enum";
 
-export type MapType = {
+export type EnumTypeDefinition {
+  name: string;
+  value: string;
+}
+
+export type MapItemDefinition = {
   name: string;
   description?: string;
   type?: DataType;
   constant?: boolean;
-  value?: string;
-  oneOf?: Array<{
-    name: string;
-    value: string;
-  }>;
+  value?: string; // if constant
+  oneOf?: EnumTypeDefinition[]; // if type === "enum"
 };
 
 export interface ValueDefinition {
@@ -42,9 +46,10 @@ export interface VariableDefinition extends ValueDefinition {
 
 export interface MapDefinition {
   name: string;
-  key1: MapType;
-  key2: MapType;
-  value: MapType;
+  description?: string;
+  key1: MapItemDefinition;
+  key2: MapItemDefinition;
+  value: MapItemDefinition;
 }
 
 export interface MethodDefinition {

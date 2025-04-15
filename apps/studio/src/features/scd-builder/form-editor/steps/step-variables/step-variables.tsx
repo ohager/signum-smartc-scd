@@ -65,7 +65,6 @@ export function StepVariables({ updateData, data, setCanProceed }: StepProps) {
                 </AccordionTrigger>
                 <AccordionContent>
                   <VariableForm
-                    key={index}
                     variable={variable}
                     onUpdate={(variable) => updateVariable(index, variable)}
                     onDelete={() => removeVariable(index)}

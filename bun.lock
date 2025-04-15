@@ -15,7 +15,7 @@
       },
     },
     "apps/studio": {
-      "name": "smartc-studio",
+      "name": "@signum-smartc-scd/studio",
       "version": "0.1.0",
       "dependencies": {
         "@hookform/resolvers": "^5.0.1",
@@ -31,7 +31,7 @@
         "@radix-ui/react-slot": "^1.2.0",
         "@radix-ui/react-tabs": "^1.1.4",
         "@radix-ui/react-tooltip": "^1.2.0",
-        "@signum-smartc-abi/core": "workspace:*",
+        "@signum-smartc-scd/core": "workspace:*",
         "@types/lodash.set": "^4.3.9",
         "bun-plugin-tailwind": "^0.0.14",
         "class-variance-authority": "^0.7.1",
@@ -56,7 +56,7 @@
       },
     },
     "packages/core": {
-      "name": "@signum-smartc-abi/core",
+      "name": "@signum-smartc-scd/core",
       "dependencies": {
         "ajv": "^8.17.1",
         "eta": "^3.5.0",
@@ -161,7 +161,9 @@
 
     "@radix-ui/rect": ["@radix-ui/rect@1.1.1", "", {}, "sha512-HPwpGIzkl28mWyZqG52jiqDJ12waP11Pa1lGoiyUkIEuMLBP0oeK/C89esbXrxsky5we7dfd8U58nm0SgAWpVw=="],
 
-    "@signum-smartc-abi/core": ["@signum-smartc-abi/core@workspace:packages/core"],
+    "@signum-smartc-scd/core": ["@signum-smartc-scd/core@workspace:packages/core"],
+
+    "@signum-smartc-scd/studio": ["@signum-smartc-scd/studio@workspace:apps/studio"],
 
     "@standard-schema/utils": ["@standard-schema/utils@0.3.0", "", {}, "sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g=="],
 
@@ -330,8 +332,6 @@
     "signal-exit": ["signal-exit@4.1.0", "", {}, "sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw=="],
 
     "slice-ansi": ["slice-ansi@5.0.0", "", { "dependencies": { "ansi-styles": "^6.0.0", "is-fullwidth-code-point": "^4.0.0" } }, "sha512-FC+lgizVPfie0kkhqUScwRu1O/lF6NOgJmlCgK+/LYxDCTk8sGelYaHDhFcDN+Sn3Cv+3VSa4Byeo+IMCzpMgQ=="],
-
-    "smartc-studio": ["smartc-studio@workspace:apps/studio"],
 
     "state-local": ["state-local@1.0.7", "", {}, "sha512-HTEHMNieakEnoe33shBYcZ7NX83ACUjCu8c40iOGEZsngj9zRnkqS9j1pqQPXwobB0ZcVTk27REb7COQ0UR59w=="],
 
