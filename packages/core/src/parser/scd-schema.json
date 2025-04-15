@@ -170,28 +170,19 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["name", "kind", "inputs"],
+        "required": ["name", "kind"],
         "properties": {
           "name": { "type": "string" },
+          "description": { "type": "string" },
           "kind": {
             "type": "string",
             "enum": [
               "sendAmountAndMessage",
-              "sendBalance",
+              "sendMessage",
+              "sendAmount",
               "sendQuantity",
               "sendQuantityAndAmount"
             ]
-          },
-          "inputs": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": ["name", "type"],
-              "properties": {
-                "name": { "type": "string" },
-                "type": { "$ref": "#/definitions/DataType" }
-              }
-            }
           }
         }
       }

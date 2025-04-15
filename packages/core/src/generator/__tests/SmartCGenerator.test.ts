@@ -1,8 +1,8 @@
-import { SCD } from "../../parser";
+import { SCD, type SCDType } from "../../parser";
 import { SmartCGenerator } from "../SmartCGenerator";
 import { describe, expect, it } from "bun:test";
 
-const mockSCD = {
+const mockSCD: SCDType = {
   contractName: "TestContract",
   contractHash: "0x1234567890abcdef",
   description: "A test contract",
@@ -72,6 +72,16 @@ const mockSCD = {
           },
         ],
       },
+    },
+  ],
+  transactions: [
+    {
+      name: "Some name",
+      kind: "sendAmount",
+    },
+    {
+      name: "Another one",
+      kind: "sendAmountAndMessage",
     },
   ],
 };

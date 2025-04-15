@@ -1,4 +1,3 @@
-
 export type DataType =
   | "address"
   | "string"
@@ -15,10 +14,10 @@ export type DataType =
   | "struct"
   | "enum";
 
-export type EnumTypeDefinition {
+export type EnumTypeDefinition = {
   name: string;
   value: string;
-}
+};
 
 export type MapItemDefinition = {
   name: string;
