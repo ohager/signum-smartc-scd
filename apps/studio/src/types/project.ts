@@ -2,9 +2,11 @@ export type ProjectFileType = "contract" | "scd" | "test" | "doc";
 
 export interface ProjectFile {
   id: string;
+  projectId: string;
   name: string;
   type: ProjectFileType;
   lastModified: Date;
+  data?: any;
 }
 
 export interface Project {

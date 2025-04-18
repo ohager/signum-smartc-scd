@@ -32,12 +32,14 @@ export interface WizardProps<T, V = any> {
   initialState: T;
   children: (props: WizardStepProps<T, V>) => ReactNode;
   onFinish: (formData: T) => void;
+  finishButtonLabel?: string;
 }
 
 export function Wizard<T extends object, V = any>({
   steps,
   initialState,
   onFinish,
+  finishButtonLabel = "Finish",
   children,
 }: WizardProps<T, V>) {
   const {
@@ -89,7 +91,7 @@ export function Wizard<T extends object, V = any>({
           onClick={step === steps.length ? () => onFinish(data) : nextStep}
           disabled={!canProceed}
         >
-          {step === steps.length ? "Finish" : "Next"}{" "}
+          {step === steps.length ? finishButtonLabel : "Next"}{" "}
           <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </CardFooter>

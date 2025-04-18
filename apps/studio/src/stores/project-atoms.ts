@@ -1,6 +1,11 @@
 import type { Project, ProjectFile, ProjectFileType } from "@/types/project";
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
+import {
+  deleteFileData,
+  readFileData,
+  saveFileData,
+} from "./internal/idb-file-store";
 
 export const projectsAtom = atomWithStorage<Project[]>(
   "scd:projects",
@@ -55,11 +60,18 @@ export const activeFileAtom = atom((get) => {
 
 export const getFileAtom = atom((get) => {
   const projects = get(projectsAtom) as Project[];
-  return ({ projectId, fileId }: { projectId: string; fileId: string }) => {
+  return async ({
+    projectId,
+    fileId,
+  }: {
+    projectId: string;
+    fileId: string;
+  }) => {
     const project = projects.find((p) => p.id === projectId);
     if (project) {
-      const file = project.files.find((f) => f.id === fileId) ?? null;
-      return file;
+      const file = project.files.find((f) => f.id === fileId);
+      const data = await readFileData(fileId);
+      return file ? { ...file, data } : null;
     }
     return null;
   };
@@ -89,6 +101,7 @@ export const addFileAtom = atom(
     const projects = get(projectsAtom) as Project[];
     const newFile: ProjectFile = {
       id: crypto.randomUUID(),
+      projectId: payload.projectId,
       name: payload.fileName,
       type: payload.type,
       lastModified: new Date(),
@@ -110,39 +123,39 @@ export const addFileAtom = atom(
   },
 );
 
-export const updateFileContentAtom = atom(
-  null,
-  (
-    get,
-    set,
-    payload: { projectId: string; fileId: string; content: string },
-  ) => {
-    const projects = get(projectsAtom) as Project[];
-    set(
-      projectsAtom,
-      projects.map((project) =>
-        project.id === payload.projectId
-          ? {
-              ...project,
-              files: project.files.map((file) =>
-                file.id === payload.fileId
-                  ? {
-                      ...file,
-                      content: payload.content,
-                      lastModified: new Date(),
-                    }
-                  : file,
-              ),
-              lastModified: new Date(),
-            }
-          : project,
-      ),
-    );
-  },
-);
+export const saveFileAtom = atom(null, (get, set, file: ProjectFile) => {
+  const projects = get(projectsAtom) as Project[];
+  const currentTime = new Date();
+
+  set(
+    projectsAtom,
+    projects.map((project) =>
+      project.id === file.projectId
+        ? {
+            ...project,
+            lastModified: currentTime,
+            files: project.files.map((f) =>
+              f.id === file.id
+                ? {
+                    ...f,
+                    lastModified: currentTime,
+                  }
+                : f,
+            ),
+          }
+        : project,
+    ),
+  );
+  return saveFileData(file.id, file.data);
+});
 
 export const deleteProjectAtom = atom(null, (get, set, projectId: string) => {
   const projects = get(projectsAtom) as Project[];
+  projects
+    .find((p) => p.id === projectId)
+    ?.files.forEach((file) => {
+      deleteFileData(file.id);
+    });
   set(
     projectsAtom,
     projects.filter((p) => p.id !== projectId),
@@ -157,15 +170,18 @@ export const deleteProjectAtom = atom(null, (get, set, projectId: string) => {
 export const deleteFileAtom = atom(
   null,
   (get, set, payload: { projectId: string; fileId: string }) => {
-    const projects = get(projectsAtom) as Project[];
+    const projects = get(projectsAtom) as Project[]; // force refresh
+
+    const currentTime = new Date();
+
     set(
       projectsAtom,
       projects.map((project) =>
         project.id === payload.projectId
           ? {
               ...project,
+              lastModified: currentTime,
               files: project.files.filter((f) => f.id !== payload.fileId),
-              lastModified: new Date(),
             }
           : project,
       ),
@@ -175,6 +191,7 @@ export const deleteFileAtom = atom(
     if (activeFileId === payload.fileId) {
       set(activeFileIdAtom, "");
     }
+    return deleteFileData(payload.fileId);
   },
 );
 

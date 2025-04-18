@@ -7,22 +7,6 @@ import { StepMaps } from "./steps/step-maps";
 import { StepTransactions } from "./steps/step-transactions";
 import { StepVariables } from "./steps/step-variables";
 
-const InitialState: SCDType = {
-  activationAmount: "0.5",
-  contractName: "",
-  description: "",
-  pragmas: {
-    optimizationLevel: 3,
-    verboseAssembly: false,
-    maxAuxVars: 3,
-    version: "2.2.1",
-  },
-  methods: [],
-  variables: [],
-  transactions: [],
-  maps: [],
-};
-
 const steps = [
   {
     title: "Contract Info",
@@ -64,16 +48,18 @@ const WizardStepRenderer = (props: WizardStepProps<SCDType, unknown>) => {
   return StepComponent ? <StepComponent {...props} /> : null;
 };
 
-export function SCDFormEditor() {
-  const handleOnFinish = (data: SCDType) => {
-    console.log(data);
-  };
+interface Props {
+  data: SCDType;
+  onSave: (data: SCDType) => void;
+}
 
+export function SCDFormEditor({ data, onSave }: Props) {
   return (
-    <Wizard
+    <Wizard<SCDType>
       steps={steps}
-      initialState={{ ...InitialState }}
-      onFinish={handleOnFinish}
+      initialState={data}
+      onFinish={onSave}
+      finishButtonLabel="Save"
     >
       {(props) => (
         <div className="min-h-[200px] w-full py-2">

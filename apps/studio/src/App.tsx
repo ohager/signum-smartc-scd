@@ -1,6 +1,6 @@
 import "./index.css";
 import { AppLayout } from "./components/ui/layout/app-layout";
-import { jotaiStore } from "./stores/jotaiStore";
+import { jotaiStore } from "./stores/jotai-store";
 import { Provider as JotaiProvider } from "jotai";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { FilesPage } from "./pages/files/files-page";

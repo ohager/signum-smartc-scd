@@ -4,6 +4,7 @@ import { FieldLabel } from "@/components/ui/field-label";
 import { useEffect } from "react";
 import type { StepProps } from "./step-props";
 import { toValidCName } from "@/lib/string";
+import { Amount } from "@signumjs/util";
 
 const MaxNameLength = 32;
 const MaxDescriptionLength = 320;
@@ -64,9 +65,16 @@ export function StepContractInfo({
         <div className="relative">
           <Input
             type="number"
-            value={data.activationAmount}
+            value={
+              data.activationAmount
+                ? Amount.fromPlanck(data.activationAmount).getSigna()
+                : ""
+            }
             onChange={(e) => {
-              updateData("activationAmount", e.target.value);
+              const amount = e.target.value
+                ? Amount.fromSigna(e.target.value).getPlanck()
+                : "";
+              updateData("activationAmount", amount);
             }}
             min={0.01}
             step={0.1}

@@ -62,7 +62,7 @@ export function LeftSidebar() {
                         Create new project
                       </Button>
                     </DialogTrigger>
-                    <NewProjectDialog />
+                    <NewProjectDialog close={() => setIsOpen(false)} />
                   </Dialog>
                 </SidebarMenuItem>
               ) : (

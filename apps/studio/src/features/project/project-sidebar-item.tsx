@@ -21,8 +21,8 @@ import {
   TrashIcon,
 } from "lucide-react";
 import { FileSidebarItem } from "./file-sidebar-item";
-import { jotaiStore } from "@/stores/jotaiStore";
-import { deleteProjectAtom } from "@/stores/projectAtoms";
+import { jotaiStore } from "@/stores/jotai-store";
+import { deleteProjectAtom } from "@/stores/project-atoms";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 interface Props {

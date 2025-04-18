@@ -1,4 +1,4 @@
-import React, { useEffect, type PropsWithChildren } from "react";
+import React, { useEffect, useRef, type PropsWithChildren } from "react";
 
 interface SubmitOnEnterProps {
   onSubmit: () => void;
@@ -14,6 +14,8 @@ export function SubmitOnEnter({
   preventPropagation = true,
   excludeElements = ["textarea"],
 }: PropsWithChildren<SubmitOnEnterProps>) {
+  const childRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Skip if disabled or if modifier keys are pressed
@@ -43,11 +45,11 @@ export function SubmitOnEnter({
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
+    childRef.current?.addEventListener("keydown", handleKeyDown);
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      childRef.current?.removeEventListener("keydown", handleKeyDown);
     };
   }, [onSubmit, isEnabled, preventPropagation, excludeElements]);
 
-  return <>{children}</>;
+  return <div ref={childRef}>{children}</div>;
 }

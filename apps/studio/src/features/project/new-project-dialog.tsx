@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SubmitOnEnter } from "@/components/ui/submit-on-enter";
 import { useProjects } from "@/hooks/use-projects";
+import { useSingleProject } from "@/hooks/use-single-project";
 import { replaceWhitespace } from "@/lib/string";
 import { useState } from "react";
 
@@ -19,11 +20,14 @@ interface Props {
 
 export function NewProjectDialog({ close }: Props) {
   const [name, setName] = useState("");
-  const { addProject, addFile } = useProjects();
+  const { addProject } = useProjects();
+  const { addFile } = useSingleProject();
   const canSubmit = name.length > 3;
 
   const handleCreateClicked = () => {
     if (!canSubmit) return;
+
+    console.log("name", name);
 
     const projectId = addProject(name);
     const fileName = replaceWhitespace(name);
