@@ -18,6 +18,7 @@ import { NewProjectDialog } from "@/features/project/new-project-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
 import { ProjectSidebarItem } from "@/features/project/project-sidebar-item";
 import { useState } from "react";
+import { ThemeSwitch } from "@/components/theme-switch";
 
 const footerItems = [
   {
@@ -87,6 +88,8 @@ export function LeftSidebar() {
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
+        <hr />
+        <ThemeSwitch />
       </SidebarFooter>
     </Sidebar>
   );

@@ -64,7 +64,7 @@ export function Wizard<T extends object, V = any>({
             {steps.map((s, i) => (
               <div key={i} className="flex flex-col items-center">
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${i + 1 <= step ? "bg-primary text-primary-foreground" : "bg-muted"}`}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${i + 1 <= step ? "bg-accent" : "bg-muted"}`}
                 >
                   {i + 1}
                 </div>
@@ -76,7 +76,7 @@ export function Wizard<T extends object, V = any>({
           </div>
           <div className="w-full bg-muted rounded-full h-2">
             <div
-              className="bg-signum-blue h-2 rounded-full transition-all duration-300 ease-in-out"
+              className="bg-accent h-2 rounded-full transition-all duration-300 ease-in-out"
               style={{ width: `${((step - 1) / (steps.length - 1)) * 100}%` }}
             ></div>
           </div>
@@ -88,6 +88,7 @@ export function Wizard<T extends object, V = any>({
           <ChevronLeft className="mr-2 h-4 w-4" /> Previous
         </Button>
         <Button
+          variant="accent"
           onClick={step === steps.length ? () => onFinish(data) : nextStep}
           disabled={!canProceed}
         >

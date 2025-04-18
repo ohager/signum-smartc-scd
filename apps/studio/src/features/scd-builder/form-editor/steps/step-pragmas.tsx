@@ -15,7 +15,7 @@ export function StepPragmas({ updateData, data }: StepProps) {
             type="number"
             value={data.pragmas.maxAuxVars}
             onChange={(e) => {
-              updateData("pragmas.maxAuxVars", e.target.value);
+              updateData("pragmas.maxAuxVars", Number(e.target.value));
             }}
             min={1}
             max={10}
@@ -32,7 +32,7 @@ export function StepPragmas({ updateData, data }: StepProps) {
           type="number"
           value={data.pragmas.optimizationLevel}
           onChange={(e) => {
-            updateData("pragmas.optimizationLevel", e.target.value);
+            updateData("pragmas.optimizationLevel", Number(e.target.value));
           }}
           min={0}
           max={3}

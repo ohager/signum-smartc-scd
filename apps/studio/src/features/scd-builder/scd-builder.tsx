@@ -7,6 +7,8 @@ import { useSetAtom } from "jotai";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Amount } from "@signumjs/util";
 import { toast } from "sonner";
+import { useSearchParams } from "react-router";
+import { Cone } from "lucide-react";
 
 const InitialData: SCDType = {
   activationAmount: Amount.fromSigna(0.5).getPlanck(),
@@ -25,47 +27,58 @@ const InitialData: SCDType = {
 };
 
 const SCDFormEditor = lazy(() => import("./form-editor"));
+const SCDCodeEditor = lazy(() => import("./code-editor"));
+
 interface Props {
   file: ProjectFile;
   onSave: (data: SCDType) => void;
 }
 
 export const SCDBuilder = ({ file, onSave }: Props) => {
-  const [mode, setMode] = useState<"form" | "json">("form");
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isValidSCD, setIsValidSCD] = useState(false);
   const saveFile = useSetAtom(saveFileAtom);
-  const [formData, setFormData] = useState<SCDType>(file.data ?? InitialData);
+  const [scdData, setSCDData] = useState<SCDType>(file.data ?? InitialData);
 
   useEffect(() => {
     try {
-      SCD.parse(formData);
+      SCD.parse(scdData);
       setIsValidSCD(true);
     } catch (error) {
       setIsValidSCD(false);
       toast.error(`"${file.name}" is not a valid SCD file`);
       console.error(error);
     }
-  }, [formData]);
+  }, [scdData]);
 
   const handleOnSave = async (data: SCDType) => {
     try {
       await saveFile({ ...file, data });
-      setFormData(InitialData);
+      setSCDData(data);
       onSave(data);
-    } catch (error) {}
+    } catch (error) {
+      console.error("SCDBuilder Save Error:", error);
+      toast.error(`Error while saving file "${file.name}"`);
+    }
+  };
+
+  const handleEditModeChange = (mode: "form" | "json") => {
+    setSearchParams((s) => {
+      s.set("mode", mode);
+      return s;
+    });
   };
 
   if (!isValidSCD) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <LoadingSpinner />
-      </div>
-    );
+    return <EditorLoadingState />;
   }
 
   return (
     <div className="w-full p-4">
-      <Tabs value={mode} onValueChange={(v) => setMode(v as "form" | "json")}>
+      <Tabs
+        value={searchParams.get("mode") || "form"}
+        onValueChange={(v) => handleEditModeChange(v as "form" | "json")}
+      >
         <TabsList>
           <TabsTrigger value="form">Form</TabsTrigger>
           <TabsTrigger value="json">JSON</TabsTrigger>
@@ -73,13 +86,13 @@ export const SCDBuilder = ({ file, onSave }: Props) => {
 
         <TabsContent value="form">
           <Suspense fallback={<EditorLoadingState />}>
-            <SCDFormEditor data={formData} onSave={handleOnSave} />
+            <SCDFormEditor data={scdData} onSave={handleOnSave} />
           </Suspense>
         </TabsContent>
 
         <TabsContent value="json">
           <Suspense fallback={<EditorLoadingState />}>
-            {/* <MonacoJsonEditor value={value} onChange={onChange} /> */}
+            <SCDCodeEditor data={scdData} onSave={handleOnSave} />
           </Suspense>
         </TabsContent>
       </Tabs>
