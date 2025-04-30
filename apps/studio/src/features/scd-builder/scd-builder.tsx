@@ -3,12 +3,12 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { saveFileAtom } from "@/stores/project-atoms";
 import type { ProjectFile } from "@/types/project";
 import { SCD, type SCDType } from "@signum-smartc-abi/core/parser";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Amount } from "@signumjs/util";
 import { toast } from "sonner";
 import { useSearchParams } from "react-router";
-import { Cone } from "lucide-react";
+import { scdValidationStateAtom } from "./stores/scd-builder-atoms.ts";
 
 const InitialData: SCDType = {
   activationAmount: Amount.fromSigna(0.5).getPlanck(),
@@ -36,20 +36,8 @@ interface Props {
 
 export const SCDBuilder = ({ file, onSave }: Props) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [isValidSCD, setIsValidSCD] = useState(false);
   const saveFile = useSetAtom(saveFileAtom);
   const [scdData, setSCDData] = useState<SCDType>(file.data ?? InitialData);
-
-  useEffect(() => {
-    try {
-      SCD.parse(scdData);
-      setIsValidSCD(true);
-    } catch (error) {
-      setIsValidSCD(false);
-      toast.error(`"${file.name}" is not a valid SCD file`);
-      console.error(error);
-    }
-  }, [scdData]);
 
   const handleOnSave = async (data: SCDType) => {
     try {
@@ -68,10 +56,6 @@ export const SCDBuilder = ({ file, onSave }: Props) => {
       return s;
     });
   };
-
-  if (!isValidSCD) {
-    return <EditorLoadingState />;
-  }
 
   return (
     <div className="w-full p-4">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import scdSchema from "@signum-smartc-scd/core/scd-schema.json";
 import { useTheme } from "next-themes";
@@ -6,7 +6,7 @@ import { useTheme } from "next-themes";
 interface JsonEditorProps {
   value: string;
   onChange: (value: string | undefined) => void;
-  onValidationChange: (isValid: boolean) => void;
+  onValidationChange: (isValid: boolean, error?: string) => void;
 }
 
 export function JsonEditor({
@@ -35,7 +35,8 @@ export function JsonEditor({
 
   const handleValidation = (markers: any[]) => {
     console.log("Markers:", markers);
-    onValidationChange(markers.length === 0);
+    const error = markers.length > 0 ? markers[0].message : undefined;
+    onValidationChange(markers.length === 0, error);
   };
 
   return (

@@ -8,6 +8,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAtom, useSetAtom } from "jotai";
+import { scdValidationStateAtom } from "@/features/scd-builder/stores/scd-builder-atoms.ts";
 
 interface Props {
   data: SCDType;
@@ -18,8 +20,8 @@ interface Props {
 export function SCDJsonEditor({ data, onSave, autoSave = 2000 }: Props) {
   const timer = useRef<NodeJS.Timeout | null>(null);
   const [jsonValue, setJsonValue] = useState(JSON.stringify(data, null, 2));
-  const [isValid, setIsValid] = useState(true);
   const [isDirty, setIsDirty] = useState(false);
+  const [isValid, setIsValid] = useAtom(scdValidationStateAtom)
 
   const save = (value: string) => {
     try {
@@ -39,7 +41,6 @@ export function SCDJsonEditor({ data, onSave, autoSave = 2000 }: Props) {
       timer.current && clearTimeout(timer.current);
 
       timer.current = setTimeout(() => {
-        console.log("debounce....");
         save(jsonValue);
         timer.current = null;
       }, autoSave);
@@ -56,9 +57,8 @@ export function SCDJsonEditor({ data, onSave, autoSave = 2000 }: Props) {
     }
   };
 
-  const handleValidationChange = (isValid: boolean) => {
-    console.log("Validation changed:", isValid);
-    setIsValid(isValid);
+  const handleValidationChange = (isValid: boolean, error?:string) => {
+    setIsValid({ isValid, errorMessage:error });
   };
 
   return (

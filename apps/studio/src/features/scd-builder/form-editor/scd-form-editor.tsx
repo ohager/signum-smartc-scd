@@ -6,6 +6,10 @@ import { StepMethods } from "./steps/step-methods";
 import { StepMaps } from "./steps/step-maps";
 import { StepTransactions } from "./steps/step-transactions";
 import { StepVariables } from "./steps/step-variables";
+import { useSetAtom } from "jotai";
+import { scdValidationStateAtom } from "@/features/scd-builder/stores/scd-builder-atoms.ts";
+import { useEffect } from "react";
+import { SCD } from "@signum-smartc-scd/core/parser";
 
 const steps = [
   {
@@ -44,6 +48,16 @@ const steps = [
 const StepComponents = steps.map((step) => step.component);
 
 const WizardStepRenderer = (props: WizardStepProps<SCDType, unknown>) => {
+  const setSCDIsValid = useSetAtom(scdValidationStateAtom);
+  useEffect(() => {
+    try{
+      SCD.parse(props.data)
+      setSCDIsValid({isValid: true})
+    }catch(e){
+      setSCDIsValid({isValid: false, errorMessage: e.message})
+    }
+  }, [props.data]);
+
   const StepComponent = StepComponents[props.step - 1];
   return StepComponent ? <StepComponent {...props} /> : null;
 };

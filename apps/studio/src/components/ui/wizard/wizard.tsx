@@ -64,7 +64,7 @@ export function Wizard<T extends object, V = any>({
             {steps.map((s, i) => (
               <div key={i} className="flex flex-col items-center">
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${i + 1 <= step ? "bg-accent" : "bg-muted"}`}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${i + 1 <= step ? "bg-accent text-accent-foreground" : "bg-muted"}`}
                 >
                   {i + 1}
                 </div>

@@ -1,5 +1,12 @@
 import * as React from "react";
-import { cn } from "@/lib/utils"; // Assuming you have the cn utility
+import { cn } from "@/lib/utils";
+import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
+import { Button } from "@/components/ui/button.tsx";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip.tsx"; // Assuming you have the cn utility
 
 interface PageProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -34,15 +41,48 @@ Page.displayName = "Page";
 
 const PageHeader = React.forwardRef<HTMLElement, PageHeaderProps>(
   ({ className, children, ...props }, ref) => {
+    const { actions } = usePageHeaderActions();
+
+    console.log("Actions", actions)
+
     return (
       <header
         ref={ref}
-        className={cn("p-4 border-b w-full", className)}
+        className={cn(
+          "p-4 border-b w-full flex justify-between items-center",
+          className,
+        )}
         {...props}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">{children}</div>
         </div>
+        {actions && actions.length > 0 && (
+          <div className="flex items-center gap-2">
+            {actions.map((action) => (
+              <React.Fragment key={action.id}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      key={action.id}
+                      variant={action.variant}
+                      onClick={action.onClick}
+                      disabled={action.disabled}
+                      size={action.icon && !action.label ? "icon" : "sm"}
+                      className="rounded-[2px]"
+                    >
+                      {action.icon}
+                      {action.label ?? ""}
+                    </Button>
+                  </TooltipTrigger>
+                  {action.tooltip && (
+                    <TooltipContent>{action.tooltip}</TooltipContent>
+                  )}
+                </Tooltip>
+              </React.Fragment>
+            ))}
+          </div>
+        )}
       </header>
     );
   },
