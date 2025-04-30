@@ -19,7 +19,8 @@
   "scripts": {
     "test": "bun test",
     "format": "prettier . --write",
-    "prepare": "husky"
+    "prepare": "husky",
+    "build": "turbo run build"
   },
   "packageManager": "bun@1.2.9",
   "lint-staged": {

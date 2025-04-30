@@ -96,7 +96,7 @@ export const addFileAtom = atom(
   (
     get,
     set,
-    payload: { projectId: string; fileName: string; type: ProjectFileType },
+    payload: { projectId: string; fileName: string; type: ProjectFileType, data?: any },
   ) => {
     const projects = get(projectsAtom) as Project[];
     const newFile: ProjectFile = {
@@ -105,6 +105,7 @@ export const addFileAtom = atom(
       name: payload.fileName,
       type: payload.type,
       lastModified: new Date(),
+      data: payload.data,
     };
 
     set(
@@ -119,7 +120,7 @@ export const addFileAtom = atom(
           : project,
       ),
     );
-    return newFile.id;
+    return newFile;
   },
 );
 

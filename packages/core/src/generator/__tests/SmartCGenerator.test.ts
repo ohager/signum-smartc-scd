@@ -4,7 +4,6 @@ import { describe, expect, it } from "bun:test";
 
 const mockSCD: SCDType = {
   contractName: "TestContract",
-  contractHash: "0x1234567890abcdef",
   description: "A test contract",
   activationAmount: "1000000",
   pragmas: {
@@ -22,6 +21,13 @@ const mockSCD: SCDType = {
       args: [
         { name: "param1", type: "long" },
         { name: "param2", type: "address" },
+      ],
+    },
+    {
+      name: "testMethod2",
+      code: "101",
+      args: [
+        { name: "param1", type: "long" },
       ],
     },
   ],
@@ -87,9 +93,9 @@ const mockSCD: SCDType = {
 };
 
 describe("SmartCGenerator", () => {
-  it("should generate SmartC code", async () => {
+  it("should generate SmartC code", () => {
     const generator = new SmartCGenerator(SCD.parse(mockSCD));
-    const smartCCode = await generator.generateContract();
+    const smartCCode = generator.generateContract();
     expect(smartCCode).toMatchSnapshot();
   });
 });

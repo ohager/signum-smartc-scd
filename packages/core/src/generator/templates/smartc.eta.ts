@@ -1,9 +1,8 @@
-#program name <%= it.contractName %>
+export const SmartCTemplate =`#program name <%= it.contractName %>
 
 #program description <%= it.description %>
 
 #program activationAmount <%= it.activationAmount %>
-
 
 <% Object.keys(it.pragmas).forEach(function(key) { %>
 #pragma <%= key %> <%= it.pragmas[key] %>
@@ -13,11 +12,13 @@
 // Magic codes for methods
 <% for (const m of it.methods) { %>
 #define <%= m.name.toUpperCase() %> <%= m.code %>
+
 <% } %>
 
 // Maps
 <% for (const map of it.maps) { %>
-#define MAP_<%= map.name.toUpperCase() %>_<%= map.key1.name.toUpperCase() %>  <%= map.key1.value %>
+#define MAP_<%= map.name.toUpperCase() %>_<%= map.key1.name.toUpperCase() %> <%= map.key1.value %>
+
 <% } %>
 
 
@@ -61,3 +62,4 @@ void <%= method.name %>(<% for (let i = 0; i < method.args.length; i++) { %>long
 
 }
 <% } %>
+`

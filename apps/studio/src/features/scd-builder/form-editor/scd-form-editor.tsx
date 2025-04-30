@@ -10,6 +10,7 @@ import { useSetAtom } from "jotai";
 import { scdValidationStateAtom } from "@/features/scd-builder/stores/scd-builder-atoms.ts";
 import { useEffect } from "react";
 import { SCD } from "@signum-smartc-scd/core/parser";
+import { useFile } from "@/hooks/use-file.ts";
 
 const steps = [
   {
@@ -47,16 +48,19 @@ const steps = [
 
 const StepComponents = steps.map((step) => step.component);
 
-const WizardStepRenderer = (props: WizardStepProps<SCDType, unknown>) => {
+const WizardStepRenderer = (props: WizardStepProps<SCDType, unknown> & {onSave: (data:SCDType) => void}) => {
   const setSCDIsValid = useSetAtom(scdValidationStateAtom);
+  const {} = useFile()
   useEffect(() => {
     try{
       SCD.parse(props.data)
       setSCDIsValid({isValid: true})
+      props.onSave(props.data)
     }catch(e){
       setSCDIsValid({isValid: false, errorMessage: e.message})
     }
   }, [props.data]);
+
 
   const StepComponent = StepComponents[props.step - 1];
   return StepComponent ? <StepComponent {...props} /> : null;
@@ -77,7 +81,7 @@ export function SCDFormEditor({ data, onSave }: Props) {
     >
       {(props) => (
         <div className="min-h-[200px] w-full py-2">
-          <WizardStepRenderer {...props} />
+          <WizardStepRenderer onSave={onSave} {...props} />
         </div>
       )}
     </Wizard>

@@ -1,14 +1,15 @@
 import { Eta } from "eta";
 import type { SCD } from "../parser";
+import {SmartCTemplate} from "./templates/smartc.eta"
 
 export class SmartCGenerator {
   private eta: Eta;
 
   constructor(private scd: SCD) {
-    this.eta = new Eta({ views: import.meta.dir + "/templates" });
+    this.eta = new Eta();
   }
 
-  async generateContract(): Promise<string> {
+  generateContract(): string {
     const templateData = {
       contractName: this.scd.getContractInfo().name,
       description: this.scd.getContractInfo().description,
@@ -20,6 +21,6 @@ export class SmartCGenerator {
       maps: this.scd.getMaps(),
     };
 
-    return this.eta.render("./smartc.eta", templateData);
+    return this.eta.renderString(SmartCTemplate, templateData);
   }
 }

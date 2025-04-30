@@ -4,7 +4,6 @@ exports[`SmartCGenerator should generate SmartC code 1`] = `
 "#program name TestContract
 #program description A test contract
 #program activationAmount 1000000
-
 #pragma maxAuxVars 3
 #pragma verboseAssembly true
 #pragma optimizationLevel 3
@@ -14,8 +13,11 @@ exports[`SmartCGenerator should generate SmartC code 1`] = `
 
 // Magic codes for methods
 #define TESTMETHOD 100
+#define TESTMETHOD2 101
+
 // Maps
-#define MAP_TESTMAP_KEY1  1
+#define MAP_TESTMAP_KEY1 1
+
 
 // State variables
 long owner;
@@ -37,6 +39,9 @@ void main() {
                     case TESTMETHOD:
                 testMethod(currentTx.message[1], currentTx.message[2]);
                 break;
+                    case TESTMETHOD2:
+                testMethod2(currentTx.message[1]);
+                break;
                 }
     }
 }
@@ -46,6 +51,9 @@ void main() {
 // Function stubs
 void testMethod(long param1, long param2) {
     // TODO: Implement testMethod
+}
+void testMethod2(long param1) {
+    // TODO: Implement testMethod2
 }
 "
 `;
