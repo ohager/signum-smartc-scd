@@ -6,13 +6,13 @@ import { useTheme } from "next-themes";
 interface JsonEditorProps {
   value: string;
   onChange: (value: string | undefined) => void;
-  onValidationChange: (isValid: boolean, error?: string) => void;
+  onValidationChange?: (isValid: boolean, error?: string) => void;
 }
 
 export function JsonEditor({
   value,
   onChange,
-  onValidationChange,
+  onValidationChange = () => {},
 }: JsonEditorProps) {
   const monaco = useMonaco();
   const { theme } = useTheme();

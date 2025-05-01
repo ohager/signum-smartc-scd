@@ -104,7 +104,7 @@
         }
       }
     },
-    "varaibles": {
+    "variables": {
       "type": "array",
       "items": {
         "type": "object",

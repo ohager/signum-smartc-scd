@@ -42,9 +42,6 @@ Page.displayName = "Page";
 const PageHeader = React.forwardRef<HTMLElement, PageHeaderProps>(
   ({ className, children, ...props }, ref) => {
     const { actions } = usePageHeaderActions();
-
-    console.log("Actions", actions)
-
     return (
       <header
         ref={ref}

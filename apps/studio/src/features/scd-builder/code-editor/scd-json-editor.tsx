@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { JsonEditor } from "./editor";
-import type { SCDType } from "@signum-smartc-scd/core/parser";
 import { FileWarning, SaveIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,57 +7,33 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useAtom, useSetAtom } from "jotai";
-import { scdValidationStateAtom } from "@/features/scd-builder/stores/scd-builder-atoms.ts";
+import { useScdFileManager } from "../hooks/use-scd-file-manager.ts";
 
-interface Props {
-  data: SCDType;
-  onSave: (data: SCDType) => void;
-  autoSave?: number;
-}
-
-export function SCDJsonEditor({ data, onSave, autoSave = 2000 }: Props) {
-  const timer = useRef<NodeJS.Timeout | null>(null);
-  const [jsonValue, setJsonValue] = useState(JSON.stringify(data, null, 2));
+export function SCDJsonEditor() {
+  const { requestUpdateData, isValid, scdData } = useScdFileManager();
+  const [jsonValue, setJsonValue] = useState(
+    JSON.stringify(scdData ?? "", null, 2),
+  );
   const [isDirty, setIsDirty] = useState(false);
-  const [isValid, setIsValid] = useAtom(scdValidationStateAtom)
 
-  const save = (value: string) => {
-    try {
-      console.log("Saving...", value);
-      const parsedJson = JSON.parse(value);
-      onSave(parsedJson);
-      setIsDirty(false);
-    } catch (error) {
-      console.error("Failed to auto-save:", error);
-    }
-  };
+  const save = useCallback(
+    (value: string) => {
+      try {
+        requestUpdateData(value, () => setIsDirty(false));
+      } catch (error) {
+        // ignore
+        console.error(error);
+      }
+    },
+    [requestUpdateData],
+  );
 
-  useEffect(() => {
-    if (autoSave <= 0) return;
-
-    if (isValid && jsonValue && isDirty) {
-      timer.current && clearTimeout(timer.current);
-
-      timer.current = setTimeout(() => {
-        save(jsonValue);
-        timer.current = null;
-      }, autoSave);
-    }
-    return () => {
-      timer.current && clearTimeout(timer.current);
-    };
-  }, [jsonValue, isValid, isDirty, save, autoSave]);
-
-  const handleChange = (value: string | undefined) => {
+  const handleChange = async (value: string | undefined) => {
     if (value) {
-      setIsDirty(true);
       setJsonValue(value);
+      setIsDirty(true);
+      save(value);
     }
-  };
-
-  const handleValidationChange = (isValid: boolean, error?:string) => {
-    setIsValid({ isValid, errorMessage:error });
   };
 
   return (
@@ -90,7 +65,7 @@ export function SCDJsonEditor({ data, onSave, autoSave = 2000 }: Props) {
                   className="disabled:cursor-none"
                 >
                   <SaveIcon
-                    className={isDirty ? "text-red-200" : "text-green-200"}
+                    className={isDirty ? "text-red-400" : "text-green-400"}
                   />
                 </Button>
               </div>
@@ -102,11 +77,7 @@ export function SCDJsonEditor({ data, onSave, autoSave = 2000 }: Props) {
         </div>
       </section>
       <div className="p-1 rounded">
-        <JsonEditor
-          value={jsonValue}
-          onChange={handleChange}
-          onValidationChange={handleValidationChange}
-        />
+        <JsonEditor value={jsonValue} onChange={handleChange} />
       </div>
     </div>
   );

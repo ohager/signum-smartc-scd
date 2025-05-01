@@ -3,8 +3,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Code2 } from "lucide-react";
 import { SCDBuilder } from "@/features/scd-builder/scd-builder.tsx";
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
-import { useAtomValue } from "jotai";
-import { scdValidationStateAtom } from "@/features/scd-builder/stores/scd-builder-atoms.ts";
 import { useSingleProject } from "@/hooks/use-single-project.ts";
 import { toast } from "sonner";
 import type { ProjectFile } from "@/types/project.ts";
@@ -12,30 +10,46 @@ import { SmartCGenerator } from "@signum-smartc-scd/core/generator";
 import { useProjects } from "@/hooks/use-projects.ts";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
 import { useFile } from "@/hooks/use-file.ts";
+import { useScdFileManager } from "@/features/scd-builder/hooks/use-scd-file-manager.ts";
+import { Amount } from "@signumjs/util";
+
+const InitialData: SCDType = {
+  activationAmount: Amount.fromSigna(0.5).getPlanck(),
+  contractName: "",
+  description: "",
+  pragmas: {
+    optimizationLevel: 3,
+    verboseAssembly: false,
+    maxAuxVars: 3,
+    version: "2.2.1",
+  },
+  methods: [],
+  variables: [],
+  transactions: [],
+  maps: [],
+};
 
 export enum ActionType {
   GenerateSmartC = "generate-smartc",
 }
 
-export function SCDFileEditor({
-  file,
-  onSave,
-}: {
-  file: ProjectFile;
-  onSave: (data: SCDType) => void;
-}) {
+export function SCDFileEditor({ file }: { file: ProjectFile }) {
   const { addAction, removeAction, updateAction } = usePageHeaderActions();
-  const validationState = useAtomValue(scdValidationStateAtom);
   const { addFile } = useSingleProject();
   const { projects } = useProjects();
   const { saveFile, getFile } = useFile();
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [scdData,setSCDData] = useState(file.data)
+  const { updateData, scdData, isValid, setCurrentFileId } = useScdFileManager();
 
   useEffect(() => {
     if (file.type !== "scd") {
       toast.error("Expected SCD file...");
       // see whatelse to do
+    } else {
+      setCurrentFileId({fileId: file.id, projectId: file.projectId});
+      updateData(
+        file.data ?? InitialData,
+      );
     }
   }, [file]);
 
@@ -46,7 +60,7 @@ export function SCDFileEditor({
   const createSmartCFile = useCallback(
     async (fileName: string, overwrite = false) => {
       try {
-        const scd = SCD.parse(scdData);
+        const scd = SCD.parse(scdData!);
         const generator = new SmartCGenerator(scd);
         const code = generator.generateContract();
 
@@ -108,21 +122,15 @@ export function SCDFileEditor({
   }, [addAction, removeAction, generateSmartC]);
 
   useEffect(() => {
-    console.log("update action", validationState);
     updateAction({
       id: "generate-smartc",
-      updates: { disabled: !validationState.isValid },
+      updates: { disabled: !isValid },
     });
-  }, [validationState, updateAction]);
-
-  const handleSave = (data: SCDType) => {
-    setSCDData(data)
-    handleSave(data);
-  }
+  }, [isValid, updateAction]);
 
   return (
     <>
-      <SCDBuilder key={file.id} file={file} onSave={handleSave} />;
+      <SCDBuilder />;
       <ConfirmationDialog
         open={showConfirmation}
         onOpenChange={setShowConfirmation}

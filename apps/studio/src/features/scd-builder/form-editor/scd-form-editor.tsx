@@ -6,11 +6,8 @@ import { StepMethods } from "./steps/step-methods";
 import { StepMaps } from "./steps/step-maps";
 import { StepTransactions } from "./steps/step-transactions";
 import { StepVariables } from "./steps/step-variables";
-import { useSetAtom } from "jotai";
-import { scdValidationStateAtom } from "@/features/scd-builder/stores/scd-builder-atoms.ts";
 import { useEffect } from "react";
-import { SCD } from "@signum-smartc-scd/core/parser";
-import { useFile } from "@/hooks/use-file.ts";
+import { useScdFileManager } from "../hooks/use-scd-file-manager.ts";
 
 const steps = [
   {
@@ -48,40 +45,32 @@ const steps = [
 
 const StepComponents = steps.map((step) => step.component);
 
-const WizardStepRenderer = (props: WizardStepProps<SCDType, unknown> & {onSave: (data:SCDType) => void}) => {
-  const setSCDIsValid = useSetAtom(scdValidationStateAtom);
-  const {} = useFile()
+const WizardStepRenderer = (props: WizardStepProps<SCDType>) => {
+  const { requestUpdateData } = useScdFileManager();
   useEffect(() => {
-    try{
-      SCD.parse(props.data)
-      setSCDIsValid({isValid: true})
-      props.onSave(props.data)
-    }catch(e){
-      setSCDIsValid({isValid: false, errorMessage: e.message})
-    }
-  }, [props.data]);
-
-
+    requestUpdateData(props.data)
+  }, [props.data, requestUpdateData]);
   const StepComponent = StepComponents[props.step - 1];
   return StepComponent ? <StepComponent {...props} /> : null;
 };
 
-interface Props {
-  data: SCDType;
-  onSave: (data: SCDType) => void;
-}
 
-export function SCDFormEditor({ data, onSave }: Props) {
+export function SCDFormEditor() {
+  const { scdData, updateData } = useScdFileManager();
+
+  if (!scdData) return <div>No file loaded</div>;
+
   return (
-    <Wizard<SCDType>
+
+  <Wizard<SCDType>
       steps={steps}
-      initialState={data}
-      onFinish={onSave}
+      initialState={scdData}
+      onFinish={updateData}
       finishButtonLabel="Save"
     >
       {(props) => (
         <div className="min-h-[200px] w-full py-2">
-          <WizardStepRenderer onSave={onSave} {...props} />
+          <WizardStepRenderer {...props} />
         </div>
       )}
     </Wizard>

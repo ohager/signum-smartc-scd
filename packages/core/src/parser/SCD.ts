@@ -27,6 +27,8 @@ export class SCD {
     return new SCD(input);
   }
 
+  get raw(): SCDType { return this.scd}
+
   getVariablesLayout() {
     let currentIndex = this.scd.pragmas.maxAuxVars + 1;
     const layout: (VariableDefinition & { index: number })[] = [];

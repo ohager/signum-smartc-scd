@@ -1,55 +1,14 @@
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { saveFileAtom } from "@/stores/project-atoms";
-import type { ProjectFile } from "@/types/project";
-import { SCD, type SCDType } from "@signum-smartc-abi/core/parser";
-import { useAtomValue, useSetAtom } from "jotai";
-import { lazy, Suspense, useEffect, useState } from "react";
-import { Amount } from "@signumjs/util";
-import { toast } from "sonner";
+import { lazy, Suspense } from "react";
 import { useSearchParams } from "react-router";
-import { scdValidationStateAtom } from "./stores/scd-builder-atoms.ts";
 
-const InitialData: SCDType = {
-  activationAmount: Amount.fromSigna(0.5).getPlanck(),
-  contractName: "",
-  description: "",
-  pragmas: {
-    optimizationLevel: 3,
-    verboseAssembly: false,
-    maxAuxVars: 3,
-    version: "2.2.1",
-  },
-  methods: [],
-  variables: [],
-  transactions: [],
-  maps: [],
-};
 
 const SCDFormEditor = lazy(() => import("./form-editor"));
 const SCDCodeEditor = lazy(() => import("./code-editor"));
 
-interface Props {
-  file: ProjectFile;
-  onSave: (data: SCDType) => void;
-}
-
-export const SCDBuilder = ({ file, onSave }: Props) => {
+export const SCDBuilder = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const saveFile = useSetAtom(saveFileAtom);
-  const [scdData, setSCDData] = useState<SCDType>(file.data ?? InitialData);
-
-  const handleOnSave = async (data: SCDType) => {
-    try {
-      await saveFile({ ...file, data });
-      setSCDData(data);
-      onSave(data);
-    } catch (error) {
-      console.error("SCDBuilder Save Error:", error);
-      toast.error(`Error while saving file "${file.name}"`);
-    }
-  };
-
   const handleEditModeChange = (mode: "form" | "json") => {
     setSearchParams((s) => {
       s.set("mode", mode);
@@ -70,13 +29,13 @@ export const SCDBuilder = ({ file, onSave }: Props) => {
 
         <TabsContent value="form">
           <Suspense fallback={<EditorLoadingState />}>
-            <SCDFormEditor data={scdData} onSave={handleOnSave} />
+            <SCDFormEditor />
           </Suspense>
         </TabsContent>
 
         <TabsContent value="json">
           <Suspense fallback={<EditorLoadingState />}>
-            <SCDCodeEditor data={scdData} onSave={handleOnSave} />
+            <SCDCodeEditor />
           </Suspense>
         </TabsContent>
       </Tabs>

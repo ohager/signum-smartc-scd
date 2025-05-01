@@ -8,6 +8,7 @@ import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
 import {
   SCDFileEditor,
 } from "@/features/scd-builder/scd-file-editor.tsx";
+import { SmartCEditor } from "@/features/code-editor/smartc-editor.tsx";
 
 type FilesPageParams = {
   projectId: string;
@@ -23,7 +24,6 @@ export function FilesPage() {
     data: file,
     error,
     isLoading,
-    mutate,
   } = useSWR(`GET projects/${projectId}/files/${fileId}`, async () => {
     const file = await getFile({ projectId, fileId });
     if (!file) {
@@ -60,11 +60,9 @@ export function FilesPage() {
             <SCDFileEditor
               key={f.id}
               file={file!}
-              onSave={() => mutate()}
             />
           )}
-          {f.type === "test" && <div>Test Environment</div>}
-          {!["scd", "test"].includes(f.type) && <div>Code Editor</div>}
+          {f.type === "contract" && <SmartCEditor key={f.id} file={file!}/>}
         </div>
       </PageContent>
     </Page>

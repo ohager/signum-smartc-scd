@@ -7,6 +7,11 @@ import {
   saveFileData,
 } from "./internal/idb-file-store";
 
+export type FileId = {
+  projectId: string;
+  fileId: string;
+};
+
 export const projectsAtom = atomWithStorage<Project[]>(
   "scd:projects",
   [],
@@ -46,27 +51,21 @@ export const activeFileIdAtom = atomWithStorage<string | null>(
 );
 
 // Derived atoms
-export const activeProjectAtom = atom((get) => {
-  const projects = get(projectsAtom) as Project[];
-  const activeProjectId = get(activeProjectIdAtom);
-  return projects.find((p) => p.id === activeProjectId) || null;
-});
-
-export const activeFileAtom = atom((get) => {
-  const activeProject = get(activeProjectAtom);
-  const activeFileId = get(activeFileIdAtom);
-  return activeProject?.files.find((f) => f.id === activeFileId) || null;
-});
+// export const activeProjectAtom = atom((get) => {
+//   const projects = get(projectsAtom) as Project[];
+//   const activeProjectId = get(activeProjectIdAtom);
+//   return projects.find((p) => p.id === activeProjectId) || null;
+// });
+//
+// export const activeFileAtom = atom((get) => {
+//   const activeProject = get(activeProjectAtom);
+//   const activeFileId = get(activeFileIdAtom);
+//   return activeProject?.files.find((f) => f.id === activeFileId) || null;
+// });
 
 export const getFileAtom = atom((get) => {
   const projects = get(projectsAtom) as Project[];
-  return async ({
-    projectId,
-    fileId,
-  }: {
-    projectId: string;
-    fileId: string;
-  }) => {
+  return async ({ projectId, fileId }: FileId) => {
     const project = projects.find((p) => p.id === projectId);
     if (project) {
       const file = project.files.find((f) => f.id === fileId);
@@ -96,7 +95,12 @@ export const addFileAtom = atom(
   (
     get,
     set,
-    payload: { projectId: string; fileName: string; type: ProjectFileType, data?: any },
+    payload: {
+      projectId: string;
+      fileName: string;
+      type: ProjectFileType;
+      data?: any;
+    },
   ) => {
     const projects = get(projectsAtom) as Project[];
     const newFile: ProjectFile = {
@@ -170,7 +174,7 @@ export const deleteProjectAtom = atom(null, (get, set, projectId: string) => {
 
 export const deleteFileAtom = atom(
   null,
-  (get, set, payload: { projectId: string; fileId: string }) => {
+  (get, set, payload: FileId) => {
     const projects = get(projectsAtom) as Project[]; // force refresh
 
     const currentTime = new Date();
