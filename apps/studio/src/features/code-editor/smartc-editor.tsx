@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Editor, { type OnMount } from "@monaco-editor/react";
 import { SaveIcon, FileWarning } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,26 @@ export function SmartCEditor({ file }: Props) {
   const [isDirty, setIsDirty] = useState(false);
   const [isValid, setIsValid] = useState(true);
   const {theme} = useTheme()
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [editorHeight, setEditorHeight] = useState("calc(100vh - 120px)"); // Initial height
+
+  useEffect(() => {
+    const calculateEditorHeight = () => {
+      if (containerRef.current) {
+        const containerTop = containerRef.current.getBoundingClientRect().top;
+        // Account for a small padding at the bottom (e.g., 16px)
+        const newHeight = `calc(100vh - ${containerTop + 16}px)`;
+        setEditorHeight(newHeight);
+      }
+    };
+
+    calculateEditorHeight();
+    // Recalculate if the window is resized
+    window.addEventListener('resize', calculateEditorHeight);
+
+    return () => window.removeEventListener('resize', calculateEditorHeight);
+  }, []);
+
 
   const handleEditorChange = (value: string | undefined) => {
     if (value !== undefined) {
@@ -37,6 +57,8 @@ export function SmartCEditor({ file }: Props) {
   }, [code, isValid]);
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
+    console.log("Editor did mount!");
+
     extendCLangWithSmartC(monaco);
     editor.addAction({
       id: "test-action",
@@ -48,7 +70,7 @@ export function SmartCEditor({ file }: Props) {
   };
 
   return (
-    <div>
+    <div className="flex flex-col" ref={containerRef}>
       <section className="w-full flex justify-between items-center p-1">
         <div>
           {!isValid && (
@@ -87,9 +109,9 @@ export function SmartCEditor({ file }: Props) {
           </Tooltip>
         </div>
       </section>
-      <div className="p-1 rounded h-[600px]">
+      <div className="flex-1 p-1 rounded h-full">
         <Editor
-          height="80vh"
+          height={editorHeight}
           defaultLanguage="c"
           value={code}
           theme={theme === "dark" ? "vs-dark" : "light"}
