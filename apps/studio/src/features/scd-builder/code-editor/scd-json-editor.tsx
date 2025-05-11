@@ -1,22 +1,43 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { JsonEditor } from "./editor";
 import { FileWarning, SaveIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useScdFileManager } from "../hooks/use-scd-file-manager.ts";
+import { EditorActionButton } from "@/components/ui/editor/actionButton.tsx";
+import {toast}  from "sonner"
 
 export function SCDJsonEditor() {
-  const { requestUpdateData, isValid, scdData } = useScdFileManager();
+  const { requestUpdateData, scdData, updateData } = useScdFileManager();
   const [jsonValue, setJsonValue] = useState(
     JSON.stringify(scdData ?? "", null, 2),
   );
   const [isDirty, setIsDirty] = useState(false);
+  const [validationError, setValidationError] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [editorHeight, setEditorHeight] = useState("calc(100vh)"); // Initial height
 
-  const save = useCallback(
+  useEffect(() => {
+    const calculateEditorHeight = () => {
+      if (containerRef.current) {
+        const containerTop = containerRef.current.getBoundingClientRect().top;
+        const headerHeight = 30;
+        const newHeight = `calc(100vh - ${containerTop + headerHeight}px)`;
+        setEditorHeight(newHeight);
+      }
+    };
+
+    calculateEditorHeight();
+    // Recalculate if the window is resized
+    window.addEventListener("resize", calculateEditorHeight);
+
+    return () => window.removeEventListener("resize", calculateEditorHeight);
+  }, []);
+
+  const requestSave = useCallback(
     (value: string) => {
       try {
         requestUpdateData(value, () => setIsDirty(false));
@@ -32,53 +53,63 @@ export function SCDJsonEditor() {
     if (value) {
       setJsonValue(value);
       setIsDirty(true);
-      save(value);
+      requestSave(value);
     }
   };
 
+  const handleSave = async (valid:boolean, error:string) => {
+    if(!valid) {
+      toast.warning(`Cannot save file! Invalid SCD: ${error ?? "Unknown error"}`);
+      return;
+    }
+    try{
+      await updateData(jsonValue)
+      toast.success("File saved");
+    } catch(e){
+      console.error("File Saving error", e);
+      toast.error("Error saving file");
+    }
+  }
+
+  const isValid = !validationError;
+
   return (
-    <div>
-      <section className="w-full flex justify-between items-center p-1">
+    <div ref={containerRef}>
+      <section className="w-full flex justify-between items-center h-[30px] bg-muted">
         <div>
           {!isValid && (
             <span>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <FileWarning className="h-4 w-4 text-yellow-100" />
+                  <div className="flex items-center gap-1">
+                  <FileWarning className="h-4 w-4 text-red-600" />
+                  <small className="text-xs text-red-600 ">{validationError}</small>
+                  </div>
                 </TooltipTrigger>
                 <TooltipContent side="right">
-                  Invalid SCD - Check for errors
+                  Invalid SCD
                 </TooltipContent>
               </Tooltip>
             </span>
           )}
         </div>
         <div>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => save(jsonValue)}
-                  disabled={!isValid}
-                  className="disabled:cursor-none"
-                >
-                  <SaveIcon
-                    className={isDirty ? "text-red-400" : "text-green-400"}
-                  />
-                </Button>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              {isDirty ? "Unsaved changes" : "All Saved"}
-            </TooltipContent>
-          </Tooltip>
+          <EditorActionButton
+            tooltip={isDirty ? "Unsaved changes" : "All Saved"}
+            onClick={() => handleSave(isValid, "")}
+            disabled={!isValid}
+          >
+            <SaveIcon className={isDirty ? "text-red-600" : "text-green-600"} />
+          </EditorActionButton>
         </div>
       </section>
-      <div className="p-1 rounded">
-        <JsonEditor value={jsonValue} onChange={handleChange} />
-      </div>
+      <JsonEditor
+        value={jsonValue}
+        onChange={handleChange}
+        onSave={handleSave}
+        onValidationChange={(_, error = "") => setValidationError(error)}
+        height={editorHeight}
+      />
     </div>
   );
 }

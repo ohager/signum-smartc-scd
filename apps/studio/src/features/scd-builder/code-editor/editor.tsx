@@ -1,21 +1,56 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import scdSchema from "@signum-smartc-scd/core/scd-schema.json";
 import { useTheme } from "next-themes";
+import { preconnect } from "react-dom";
 
 interface JsonEditorProps {
   value: string;
   onChange: (value: string | undefined) => void;
   onValidationChange?: (isValid: boolean, error?: string) => void;
+  onSave?: (isValid: boolean, error?: string) => void;
+  height?: string;
+}
+
+const noop = () => {};
+
+const saveEventHandlers = new Set<Function>();
+
+function addSaveEventListener(handler: Function) {
+  // @ts-ignore
+  document.addEventListener("editor:save", handler);
+  saveEventHandlers.add(handler);
+}
+
+function removeAllSaveHandlers() {
+  saveEventHandlers.forEach((handler) => {
+    // @ts-ignore
+    document.removeEventListener("editor:save", handler);
+  });
+  saveEventHandlers.clear();
 }
 
 export function JsonEditor({
   value,
   onChange,
-  onValidationChange = () => {},
+  onValidationChange = noop,
+  onSave = noop,
+  height = "100vh",
 }: JsonEditorProps) {
   const monaco = useMonaco();
+  const [validationError, setValidationError] = useState("");
   const { theme } = useTheme();
+
+  useEffect(() => {
+    const isValid = !validationError;
+    removeAllSaveHandlers();
+    addSaveEventListener(() => {
+      onSave(isValid, validationError);
+    });
+    onValidationChange(isValid, validationError);
+
+    return removeAllSaveHandlers;
+  }, [validationError]);
 
   useEffect(() => {
     if (monaco) {
@@ -30,18 +65,43 @@ export function JsonEditor({
         ],
         enableSchemaRequest: false,
       });
+
+      // Add keyboard shortcut handler for Ctrl+S
+      const disposable = monaco.editor.addEditorAction({
+        id: "save-content",
+        label: "Save Content",
+        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS], // Ctrl+S or Cmd+S on Mac
+        contextMenuGroupId: "navigation",
+        contextMenuOrder: 1.5,
+        run: () => {
+          // Prevent the browser's default save behavior
+          window.addEventListener(
+            "keydown",
+            (e) => {
+              if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+                e.preventDefault();
+              }
+            },
+            { once: true },
+          );
+          document.dispatchEvent(new CustomEvent("editor:save"));
+        },
+      });
+      return () => {
+        disposable.dispose();
+      };
     }
   }, [monaco]);
 
   const handleValidation = (markers: any[]) => {
-    console.log("Markers:", markers);
+    console.log("Validation:", markers);
     const error = markers.length > 0 ? markers[0].message : undefined;
-    onValidationChange(markers.length === 0, error);
+    setValidationError(error ?? "");
   };
 
   return (
     <Editor
-      height="80vh"
+      height={height}
       defaultLanguage="json"
       value={value}
       onChange={onChange}

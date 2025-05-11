@@ -7,7 +7,7 @@ exports[`SmartCGenerator should generate SmartC code 1`] = `
 #pragma maxAuxVars 3
 #pragma verboseAssembly true
 #pragma optimizationLevel 3
-#pragma version 2.2.1
+#pragma version 2.3.0
 #pragma codeStackPages 0
 #pragma userStackPages 0
 

@@ -1,4 +1,4 @@
-export type ProjectFileType = "contract" | "scd" | "test" | "doc";
+export type ProjectFileType = "contract" | "scd" | "test" | "doc" | "asm";
 
 export interface ProjectFile {
   id: string;

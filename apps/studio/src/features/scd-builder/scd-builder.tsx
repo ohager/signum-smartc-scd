@@ -2,12 +2,10 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { lazy, Suspense } from "react";
 import { useSearchParams } from "react-router";
+import { SCDFormEditor } from "./form-editor";
+import { SCDJsonEditor } from "./code-editor";
 
-
-const SCDFormEditor = lazy(() => import("./form-editor"));
-const SCDCodeEditor = lazy(() => import("./code-editor"));
-
-export const SCDBuilder = () => {
+const SCDBuilder = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const handleEditModeChange = (mode: "form" | "json") => {
     setSearchParams((s) => {
@@ -17,7 +15,7 @@ export const SCDBuilder = () => {
   };
 
   return (
-    <div className="w-full p-4">
+    <div className="w-full">
       <Tabs
         value={searchParams.get("mode") || "form"}
         onValueChange={(v) => handleEditModeChange(v as "form" | "json")}
@@ -28,25 +26,15 @@ export const SCDBuilder = () => {
         </TabsList>
 
         <TabsContent value="form">
-          <Suspense fallback={<EditorLoadingState />}>
-            <SCDFormEditor />
-          </Suspense>
+          <SCDFormEditor />
         </TabsContent>
 
         <TabsContent value="json">
-          <Suspense fallback={<EditorLoadingState />}>
-            <SCDCodeEditor />
-          </Suspense>
+          <SCDJsonEditor />
         </TabsContent>
       </Tabs>
     </div>
   );
 };
 
-function EditorLoadingState() {
-  return (
-    <div className="flex items-center justify-center min-h-[400px]">
-      <LoadingSpinner />
-    </div>
-  );
-}
+export default SCDBuilder;

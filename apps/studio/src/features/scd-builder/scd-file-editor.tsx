@@ -1,7 +1,6 @@
 import { SCD, type SCDType } from "@signum-smartc-scd/core/parser";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Code2 } from "lucide-react";
-import { SCDBuilder } from "@/features/scd-builder/scd-builder.tsx";
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
 import { useSingleProject } from "@/hooks/use-single-project.ts";
 import { toast } from "sonner";
@@ -12,6 +11,7 @@ import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
 import { useFile } from "@/hooks/use-file.ts";
 import { useScdFileManager } from "@/features/scd-builder/hooks/use-scd-file-manager.ts";
 import { Amount } from "@signumjs/util";
+import { LoadingSpinner } from "@/components/ui/loading-spinner.tsx";
 
 const InitialData: SCDType = {
   activationAmount: Amount.fromSigna(0.5).getPlanck(),
@@ -21,7 +21,7 @@ const InitialData: SCDType = {
     optimizationLevel: 3,
     verboseAssembly: false,
     maxAuxVars: 3,
-    version: "2.2.1",
+    version: "2.3.0",
   },
   methods: [],
   variables: [],
@@ -29,9 +29,12 @@ const InitialData: SCDType = {
   maps: [],
 };
 
-export enum ActionType {
+enum ActionType {
   GenerateSmartC = "generate-smartc",
 }
+
+const SCDBuilder = lazy(() => import("./scd-builder"));
+
 
 export function SCDFileEditor({ file }: { file: ProjectFile }) {
   const { addAction, removeAction, updateAction } = usePageHeaderActions();
@@ -39,17 +42,16 @@ export function SCDFileEditor({ file }: { file: ProjectFile }) {
   const { projects } = useProjects();
   const { saveFile, getFile } = useFile();
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const { updateData, scdData, isValid, setCurrentFileId } = useScdFileManager();
+  const { updateData, scdData, isValid, setCurrentFileId } =
+    useScdFileManager();
 
   useEffect(() => {
     if (file.type !== "scd") {
       toast.error("Expected SCD file...");
       // see whatelse to do
     } else {
-      setCurrentFileId({fileId: file.id, projectId: file.projectId});
-      updateData(
-        file.data ?? InitialData,
-      );
+      setCurrentFileId({ fileId: file.id, projectId: file.projectId });
+      updateData(file.data ?? InitialData);
     }
   }, [file]);
 
@@ -110,10 +112,11 @@ export function SCDFileEditor({ file }: { file: ProjectFile }) {
   useEffect(() => {
     addAction({
       id: ActionType.GenerateSmartC,
-      tooltip: "Generate SmartC",
+      tooltip: "Generate SmartC Code from Description File",
+      label: "Generate SmartC",
       icon: <Code2 className="h-4 w-4" />,
       onClick: generateSmartC,
-      variant: "outline",
+      variant: "accent",
     });
 
     return () => {
@@ -123,14 +126,16 @@ export function SCDFileEditor({ file }: { file: ProjectFile }) {
 
   useEffect(() => {
     updateAction({
-      id: "generate-smartc",
+      id: ActionType.GenerateSmartC,
       updates: { disabled: !isValid },
     });
   }, [isValid, updateAction]);
 
   return (
     <>
-      <SCDBuilder />;
+      <Suspense fallback={<Loader />}>
+        <SCDBuilder />
+      </Suspense>
       <ConfirmationDialog
         open={showConfirmation}
         onOpenChange={setShowConfirmation}
@@ -144,5 +149,13 @@ export function SCDFileEditor({ file }: { file: ProjectFile }) {
         variant="destructive"
       />
     </>
+  );
+}
+
+function Loader() {
+  return (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <LoadingSpinner />
+    </div>
   );
 }

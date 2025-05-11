@@ -3,7 +3,7 @@ import {
   FileJsonIcon,
   FileIcon,
   FileTextIcon,
-  FileBadgeIcon,
+  FileBadgeIcon, MicrochipIcon
 } from "lucide-react";
 
 export const FileTypeIcons = {
@@ -11,4 +11,5 @@ export const FileTypeIcons = {
   scd: FileJsonIcon,
   test: FileBadgeIcon,
   doc: FileTextIcon,
+  asm: MicrochipIcon
 };

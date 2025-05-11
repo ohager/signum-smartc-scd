@@ -1,10 +1,57 @@
 import type * as Monaco from "monaco-editor";
 import { SmartCKeywords } from "./keywords.ts";
 import { SmartCFunctions } from "./functions.ts";
+import { SmartC } from "smartc-signum-compiler";
 
-
+// so, monaco is a global instance apparently and though we need to avoid multiple extensions
+let hasExtendedAlready = false;
+const SmartCErrorPattern =
+  /At line: (?<line>\d+):(?<column>\d+)\.\s+(?<message>.*)/;
 
 export function extendCLangWithSmartC(monaco: typeof Monaco) {
+  if (hasExtendedAlready) return;
+  hasExtendedAlready = true;
+
+  // Create a model listener for validation
+  monaco.editor.onDidCreateModel((model) => {
+    if (model.getLanguageId() !== "c") {
+      return;
+    }
+
+    let diagnosticsTimeout: NodeJS.Timeout | null = null;
+    const validateModel = () => {
+      const markers: Monaco.editor.IMarkerData[] = [];
+      const sourceCode = model.getValue();
+      try {
+        const compiler = new SmartC({ language: "C", sourceCode });
+        compiler.compile();
+      } catch (e) {
+        const result = SmartCErrorPattern.exec(e.message);
+        if (result) {
+          // @ts-ignore
+          const { line, column, message } = result.groups;
+          console.log(line, column, message);
+          markers.push({
+            severity: monaco.MarkerSeverity.Error,
+            message: message,
+            startLineNumber: parseInt(line),
+            startColumn: parseInt(column),
+            endLineNumber: parseInt(line),
+            endColumn: parseInt(column),
+          });
+        }
+      }
+      monaco.editor.setModelMarkers(model, "smartc", markers);
+    };
+    model.onDidChangeContent(() => {
+      if (diagnosticsTimeout) {
+        clearTimeout(diagnosticsTimeout);
+      }
+      diagnosticsTimeout = setTimeout(validateModel, 500);
+    });
+    validateModel();
+  });
+
   monaco.languages.registerCompletionItemProvider("c", {
     provideCompletionItems: (
       model,
@@ -34,15 +81,15 @@ export function extendCLangWithSmartC(monaco: typeof Monaco) {
       const functionSuggestions = Object.entries(SmartCFunctions).map(
         ([funcName, info]) => {
           // Create snippet with parameter placeholders
-          let snippetText = funcName + '(';
+          let snippetText = funcName + "(";
 
           if (info.params && info.params.length > 0) {
-            snippetText += info.params.map((param, index) =>
-              `\${${index + 1}:${param.name}}`
-            ).join(', ');
+            snippetText += info.params
+              .map((param, index) => `\${${index + 1}:${param.name}}`)
+              .join(", ");
           }
 
-          snippetText += ')';
+          snippetText += ")";
 
           return {
             label: funcName,
@@ -50,13 +97,14 @@ export function extendCLangWithSmartC(monaco: typeof Monaco) {
             detail: info.detail,
             documentation: {
               value: info.documentation,
-              isTrusted: true
+              isTrusted: true,
             },
             insertText: snippetText,
-            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range
+            insertTextRules:
+              monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            range,
           };
-        }
+        },
       );
 
       return { suggestions: [...keywordSuggestions, ...functionSuggestions] };
@@ -94,8 +142,8 @@ export function extendCLangWithSmartC(monaco: typeof Monaco) {
     },
   });
 
-  monaco.languages.registerSignatureHelpProvider('c', {
-    signatureHelpTriggerCharacters: ['(', ','],
+  monaco.languages.registerSignatureHelpProvider("c", {
+    signatureHelpTriggerCharacters: ["(", ","],
 
     provideSignatureHelp: (model, position) => {
       // Find if we're inside a function call
@@ -103,7 +151,7 @@ export function extendCLangWithSmartC(monaco: typeof Monaco) {
         startLineNumber: position.lineNumber,
         startColumn: 1,
         endLineNumber: position.lineNumber,
-        endColumn: position.column
+        endColumn: position.column,
       });
 
       // Find balanced parentheses to determine if we're inside a function call
@@ -111,9 +159,9 @@ export function extendCLangWithSmartC(monaco: typeof Monaco) {
       let lastOpenParenIndex = -1;
 
       for (let i = textUntilPosition.length - 1; i >= 0; i--) {
-        if (textUntilPosition[i] === ')') {
+        if (textUntilPosition[i] === ")") {
           parenthesesCount++;
-        } else if (textUntilPosition[i] === '(') {
+        } else if (textUntilPosition[i] === "(") {
           parenthesesCount--;
           if (parenthesesCount < 0) {
             lastOpenParenIndex = i;
@@ -125,7 +173,7 @@ export function extendCLangWithSmartC(monaco: typeof Monaco) {
       if (lastOpenParenIndex === -1) return null;
 
       // Extract the function name
-      let functionName = '';
+      let functionName = "";
       for (let i = lastOpenParenIndex - 1; i >= 0; i--) {
         const char = textUntilPosition[i];
         if (/[a-zA-Z0-9_]/.test(char)) {
@@ -143,14 +191,14 @@ export function extendCLangWithSmartC(monaco: typeof Monaco) {
       const relevantText = textUntilPosition.substring(lastOpenParenIndex + 1);
       let commaCount = 0;
       let inString = false;
-      let stringChar = '';
+      let stringChar = "";
       let nestedParentheses = 0;
 
       for (let i = 0; i < relevantText.length; i++) {
         const char = relevantText[i];
 
         if (inString) {
-          if (char === stringChar && relevantText[i-1] !== '\\') {
+          if (char === stringChar && relevantText[i - 1] !== "\\") {
             inString = false;
           }
           continue;
@@ -159,11 +207,11 @@ export function extendCLangWithSmartC(monaco: typeof Monaco) {
         if (char === '"' || char === "'") {
           inString = true;
           stringChar = char;
-        } else if (char === '(') {
+        } else if (char === "(") {
           nestedParentheses++;
-        } else if (char === ')') {
+        } else if (char === ")") {
           nestedParentheses--;
-        } else if (char === ',' && nestedParentheses === 0) {
+        } else if (char === "," && nestedParentheses === 0) {
           commaCount++;
         }
       }
@@ -173,26 +221,25 @@ export function extendCLangWithSmartC(monaco: typeof Monaco) {
         label: functionInfo.signature,
         documentation: {
           value: functionInfo.documentation,
-          isTrusted: true
+          isTrusted: true,
         },
-        parameters: functionInfo.params.map(param => ({
+        parameters: functionInfo.params.map((param) => ({
           label: param.name,
           documentation: {
             value: param.documentation,
-            isTrusted: true
-          }
-        }))
+            isTrusted: true,
+          },
+        })),
       };
 
       return {
         value: {
           signatures: [signatureInformation],
           activeSignature: 0,
-          activeParameter: Math.min(commaCount, functionInfo.params.length - 1)
+          activeParameter: Math.min(commaCount, functionInfo.params.length - 1),
         },
-        dispose: () => {}
+        dispose: () => {},
       };
-    }
+    },
   });
 }
-

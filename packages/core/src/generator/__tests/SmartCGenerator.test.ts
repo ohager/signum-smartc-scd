@@ -10,7 +10,7 @@ const mockSCD: SCDType = {
     maxAuxVars: 3,
     verboseAssembly: true,
     optimizationLevel: 3,
-    version: "2.2.1",
+    version: "2.3.0",
     codeStackPages: 0,
     userStackPages: 0,
   },

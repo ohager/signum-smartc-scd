@@ -1,4 +1,8 @@
-# bun-react-tailwind-shadcn-template
+# Signum Smart Contract Studio
+
+## Development
+
+> This project was created using `bun init` in bun v1.2.9. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
 
 To install dependencies:
 
@@ -18,4 +22,14 @@ To run for production:
 bun start
 ```
 
-This project was created using `bun init` in bun v1.2.9. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+## ShadCN components
+
+
+This project uses [ShadCDN](https://ui.shadcn.com/) as component "library." If needed you should use
+
+```bash
+bunx --bun shadcn@latest add <component-name>
+```
+
+to install base components to the project.
+

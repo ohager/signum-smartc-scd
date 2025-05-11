@@ -65,7 +65,7 @@ export function FilesPage() {
         <h1 className="text-sm font-semibold">{f.name}</h1>
         <Badge variant="secondary">{f.type}</Badge>
       </PageHeader>
-      <PageContent>
+      <PageContent className="overflow-hidden">
         <div className="flex-1">
           {f.type === "scd" && (
             <SCDFileEditor
