@@ -4,10 +4,8 @@ import { useFile } from "@/hooks/use-file";
 import { Navigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
-import {
-  SCDFileEditor,
-} from "@/features/scd-builder/scd-file-editor.tsx";
-import { SmartCEditor } from "@/features/code-editor/smartc-editor.tsx";
+import { SCDFileEditor } from "@/features/scd-builder/scd-file-editor.tsx";
+import { SmartCFileEditor } from "@/features/code-editor/smartc-file-editor.tsx";
 import { useEffect, useState } from "react";
 import type { ProjectFile } from "@/types/project.ts";
 
@@ -42,7 +40,6 @@ export function FilesPage() {
     loadFile();
   }, [projectId, fileId]);
 
-
   if (isLoading) {
     // to do loading screen
     return <div>Loading...</div>;
@@ -67,13 +64,10 @@ export function FilesPage() {
       </PageHeader>
       <PageContent className="overflow-hidden">
         <div className="flex-1">
-          {f.type === "scd" && (
-            <SCDFileEditor
-              key={f.id}
-              file={file!}
-            />
+          {f.type === "scd" && <SCDFileEditor key={f.id} file={file!} />}
+          {f.type === "contract" && (
+            <SmartCFileEditor key={f.id} file={file!} />
           )}
-          {f.type === "contract" && <SmartCEditor key={f.id} file={file!}/>}
         </div>
       </PageContent>
     </Page>

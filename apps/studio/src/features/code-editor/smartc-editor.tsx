@@ -11,13 +11,34 @@ import { useTheme } from "next-themes";
 import { extendCLangWithSmartC } from "./language-definitions/smartc-language-definitions.ts";
 import { EditorActionButton } from "@/components/ui/editor/actionButton.tsx";
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
-import { SCD } from "@signum-smartc-scd/core/parser";
-import { SmartCGenerator } from "@signum-smartc-scd/core/generator";
 import { toast } from "sonner";
 import { useSingleProject } from "@/hooks/use-single-project.ts";
 import { SmartC } from "smartc-signum-compiler";
 import { useProjects } from "@/hooks/use-projects.ts";
 import { useFile } from "@/hooks/use-file.ts";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
+
+const saveEventHandlers = new Set<Function>();
+
+function addSaveEventListener(handler: Function) {
+  // @ts-ignore
+  document.addEventListener("editor:save", handler);
+  saveEventHandlers.add(handler);
+}
+
+function removeAllSaveHandlers() {
+  saveEventHandlers.forEach((handler) => {
+    // @ts-ignore
+    document.removeEventListener("editor:save", handler);
+  });
+  saveEventHandlers.clear();
+}
+
+const preventDefaultSave = (e: KeyboardEvent) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+    e.preventDefault();
+  }
+};
 
 interface Props {
   file: ProjectFile;
@@ -27,18 +48,18 @@ enum ActionType {
   Compile = "compile",
 }
 
-export function SmartCEditor({ file }: Props) {
+function SmartCEditor({ file }: Props) {
   const { addAction, removeAction, updateAction } = usePageHeaderActions();
-  const {addFile} = useSingleProject()
-  const {projects} = useProjects();
-  const {saveFile} = useFile();
+  const { addFile } = useSingleProject();
+  const { projects } = useProjects();
+  const { saveFile } = useFile();
   const [code, setCode] = useState(file.data);
   const [isDirty, setIsDirty] = useState(false);
   const [validationError, setValidationError] = useState("");
-  const {theme} = useTheme()
+  const { theme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const [editorHeight, setEditorHeight] = useState("calc(100vh)"); // Initial height
-
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const isValid = !validationError;
 
   const currentProject = useMemo(() => {
@@ -55,12 +76,14 @@ export function SmartCEditor({ file }: Props) {
     };
 
     calculateEditorHeight();
-    // Recalculate if the window is resized
-    window.addEventListener('resize', calculateEditorHeight);
+    window.addEventListener("resize", calculateEditorHeight);
+    window.addEventListener("keydown", preventDefaultSave);
 
-    return () => window.removeEventListener('resize', calculateEditorHeight);
+    return () => {
+      window.removeEventListener("resize", calculateEditorHeight);
+      window.removeEventListener("keydown", preventDefaultSave);
+    };
   }, []);
-
 
   useEffect(() => {
     addAction({
@@ -84,15 +107,15 @@ export function SmartCEditor({ file }: Props) {
     });
   }, [isValid, updateAction]);
 
-
-  const createSmartCFile = useCallback(
+  const createAssemblyFile = useCallback(
     async (fileName: string, overwrite = false) => {
       try {
         const compiler = new SmartC({
           language: "C",
-          sourceCode:code
-        })
+          sourceCode: code,
+        });
         compiler.compile();
+        const assembly = compiler.getAssemblyCode();
         if (overwrite) {
           const existingFile = currentProject?.files.find(
             (f) => f.name === fileName,
@@ -100,17 +123,19 @@ export function SmartCEditor({ file }: Props) {
           if (!existingFile) {
             throw new Error("Could not find file: " + fileName);
           }
-          existingFile.data = code;
+          existingFile.data = assembly;
           await saveFile(existingFile);
-          toast.success("Smart Contract Template successfully re-generated!");
+          toast.success("Assembly Code successfully re-generated!");
         } else {
           addFile({
             projectId: file.projectId,
             fileName,
             type: "asm",
-            data: compiler.getAssemblyCode(),
+            data: assembly,
           });
-          toast.success("Smart Contract compiled successfully!");
+          toast.success(
+            "Smart Contract compiled successfully - Assembly file created!",
+          );
         }
       } catch (e) {
         console.error(e);
@@ -128,14 +153,13 @@ export function SmartCEditor({ file }: Props) {
     }
     const fileName = currentProject.name + ".asm";
 
-    // if (currentProject.files.find((f) => f.name === fileName)) {
-    //   setShowConfirmation(true);
-    //   return;
-    // }
+    if (currentProject.files.find((f) => f.name === fileName)) {
+      setShowConfirmDialog(true);
+      return;
+    }
 
-    return createSmartCFile(fileName);
+    return createAssemblyFile(fileName);
   }, [file.name, file.projectId, currentProject]);
-
 
   const handleEditorChange = (value: string | undefined) => {
     if (value !== undefined) {
@@ -144,23 +168,48 @@ export function SmartCEditor({ file }: Props) {
     }
   };
 
-  const handleSave = useCallback(async () => {
-    if (isValid) {
+  const saveSmartCFile = useCallback(async () => {
+    try {
+      if (!isValid) {
+        toast.warning("Cannot save file! Please fix the errors first");
+        return;
+      }
       setIsDirty(false);
       file.data = code;
       await saveFile(file);
+      toast.success("File saved successfully!");
+    } catch (e) {
+      toast.error("Could not save file: " + e.message);
     }
-  }, [code, validationError]);
+  }, [code, isValid]);
+
+  useEffect(() => {
+    removeAllSaveHandlers();
+    addSaveEventListener(() => {
+      saveSmartCFile();
+    });
+
+    return removeAllSaveHandlers;
+  }, [validationError]);
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     extendCLangWithSmartC(monaco);
     editor.addAction({
       id: ActionType.Compile,
-      run: (editor, ...args) => {
-      },
-      label: "Compile"
+      run: compileSmartC,
+      label: "Compile SmartC",
+      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyC]
     });
-
+    editor.addAction({
+      id: "save-content",
+      label: "Save Content",
+      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS],
+      contextMenuGroupId: "navigation",
+      contextMenuOrder: 1.5,
+      run: () => {
+        document.dispatchEvent(new CustomEvent("editor:save"));
+      },
+    });
   };
 
   const handleValidate = (markers: any[]) => {
@@ -169,32 +218,33 @@ export function SmartCEditor({ file }: Props) {
     setValidationError(error ?? "");
   };
 
-
   return (
     <div className="flex flex-col" ref={containerRef}>
-      <section className="w-full flex justify-between items-center pt-1 px-2 h-[30px] bg-muted">
+      <section className="w-full flex justify-between items-center pt-1 px-2 h-[30px] bg-muted border-b-1">
         <div>
           {!isValid && (
             <span>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="flex items-center gap-1">
-                  <FileWarning className="h-4 w-4 text-red-600" />
-                  <small className="text-xs text-red-600 ">{validationError}</small>
+                    <FileWarning className="h-4 w-4 text-red-600" />
+                    <small className="text-xs text-red-600 ">
+                      {validationError}
+                    </small>
                   </div>
                 </TooltipTrigger>
-                <TooltipContent side="right">
-                  Invalid SCD
-                </TooltipContent>
+                <TooltipContent side="right">Invalid SCD</TooltipContent>
               </Tooltip>
             </span>
           )}
         </div>
         <div>
-          <EditorActionButton tooltip={isDirty ? "Unsaved changes" : "All Saved"} disabled={!isValid} onClick={handleSave} >
-                  <SaveIcon
-                    className={isDirty ? "text-red-600" : "text-green-600"}
-                  />
+          <EditorActionButton
+            tooltip={isDirty ? "Unsaved changes" : "All Saved"}
+            disabled={!isValid}
+            onClick={saveSmartCFile}
+          >
+            <SaveIcon className={isDirty ? "text-red-600" : "text-green-600"} />
           </EditorActionButton>
         </div>
       </section>
@@ -218,10 +268,24 @@ export function SmartCEditor({ file }: Props) {
             glyphMargin: true,
             snippetSuggestions: "top",
             suggestOnTriggerCharacters: true,
-            renderValidationDecorations: "on"
+            renderValidationDecorations: "on",
           }}
         />
       </div>
+      <ConfirmationDialog
+        open={showConfirmDialog}
+        onOpenChange={setShowConfirmDialog}
+        onConfirm={() =>
+          createAssemblyFile(currentProject!.name + ".asm", true)
+        }
+        title="Compile SmartC"
+        description="An assembly file already exists. All previous code will be overwritten if you re-compile"
+        confirmText="Re-Compile"
+        cancelText="Cancel"
+        variant="destructive"
+      />
     </div>
   );
 }
+
+export default SmartCEditor;

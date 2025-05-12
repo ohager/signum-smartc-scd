@@ -8,49 +8,62 @@ let hasExtendedAlready = false;
 const SmartCErrorPattern =
   /At line: (?<line>\d+):(?<column>\d+)\.\s+(?<message>.*)/;
 
+
+
+
 export function extendCLangWithSmartC(monaco: typeof Monaco) {
+
   if (hasExtendedAlready) return;
   hasExtendedAlready = true;
 
-  // Create a model listener for validation
-  monaco.editor.onDidCreateModel((model) => {
+  const validateModel = (model: Monaco.editor.ITextModel) => {
     if (model.getLanguageId() !== "c") {
       return;
     }
 
-    let diagnosticsTimeout: NodeJS.Timeout | null = null;
-    const validateModel = () => {
-      const markers: Monaco.editor.IMarkerData[] = [];
-      const sourceCode = model.getValue();
-      try {
-        const compiler = new SmartC({ language: "C", sourceCode });
-        compiler.compile();
-      } catch (e) {
-        const result = SmartCErrorPattern.exec(e.message);
-        if (result) {
-          // @ts-ignore
-          const { line, column, message } = result.groups;
-          console.log(line, column, message);
-          markers.push({
-            severity: monaco.MarkerSeverity.Error,
-            message: message,
-            startLineNumber: parseInt(line),
-            startColumn: parseInt(column),
-            endLineNumber: parseInt(line),
-            endColumn: parseInt(column),
-          });
+    const markers: Monaco.editor.IMarkerData[] = [];
+    const sourceCode = model.getValue();
+    try {
+      const compiler = new SmartC({ language: "C", sourceCode });
+      compiler.compile();
+    } catch (e) {
+      const result = SmartCErrorPattern.exec(e.message);
+      if (result) {
+        // @ts-ignore
+        const { line, column, message } = result.groups;
+        console.log(line, column, message);
+        markers.push({
+          severity: monaco.MarkerSeverity.Error,
+          message: message,
+          startLineNumber: parseInt(line),
+          startColumn: parseInt(column),
+          endLineNumber: parseInt(line),
+          endColumn: parseInt(column),
+        });
+      }
+    }
+    monaco.editor.setModelMarkers(model, "smartc", markers);
+  }
+
+    // Process any existing models that might have been created before the listener was registered
+  let diagnosticsTimeout: NodeJS.Timer | null = null;
+  monaco.editor.getModels().forEach(model => {
+    if (model.getLanguageId() === "c") {
+      // Apply the same setup logic you have in your onDidCreateModel handler
+      model.onDidChangeContent(() => {
+        if (diagnosticsTimeout) {
+          clearTimeout(diagnosticsTimeout);
         }
-      }
-      monaco.editor.setModelMarkers(model, "smartc", markers);
-    };
-    model.onDidChangeContent(() => {
-      if (diagnosticsTimeout) {
-        clearTimeout(diagnosticsTimeout);
-      }
-      diagnosticsTimeout = setTimeout(validateModel, 500);
-    });
-    validateModel();
+        diagnosticsTimeout = setTimeout(() => validateModel(model), 500);
+      });
+      validateModel(model);
+    }
   });
+
+
+  // monaco.editor.onDidCreateModel((model) => {
+  //   validateModel(model)
+  // });
 
   monaco.languages.registerCompletionItemProvider("c", {
     provideCompletionItems: (
