@@ -2,6 +2,10 @@ import { Eta } from "eta";
 import type { SCD } from "../parser";
 import {SmartCTemplate} from "./templates/smartc.eta"
 
+/**
+ * SmartCGenerator is responsible for generating contract code based on provided structured data (SCD).
+ * It uses a template engine, Eta, to render the contract code dynamically using the provided data.
+ */
 export class SmartCGenerator {
   private eta: Eta;
 

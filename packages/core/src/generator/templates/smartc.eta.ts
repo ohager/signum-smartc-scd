@@ -37,6 +37,12 @@ struct <%= struct.name.toUpperCase() %> {
 } <%= struct.name %>;
 <% } %>
 
+// basic tx iteration struct
+struct TX {
+    long txId;
+    long sender;
+    long message[4];
+} currentTx;
 
 void main() {
     while ((currentTx.txId = getNextTx()) != 0) {
