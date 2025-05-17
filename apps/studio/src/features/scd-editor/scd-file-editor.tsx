@@ -9,9 +9,9 @@ import { SmartCGenerator } from "@signum-smartc-scd/core/generator";
 import { useProjects } from "@/hooks/use-projects.ts";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
 import { useFile } from "@/hooks/use-file.ts";
-import { useScdFileManager } from "@/features/scd-builder/hooks/use-scd-file-manager.ts";
 import { Amount } from "@signumjs/util";
 import { LoadingSpinner } from "@/components/ui/loading-spinner.tsx";
+import { useScdFileManager } from "./hooks/use-scd-file-manager.ts";
 
 const InitialData: SCDType = {
   activationAmount: Amount.fromSigna(0.5).getPlanck(),

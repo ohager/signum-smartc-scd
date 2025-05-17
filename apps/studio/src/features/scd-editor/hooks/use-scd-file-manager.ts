@@ -2,7 +2,7 @@ import { useAtom } from "jotai";
 import {
   scdDataAtom, scdFileIdAtom,
   scdValidationAtom
-} from "@/features/scd-builder/stores/scd-data-atoms.ts";
+} from "../stores/scd-data-atoms.ts";
 import { useCallback, useState } from "react";
 import { SCD, type SCDType } from "@signum-smartc-scd/core/parser";
 import { useFile } from "@/hooks/use-file.ts";

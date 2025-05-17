@@ -4,8 +4,9 @@ import { useFile } from "@/hooks/use-file";
 import { Navigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
-import { SCDFileEditor } from "@/features/scd-builder/scd-file-editor.tsx";
-import { SmartCFileEditor } from "@/features/code-editor/smartc-file-editor.tsx";
+import { SCDFileEditor } from "@/features/scd-editor/scd-file-editor.tsx";
+import { SmartCFileEditor } from "@/features/smartc-editor/smartc-file-editor.tsx";
+import { AsmFileEditor } from "@/features/asm-editor/asm-file-editor.tsx";
 import { useEffect, useState } from "react";
 import type { ProjectFile } from "@/types/project.ts";
 
@@ -67,6 +68,9 @@ export function FilesPage() {
           {f.type === "scd" && <SCDFileEditor key={f.id} file={file!} />}
           {f.type === "contract" && (
             <SmartCFileEditor key={f.id} file={file!} />
+          )}
+          {f.type === "asm" && (
+            <AsmFileEditor key={f.id} file={file!} />
           )}
         </div>
       </PageContent>
