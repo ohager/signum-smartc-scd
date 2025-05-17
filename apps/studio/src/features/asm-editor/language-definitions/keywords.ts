@@ -81,16 +81,16 @@ export const AsmKeywords = {
 
   dataTypes: ["DAT", "IDX", "FUN", "API", "PCS", "VAR"],
 
-  directives: [
-    "__program_begin",
-    "__program_end",
-    "__functions_begin",
-    "__functions_end",
-    "__data_begin",
-    "__data_end",
-    "_ASM_MAPS_BEGIN",
-    "_ASM_MAPS_END",
-  ],
+  // directives: [
+  //   "__program_begin",
+  //   "__program_end",
+  //   "__functions_begin",
+  //   "__functions_end",
+  //   "__data_begin",
+  //   "__data_end",
+  //   "_ASM_MAPS_BEGIN",
+  //   "_ASM_MAPS_END",
+  // ],
 
   operators: [
     "=",
