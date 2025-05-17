@@ -154,8 +154,9 @@ const result = await build({
   splitting: true,
   target: "browser",
   sourcemap: "linked",
+  publicPath: process.env.NODE_ENV === "production" ? "/" : "./",
   define: {
-    "process.env.NODE_ENV": JSON.stringify("production"),
+    "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "development"),
   },
   ...cliConfig, // Merge in any CLI-provided options
 });
