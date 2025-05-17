@@ -42,13 +42,15 @@ export function registerAsmLanguage(monaco: Monaco) {
           ["preprocessor", "white", "variable.declaration"],
         ],
         [
-          /(\^const)(\s+)([a-zA-Z_][\w$]*)(\s+)(.*)$/,
+          /(\^const)(\s+)(SET)(\s+)(@[a-zA-Z_][\w$]*)(\s+)(#\d*)$/,
           [
             "preprocessor",
             "white",
+            "keyword.stack",
+            "white",
             "variable.declaration",
             "white",
-            "constant",
+            "preprocessor.value",
           ],
         ],
 
@@ -273,7 +275,7 @@ export function registerAsmLanguage(monaco: Monaco) {
       { token: "directive", foreground: "#CC9900", fontStyle: "italic" },
 
       // Preprocessor directives (^program, ^declare, etc.)
-      { token: "preprocessor", foreground: "#AA3300", fontStyle: "bold" },
+      { token: "preprocessor", foreground: "#c585d8", fontStyle: "bold" },
       { token: "preprocessor.param", foreground: "#BB5500" },
       {
         token: "preprocessor.value",
@@ -303,7 +305,7 @@ export function registerAsmLanguage(monaco: Monaco) {
       { token: "variable.declaration", foreground: "#9900AA" }, // Declared variables
 
       // Constants
-      { token: "constant", foreground: "#BB00BB" },
+      { token: "constant", foreground: "#b5cea8" },
 
       // Regular identifiers
       { token: "identifier", foreground: "#333333" },
@@ -340,7 +342,7 @@ export function registerAsmLanguage(monaco: Monaco) {
       { token: "directive", foreground: "#DCDCAA", fontStyle: "italic" },
 
       // Preprocessor directives
-      { token: "preprocessor", foreground: "#FF8C5A", fontStyle: "bold" },
+      { token: "preprocessor", foreground: "#997da5", fontStyle: "bold" },
       { token: "preprocessor.param", foreground: "#FFB07A" },
       {
         token: "preprocessor.value",
@@ -365,9 +367,9 @@ export function registerAsmLanguage(monaco: Monaco) {
       { token: "type", foreground: "#4EC9B0" },
 
       // Variables
-      { token: "variable.register", foreground: "#CE9178" },
+      { token: "variable.register", foreground: "#ce9178" },
       { token: "variable", foreground: "#9CDCFE" },
-      { token: "variable.declaration", foreground: "#C586C0" },
+      { token: "variable.declaration", foreground: "#ce9178" },
 
       // Constants
       { token: "constant", foreground: "#C586C0" },
