@@ -198,6 +198,32 @@ export class FileSystem extends EventTarget {
     return false;
   }
 
+  getFileMetadata(fileId: string): FileMetadata | null {
+    return this.metadata.files[fileId] || null;
+  }
+
+  getFileIdByPath(path: string): string | null {
+    for (const [fileId, contents] of Object.entries(
+      this.metadata.files
+    )) {
+      if (contents.path === path) {
+        return fileId;
+      }
+    }
+    return null;
+  }
+
+  getFolderIdOfFile(fileId: string): string | null {
+    for (const [folderId, contents] of Object.entries(
+      this.metadata.folderContents
+    )) {
+      if (contents.files.includes(fileId)) {
+        return folderId;
+      }
+    }
+    return null;
+  }
+
   /**
    * Saves the file content and updates the metadata for the specified file.
    *
@@ -298,6 +324,7 @@ export class FileSystem extends EventTarget {
     // Add file metadata
     this.metadata.files[fileId] = {
       id: fileId,
+      folderId,
       name,
       type,
       path: filePath,

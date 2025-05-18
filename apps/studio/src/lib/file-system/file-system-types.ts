@@ -10,6 +10,7 @@ export interface FolderMetadata {
 
 export interface FileMetadata {
   id: string;
+  folderId: string;
   name: string;
   path: string;
   lastModified: number;
