@@ -3,19 +3,18 @@ import {
   scdDataAtom, scdFileIdAtom,
   scdValidationAtom
 } from "../stores/scd-data-atoms.ts";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { SCD, type SCDType } from "@signum-smartc-scd/core/parser";
-import { useFile } from "@/hooks/use-file.ts";
 import debounce from "lodash.debounce";
+import { useFileSystem } from "@/hooks/use-file-system.ts";
 
-export function useScdFileManager() {
+export function useScdContentManager() {
   const [scdData, setSCDData] = useAtom(scdDataAtom);
   const [validation, setValidation] = useAtom(scdValidationAtom);
   const [currentFileId, setCurrentFileId] = useAtom(scdFileIdAtom)
-  const { getFile, saveFile } = useFile();
+  const fs = useFileSystem();
 
-  // Update data (from either editor)
-  const updateData = useCallback(
+  const updateScdData = useCallback(
     async (dataStr: string|object|SCDType) => {
       try {
         const json = typeof dataStr === "string" ? JSON.parse(dataStr) : dataStr;
@@ -24,12 +23,13 @@ export function useScdFileManager() {
         setSCDData((prev) => ({ ...prev, data: newData }));
         setValidation({ isValid: true, lastValidData: newData });
         if(!currentFileId) {
-          throw new Error("FileId is not provided yet - use setCurrentFileId()");
+          console.debug("FileId is not provided yet - use setCurrentFileId()");
+          return;
         }
-        const file = await getFile(currentFileId);
+        const file = await fs.loadFile<SCDType>(currentFileId);
         // Auto-save if valid
         if (file) {
-          await saveFile({ ...file, data: newData });
+          await fs.saveFile(currentFileId, newData);
           // Update originalData after save
           setSCDData((prev) => ({ ...prev, originalData: newData }));
         }
@@ -41,20 +41,20 @@ export function useScdFileManager() {
         });
       }
     },
-    [setSCDData, setValidation, saveFile, currentFileId],
+    [setSCDData, setValidation, fs],
   );
 
-  const requestUpdateData: (data: string|object|SCDType, onUpdated?: () => void) => void = useCallback(debounce(
+  const requestUpdateScdData: (data: string|object|SCDType, onUpdated?: () => void) => void = useCallback(debounce(
     (data: string, onUpdated = () => {}) => {
-    updateData(data).then(onUpdated)
-  }, 2_000), [updateData]);
+    updateScdData(data).then(onUpdated)
+  }, 2_000), [updateScdData]);
 
   return {
     scdData: scdData.data,
     isValid: validation.isValid,
     errorMessage: validation.errorMessage,
     setCurrentFileId,
-    requestUpdateData,
-    updateData
+    requestUpdateScdData,
+    updateScdData
   };
 }

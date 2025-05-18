@@ -68,7 +68,7 @@ export class FileSystem extends EventTarget {
         folders: {
           [rootFolderId]: {
             id: rootFolderId,
-            name: "Root",
+            name: "@@Root",
             path: "/",
             createdAt: Date.now(),
             lastModified: Date.now()
@@ -179,6 +179,23 @@ export class FileSystem extends EventTarget {
    */
   exists(fileId: string): boolean {
     return !!this.metadata.files[fileId];
+  }
+
+  /**
+   * Checks if the given path exists in the folderContents metadata.
+   *
+   * @param {string} path - The file path to check for existence.
+   * @return {boolean} Returns true if the path exists, otherwise false.
+   */
+  existPath(path: string): boolean {
+    for (const contents of Object.values(
+      this.metadata.folderContents
+    )) {
+      if (contents.files.includes(path)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -587,15 +604,18 @@ export class FileSystem extends EventTarget {
    *
    * @throws {Error} If the folder with the specified `folderId` is not found.
    */
-  async listFolderContents(folderId: string): Promise<{
+  listFolderContents(folderId?: string): {
     folders: { id: string; metadata: FolderMetadata }[];
     files: { id: string; metadata: FileMetadata }[];
-  }> {
-    if (!this.metadata.folderContents[folderId]) {
-      throw new Error(`Folder not found: ${folderId}`);
+  } {
+
+    const folderIdToUse = folderId ?? this.metadata.rootFolder;
+
+    if (!this.metadata.folderContents[folderIdToUse]) {
+      throw new Error(`Folder not found: ${folderIdToUse}`);
     }
 
-    const contents = this.metadata.folderContents[folderId];
+    const contents = this.metadata.folderContents[folderIdToUse];
 
     return {
       folders: contents.folders.map((id) => ({
@@ -623,22 +643,4 @@ export class FileSystem extends EventTarget {
     return this.metadata.folders[folderId];
   };
 
-   /**
-    * Retrieves a list of folder metadata objects.
-    *
-    * @return {FolderMetadata[]} An array of FolderMetadata objects representing the folders.
-    */
-   getFolders() : FolderMetadata[]  {
-     return Object.values(this.metadata.folders);
-  }
-
-  /**
-   * Retrieves the list of file metadata objects for all files contained within the specified folder.
-   *
-   * @param {string} folderId - The unique identifier for the folder whose files need to be retrieved.
-   * @return {FileMetadata[]} An array of file metadata objects corresponding to the files in the specified folder.
-   */
-  getFilesFromFolder(folderId: string) : FileMetadata[]  {
-    return this.metadata.folderContents[folderId].files.map(fileId => this.metadata.files[fileId]);
-  }
 }

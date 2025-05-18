@@ -7,7 +7,7 @@ import { StepMaps } from "./steps/step-maps";
 import { StepTransactions } from "./steps/step-transactions";
 import { StepVariables } from "./steps/step-variables";
 import { useEffect } from "react";
-import { useScdFileManager } from "../hooks/use-scd-file-manager.ts";
+import { useScdContentManager } from "../hooks/use-scd-content-manager.ts";
 import { toast } from "sonner";
 
 const steps = [
@@ -47,22 +47,22 @@ const steps = [
 const StepComponents = steps.map((step) => step.component);
 
 const WizardStepRenderer = (props: WizardStepProps<SCDType>) => {
-  const { requestUpdateData } = useScdFileManager();
+  const { requestUpdateScdData } = useScdContentManager();
   useEffect(() => {
-    requestUpdateData(props.data);
-  }, [props.data, requestUpdateData]);
+    requestUpdateScdData(props.data);
+  }, [props.data, requestUpdateScdData]);
   const StepComponent = StepComponents[props.step - 1];
   return StepComponent ? <StepComponent {...props} /> : null;
 };
 
 export function SCDFormEditor() {
-  const { scdData, updateData } = useScdFileManager();
+  const { scdData, updateScdData } = useScdContentManager();
 
   if (!scdData) return <div>No file loaded</div>;
 
   const handleOnFinish = async (data: SCDType) => {
     try {
-      await updateData(data);
+      await updateScdData(data);
       toast.success("File saved");
     } catch (e) {
       console.error("File Saving error", e);

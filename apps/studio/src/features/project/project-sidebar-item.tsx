@@ -11,7 +11,7 @@ import {
   SidebarMenuSub,
 } from "@/components/ui/sidebar";
 import type { Project } from "@/types/project";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   EditIcon,
   FilePlus2,
@@ -40,7 +40,11 @@ export function ProjectSidebarItem({ project }: Props) {
   const fs = useFileSystem();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [files, setFiles] = useState(fs.getFilesFromFolder(project.id));
+
+  const files = useMemo(() => {
+    if(!isExpanded) return []
+    return fs.listFolderContents(project.id).files
+  }, [isExpanded]);
 
   return (
     <>
@@ -80,12 +84,12 @@ export function ProjectSidebarItem({ project }: Props) {
           </DropdownMenu>
         </div>
 
-        {isExpanded && project.files.length > 0 && (
+        {isExpanded && files.length > 0 && (
           <SidebarMenuSub>
             {files.map((file) => (
               <FileSidebarItem
                 key={file.id}
-                file={file}
+                file={file.metadata}
                 projectId={project.id}
               />
             ))}

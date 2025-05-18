@@ -1,16 +1,12 @@
 import { Badge } from "@/components/ui/badge";
 import { Page, PageContent, PageHeader } from "@/components/ui/page";
-import { useFile } from "@/hooks/use-file";
 import { Navigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
 import { SCDFileEditor } from "@/features/scd-editor/scd-file-editor.tsx";
-import { SmartCFileEditor } from "@/features/smartc-editor/smartc-file-editor.tsx";
-import { AsmFileEditor } from "@/features/asm-editor/asm-file-editor.tsx";
 import { useEffect, useState } from "react";
-import type { ProjectFile } from "@/types/project.ts";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
-import {File} from "@/lib/file-system"
+import type {File} from "@/lib/file-system"
 
 type FilesPageParams = {
   projectId: string;
@@ -64,12 +60,12 @@ export function FilesPage() {
       <PageContent className="overflow-hidden">
         <div className="flex-1">
           {type === "scd" && <SCDFileEditor key={id} file={file!} />}
-          {type === "contract" && (
-            <SmartCFileEditor key={id} file={file!} />
-          )}
-          {type === "asm" && (
-            <AsmFileEditor key={id} file={file!} />
-          )}
+          {/*{type === "contract" && (*/}
+          {/*  <SmartCFileEditor key={id} file={file!} />*/}
+          {/*)}*/}
+          {/*{type === "asm" && (*/}
+          {/*  <AsmFileEditor key={id} file={file!} />*/}
+          {/*)}*/}
         </div>
       </PageContent>
     </Page>

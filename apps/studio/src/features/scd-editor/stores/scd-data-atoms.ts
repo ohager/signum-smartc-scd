@@ -5,7 +5,7 @@ import type { SCDType } from "@signum-smartc-scd/core/parser";
 import type { FileId } from "@/stores/project-atoms.ts";
 
 
-export const scdFileIdAtom = atom<FileId|null>(null);
+export const scdFileIdAtom = atom<string>("");
 
 
 export const scdDataAtom = atom<{ data: SCDType | null; originalData: SCDType | null }>({

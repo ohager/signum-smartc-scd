@@ -1,5 +1,3 @@
-"use client";
-
 import { useFormWizard } from "./use-form-wizard";
 import {
   Card,

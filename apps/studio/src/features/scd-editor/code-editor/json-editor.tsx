@@ -1,11 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import Editor, { useMonaco } from "@monaco-editor/react";
-import scdSchema from "@signum-smartc-scd/core/scd-schema.json";
+import Editor from "@monaco-editor/react";
 import { useTheme } from "next-themes";
-import { preconnect } from "react-dom";
+import { useSafeMonaco } from "@/hooks/use-safe-monaco.ts";
+
+type Schema=  {
+  uri: string,
+  fileMatch: string[],
+  schema: any,
+}
 
 interface JsonEditorProps {
   value: string;
+  schema: Schema;
   onChange: (value: string | undefined) => void;
   onValidationChange?: (isValid: boolean, error?: string) => void;
   onSave?: (isValid: boolean, error?: string) => void;
@@ -33,11 +39,12 @@ function removeAllSaveHandlers() {
 export function JsonEditor({
   value,
   onChange,
+  schema,
   onValidationChange = noop,
   onSave = noop,
   height = "100vh",
 }: JsonEditorProps) {
-  const monaco = useMonaco();
+  const monaco = useSafeMonaco();
   const [validationError, setValidationError] = useState("");
   const { theme } = useTheme();
 
@@ -56,13 +63,7 @@ export function JsonEditor({
     if (monaco) {
       monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
         validate: true,
-        schemas: [
-          {
-            uri: "https://signum.network/scd/schema.json",
-            fileMatch: ["*"],
-            schema: scdSchema,
-          },
-        ],
+        schemas: [schema],
         enableSchemaRequest: false,
       });
 
@@ -91,7 +92,7 @@ export function JsonEditor({
         disposable.dispose();
       };
     }
-  }, [monaco]);
+  }, [monaco, schema]);
 
   const handleValidation = (markers: any[]) => {
     console.log("Validation:", markers);
@@ -101,6 +102,7 @@ export function JsonEditor({
 
   return (
     <Editor
+      loading={<>Loading...</>}
       height={height}
       defaultLanguage="json"
       value={value}

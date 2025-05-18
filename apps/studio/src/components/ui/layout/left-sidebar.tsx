@@ -1,4 +1,3 @@
-import { useProjects } from "@/hooks/use-projects";
 import {
   Sidebar,
   SidebarContent,
@@ -19,7 +18,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
 import { ProjectSidebarItem } from "@/features/project/project-sidebar-item";
 import { useEffect, useState } from "react";
 import { ThemeSwitch } from "@/components/theme-switch";
-import { useFile } from "@/hooks/use-file.ts";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 
 const footerItems = [
@@ -32,11 +30,11 @@ const footerItems = [
 
 export function LeftSidebar() {
   const fs = useFileSystem();
-  const [projects, setProjects] = useState(fs.getFolders());
+  const [projects, setProjects] = useState(fs.listFolderContents().folders);
 
   useEffect(() => {
     function updateFolders() {
-      setProjects(fs.getFolders());
+      setProjects(fs.listFolderContents().folders);
     }
     fs.addEventListener("folder:*", updateFolders)
     return () => {
@@ -83,7 +81,7 @@ export function LeftSidebar() {
                 </SidebarMenuItem>
               ) : (
                 projects.map((project) => (
-                  <ProjectSidebarItem key={project.id} project={project} />
+                  <ProjectSidebarItem key={project.id} project={project.metadata} />
                 ))
               )}
             </SidebarMenu>

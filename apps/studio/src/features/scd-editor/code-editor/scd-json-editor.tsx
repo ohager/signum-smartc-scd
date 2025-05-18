@@ -1,24 +1,30 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { JsonEditor } from "./editor";
+import { JsonEditor } from "./json-editor.tsx";
 import { FileWarning, SaveIcon } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useScdFileManager } from "../hooks/use-scd-file-manager.ts";
+import { useScdContentManager } from "../hooks/use-scd-content-manager.ts";
 import { EditorActionButton } from "@/components/ui/editor/actionButton.tsx";
 import {toast}  from "sonner"
+import scdSchema from "@signum-smartc-scd/core/scd-schema.json";
+
 
 export function SCDJsonEditor() {
-  const { requestUpdateData, scdData, updateData } = useScdFileManager();
-  const [jsonValue, setJsonValue] = useState(
-    JSON.stringify(scdData ?? "", null, 2),
-  );
+  const { requestUpdateScdData, scdData, updateScdData } = useScdContentManager();
+  const [jsonStrValue, setJsonStrValue] = useState("");
   const [isDirty, setIsDirty] = useState(false);
   const [validationError, setValidationError] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const [editorHeight, setEditorHeight] = useState("calc(100vh)"); // Initial height
+
+  useEffect(() => {
+    if(scdData){
+      setJsonStrValue(JSON.stringify(scdData, null, 2))
+    }
+  }, [scdData]);
 
   useEffect(() => {
     const calculateEditorHeight = () => {
@@ -40,18 +46,18 @@ export function SCDJsonEditor() {
   const requestSave = useCallback(
     (value: string) => {
       try {
-        requestUpdateData(value, () => setIsDirty(false));
+        requestUpdateScdData(value, () => setIsDirty(false));
       } catch (error) {
         // ignore
         console.error(error);
       }
     },
-    [requestUpdateData],
+    [requestUpdateScdData],
   );
 
   const handleChange = async (value: string | undefined) => {
     if (value) {
-      setJsonValue(value);
+      setJsonStrValue(value);
       setIsDirty(true);
       requestSave(value);
     }
@@ -63,7 +69,7 @@ export function SCDJsonEditor() {
       return;
     }
     try{
-      await updateData(jsonValue)
+      await updateScdData(jsonStrValue)
       toast.success("File saved");
     } catch(e){
       console.error("File Saving error", e);
@@ -104,7 +110,12 @@ export function SCDJsonEditor() {
         </div>
       </section>
       <JsonEditor
-        value={jsonValue}
+        value={jsonStrValue}
+        schema={{
+            uri: "https://signum.network/scd/schema.json",
+            fileMatch: ["*"],
+            schema: scdSchema,
+        }}
         onChange={handleChange}
         onSave={handleSave}
         onValidationChange={(_, error = "") => setValidationError(error)}
