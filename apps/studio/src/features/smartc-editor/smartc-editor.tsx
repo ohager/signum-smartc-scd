@@ -40,6 +40,27 @@ const preventDefaultSave = (e: KeyboardEvent) => {
   }
 };
 
+
+function validateSmartC(content: string) {
+  try {
+    const compiler = new SmartC({ language: "C", sourceCode: content });
+    compiler.compile();
+    return { isValid: true, errors: [] };
+  } catch (e) {
+    const result = SmartCErrorPattern.exec(e.message);
+    if (result) {
+      const { line, column, message } = result.groups;
+      return {
+        isValid: false,
+        errors: [`Error at line ${line}, column ${column}: ${message}`]
+      };
+    }
+    return { isValid: false, errors: ['Unknown compilation error'] };
+  }
+}
+
+
+
 interface Props {
   file: ProjectFile;
 }

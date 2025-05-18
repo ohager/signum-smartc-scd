@@ -16,7 +16,7 @@
     },
     "apps/studio": {
       "name": "@signum-smartc-scd/studio",
-      "version": "0.1.0",
+      "version": "0.0.1",
       "dependencies": {
         "@hookform/resolvers": "^5.0.1",
         "@monaco-editor/react": "^4.7.0",
@@ -34,7 +34,7 @@
         "@radix-ui/react-tooltip": "^1.2.0",
         "@signum-smartc-scd/core": "workspace:*",
         "@signumjs/util": "^2.0.7",
-        "@types/lodash.set": "^4.3.9",
+        "@types/lodash.debounce": "^4.0.9",
         "bun-plugin-tailwind": "^0.0.14",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
@@ -58,12 +58,14 @@
       },
       "devDependencies": {
         "@types/bun": "latest",
+        "@types/lodash.set": "^4.3.9",
         "@types/react": "^19",
         "@types/react-dom": "^19",
       },
     },
     "packages/core": {
       "name": "@signum-smartc-scd/core",
+      "version": "0.0.1",
       "dependencies": {
         "ajv": "^8.17.1",
         "eta": "^3.5.0",
@@ -185,6 +187,8 @@
     "@types/cookie": ["@types/cookie@0.6.0", "", {}, "sha512-4Kh9a6B2bQciAhf7FSuMRRkUWecJgJu9nPnx3yzpsfXX/c50REIqpHY4C82bXP90qrLtXtkDxTZosYO3UpOwlA=="],
 
     "@types/lodash": ["@types/lodash@4.17.16", "", {}, "sha512-HX7Em5NYQAXKW+1T+FiuG27NGwzJfCX3s1GjOa7ujxZa52kjJLOr4FUxT+giF6Tgxv1e+/czV/iTtBw27WTU9g=="],
+
+    "@types/lodash.debounce": ["@types/lodash.debounce@4.0.9", "", { "dependencies": { "@types/lodash": "*" } }, "sha512-Ma5JcgTREwpLRwMM+XwBR7DaWe96nC38uCBDFKZWbNKD+osjVzdpnUSwBcqCptrp16sSOLBAUb50Car5I0TCsQ=="],
 
     "@types/lodash.set": ["@types/lodash.set@4.3.9", "", { "dependencies": { "@types/lodash": "*" } }, "sha512-KOxyNkZpbaggVmqbpr82N2tDVTx05/3/j0f50Es1prxrWB0XYf9p3QNxqcbWb7P1Q9wlvsUSlCFnwlPCIJ46PQ=="],
 

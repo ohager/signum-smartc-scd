@@ -17,8 +17,10 @@ import { Dialog, DialogTrigger } from "../dialog";
 import { NewProjectDialog } from "@/features/project/new-project-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
 import { ProjectSidebarItem } from "@/features/project/project-sidebar-item";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ThemeSwitch } from "@/components/theme-switch";
+import { useFile } from "@/hooks/use-file.ts";
+import { useFileSystem } from "@/hooks/use-file-system.ts";
 
 const footerItems = [
   {
@@ -29,7 +31,20 @@ const footerItems = [
 ];
 
 export function LeftSidebar() {
-  const { projects } = useProjects();
+  const fs = useFileSystem();
+  const [projects, setProjects] = useState(fs.getFolders());
+
+  useEffect(() => {
+    function updateFolders() {
+      setProjects(fs.getFolders());
+    }
+    fs.addEventListener("folder:*", updateFolders)
+    return () => {
+      fs.removeEventListener("folder:*", updateFolders)
+    }
+  }, []);
+
+  // const { projects } = useProjects();
   const [isOpen, setIsOpen] = useState(false);
   return (
     <Sidebar>

@@ -24,9 +24,11 @@ import { FileSidebarItem } from "./file-sidebar-item";
 import { jotaiStore } from "@/stores/jotai-store";
 import { deleteProjectAtom } from "@/stores/project-atoms";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import type { FolderMetadata } from "@/lib/file-system";
+import { useFileSystem } from "@/hooks/use-file-system.ts";
 
 interface Props {
-  project: Project;
+  project: FolderMetadata;
   activeFileId?: string;
 }
 
@@ -35,8 +37,10 @@ function actionDeleteProject(projectId: string) {
 }
 
 export function ProjectSidebarItem({ project }: Props) {
+  const fs = useFileSystem();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [files, setFiles] = useState(fs.getFilesFromFolder(project.id));
 
   return (
     <>
@@ -78,7 +82,7 @@ export function ProjectSidebarItem({ project }: Props) {
 
         {isExpanded && project.files.length > 0 && (
           <SidebarMenuSub>
-            {project.files.map((file) => (
+            {files.map((file) => (
               <FileSidebarItem
                 key={file.id}
                 file={file}

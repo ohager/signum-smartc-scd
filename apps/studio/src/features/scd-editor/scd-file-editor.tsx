@@ -12,6 +12,8 @@ import { useFile } from "@/hooks/use-file.ts";
 import { Amount } from "@signumjs/util";
 import { LoadingSpinner } from "@/components/ui/loading-spinner.tsx";
 import { useScdFileManager } from "./hooks/use-scd-file-manager.ts";
+import { useFileSystem } from "@/hooks/use-file-system.ts";
+import type {File} from "@/lib/file-system"
 
 const InitialData: SCDType = {
   activationAmount: Amount.fromSigna(0.5).getPlanck(),
@@ -36,42 +38,41 @@ enum ActionType {
 const SCDBuilder = lazy(() => import("./scd-builder"));
 
 
-export function SCDFileEditor({ file }: { file: ProjectFile }) {
+export function SCDFileEditor({ file }: { file: File }) {
   const { addAction, removeAction, updateAction } = usePageHeaderActions();
-  const { addFile } = useSingleProject();
-  const { projects } = useProjects();
-  const { saveFile, getFile } = useFile();
+  const fs = useFileSystem();
+  const [scdData, setScdData] = useState<SCDType | null>();
+  // const { addFile } = useSingleProject();
+  // const { projects } = useProjects();
+  // const { saveFile, getFile } = useFile();
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const { updateData, scdData, isValid, setCurrentFileId } =
-    useScdFileManager();
+  // const { updateData, scdData, isValid, setCurrentFileId } =
+  //   useScdFileManager();
 
   useEffect(() => {
-    if (file.type !== "scd") {
+    if (file.metadata.type !== "scd") {
       toast.error("Expected SCD file...");
       // see whatelse to do
     } else {
-      setCurrentFileId({ fileId: file.id, projectId: file.projectId });
-      updateData(file.data ?? InitialData);
+      // setCurrentFileId({ fileId: file.id, projectId: file.projectId });
+      // updateData(file.data ?? InitialData);
     }
   }, [file]);
 
-  const currentProject = useMemo(() => {
-    return projects.find((p) => p.id === file.projectId);
-  }, [projects]);
+  // const currentProject = useMemo(() => {
+  //   return projects.find((p) => p.id === file.projectId);
+  // }, [projects]);
 
   const createSmartCFile = useCallback(
-    async (fileName: string, overwrite = false) => {
+    async (fileId: string, overwrite = false) => {
       try {
         const scd = SCD.parse(scdData!);
         const generator = new SmartCGenerator(scd);
         const code = generator.generateContract();
 
         if (overwrite) {
-          const existingFile = currentProject?.files.find(
-            (f) => f.name === fileName,
-          );
-          if (!existingFile) {
-            throw new Error("Could not find file: " + fileName);
+          if (!fs.exists(fileId)) {
+            throw new Error("Could not find file: " + fileId);
           }
           existingFile.data = code;
           await saveFile(existingFile);
@@ -79,7 +80,7 @@ export function SCDFileEditor({ file }: { file: ProjectFile }) {
         } else {
           addFile({
             projectId: file.projectId,
-            fileName,
+            fileName: fileId,
             type: "contract",
             data: code,
           });

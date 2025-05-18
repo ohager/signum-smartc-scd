@@ -1,4 +1,3 @@
-import type { ProjectFile } from "@/types/project";
 import { FileTypeIcons } from "./filetype-icons";
 import {
   SidebarMenuSubItem,
@@ -12,18 +11,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreVerticalIcon } from "lucide-react";
-import { useLocation, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
+import type { FileMetadata } from "@/lib/file-system";
+import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
+import { useState } from "react";
 
 interface Props {
-  file: ProjectFile;
+  file: FileMetadata;
   projectId: string;
   isActive?: boolean;
 }
 
 export function FileSidebarItem({ file, projectId, isActive }: Props) {
+  const fs = useFileSystem();
   const FileIcon = FileTypeIcons[file.type];
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false);
 
   const handleOpenFile = () => {
     navigate(`/projects/${projectId}/files/${file.id}`);
@@ -31,10 +35,6 @@ export function FileSidebarItem({ file, projectId, isActive }: Props) {
 
   const handleRenameFile = () => {
     // Implement file renaming logic here
-  };
-
-  const handleDeleteFile = () => {
-    // Implement file deletion logic here
   };
 
   return (
@@ -58,7 +58,7 @@ export function FileSidebarItem({ file, projectId, isActive }: Props) {
           <DropdownMenuContent align="end" className="w-[160px]">
             <DropdownMenuItem onClick={() => {}}>Rename</DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => {}}
+              onClick={() => setShowDeleteConfirmDialog(true)}
               className="text-destructive focus:text-destructive"
             >
               Delete
@@ -66,6 +66,16 @@ export function FileSidebarItem({ file, projectId, isActive }: Props) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      <ConfirmationDialog
+        open={showDeleteConfirmDialog}
+        onOpenChange={setShowDeleteConfirmDialog}
+        onConfirm={() => fs.deleteFile(file.id)}
+        title="Delete File"
+        description="Are you sure you want to delete this file? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+      />
     </SidebarMenuSubItem>
   );
 }
