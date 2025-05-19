@@ -13,12 +13,14 @@ import {
 import type { Project } from "@/types/project";
 import { useEffect, useMemo, useState } from "react";
 import {
+  ChevronDown, ChevronDownIcon,
+  ChevronRightIcon,
   EditIcon,
   FilePlus2,
   FolderIcon,
   FolderOpenIcon,
   MoreVerticalIcon,
-  TrashIcon,
+  TrashIcon
 } from "lucide-react";
 import { FileSidebarItem } from "./file-sidebar-item";
 import { jotaiStore } from "@/stores/jotai-store";
@@ -50,7 +52,7 @@ export function ProjectSidebarItem({ project }: Props) {
             onClick={() => setIsExpanded(!isExpanded)}
             className="flex-1 cursor-pointer"
           >
-            {isExpanded ? <FolderOpenIcon /> : <FolderIcon />}
+            {isExpanded ? <><ChevronDownIcon/><FolderOpenIcon /></> : <><ChevronRightIcon /><FolderIcon /></>}
             <span>{project.name}</span>
           </SidebarMenuButton>
 
