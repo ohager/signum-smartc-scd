@@ -17,7 +17,10 @@ export function useScdContentManager() {
   const updateScdData = useCallback(
     async (dataStr: string|object|SCDType) => {
       try {
+        console.debug("Updating SCD Data", dataStr);
         const json = typeof dataStr === "string" ? JSON.parse(dataStr) : dataStr;
+
+
         const scd = SCD.parse(json);
         const newData = scd.raw;
         setSCDData((prev) => ({ ...prev, data: newData }));
@@ -34,11 +37,12 @@ export function useScdContentManager() {
           setSCDData((prev) => ({ ...prev, originalData: newData }));
         }
       } catch (e) {
-        console.error(e);
+        console.error("Cannot save SCD:",  e.message);
         setValidation({
           isValid: false,
           errorMessage: e.message,
         });
+        throw e;
       }
     },
     [setSCDData, setValidation, fs],

@@ -30,19 +30,21 @@ const footerItems = [
 
 export function LeftSidebar() {
   const fs = useFileSystem();
-  const [projects, setProjects] = useState(fs.listFolderContents().folders);
+  const [projects, setProjects] = useState([...fs.listFolderContents().folders]);
 
   useEffect(() => {
     function updateFolders() {
-      setProjects(fs.listFolderContents().folders);
+      setProjects([...fs.listFolderContents().folders]);
     }
+
+    fs.addEventListener("file:*", updateFolders)
     fs.addEventListener("folder:*", updateFolders)
     return () => {
       fs.removeEventListener("folder:*", updateFolders)
+      fs.removeEventListener("file:*", updateFolders)
     }
   }, []);
 
-  // const { projects } = useProjects();
   const [isOpen, setIsOpen] = useState(false);
   return (
     <Sidebar>

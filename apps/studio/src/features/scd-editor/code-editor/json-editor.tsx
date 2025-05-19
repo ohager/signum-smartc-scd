@@ -1,66 +1,50 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import Editor from "@monaco-editor/react";
+import Editor, { useMonaco } from "@monaco-editor/react";
 import { useTheme } from "next-themes";
-import { useSafeMonaco } from "@/hooks/use-safe-monaco.ts";
 
-type Schema=  {
-  uri: string,
-  fileMatch: string[],
-  schema: any,
-}
+const preventDefaultSave = (e: KeyboardEvent) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+    e.preventDefault();
+  }
+};
+
+type Schema = {
+  uri: string;
+  fileMatch: string[];
+  schema: any;
+};
 
 interface JsonEditorProps {
   value: string;
   schema: Schema;
   onChange: (value: string | undefined) => void;
-  onValidationChange?: (isValid: boolean, error?: string) => void;
-  onSave?: (isValid: boolean, error?: string) => void;
+  onValidationChange?: (error: string) => void;
   height?: string;
 }
 
 const noop = () => {};
-
-const saveEventHandlers = new Set<Function>();
-
-function addSaveEventListener(handler: Function) {
-  // @ts-ignore
-  document.addEventListener("editor:save", handler);
-  saveEventHandlers.add(handler);
-}
-
-function removeAllSaveHandlers() {
-  saveEventHandlers.forEach((handler) => {
-    // @ts-ignore
-    document.removeEventListener("editor:save", handler);
-  });
-  saveEventHandlers.clear();
-}
 
 export function JsonEditor({
   value,
   onChange,
   schema,
   onValidationChange = noop,
-  onSave = noop,
   height = "100vh",
 }: JsonEditorProps) {
-  const monaco = useSafeMonaco();
-  const [validationError, setValidationError] = useState("");
+  const monaco = useMonaco();
   const { theme } = useTheme();
+  const mounted = useRef(false);
 
   useEffect(() => {
-    const isValid = !validationError;
-    removeAllSaveHandlers();
-    addSaveEventListener(() => {
-      onSave(isValid, validationError);
-    });
-    onValidationChange(isValid, validationError);
-
-    return removeAllSaveHandlers;
-  }, [validationError]);
+    window.addEventListener("keydown", preventDefaultSave);
+    return () => {
+      window.removeEventListener("keydown", preventDefaultSave);
+    };
+  }, [])
 
   useEffect(() => {
-    if (monaco) {
+    if (monaco && !mounted.current) {
+      mounted.current = true;
       monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
         validate: true,
         schemas: [schema],
@@ -75,34 +59,26 @@ export function JsonEditor({
         contextMenuGroupId: "navigation",
         contextMenuOrder: 1.5,
         run: () => {
-          // Prevent the browser's default save behavior
-          window.addEventListener(
-            "keydown",
-            (e) => {
-              if ((e.ctrlKey || e.metaKey) && e.key === "s") {
-                e.preventDefault();
-              }
-            },
-            { once: true },
-          );
-          document.dispatchEvent(new CustomEvent("editor:save"));
+          window.dispatchEvent(new CustomEvent("json-editor:save"));
         },
       });
       return () => {
         disposable.dispose();
       };
     }
-  }, [monaco, schema]);
+  }, [monaco]);
 
-  const handleValidation = (markers: any[]) => {
-    console.log("Validation:", markers);
-    const error = markers.length > 0 ? markers[0].message : undefined;
-    setValidationError(error ?? "");
-  };
+  const handleValidation = useCallback(
+    (markers: any[]) => {
+      console.log("Validation:", markers);
+      const error = markers.length > 0 ? markers[0].message : "";
+      onValidationChange(error);
+    },
+    [onValidationChange],
+  );
 
   return (
     <Editor
-      loading={<>Loading...</>}
       height={height}
       defaultLanguage="json"
       value={value}

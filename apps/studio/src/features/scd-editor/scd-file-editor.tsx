@@ -110,11 +110,13 @@ export function SCDFileEditor({ file }: { file: File }) {
       return toast.error("No SCD Data");
     }
 
-    const fileName = baseName + ".smart.c";
-    if (fs.existPath(file.metadata.path + fileName)) {
+    const {files} = fs.listFolderContents(file.metadata.folderId);
+    const existingSmartCFile = files.find((f) => f.metadata.type === FileType.SmartC)
+    if(existingSmartCFile){
       setShowConfirmation(true);
       return;
     }
+    const fileName = baseName + ".smart.c";
     return createSmartCFile(file.metadata.folderId, fileName, scdData);
   }, [scdData, baseName, file]);
 
@@ -124,12 +126,11 @@ export function SCDFileEditor({ file }: { file: File }) {
       return;
     }
     const { files } = fs.listFolderContents(file.metadata.folderId);
-    const fileName = baseName + ".smart.c";
-    const existingFile = files.find((f) => f.metadata.name === fileName);
+    const existingFile = files.find((f) => f.metadata.type === FileType.SmartC);
     if (!existingFile) {
       return toast.error("Could not find existing file");
     }
-    return updateSmartCFile(existingFile?.id, scdData);
+    return updateSmartCFile(existingFile.id, scdData);
   }, [scdData, baseName, file]);
 
   useEffect(() => {
@@ -163,7 +164,7 @@ export function SCDFileEditor({ file }: { file: File }) {
         open={showConfirmation}
         onOpenChange={setShowConfirmation}
         onConfirm={updateSmartC}
-        title="File already exists"
+        title="A SmartC File already exists"
         description="Are you sure you want to re-generate the file. All previous code will be overwritten"
         confirmText="Re-Generate"
         cancelText="Cancel"

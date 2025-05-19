@@ -22,7 +22,9 @@ export function SCDJsonEditor() {
 
   useEffect(() => {
     if(scdData){
+      console.log("SCD Data", scdData);
       setJsonStrValue(JSON.stringify(scdData, null, 2))
+      setIsDirty(false);
     }
   }, [scdData]);
 
@@ -37,45 +39,40 @@ export function SCDJsonEditor() {
     };
 
     calculateEditorHeight();
-    // Recalculate if the window is resized
     window.addEventListener("resize", calculateEditorHeight);
-
     return () => window.removeEventListener("resize", calculateEditorHeight);
   }, []);
 
-  const requestSave = useCallback(
-    (value: string) => {
-      try {
-        requestUpdateScdData(value, () => setIsDirty(false));
-      } catch (error) {
-        // ignore
-        console.error(error);
+  const immediateSave = useCallback(async () => {
+      if (validationError) {
+        toast.warning(`Cannot save file! Invalid SCD: ${validationError ?? "Unknown error"}`);
+        return;
       }
-    },
-    [requestUpdateScdData],
-  );
+      try {
+        await updateScdData(jsonStrValue);
+        toast.success("File saved");
+      } catch (e) {
+        console.error("File Saving error", e);
+        toast.error("Error saving file");
+      }
+  },[validationError, jsonStrValue, updateScdData] )
+
+  useEffect(() => {
+    // before you ask: WTF?
+    // using events to decouple from JSON-Editor component, avoiding prop-drill down and dead loop rendering...
+    window.addEventListener("json-editor:save", immediateSave);
+    return () => {
+      window.removeEventListener("json-editor:save", immediateSave);
+    };
+  }, [immediateSave]);
 
   const handleChange = async (value: string | undefined) => {
     if (value) {
       setJsonStrValue(value);
       setIsDirty(true);
-      requestSave(value);
+      requestUpdateScdData(value, () => setIsDirty(false));
     }
   };
-
-  const handleSave = async (valid:boolean, error:string) => {
-    if(!valid) {
-      toast.warning(`Cannot save file! Invalid SCD: ${error ?? "Unknown error"}`);
-      return;
-    }
-    try{
-      await updateScdData(jsonStrValue)
-      toast.success("File saved");
-    } catch(e){
-      console.error("File Saving error", e);
-      toast.error("Error saving file");
-    }
-  }
 
   const isValid = !validationError;
 
@@ -102,7 +99,7 @@ export function SCDJsonEditor() {
         <div>
           <EditorActionButton
             tooltip={isDirty ? "Unsaved changes" : "All Saved"}
-            onClick={() => handleSave(isValid, "")}
+            onClick={immediateSave}
             disabled={!isValid}
           >
             <SaveIcon className={isDirty ? "text-red-600" : "text-green-600"} />
@@ -117,8 +114,7 @@ export function SCDJsonEditor() {
             schema: scdSchema,
         }}
         onChange={handleChange}
-        onSave={handleSave}
-        onValidationChange={(_, error = "") => setValidationError(error)}
+        onValidationChange={setValidationError}
         height={editorHeight}
       />
     </div>

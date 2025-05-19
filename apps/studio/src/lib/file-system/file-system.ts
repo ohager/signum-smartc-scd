@@ -191,6 +191,7 @@ export class FileSystem extends EventTarget {
     for (const contents of Object.values(
       this.metadata.folderContents
     )) {
+      console.log("existPath", path, contents.files,);
       if (contents.files.includes(path)) {
         return true;
       }

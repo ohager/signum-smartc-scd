@@ -11,7 +11,7 @@ import {
   SidebarMenuSub,
 } from "@/components/ui/sidebar";
 import type { Project } from "@/types/project";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   EditIcon,
   FilePlus2,
@@ -29,7 +29,6 @@ import { useFileSystem } from "@/hooks/use-file-system.ts";
 
 interface Props {
   project: FolderMetadata;
-  activeFileId?: string;
 }
 
 function actionDeleteProject(projectId: string) {
@@ -41,10 +40,7 @@ export function ProjectSidebarItem({ project }: Props) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-  const files = useMemo(() => {
-    if(!isExpanded) return []
-    return fs.listFolderContents(project.id).files
-  }, [isExpanded]);
+  const files = fs.listFolderContents(project.id).files;
 
   return (
     <>
