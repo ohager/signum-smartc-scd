@@ -275,6 +275,7 @@ function SmartCEditor({ file }: Props) {
           value={code}
           theme={theme === "dark" ? "vs-dark" : "light"}
           onChange={handleEditorChange}
+          beforeMount={(monaco) => {}}
           onMount={handleEditorDidMount}
           onValidate={handleValidate}
           options={{

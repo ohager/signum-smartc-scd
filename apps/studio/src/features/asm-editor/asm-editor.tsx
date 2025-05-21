@@ -6,32 +6,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { ProjectFile } from "@/types/project.ts";
 import { useTheme } from "next-themes";
 import { EditorActionButton } from "@/components/ui/editor/actionButton.tsx";
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
 import { toast } from "sonner";
-import { useSingleProject } from "@/hooks/use-single-project.ts";
-import { useProjects } from "@/hooks/use-projects.ts";
 import { useFile } from "@/hooks/use-file.ts";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
 import { registerAsmLanguage } from "./language-definitions/asm-language-definitions.ts";
-
-const saveEventHandlers = new Set<Function>();
-
-function addSaveEventListener(handler: Function) {
-  // @ts-ignore
-  document.addEventListener("editor:save", handler);
-  saveEventHandlers.add(handler);
-}
-
-function removeAllSaveHandlers() {
-  saveEventHandlers.forEach((handler) => {
-    // @ts-ignore
-    document.removeEventListener("editor:save", handler);
-  });
-  saveEventHandlers.clear();
-}
+import { type File } from "@/lib/file-system";
+import { useFileSystem } from "@/hooks/use-file-system.ts";
 
 const preventDefaultSave = (e: KeyboardEvent) => {
   if ((e.ctrlKey || e.metaKey) && e.key === "s") {
@@ -40,7 +23,7 @@ const preventDefaultSave = (e: KeyboardEvent) => {
 };
 
 interface Props {
-  file: ProjectFile;
+  file: File;
 }
 
 enum ActionType {
@@ -49,10 +32,9 @@ enum ActionType {
 
 function AsmEditor({ file }: Props) {
   const { addAction, removeAction, updateAction } = usePageHeaderActions();
-  const { addFile } = useSingleProject();
-  const { projects } = useProjects();
+  const fs = useFileSystem();
   const { saveFile } = useFile();
-  const [code, setCode] = useState(file.data);
+  const [code, setCode] = useState(file.content as string);
   const [isDirty, setIsDirty] = useState(false);
   const [validationError, setValidationError] = useState("");
   const { theme } = useTheme();
@@ -60,10 +42,6 @@ function AsmEditor({ file }: Props) {
   const [editorHeight, setEditorHeight] = useState("calc(100vh)"); // Initial height
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const isValid = !validationError;
-
-  const currentProject = useMemo(() => {
-    return projects.find((p) => p.id === file.projectId);
-  }, [projects]);
 
   useEffect(() => {
     const calculateEditorHeight = () => {
@@ -119,10 +97,8 @@ function AsmEditor({ file }: Props) {
       //   toast.warning("Cannot save file! Please fix the errors first");
       //   return;
       // }
+      await fs.saveFile(file.metadata.id, code);
       setIsDirty(false);
-      console.log("Saving Asm File", file.name, code);
-      file.data = code;
-      await saveFile(file);
       toast.success("File saved successfully!");
     } catch (e) {
       toast.error("Could not save file: " + e.message);
@@ -130,12 +106,10 @@ function AsmEditor({ file }: Props) {
   }, [code]);
 
   useEffect(() => {
-    removeAllSaveHandlers();
-    addSaveEventListener(() => {
-      saveAsmFile();
-    });
-
-    return removeAllSaveHandlers;
+    window.addEventListener('editor:save', saveAsmFile)
+    return () => {
+      window.removeEventListener('editor:save', saveAsmFile)
+    }
   }, [saveAsmFile]);
 
   const handleEditorBeforeMount: BeforeMount = (monaco) => {

@@ -14,7 +14,7 @@ export function AsmFileEditor({ file }: Props) {
 
   return (
     <Suspense fallback={<Loader />}>
-      {/*<AsmEditor file={file} />*/}
+      <AsmEditor file={file} />
     </Suspense>
   );
 }
