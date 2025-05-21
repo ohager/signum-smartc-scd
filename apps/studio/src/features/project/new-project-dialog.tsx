@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select.tsx";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
-import { FileType } from "@/features/project/filetype-icons.tsx";
+import { FileTypes } from "@/features/project/filetype-icons.tsx";
 
 type ProjectType = "create" | "inspect";
 
@@ -49,7 +49,7 @@ export function NewProjectDialog({ close }: Props) {
     const fileName = replaceWhitespace(name);
 
     if (projectType === "create") {
-      await fs.addFile(folderId, `${fileName.toLowerCase()}.scd.json`, FileType.SCD, null )
+      await fs.addFile(folderId, `${fileName.toLowerCase()}.scd.json`, FileTypes.SCD, null )
     }
 
     close();

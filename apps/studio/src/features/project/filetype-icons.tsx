@@ -6,7 +6,7 @@ import {
   FileBadgeIcon, MicrochipIcon, FileJson2Icon, FileCode2Icon, FileCog2Icon, FileDigitIcon
 } from "lucide-react";
 
-export enum FileType {
+export enum FileTypes {
   SmartC = "smartc",
   SCD = "scd",
   Test = "test",
@@ -14,10 +14,10 @@ export enum FileType {
   ASM = "asm",
 }
 
-export const FileTypeIcons: Record<FileType, any> = {
-  [FileType.SmartC]: FileCog2Icon,
-  [FileType.SCD]: FileJson2Icon,
-  [FileType.Test]: FileBadgeIcon,
-  [FileType.Doc]: FileTextIcon,
-  [FileType.ASM]: FileDigitIcon,
+export const FileTypeIcons: Record<FileTypes, any> = {
+  [FileTypes.SmartC]: FileCog2Icon,
+  [FileTypes.SCD]: FileJson2Icon,
+  [FileTypes.Test]: FileBadgeIcon,
+  [FileTypes.Doc]: FileTextIcon,
+  [FileTypes.ASM]: FileDigitIcon,
 };

@@ -7,6 +7,9 @@ import { SCDFileEditor } from "@/features/scd-editor/scd-file-editor.tsx";
 import { useEffect, useState } from "react";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import type {File} from "@/lib/file-system"
+import { SmartCFileEditor } from "@/features/smartc-editor/smartc-file-editor.tsx";
+import { FileTypes } from "@/features/project/filetype-icons.tsx";
+import { AsmFileEditor } from "@/features/asm-editor/asm-file-editor.tsx";
 
 type FilesPageParams = {
   projectId: string;
@@ -59,13 +62,13 @@ export function FilesPage() {
       </PageHeader>
       <PageContent className="overflow-hidden">
         <div className="flex-1">
-          {type === "scd" && <SCDFileEditor key={id} file={file!} />}
-          {/*{type === "contract" && (*/}
-          {/*  <SmartCFileEditor key={id} file={file!} />*/}
-          {/*)}*/}
-          {/*{type === "asm" && (*/}
-          {/*  <AsmFileEditor key={id} file={file!} />*/}
-          {/*)}*/}
+          {type === FileTypes.SCD && <SCDFileEditor key={id} file={file!} />}
+          {type === FileTypes.SmartC && (
+            <SmartCFileEditor key={id} file={file!} />
+          )}
+          {type === FileTypes.ASM && (
+            <AsmFileEditor key={id} file={file!} />
+          )}
         </div>
       </PageContent>
     </Page>

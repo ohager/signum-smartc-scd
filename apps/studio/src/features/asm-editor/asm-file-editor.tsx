@@ -1,9 +1,10 @@
 import { lazy, Suspense } from "react";
 import type { ProjectFile } from "@/types/project.ts";
 import { LoadingSpinner } from "@/components/ui/loading-spinner.tsx";
+import { type File } from "@/lib/file-system";
 
 interface Props {
-  file: ProjectFile;
+  file: File;
 }
 
 const AsmEditor = lazy(() => import("./asm-editor.tsx"));
@@ -13,7 +14,7 @@ export function AsmFileEditor({ file }: Props) {
 
   return (
     <Suspense fallback={<Loader />}>
-      <AsmEditor file={file} />
+      {/*<AsmEditor file={file} />*/}
     </Suspense>
   );
 }

@@ -17,7 +17,7 @@ import { useScdContentManager } from "./hooks/use-scd-content-manager.ts";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import { type File, FileSystem } from "@/lib/file-system";
 import { SmartCGenerator } from "@signum-smartc-scd/core/generator";
-import { FileType } from "@/features/project/filetype-icons.tsx";
+import { FileTypes } from "@/features/project/filetype-icons.tsx";
 
 const InitialData: SCDType = {
   activationAmount: Amount.fromSigna(0.5).getPlanck(),
@@ -53,7 +53,7 @@ async function createSmartCFile(
   const scd = SCD.parse(data);
   const generator = new SmartCGenerator(scd);
   const code = generator.generateContract();
-  await fs.addFile(folderId, fileName, FileType.SmartC, code);
+  await fs.addFile(folderId, fileName, FileTypes.SmartC, code);
   toast.success("Smart Contract Template successfully created!");
 }
 
@@ -62,7 +62,7 @@ async function updateSmartCFile(fileId: string, data: SCDType) {
   if (!fs.exists(fileId)) {
     throw new Error("Could not find file:" + fileId);
   }
-  if (fs.getFileMetadata(fileId)?.type !== FileType.SmartC) {
+  if (fs.getFileMetadata(fileId)?.type !== FileTypes.SmartC) {
     throw new Error("Existing File is not a SmartC file");
   }
   const scd = SCD.parse(data);
@@ -93,7 +93,7 @@ export function SCDFileEditor({ file }: { file: File }) {
       }
     }
 
-    if (file.metadata.type !== FileType.SCD) {
+    if (file.metadata.type !== FileTypes.SCD) {
       toast.error("Expected SCD file...");
     } else {
       initializeContent();
@@ -111,7 +111,7 @@ export function SCDFileEditor({ file }: { file: File }) {
     }
 
     const {files} = fs.listFolderContents(file.metadata.folderId);
-    const existingSmartCFile = files.find((f) => f.metadata.type === FileType.SmartC)
+    const existingSmartCFile = files.find((f) => f.metadata.type === FileTypes.SmartC)
     if(existingSmartCFile){
       setShowConfirmation(true);
       return;
@@ -126,7 +126,7 @@ export function SCDFileEditor({ file }: { file: File }) {
       return;
     }
     const { files } = fs.listFolderContents(file.metadata.folderId);
-    const existingFile = files.find((f) => f.metadata.type === FileType.SmartC);
+    const existingFile = files.find((f) => f.metadata.type === FileTypes.SmartC);
     if (!existingFile) {
       return toast.error("Could not find existing file");
     }
