@@ -1,5 +1,4 @@
 import { lazy, Suspense } from "react";
-import type { ProjectFile } from "@/types/project.ts";
 import { LoadingSpinner } from "@/components/ui/loading-spinner.tsx";
 import { type File } from "@/lib/file-system";
 

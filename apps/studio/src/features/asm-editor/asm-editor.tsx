@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Editor, { type BeforeMount, type OnMount } from "@monaco-editor/react";
-import { SaveIcon, FileWarning, Code2 } from "lucide-react";
+import { SaveIcon, FileWarning, Code2, FileDigitIcon } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -15,6 +15,8 @@ import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
 import { registerAsmLanguage } from "./language-definitions/asm-language-definitions.ts";
 import { type File } from "@/lib/file-system";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { SmartC } from "smartc-signum-compiler";
+import { FileTypes } from "@/features/project/filetype-icons.tsx";
 
 const preventDefaultSave = (e: KeyboardEvent) => {
   if ((e.ctrlKey || e.metaKey) && e.key === "s") {
@@ -43,6 +45,20 @@ function AsmEditor({ file }: Props) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const isValid = !validationError;
 
+  const assembly = useCallback(() => {
+    try {
+      const compiler = new SmartC({
+        language: "Assembly",
+        sourceCode: code,
+      });
+      const machineCode = compiler.compile().getMachineCode();
+      console.log("Machine code:", machineCode);
+      toast.success("Created byte code successfully!");
+    } catch (e) {
+      toast.error("Could not compile Assembly: " + e.message);
+    }
+  }, [code])
+
   useEffect(() => {
     const calculateEditorHeight = () => {
       if (containerRef.current) {
@@ -62,20 +78,20 @@ function AsmEditor({ file }: Props) {
     };
   }, []);
 
-  // useEffect(() => {
-  //   addAction({
-  //     id: ActionType.Compile,
-  //     tooltip: "Compiles SmartC Code",
-  //     label: "Compile",
-  //     icon: <Code2 className="h-4 w-4" />,
-  //     onClick: compileSmartC,
-  //     variant: "accent",
-  //   });
-  //
-  //   return () => {
-  //     removeAction(ActionType.Compile);
-  //   };
-  // }, [addAction, removeAction]);
+  useEffect(() => {
+    addAction({
+      id: ActionType.Compile,
+      tooltip: "Compiles SmartC Code",
+      label: "Compile",
+      icon: <FileDigitIcon className="h-4 w-4" />,
+      onClick: assembly,
+      variant: "accent",
+    });
+
+    return () => {
+      removeAction(ActionType.Compile);
+    };
+  }, [addAction, removeAction, assembly]);
 
   useEffect(() => {
     updateAction({
@@ -105,6 +121,10 @@ function AsmEditor({ file }: Props) {
     }
   }, [code]);
 
+
+
+
+
   useEffect(() => {
     window.addEventListener('editor:save', saveAsmFile)
     return () => {
@@ -123,6 +143,16 @@ function AsmEditor({ file }: Props) {
   };
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
+    editor.addAction({
+      id: ActionType.Compile,
+      // TODO: this is not good... we need to use events
+      run: assembly,
+      label: "Compile ASM",
+      keybindings: [
+        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyC,
+      ],
+    });
+
     editor.addAction({
       id: "save-content",
       label: "Save Content",

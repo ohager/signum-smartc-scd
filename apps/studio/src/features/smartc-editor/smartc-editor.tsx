@@ -214,6 +214,7 @@ function SmartCEditor({ file }: Props) {
     extendCLangWithSmartC(monaco);
     editor.addAction({
       id: ActionType.Compile,
+      // TODO: this is not good... we need to use events
       run: compileSmartC,
       label: "Compile SmartC",
       keybindings: [
