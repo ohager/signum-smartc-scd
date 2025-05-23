@@ -9,18 +9,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SubmitOnEnter } from "@/components/ui/submit-on-enter";
-import { useProjects } from "@/hooks/use-projects";
-import { useSingleProject } from "@/hooks/use-single-project";
 import { replaceWhitespace } from "@/lib/string";
 import { useState } from "react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.tsx";
-import { FieldLabel } from "@/components/ui/field-label.tsx";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select.tsx";
