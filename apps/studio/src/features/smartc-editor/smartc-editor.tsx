@@ -6,17 +6,68 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { ProjectFile } from "@/types/project.ts";
 import { useTheme } from "next-themes";
 import { extendCLangWithSmartC } from "./language-definitions/smartc-language-definitions.ts";
 import { EditorActionButton } from "@/components/ui/editor/actionButton.tsx";
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
 import { toast } from "sonner";
-import { useSingleProject } from "@/hooks/use-single-project.ts";
 import { SmartC } from "smartc-signum-compiler";
-import { useProjects } from "@/hooks/use-projects.ts";
-import { useFile } from "@/hooks/use-file.ts";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
+import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { type File, FileSystem } from "@/lib/file-system";
+import { FileTypes } from "@/features/project/filetype-icons.tsx";
+
+async function createAssemblyFile(
+  folderId: string,
+  fileName: string,
+  code: string,
+) {
+  try {
+    const fs = FileSystem.getInstance();
+    const folder = fs.getFolder(folderId);
+    if (!folder) {
+      throw new Error("Could not find folder:" + folderId);
+    }
+    const compiler = new SmartC({
+      language: "C",
+      sourceCode: code,
+    });
+    compiler.compile();
+    const assembly = compiler.getAssemblyCode();
+    await fs.addFile(folderId, fileName, FileTypes.ASM, assembly);
+    toast.success(
+      "Smart Contract compiled successfully - Assembly file created!",
+    );
+  } catch (e) {
+    console.error(e);
+    toast.error("Could not create Assembly file: ", e.message);
+  }
+}
+
+async function updateAssemblyFile(fileId: string, code: string) {
+  try {
+    const fs = FileSystem.getInstance();
+    if (!fs.exists(fileId)) {
+      throw new Error("Could not find file:" + fileId);
+    }
+    if (fs.getFileMetadata(fileId)?.type !== FileTypes.ASM) {
+      throw new Error("Existing File is not an Assembly file");
+    }
+    const compiler = new SmartC({
+      language: "C",
+      sourceCode: code,
+    });
+    compiler.compile();
+    const assembly = compiler.getAssemblyCode();
+    await fs.saveFile(fileId, assembly);
+    toast.success(
+      "Smart Contract compiled successfully - Assembly file updated!",
+    );
+  } catch (e) {
+    console.error(e);
+    toast.error("Could not update Assembly file: ", e.message);
+  }
+}
 
 const saveEventHandlers = new Set<Function>();
 
@@ -41,7 +92,7 @@ const preventDefaultSave = (e: KeyboardEvent) => {
 };
 
 interface Props {
-  file: ProjectFile;
+  file: File;
 }
 
 enum ActionType {
@@ -50,10 +101,8 @@ enum ActionType {
 
 function SmartCEditor({ file }: Props) {
   const { addAction, removeAction, updateAction } = usePageHeaderActions();
-  const { addFile } = useSingleProject();
-  const { projects } = useProjects();
-  const { saveFile } = useFile();
-  const [code, setCode] = useState(file.data);
+  const fs = useFileSystem();
+  const [code, setCode] = useState(file.content as string);
   const [isDirty, setIsDirty] = useState(false);
   const [validationError, setValidationError] = useState("");
   const { theme } = useTheme();
@@ -61,10 +110,6 @@ function SmartCEditor({ file }: Props) {
   const [editorHeight, setEditorHeight] = useState("calc(100vh)"); // Initial height
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const isValid = !validationError;
-
-  const currentProject = useMemo(() => {
-    return projects.find((p) => p.id === file.projectId);
-  }, [projects]);
 
   useEffect(() => {
     const calculateEditorHeight = () => {
@@ -107,59 +152,35 @@ function SmartCEditor({ file }: Props) {
     });
   }, [isValid, updateAction]);
 
-  const createAssemblyFile = useCallback(
-    async (fileName: string, overwrite = false) => {
-      try {
-        const compiler = new SmartC({
-          language: "C",
-          sourceCode: code,
-        });
-        compiler.compile();
-        const assembly = compiler.getAssemblyCode();
-        if (overwrite) {
-          const existingFile = currentProject?.files.find(
-            (f) => f.name === fileName,
-          );
-          if (!existingFile) {
-            throw new Error("Could not find file: " + fileName);
-          }
-          existingFile.data = assembly;
-          await saveFile(existingFile);
-          toast.success("Assembly Code successfully re-generated!");
-        } else {
-          addFile({
-            projectId: file.projectId,
-            fileName,
-            type: "asm",
-            data: assembly,
-          });
-          toast.success(
-            "Smart Contract compiled successfully - Assembly file created!",
-          );
-        }
-      } catch (e) {
-        console.error(e);
-        toast.error("Could not compile SmartC file:" + e.message);
-      }
-    },
-    [addFile, file, code],
-  );
+  // TODO: candidate for being extracted to some FilePath lib
+  const baseName = useMemo(() => {
+    if (!file) return "";
+    return file.metadata.name.split(".")[0];
+  }, [file]);
 
   const compileSmartC = useCallback(async () => {
-    if (!currentProject) {
-      console.error("Invalid project id", file.projectId);
-      toast.error("Invalid Project");
-      return;
-    }
-    const fileName = currentProject.name + ".asm";
-
-    if (currentProject.files.find((f) => f.name === fileName)) {
+    const { files } = fs.listFolderContents(file.metadata.folderId);
+    if (files.find(({ metadata: { type } }) => type === FileTypes.ASM)) {
       setShowConfirmDialog(true);
       return;
     }
 
-    return createAssemblyFile(fileName);
-  }, [file.name, file.projectId, currentProject]);
+    const fileName = baseName + ".asm";
+    return createAssemblyFile(file.metadata.folderId, fileName, code);
+  }, [baseName, code]);
+
+  const recompileSmartC = useCallback(async () => {
+    if (!code) {
+      console.warn("No Code");
+      return;
+    }
+    const { files } = fs.listFolderContents(file.metadata.folderId);
+    const existingFile = files.find((f) => f.metadata.type === FileTypes.ASM);
+    if (!existingFile) {
+      return toast.error("Could not find existing file");
+    }
+    return updateAssemblyFile(existingFile.id, code);
+  }, [code, baseName]);
 
   const handleEditorChange = (value: string | undefined) => {
     if (value !== undefined) {
@@ -175,30 +196,30 @@ function SmartCEditor({ file }: Props) {
         return;
       }
       setIsDirty(false);
-      file.data = code;
-      await saveFile(file);
+      await fs.saveFile(file.metadata.id, code);
       toast.success("File saved successfully!");
     } catch (e) {
       toast.error("Could not save file: " + e.message);
     }
-  }, [code, isValid]);
+  }, [code, isValid, file]);
 
   useEffect(() => {
     removeAllSaveHandlers();
-    addSaveEventListener(() => {
-      saveSmartCFile();
-    });
+    addSaveEventListener(saveSmartCFile);
 
     return removeAllSaveHandlers;
-  }, [validationError]);
+  }, [saveSmartCFile]);
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     extendCLangWithSmartC(monaco);
     editor.addAction({
       id: ActionType.Compile,
+      // TODO: this is not good... we need to use events
       run: compileSmartC,
       label: "Compile SmartC",
-      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyC]
+      keybindings: [
+        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyC,
+      ],
     });
     editor.addAction({
       id: "save-content",
@@ -255,6 +276,7 @@ function SmartCEditor({ file }: Props) {
           value={code}
           theme={theme === "dark" ? "vs-dark" : "light"}
           onChange={handleEditorChange}
+          beforeMount={(monaco) => {}}
           onMount={handleEditorDidMount}
           onValidate={handleValidate}
           options={{
@@ -275,9 +297,7 @@ function SmartCEditor({ file }: Props) {
       <ConfirmationDialog
         open={showConfirmDialog}
         onOpenChange={setShowConfirmDialog}
-        onConfirm={() =>
-          createAssemblyFile(currentProject!.name + ".asm", true)
-        }
+        onConfirm={recompileSmartC}
         title="Compile SmartC"
         description="An assembly file already exists. All previous code will be overwritten if you re-compile"
         confirmText="Re-Compile"

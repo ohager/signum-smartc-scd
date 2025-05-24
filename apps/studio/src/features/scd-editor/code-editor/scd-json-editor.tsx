@@ -1,24 +1,32 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { JsonEditor } from "./editor";
+import { JsonEditor } from "./json-editor.tsx";
 import { FileWarning, SaveIcon } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useScdFileManager } from "../hooks/use-scd-file-manager.ts";
+import { useScdContentManager } from "../hooks/use-scd-content-manager.ts";
 import { EditorActionButton } from "@/components/ui/editor/actionButton.tsx";
 import {toast}  from "sonner"
+import scdSchema from "@signum-smartc-scd/core/scd-schema.json";
+
 
 export function SCDJsonEditor() {
-  const { requestUpdateData, scdData, updateData } = useScdFileManager();
-  const [jsonValue, setJsonValue] = useState(
-    JSON.stringify(scdData ?? "", null, 2),
-  );
+  const { requestUpdateScdData, scdData, updateScdData } = useScdContentManager();
+  const [jsonStrValue, setJsonStrValue] = useState("");
   const [isDirty, setIsDirty] = useState(false);
   const [validationError, setValidationError] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const [editorHeight, setEditorHeight] = useState("calc(100vh)"); // Initial height
+
+  useEffect(() => {
+    if(scdData){
+      console.log("SCD Data", scdData);
+      setJsonStrValue(JSON.stringify(scdData, null, 2))
+      setIsDirty(false);
+    }
+  }, [scdData]);
 
   useEffect(() => {
     const calculateEditorHeight = () => {
@@ -31,45 +39,40 @@ export function SCDJsonEditor() {
     };
 
     calculateEditorHeight();
-    // Recalculate if the window is resized
     window.addEventListener("resize", calculateEditorHeight);
-
     return () => window.removeEventListener("resize", calculateEditorHeight);
   }, []);
 
-  const requestSave = useCallback(
-    (value: string) => {
-      try {
-        requestUpdateData(value, () => setIsDirty(false));
-      } catch (error) {
-        // ignore
-        console.error(error);
+  const immediateSave = useCallback(async () => {
+      if (validationError) {
+        toast.warning(`Cannot save file! Invalid SCD: ${validationError ?? "Unknown error"}`);
+        return;
       }
-    },
-    [requestUpdateData],
-  );
+      try {
+        await updateScdData(jsonStrValue);
+        toast.success("File saved");
+      } catch (e) {
+        console.error("File Saving error", e);
+        toast.error("Error saving file");
+      }
+  },[validationError, jsonStrValue, updateScdData] )
+
+  useEffect(() => {
+    // before you ask: WTF?
+    // using events to decouple from JSON-Editor component, avoiding prop-drill down and dead loop rendering...
+    window.addEventListener("json-editor:save", immediateSave);
+    return () => {
+      window.removeEventListener("json-editor:save", immediateSave);
+    };
+  }, [immediateSave]);
 
   const handleChange = async (value: string | undefined) => {
     if (value) {
-      setJsonValue(value);
+      setJsonStrValue(value);
       setIsDirty(true);
-      requestSave(value);
+      requestUpdateScdData(value, () => setIsDirty(false));
     }
   };
-
-  const handleSave = async (valid:boolean, error:string) => {
-    if(!valid) {
-      toast.warning(`Cannot save file! Invalid SCD: ${error ?? "Unknown error"}`);
-      return;
-    }
-    try{
-      await updateData(jsonValue)
-      toast.success("File saved");
-    } catch(e){
-      console.error("File Saving error", e);
-      toast.error("Error saving file");
-    }
-  }
 
   const isValid = !validationError;
 
@@ -96,7 +99,7 @@ export function SCDJsonEditor() {
         <div>
           <EditorActionButton
             tooltip={isDirty ? "Unsaved changes" : "All Saved"}
-            onClick={() => handleSave(isValid, "")}
+            onClick={immediateSave}
             disabled={!isValid}
           >
             <SaveIcon className={isDirty ? "text-red-600" : "text-green-600"} />
@@ -104,10 +107,14 @@ export function SCDJsonEditor() {
         </div>
       </section>
       <JsonEditor
-        value={jsonValue}
+        value={jsonStrValue}
+        schema={{
+            uri: "https://signum.network/scd/schema.json",
+            fileMatch: ["*"],
+            schema: scdSchema,
+        }}
         onChange={handleChange}
-        onSave={handleSave}
-        onValidationChange={(_, error = "") => setValidationError(error)}
+        onValidationChange={setValidationError}
         height={editorHeight}
       />
     </div>

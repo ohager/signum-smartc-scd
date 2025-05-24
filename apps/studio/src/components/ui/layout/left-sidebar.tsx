@@ -1,4 +1,3 @@
-import { useProjects } from "@/hooks/use-projects";
 import {
   Sidebar,
   SidebarContent,
@@ -17,8 +16,9 @@ import { Dialog, DialogTrigger } from "../dialog";
 import { NewProjectDialog } from "@/features/project/new-project-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
 import { ProjectSidebarItem } from "@/features/project/project-sidebar-item";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ThemeSwitch } from "@/components/theme-switch";
+import { useFileSystem } from "@/hooks/use-file-system.ts";
 
 const footerItems = [
   {
@@ -29,7 +29,22 @@ const footerItems = [
 ];
 
 export function LeftSidebar() {
-  const { projects } = useProjects();
+  const fs = useFileSystem();
+  const [projects, setProjects] = useState([...fs.listFolderContents().folders]);
+
+  useEffect(() => {
+    function updateFolders() {
+      setProjects([...fs.listFolderContents().folders]);
+    }
+
+    fs.addEventListener("file:*", updateFolders)
+    fs.addEventListener("folder:*", updateFolders)
+    return () => {
+      fs.removeEventListener("folder:*", updateFolders)
+      fs.removeEventListener("file:*", updateFolders)
+    }
+  }, []);
+
   const [isOpen, setIsOpen] = useState(false);
   return (
     <Sidebar>
@@ -68,7 +83,7 @@ export function LeftSidebar() {
                 </SidebarMenuItem>
               ) : (
                 projects.map((project) => (
-                  <ProjectSidebarItem key={project.id} project={project} />
+                  <ProjectSidebarItem key={project.id} project={project.metadata} />
                 ))
               )}
             </SidebarMenu>

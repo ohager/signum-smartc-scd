@@ -1,14 +1,15 @@
 import { Badge } from "@/components/ui/badge";
 import { Page, PageContent, PageHeader } from "@/components/ui/page";
-import { useFile } from "@/hooks/use-file";
 import { Navigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
 import { SCDFileEditor } from "@/features/scd-editor/scd-file-editor.tsx";
-import { SmartCFileEditor } from "@/features/smartc-editor/smartc-file-editor.tsx";
-import { AsmFileEditor } from "@/features/asm-editor/asm-file-editor.tsx";
 import { useEffect, useState } from "react";
-import type { ProjectFile } from "@/types/project.ts";
+import { useFileSystem } from "@/hooks/use-file-system.ts";
+import type {File} from "@/lib/file-system"
+import { SmartCFileEditor } from "@/features/smartc-editor/smartc-file-editor.tsx";
+import { FileTypes } from "@/features/project/filetype-icons.tsx";
+import { AsmFileEditor } from "@/features/asm-editor/asm-file-editor.tsx";
 
 type FilesPageParams = {
   projectId: string;
@@ -16,21 +17,18 @@ type FilesPageParams = {
 };
 
 export function FilesPage() {
-  const { getFile } = useFile();
+  const fs = useFileSystem();
   const {} = usePageHeaderActions();
   const { fileId = "", projectId = "" } = useParams<FilesPageParams>();
 
-  const [file, setFile] = useState<ProjectFile | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadFile = async () => {
       try {
-        const file = await getFile({ projectId, fileId });
-        if (!file) {
-          throw new Error("File not found");
-        }
+        const file = await fs.loadFile(fileId);
         setFile(file);
       } catch (err) {
         setError(err as Error);
@@ -41,7 +39,7 @@ export function FilesPage() {
     loadFile();
   }, [projectId, fileId]);
 
-  if (isLoading) {
+  if (!file && isLoading) {
     // to do loading screen
     return <div>Loading...</div>;
   }
@@ -55,22 +53,21 @@ export function FilesPage() {
     return <div>Error loading file</div>;
   }
 
-  const f = file!;
-
+  const {name, type, id} = file!.metadata
   return (
     <Page>
       <PageHeader>
-        <h1 className="text-sm font-semibold">{f.name}</h1>
-        <Badge variant="secondary">{f.type}</Badge>
+        <h1 className="text-sm font-semibold">{name}</h1>
+        <Badge variant="secondary">{type}</Badge>
       </PageHeader>
       <PageContent className="overflow-hidden">
         <div className="flex-1">
-          {f.type === "scd" && <SCDFileEditor key={f.id} file={file!} />}
-          {f.type === "contract" && (
-            <SmartCFileEditor key={f.id} file={file!} />
+          {type === FileTypes.SCD && <SCDFileEditor key={id} file={file!} />}
+          {type === FileTypes.SmartC && (
+            <SmartCFileEditor key={id} file={file!} />
           )}
-          {f.type === "asm" && (
-            <AsmFileEditor key={f.id} file={file!} />
+          {type === FileTypes.ASM && (
+            <AsmFileEditor key={id} file={file!} />
           )}
         </div>
       </PageContent>

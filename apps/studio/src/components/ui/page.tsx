@@ -46,7 +46,7 @@ const PageHeader = React.forwardRef<HTMLElement, PageHeaderProps>(
       <header
         ref={ref}
         className={cn(
-          "p-4 border-b w-full flex justify-between items-center",
+          "p-4 border-b w-full flex justify-between items-center h-[60px]",
           className,
         )}
         {...props}

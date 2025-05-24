@@ -1,17 +1,23 @@
 import { SCD, type SCDType } from "@signum-smartc-scd/core/parser";
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Code2 } from "lucide-react";
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
-import { useSingleProject } from "@/hooks/use-single-project.ts";
 import { toast } from "sonner";
-import type { ProjectFile } from "@/types/project.ts";
-import { SmartCGenerator } from "@signum-smartc-scd/core/generator";
-import { useProjects } from "@/hooks/use-projects.ts";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
-import { useFile } from "@/hooks/use-file.ts";
 import { Amount } from "@signumjs/util";
 import { LoadingSpinner } from "@/components/ui/loading-spinner.tsx";
-import { useScdFileManager } from "./hooks/use-scd-file-manager.ts";
+import { useScdContentManager } from "./hooks/use-scd-content-manager.ts";
+import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { type File, FileSystem } from "@/lib/file-system";
+import { SmartCGenerator } from "@signum-smartc-scd/core/generator";
+import { FileTypes } from "@/features/project/filetype-icons.tsx";
 
 const InitialData: SCDType = {
   activationAmount: Amount.fromSigna(0.5).getPlanck(),
@@ -33,81 +39,99 @@ enum ActionType {
   GenerateSmartC = "generate-smartc",
 }
 
+async function createSmartCFile(
+  folderId: string,
+  fileName: string,
+  data: SCDType,
+) {
+  const fs = FileSystem.getInstance();
+  const folder = fs.getFolder(folderId);
+  if (!folder) {
+    throw new Error("Could not find folder:" + folderId);
+  }
+
+  const scd = SCD.parse(data);
+  const generator = new SmartCGenerator(scd);
+  const code = generator.generateContract();
+  await fs.addFile(folderId, fileName, FileTypes.SmartC, code);
+  toast.success("Smart Contract Template successfully created!");
+}
+
+async function updateSmartCFile(fileId: string, data: SCDType) {
+  const fs = FileSystem.getInstance();
+  if (!fs.exists(fileId)) {
+    throw new Error("Could not find file:" + fileId);
+  }
+  if (fs.getFileMetadata(fileId)?.type !== FileTypes.SmartC) {
+    throw new Error("Existing File is not a SmartC file");
+  }
+  const scd = SCD.parse(data);
+  const generator = new SmartCGenerator(scd);
+  const code = generator.generateContract();
+  await fs.saveFile(fileId, code);
+  toast.success("Smart Contract Template successfully created!");
+}
+
 const SCDBuilder = lazy(() => import("./scd-builder"));
 
-
-export function SCDFileEditor({ file }: { file: ProjectFile }) {
+export function SCDFileEditor({ file }: { file: File }) {
   const { addAction, removeAction, updateAction } = usePageHeaderActions();
-  const { addFile } = useSingleProject();
-  const { projects } = useProjects();
-  const { saveFile, getFile } = useFile();
+  const fs = useFileSystem();
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const { updateData, scdData, isValid, setCurrentFileId } =
-    useScdFileManager();
+  const { updateScdData, setCurrentFileId, isValid, scdData } =
+    useScdContentManager();
 
   useEffect(() => {
-    if (file.type !== "scd") {
-      toast.error("Expected SCD file...");
-      // see whatelse to do
-    } else {
-      setCurrentFileId({ fileId: file.id, projectId: file.projectId });
-      updateData(file.data ?? InitialData);
+    async function initializeContent() {
+      try {
+        const content = file.content ?? InitialData;
+        await fs.saveFile(file.metadata.id, content);
+        await updateScdData(content);
+        setCurrentFileId(file.metadata.id);
+      } catch (e) {
+        toast.error(e.message);
+      }
     }
+
+    if (file.metadata.type !== FileTypes.SCD) {
+      toast.error("Expected SCD file...");
+    } else {
+      initializeContent();
+    }
+  }, [file, setCurrentFileId, updateScdData]);
+
+  const baseName = useMemo(() => {
+    if (!file) return "";
+    return file.metadata.name.split(".")[0];
   }, [file]);
 
-  const currentProject = useMemo(() => {
-    return projects.find((p) => p.id === file.projectId);
-  }, [projects]);
-
-  const createSmartCFile = useCallback(
-    async (fileName: string, overwrite = false) => {
-      try {
-        const scd = SCD.parse(scdData!);
-        const generator = new SmartCGenerator(scd);
-        const code = generator.generateContract();
-
-        if (overwrite) {
-          const existingFile = currentProject?.files.find(
-            (f) => f.name === fileName,
-          );
-          if (!existingFile) {
-            throw new Error("Could not find file: " + fileName);
-          }
-          existingFile.data = code;
-          await saveFile(existingFile);
-          toast.success("Smart Contract Template successfully re-generated!");
-        } else {
-          addFile({
-            projectId: file.projectId,
-            fileName,
-            type: "contract",
-            data: code,
-          });
-          toast.success("Smart Contract Template successfully created!");
-        }
-      } catch (e) {
-        console.error(e);
-        toast.error("Could not generate SmartC file:" + e.message);
-      }
-    },
-    [addFile, file, getFile, scdData, currentProject],
-  );
-
   const generateSmartC = useCallback(async () => {
-    if (!currentProject) {
-      console.error("Invalid project id", file.projectId);
-      toast.error("Invalid Project");
-      return;
+    if (!scdData) {
+      return toast.error("No SCD Data");
     }
-    const fileName = currentProject.name + ".smart.c";
 
-    if (currentProject.files.find((f) => f.name === fileName)) {
+    const {files} = fs.listFolderContents(file.metadata.folderId);
+    const existingSmartCFile = files.find((f) => f.metadata.type === FileTypes.SmartC)
+    if(existingSmartCFile){
       setShowConfirmation(true);
       return;
     }
+    const fileName = baseName + ".smart.c";
+    return createSmartCFile(file.metadata.folderId, fileName, scdData);
+  }, [scdData, baseName, file]);
 
-    return createSmartCFile(fileName);
-  }, [file.name, file.projectId, currentProject]);
+  const updateSmartC = useCallback(async () => {
+    if (!scdData) {
+      console.warn("No SCD Data");
+      return;
+    }
+    const { files } = fs.listFolderContents(file.metadata.folderId);
+    const existingFile = files.find((f) => f.metadata.type === FileTypes.SmartC);
+    if (!existingFile) {
+      return toast.error("Could not find existing file");
+    }
+    return updateSmartCFile(existingFile.id, scdData);
+  }, [scdData, baseName, file]);
 
   useEffect(() => {
     addAction({
@@ -139,10 +163,8 @@ export function SCDFileEditor({ file }: { file: ProjectFile }) {
       <ConfirmationDialog
         open={showConfirmation}
         onOpenChange={setShowConfirmation}
-        onConfirm={() =>
-          createSmartCFile(currentProject!.name + ".smart.c", true)
-        }
-        title="File already exists"
+        onConfirm={updateSmartC}
+        title="A SmartC File already exists"
         description="Are you sure you want to re-generate the file. All previous code will be overwritten"
         confirmText="Re-Generate"
         cancelText="Cancel"

@@ -9,21 +9,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SubmitOnEnter } from "@/components/ui/submit-on-enter";
-import { useProjects } from "@/hooks/use-projects";
-import { useSingleProject } from "@/hooks/use-single-project";
 import { replaceWhitespace } from "@/lib/string";
 import { useState } from "react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.tsx";
-import { FieldLabel } from "@/components/ui/field-label.tsx";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select.tsx";
+import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { FileTypes } from "@/features/project/filetype-icons.tsx";
 
 type ProjectType = "create" | "inspect";
 
@@ -36,22 +32,18 @@ export function NewProjectDialog({ close }: Props) {
   const [projectType, setProjectType] = useState<ProjectType | string>(
     "create",
   );
-  const { addProject } = useProjects();
-  const { addFile } = useSingleProject();
+
+  const fs = useFileSystem()
   const canSubmit = name.length > 3;
 
-  const handleCreateClicked = () => {
+  const handleCreateClicked = async () => {
     if (!canSubmit) return;
 
-    const projectId = addProject(name);
+    const folderId = await fs.createFolder("/", name);
     const fileName = replaceWhitespace(name);
 
     if (projectType === "create") {
-      addFile({
-        projectId,
-        type: "scd",
-        fileName: `${fileName.toLowerCase()}.scd.json`,
-      });
+      await fs.addFile(folderId, `${fileName.toLowerCase()}.scd.json`, FileTypes.SCD, null )
     }
 
     close();

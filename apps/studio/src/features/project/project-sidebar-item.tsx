@@ -11,23 +11,26 @@ import {
   SidebarMenuSub,
 } from "@/components/ui/sidebar";
 import type { Project } from "@/types/project";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  ChevronDown, ChevronDownIcon,
+  ChevronRightIcon,
   EditIcon,
   FilePlus2,
   FolderIcon,
   FolderOpenIcon,
   MoreVerticalIcon,
-  TrashIcon,
+  TrashIcon
 } from "lucide-react";
 import { FileSidebarItem } from "./file-sidebar-item";
 import { jotaiStore } from "@/stores/jotai-store";
 import { deleteProjectAtom } from "@/stores/project-atoms";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import type { FolderMetadata } from "@/lib/file-system";
+import { useFileSystem } from "@/hooks/use-file-system.ts";
 
 interface Props {
-  project: Project;
-  activeFileId?: string;
+  project: FolderMetadata;
 }
 
 function actionDeleteProject(projectId: string) {
@@ -35,8 +38,11 @@ function actionDeleteProject(projectId: string) {
 }
 
 export function ProjectSidebarItem({ project }: Props) {
+  const fs = useFileSystem();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+  const files = fs.listFolderContents(project.id).files;
 
   return (
     <>
@@ -46,7 +52,7 @@ export function ProjectSidebarItem({ project }: Props) {
             onClick={() => setIsExpanded(!isExpanded)}
             className="flex-1 cursor-pointer"
           >
-            {isExpanded ? <FolderOpenIcon /> : <FolderIcon />}
+            {isExpanded ? <><ChevronDownIcon/><FolderOpenIcon /></> : <><ChevronRightIcon /><FolderIcon /></>}
             <span>{project.name}</span>
           </SidebarMenuButton>
 
@@ -76,12 +82,12 @@ export function ProjectSidebarItem({ project }: Props) {
           </DropdownMenu>
         </div>
 
-        {isExpanded && project.files.length > 0 && (
+        {isExpanded && files.length > 0 && (
           <SidebarMenuSub>
-            {project.files.map((file) => (
+            {files.map((file) => (
               <FileSidebarItem
                 key={file.id}
-                file={file}
+                file={file.metadata}
                 projectId={project.id}
               />
             ))}

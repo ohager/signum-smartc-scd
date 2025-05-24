@@ -1,6 +1,4 @@
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { lazy, Suspense } from "react";
 import { useSearchParams } from "react-router";
 import { SCDFormEditor } from "./form-editor";
 import { SCDJsonEditor } from "./code-editor";
