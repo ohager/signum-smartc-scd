@@ -12,6 +12,10 @@ import type { MachineData } from "../machine-data.ts";
 import { useMemo } from "react";
 
 function formatHexView(hexString: string) {
+  if(!hexString) return "";
+  if (hexString.length % 2 !== 0) {
+    return "Invalid hex string"
+  }
   let formatted = "";
   for (let i = 0; i < hexString.length; i += 2) {
     formatted +=
@@ -84,11 +88,11 @@ export function BytecodeVisualizer({ data }: { data: MachineData }) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Bytecode Hex View</CardTitle>
             <CardDescription>
-              Hexadecimal representation of the bytecode
+              Hexadecimal representation of the bytecode ({data.ByteCode.length/2} bytes)
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="rounded-md p-3 font-mono text-sm overflow-x-auto">
+            <div className="rounded-md font-mono text-sm overflow-x-auto">
               {formattedByteCode}
             </div>
           </CardContent>

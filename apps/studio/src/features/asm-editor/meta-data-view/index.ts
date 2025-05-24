@@ -1,1 +1,1 @@
-export {BytecodeVisualizer} from "./bytecode-visualizer.tsx"
+export {MetaDataView} from "./meta-data-view.tsx"

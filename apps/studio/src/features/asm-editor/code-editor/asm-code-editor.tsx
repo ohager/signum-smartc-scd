@@ -9,7 +9,6 @@ import {
 import { useTheme } from "next-themes";
 import { EditorActionButton } from "@/components/ui/editor/actionButton.tsx";
 import { toast } from "sonner";
-import { useFile } from "@/hooks/use-file.ts";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
 import { registerAsmLanguage } from "./language-definitions/asm-language-definitions.ts";
 import { type File } from "@/lib/file-system";
@@ -30,7 +29,6 @@ interface Props {
 
 function AsmCodeEditor({ file, onSave }: Props) {
   const fs = useFileSystem();
-  const { saveFile } = useFile();
   const [code, setCode] = useState(file.content as string);
   const [isDirty, setIsDirty] = useState(false);
   const [validationError, setValidationError] = useState("");
@@ -136,6 +134,9 @@ function AsmCodeEditor({ file, onSave }: Props) {
               </Tooltip>
             </span>
           )}
+        </div>
+        <div>
+          <small className="font-medium opacity-70">Change this file only if you know what you are doing!</small>
         </div>
         <div>
           <EditorActionButton

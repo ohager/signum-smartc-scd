@@ -9,14 +9,18 @@ import { useEffect, useState } from "react";
 import AsmCodeEditor from "./code-editor/asm-code-editor.tsx";
 import type { MachineData } from "./machine-data.ts";
 import { tryAssemble } from "@/features/asm-editor/lib/try-assemble.ts";
-import { MetaDataView } from "@/features/asm-editor/meta-data-view/meta-data-view.tsx";
+import { MetaDataView } from "./meta-data-view";
+import { DeploymentView } from "./deployment-view.tsx";
+import { useSearchParams } from "react-router";
+
+type ViewType = "editor" | "metadata" | "deployment";
 
 interface Props {
   file: File;
 }
 
 export function AsmEditor({ file }: Props) {
-  const [activeTab, setActiveTab] = useState("editor");
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isValid, setIsValid] = useState(true);
   const [machineData, setMachineData] = useState<MachineData | undefined>(
     undefined,
@@ -24,6 +28,13 @@ export function AsmEditor({ file }: Props) {
   const handleOnSave = (isValid: boolean, machineCode?: MachineData) => {
     setIsValid(isValid);
     setMachineData(machineCode);
+  };
+
+  const handleViewChange = (view: ViewType) => {
+    setSearchParams((s) => {
+      s.set("v", view);
+      return s;
+    });
   };
 
   useEffect(() => {
@@ -37,41 +48,37 @@ export function AsmEditor({ file }: Props) {
   }, [file]);
 
   return (
-    <div className="flex-1 overflow-hidden">
       <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
+        value={searchParams.get("v") || "editor"}
+        onValueChange={(v) => handleViewChange(v as ViewType)}
         className="h-full flex flex-col"
       >
-        <div className="border-b px-4 bg-background">
           <TabsList>
             <TabsTrigger value="editor">ASM Editor</TabsTrigger>
-            <TabsTrigger value="compiled" disabled={!isValid}>
+            <TabsTrigger value="metadata" disabled={!isValid}>
               Assembled Output
             </TabsTrigger>
             <TabsTrigger value="deploy" disabled={!isValid}>
               Deployment
             </TabsTrigger>
           </TabsList>
-        </div>
 
         <TabsContent value="editor" className="flex-1 p-0 m-0 overflow-hidden">
           <AsmCodeEditor file={file} onSave={handleOnSave} />
         </TabsContent>
 
         <TabsContent
-          value="compiled"
+          value="metadata"
           className="flex-1 p-0 m-0 overflow-hidden"
         >
           {machineData && <MetaDataView machineData={machineData} />}
         </TabsContent>
 
         <TabsContent value="deploy" className="flex-1 p-4 m-0 overflow-auto">
-          {/*<DeploymentPanel data={compiledData} />*/}
+          {machineData && <DeploymentView data={machineData} />}
         </TabsContent>
       </Tabs>
-    </div>
-  );
+  )
 }
 
 export default AsmEditor;

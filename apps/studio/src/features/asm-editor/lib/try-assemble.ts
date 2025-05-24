@@ -1,5 +1,5 @@
 import { SmartC } from "smartc-signum-compiler";
-import type { MachineData } from "@/features/asm-editor/machine-data.ts";
+import type { MachineData } from "../machine-data.ts";
 
 /**
  * Tries to assemble the given assembly code.
