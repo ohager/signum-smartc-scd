@@ -1,4 +1,4 @@
-import type { Project, ProjectFile, ProjectFileType } from "@/types/project";
+import type { ProjectTypes, ProjectFile, ProjectFileType } from "@/types/project.types.ts";
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import {
@@ -12,7 +12,7 @@ export type FileId = {
   fileId: string;
 };
 
-export const projectsAtom = atomWithStorage<Project[]>(
+export const projectsAtom = atomWithStorage<ProjectTypes[]>(
   "scd:projects",
   [],
   {
@@ -28,7 +28,7 @@ export const projectsAtom = atomWithStorage<Project[]>(
     removeItem: (key: string) => {
       localStorage.removeItem(key);
     },
-    setItem: (key: string, value: Project[]) => {
+    setItem: (key: string, value: ProjectTypes[]) => {
       localStorage.setItem(key, JSON.stringify(value));
     },
   },
@@ -64,7 +64,7 @@ export const activeFileIdAtom = atomWithStorage<string | null>(
 // });
 
 export const getFileAtom = atom((get) => {
-  const projects = get(projectsAtom) as Project[];
+  const projects = get(projectsAtom) as ProjectTypes[];
   return async ({ projectId, fileId }: FileId) => {
     const project = projects.find((p) => p.id === projectId);
     if (project) {
@@ -78,8 +78,8 @@ export const getFileAtom = atom((get) => {
 
 // Action atoms
 export const addProjectAtom = atom(null, (get, set, projectName: string) => {
-  const projects = get(projectsAtom) as Project[];
-  const newProject: Project = {
+  const projects = get(projectsAtom) as ProjectTypes[];
+  const newProject: ProjectTypes = {
     id: crypto.randomUUID(),
     name: projectName,
     files: [],
@@ -102,7 +102,7 @@ export const addFileAtom = atom(
       data?: any;
     },
   ) => {
-    const projects = get(projectsAtom) as Project[];
+    const projects = get(projectsAtom) as ProjectTypes[];
     const newFile: ProjectFile = {
       id: crypto.randomUUID(),
       projectId: payload.projectId,
@@ -129,7 +129,7 @@ export const addFileAtom = atom(
 );
 
 export const saveFileAtom = atom(null, (get, set, file: ProjectFile) => {
-  const projects = get(projectsAtom) as Project[];
+  const projects = get(projectsAtom) as ProjectTypes[];
   const currentTime = new Date();
 
   set(
@@ -155,7 +155,7 @@ export const saveFileAtom = atom(null, (get, set, file: ProjectFile) => {
 });
 
 export const deleteProjectAtom = atom(null, (get, set, projectId: string) => {
-  const projects = get(projectsAtom) as Project[];
+  const projects = get(projectsAtom) as ProjectTypes[];
   projects
     .find((p) => p.id === projectId)
     ?.files.forEach((file) => {
@@ -175,7 +175,7 @@ export const deleteProjectAtom = atom(null, (get, set, projectId: string) => {
 export const deleteFileAtom = atom(
   null,
   (get, set, payload: FileId) => {
-    const projects = get(projectsAtom) as Project[]; // force refresh
+    const projects = get(projectsAtom) as ProjectTypes[]; // force refresh
 
     const currentTime = new Date();
 
@@ -204,7 +204,7 @@ export const deleteFileAtom = atom(
 export const searchQueryAtom = atom("");
 
 export const searchResultsAtom = atom((get) => {
-  const projects = get(projectsAtom) as Project[];
+  const projects = get(projectsAtom) as ProjectTypes[];
   const query = get(searchQueryAtom).toLowerCase();
 
   if (!query) return projects;

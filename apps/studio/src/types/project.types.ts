@@ -9,7 +9,7 @@ export interface ProjectFile {
   data?: any;
 }
 
-export interface Project {
+export interface ProjectTypes {
   id: string;
   name: string;
   files: ProjectFile[];
