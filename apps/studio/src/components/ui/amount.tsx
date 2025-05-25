@@ -21,20 +21,16 @@ export function Amount({
 }: Props) {
   const value = useMemo(() => {
     const v = ChainValue.create(decimals);
-    const cv = isAtomic
+    return isAtomic
       ? v.setAtomic(amount).getCompound()
-      : v.setCompound(amount).getCompound()
-    const decimalPosition = cv.lastIndexOf(".");
-    if(decimalPosition > cutoff){
-      return cv.slice(0, decimalPosition + cutoff) + "…";
-    }
-    return cv;
-    }, [decimals, isAtomic, cutoff]
-  );
+      : v.setCompound(amount).getCompound();
+  }, [decimals, isAtomic, cutoff]);
   return (
     <div className="flex flex-row items-baseline gap-x-0.5">
       <span className={cn("font-medium text-lg", className)}>
-        {value}
+        {new Intl.NumberFormat(navigator.language, {
+          maximumFractionDigits: cutoff,
+        }).format(parseFloat(value))}
       </span>
       <small className="text-xs opacity-70">{suffix?.toUpperCase()}</small>
     </div>

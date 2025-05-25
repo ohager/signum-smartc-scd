@@ -20,13 +20,16 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import type { MachineData } from "./machine-data.ts";
+import type { MachineData } from "../machine-data.ts";
 import { Amount } from "@/components/ui/amount.tsx";
 import { AdaptiveScrollArea } from "@/components/ui/adaptive-scroll-area.tsx";
+import { useWalletStatus } from "@/hooks/use-wallet-status.ts";
+import { WalletConnection } from "@/features/asm-editor/deployment-view/wallet-connection.tsx";
 
 export function DeploymentView({ data }: { data: MachineData }) {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const walletStatus = useWalletStatus()
 
   const handleConnect = () => {
     setIsConnecting(true);
@@ -157,78 +160,7 @@ export function DeploymentView({ data }: { data: MachineData }) {
               </div>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Wallet Connection</CardTitle>
-              <CardDescription>
-                Connect to XT Wallet to deploy your contract
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {!isConnected ? (
-                <div className="flex flex-col items-center justify-center py-6">
-                  <Wallet className="h-12 w-12 text-blue-500 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">
-                    Connect Your XT Wallet
-                  </h3>
-                  <p className="text-center text-muted-foreground mb-4 max-w-md">
-                    To deploy your smart contract to the Signum blockchain, you
-                    need to connect your XT Wallet.
-                  </p>
-                  <Button onClick={handleConnect} disabled={isConnecting}>
-                    {isConnecting ? (
-                      <>
-                        <span className="animate-spin mr-2">⟳</span>
-                        Connecting...
-                      </>
-                    ) : (
-                      <>
-                        <Wallet className="h-4 w-4 mr-2" />
-                        Connect XT Wallet
-                      </>
-                    )}
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <Alert className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-900">
-                    <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
-                    <AlertTitle>Wallet Connected</AlertTitle>
-                    <AlertDescription>
-                      Your XT Wallet is connected and ready to deploy.
-                    </AlertDescription>
-                  </Alert>
-
-                  <div className="p-4 rounded-lg">
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="font-medium">Account</h4>
-                      <Badge variant="outline">Testnet</Badge>
-                    </div>
-                    <div className="font-mono text-sm mb-2">
-                      S-ABCD-EFGH-IJKL-MNOP
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground text-sm">
-                        Balance
-                      </span>
-                      <span className="font-medium">1,250.00 SIGNA</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button variant="outline">
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Open XT Wallet
-              </Button>
-              <Button disabled={!isConnected}>
-                Deploy Contract
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </CardFooter>
-          </Card>
+         <WalletConnection />
         </div>
       </div>
     </AdaptiveScrollArea>
