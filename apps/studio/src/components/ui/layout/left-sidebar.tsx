@@ -41,6 +41,7 @@ import { wallet } from "@/lib/wallet.ts";
 import type { NetworkType } from "@/types/wallet.types.ts";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
 import { AlertDialog } from "@/components/ui/alert-dialog.tsx";
+import { WalletStatusCard } from "@/components/ui/wallet-status-card.tsx";
 
 const footerItems = [
   {
@@ -52,8 +53,7 @@ const footerItems = [
 
 export function LeftSidebar() {
   const fs = useFileSystem();
-  const [connectionError, setConnectionError] = useState("");
-  const [showAlertDialog, setShowAlertDialog] = useState(false);
+
   const [projects, setProjects] = useState([
     ...fs.listFolderContents().folders,
   ]);
@@ -70,16 +70,6 @@ export function LeftSidebar() {
       fs.removeEventListener("file:*", updateFolders);
     };
   }, []);
-
-
-  const connectWallet = async (network: NetworkType) => {
-    try{
-      await wallet.connect(network);
-    }catch (e){
-      setShowAlertDialog(true);
-      setConnectionError(e.message);
-    }
-  }
 
 
   const [isOpen, setIsOpen] = useState(false);
@@ -132,30 +122,7 @@ export function LeftSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <hr />
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <div className="w-full flex justify-between items-center">
-              <SidebarGroupLabel>Wallet Connection</SidebarGroupLabel>
-              <DropdownMenu>
-                <DropdownMenuTrigger>
-                  <SidebarMenuAction className="group-hover/menu-item:opacity-100 cursor-pointer">
-                    <WalletIcon className="h-8 w-8 rounded-sm hover:bg-black/5 cursor-pointer" />
-                  </SidebarMenuAction>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-full">
-                  <DropdownMenuItem onClick={() => connectWallet("TestNet")}>
-                    <FlaskConicalIcon className="h-4 w-4" />
-                    Connect to Testnet
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => connectWallet("MainNet")}>
-                    <CrownIcon className="h-4 w-4" />
-                    Connect to Mainnet
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <WalletStatusCard />
         {/*<SidebarMenu>*/}
         {/*  {footerItems.map((item) => (*/}
         {/*    <SidebarMenuItem key={item.title}>*/}
@@ -172,13 +139,6 @@ export function LeftSidebar() {
         <ThemeSwitch />
       </SidebarFooter>
 
-      <AlertDialog
-        open={showAlertDialog}
-        onOpenChange={setShowAlertDialog}
-        title="Connection Issue"
-        type="warning"
-        description={connectionError}
-      />
     </Sidebar>
   );
 }
