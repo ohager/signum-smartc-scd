@@ -27,6 +27,7 @@
     "@radix-ui/react-tooltip": "^1.2.0",
     "@signum-smartc-scd/core": "workspace:*",
     "@signumjs/util": "^2.0.7",
+    "@signumjs/wallets": "^2.0.7",
     "bun-plugin-tailwind": "^0.0.14",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
