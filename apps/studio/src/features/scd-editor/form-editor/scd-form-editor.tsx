@@ -9,6 +9,7 @@ import { StepVariables } from "./steps/step-variables";
 import { useEffect } from "react";
 import { useScdContentManager } from "../hooks/use-scd-content-manager.ts";
 import { toast } from "sonner";
+import { AdaptiveScrollArea } from "@/components/ui/adaptive-scroll-area.tsx";
 
 const steps = [
   {
@@ -71,17 +72,19 @@ export function SCDFormEditor() {
   };
 
   return (
-    <Wizard<SCDType>
-      steps={steps}
-      initialState={scdData}
-      onFinish={handleOnFinish}
-      finishButtonLabel="Save"
-    >
-      {(props) => (
-        <div className="min-h-[200px] w-full py-2">
-          <WizardStepRenderer {...props} />
-        </div>
-      )}
-    </Wizard>
+    <AdaptiveScrollArea>
+      <Wizard<SCDType>
+        steps={steps}
+        initialState={scdData}
+        onFinish={handleOnFinish}
+        finishButtonLabel="Save"
+      >
+        {(props) => (
+          <div className="min-h-[200px] w-full py-2">
+            <WizardStepRenderer {...props} />
+          </div>
+        )}
+      </Wizard>
+    </AdaptiveScrollArea>
   );
 }
