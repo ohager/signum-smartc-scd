@@ -71,17 +71,13 @@ export function WalletConnection() {
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex justify-between">
+      <CardFooter className="flex justify-center">
         <ExplorerLink identifier={walletStatus?.accountId ?? ""} type="address">
           <Button variant="outline">
             <ExternalLink className="h-4 w-4 mr-2" />
             Open In Explorer
           </Button>
         </ExplorerLink>
-        <Button disabled={!walletStatus}>
-          Deploy Contract
-          <ArrowRight className="h-4 w-4 ml-2" />
-        </Button>
       </CardFooter>
     </Card>
   );

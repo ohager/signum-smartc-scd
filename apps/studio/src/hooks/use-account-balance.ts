@@ -5,7 +5,7 @@ export function useAccountBalance() {
   const status = useWalletStatus()
 
   const { data, isLoading } = useSWR(
-    status && `getBalance/${status.accountId}`,
+    status && `${status.ledger.service.settings.nodeHost}/getBalance/${status.accountId}`,
     () =>
       status ? status.ledger.account.getAccountBalance(status.accountId) : null,
     {

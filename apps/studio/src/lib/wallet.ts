@@ -6,7 +6,6 @@ import { LedgerClientFactory } from "@signumjs/core";
 import asmCodeEditor from "@/features/asm-editor/code-editor/asm-code-editor.tsx";
 
 let walletInstance = new GenericExtensionWallet();
-let connection: WalletConnection | null = null;
 
 function disconnect() {
   walletInstance = new GenericExtensionWallet();
@@ -27,11 +26,15 @@ export const wallet = {
         }
       },
       onNetworkChanged: ({ networkName, networkHost }) => {
+        if(jotaiStore.get(walletConnectionStateAtom)?.network !== networkName){
+          return disconnect()
+        }
+
         jotaiStore.set(walletConnectionStateAtom, (prev) => {
           return prev
             ? {
                 ...prev,
-                network: networkName === "Signum" ? "MainNet" : "TestNet",
+                network: networkName as string === "Signum" ? "MainNet" : "TestNet",
                 node: networkHost,
               }
             : null;
@@ -68,7 +71,6 @@ export const wallet = {
     });
   },
   signTransaction: async (unsignedTransaction: string) => {
-    if (!connection) throw new Error("Wallet not connected");
-    await walletInstance.confirm(unsignedTransaction);
+    return walletInstance.confirm(unsignedTransaction);
   },
 };

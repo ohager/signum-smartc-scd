@@ -1,47 +1,32 @@
-import { useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import {
-  Wallet,
-  ArrowRight,
-  AlertCircle,
-  ExternalLink,
-  Check,
-} from "lucide-react";
+import { AlertCircle } from "lucide-react";
+import { Amount } from "@signumjs/util";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import type { MachineData } from "../machine-data.ts";
-import { Amount } from "@/components/ui/amount.tsx";
+import { Amount as AmountView } from "@/components/ui/amount.tsx";
 import { AdaptiveScrollArea } from "@/components/ui/adaptive-scroll-area.tsx";
-import { useWalletStatus } from "@/hooks/use-wallet-status.ts";
-import { WalletConnection } from "@/features/asm-editor/deployment-view/wallet-connection.tsx";
+import { WalletConnection } from "./wallet-connection.tsx";
+import { DeploymentFlow } from "./deployment-flow.tsx";
+import { useState } from "react";
 
 export function DeploymentView({ data }: { data: MachineData }) {
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
-  const walletStatus = useWalletStatus()
-
-  const handleConnect = () => {
-    setIsConnecting(true);
-    //
-  };
-
+  const [minimumFee, setMinimumFee] = useState(Amount.fromPlanck(data.MinimumFeeNQT).getSigna());
+  const [deadline, setDeadline] = useState(1440);
   return (
     <AdaptiveScrollArea>
       <div className="max-w-3xl mx-auto">
         <h2 className="text-2xl font-bold">Deploy Smart Contract</h2>
         <Alert className="my-4">
-          <AlertCircle className="h-4 w-4" color="red"/>
+          <AlertCircle className="h-4 w-4" color="red" />
           <AlertTitle>Important Note</AlertTitle>
           <AlertDescription>
             Deploying a smart contract is irreversible. Make sure you have
@@ -70,7 +55,7 @@ export function DeploymentView({ data }: { data: MachineData }) {
                       Activation Amount
                     </h4>
                     <p className="font-medium">
-                      <Amount amount={data.PActivationAmount} isAtomic />
+                      <AmountView amount={data.PActivationAmount} isAtomic />
                     </p>
                   </div>
                 </div>
@@ -98,7 +83,7 @@ export function DeploymentView({ data }: { data: MachineData }) {
                       Minimum Fee
                     </h4>
                     <p className="font-medium">
-                      <Amount amount={data.MinimumFeeNQT ?? 0} isAtomic />
+                      <AmountView amount={data.MinimumFeeNQT ?? 0} isAtomic />
                     </p>
                   </div>
                 </div>
@@ -120,39 +105,37 @@ export function DeploymentView({ data }: { data: MachineData }) {
                     <Label htmlFor="activation-amount">
                       Activation Amount (SIGNA)
                     </Label>
-                    <Input
-                      id="activation-amount"
-                      type="number"
-                      defaultValue={(
-                        Number.parseInt(data.PActivationAmount) / 100000000
-                      ).toString()}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Initial balance for the contract
-                    </p>
+                    <AmountView amount={data.PActivationAmount} isAtomic />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="fee">Transaction Fee (SIGNA)</Label>
                     <Input
                       id="fee"
                       type="number"
-                      defaultValue={(
-                        Number.parseInt(data.MinimumFeeNQT) / 100000000
-                      ).toString()}
+                      step={0.1}
+                      onChange={(e) => {
+                        setMinimumFee(e.target.value);
+                      }}
+                      value={minimumFee}
                     />
                     <p className="text-xs text-muted-foreground">
                       Minimum:{" "}
-                      {(
-                        Number.parseInt(data.MinimumFeeNQT) / 100000000
-                      ).toFixed(8)}{" "}
-                      SIGNA
+                      <AmountView amount={data.MinimumFeeNQT} isAtomic />
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="deadline">Deadline (minutes)</Label>
-                  <Input id="deadline" type="number" defaultValue="1440" />
+                  <Input
+                    id="deadline"
+                    type="number"
+                    onChange={(e) => {
+                      setDeadline(Number(e.target.value));
+                    }}
+                    value={deadline}
+                    max="1440"
+                  />
                   <p className="text-xs text-muted-foreground">
                     Transaction deadline in minutes (max: 1440)
                   </p>
@@ -160,7 +143,8 @@ export function DeploymentView({ data }: { data: MachineData }) {
               </div>
             </CardContent>
           </Card>
-         <WalletConnection />
+          <WalletConnection />
+          <DeploymentFlow data={data} fee={Amount.fromSigna(minimumFee)} deadline={deadline} initialData={[]}/>
         </div>
       </div>
     </AdaptiveScrollArea>
