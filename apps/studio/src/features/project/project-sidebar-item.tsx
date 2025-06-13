@@ -10,7 +10,7 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
 } from "@/components/ui/sidebar";
-import type { Project } from "@/types/project";
+import type { ProjectTypes } from "@/types/project.types.ts";
 import { useEffect, useMemo, useState } from "react";
 import {
   ChevronDown, ChevronDownIcon,

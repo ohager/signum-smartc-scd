@@ -10,7 +10,7 @@ import AsmCodeEditor from "./code-editor/asm-code-editor.tsx";
 import type { MachineData } from "./machine-data.ts";
 import { tryAssemble } from "@/features/asm-editor/lib/try-assemble.ts";
 import { MetaDataView } from "./meta-data-view";
-import { DeploymentView } from "./deployment-view.tsx";
+import { DeploymentView } from "./deployment-view";
 import { useSearchParams } from "react-router";
 
 type ViewType = "editor" | "metadata" | "deployment";
