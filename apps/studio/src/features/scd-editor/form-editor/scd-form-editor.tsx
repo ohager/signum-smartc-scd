@@ -10,7 +10,6 @@ import { useEffect } from "react";
 import { useScdContentManager } from "../hooks/use-scd-content-manager.ts";
 import { toast } from "sonner";
 import { AdaptiveScrollArea } from "@/components/ui/adaptive-scroll-area.tsx";
-import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 
 const steps = [
   {
