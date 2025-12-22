@@ -9,6 +9,11 @@ import { createRoot } from "react-dom/client";
 import { StrictMode } from "react";
 import { App } from "./App";
 
+import {Crypto} from "@signumjs/crypto"
+import {WebCryptoAdapter} from "@signumjs/crypto/adapters"
+
+Crypto.init(new WebCryptoAdapter())
+
 const elem = document.getElementById("root")!;
 const app = (
   <StrictMode>

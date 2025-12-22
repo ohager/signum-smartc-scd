@@ -72,19 +72,19 @@ export function SCDFormEditor() {
   };
 
   return (
-    <AdaptiveScrollArea>
-      <Wizard<SCDType>
-        steps={steps}
-        initialState={scdData}
-        onFinish={handleOnFinish}
-        finishButtonLabel="Save"
-      >
-        {(props) => (
-          <div className="min-h-[200px] w-full py-2">
+    <Wizard<SCDType>
+      steps={steps}
+      initialState={scdData}
+      onFinish={handleOnFinish}
+      finishButtonLabel="Save"
+    >
+      {(props) => (
+        <AdaptiveScrollArea className={ "h-full max-h-[500px]"}>
+          <div className=" min-h-[200px] w-full py-2">
             <WizardStepRenderer {...props} />
           </div>
-        )}
-      </Wizard>
-    </AdaptiveScrollArea>
+        </AdaptiveScrollArea>
+      )}
+    </Wizard>
   );
 }
