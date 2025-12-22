@@ -1,3 +1,3 @@
-# signum-smartc-abi
+# signum-smartc-scd
 
-(Opinionated) Descriptor specification for Signum SmartC contracts and tooling
+A full fledge web based IDE for Signum SmartC Development
