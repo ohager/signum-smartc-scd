@@ -52,7 +52,6 @@ interface LargeContractDeploymentProps {
   deadline: number;
   fee: Amount;
   nodeUrl: string;
-  publicKey: string;
 }
 
 export function LargeContractDeployment({
@@ -60,7 +59,6 @@ export function LargeContractDeployment({
   deadline,
   fee,
   nodeUrl,
-  publicKey,
 }: LargeContractDeploymentProps) {
   const [deploymentStep, setDeploymentStep] = useState<DeploymentStep>("idle");
   const [passphrase, setPassphrase] = useState("");

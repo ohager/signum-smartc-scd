@@ -24,7 +24,8 @@ export function Amount({
     return isAtomic
       ? v.setAtomic(amount).getCompound()
       : v.setCompound(amount).getCompound();
-  }, [decimals, isAtomic, cutoff]);
+  }, [decimals, isAtomic, cutoff, amount]);
+
   return (
     <div className="flex flex-row items-baseline gap-x-0.5">
       <span className={cn("font-medium text-lg", className)}>

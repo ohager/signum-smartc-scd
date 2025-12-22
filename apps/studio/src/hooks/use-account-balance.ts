@@ -10,6 +10,7 @@ export function useAccountBalance() {
       status ? status.ledger.account.getAccountBalance(status.accountId) : null,
     {
       refreshInterval: 60_000,
+      refetchOnWindowFocus: true
     },
   );
 
