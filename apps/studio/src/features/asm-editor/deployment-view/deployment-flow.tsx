@@ -30,6 +30,8 @@ import type { Amount } from "@signumjs/util";
 import { ExplorerLink } from "@/components/ui/explorer-link.tsx";
 import type { Ledger } from "@signumjs/core";
 import { HttpError } from "@signumjs/http";
+import { isLargeContract } from "./contract-size-helper";
+import { LargeContractDeployment } from "./large-contract-deployment";
 
 async function waitForBroadcastedTx(
   txId: string,
@@ -78,6 +80,19 @@ export function DeploymentFlow({
   const [errorMessage, setErrorMessage] = useState("");
   const status = useWalletStatus();
 
+  // TODO: Remove this check once SignumJS/XT Wallet support POST body signing for large contracts
+  if (status && isLargeContract(data)) {
+    return (
+      <LargeContractDeployment
+        data={data}
+        initialData={initialData}
+        deadline={deadline}
+        fee={fee}
+        nodeUrl={status.ledger.service.settings.nodeHost}
+      />
+    );
+  }
+
   const handleDeploy = async () => {
     if (!status) {
       toast.warning("Please connect to a wallet to deploy your contract");
@@ -86,6 +101,21 @@ export function DeploymentFlow({
     try {
       setErrorMessage("");
       setDeploymentStep("preparing");
+
+      const parameters = {
+        data: initialData,
+        codeHex: data.ByteCode,
+        description: data.PDescription,
+        name: data.PName,
+        deadline,
+        activationAmountPlanck: data.PActivationAmount,
+        senderPublicKey: status.publicKey,
+        dataPages: data.DataPages,
+        feePlanck: fee.getPlanck(),
+      }
+
+      await status.ledger.service.send("POST", parameters, {})
+
       const unsignedTx = await status.ledger.contract.publishContract({
         data: initialData,
         codeHex: data.ByteCode,
