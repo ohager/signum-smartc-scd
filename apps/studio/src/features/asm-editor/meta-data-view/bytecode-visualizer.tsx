@@ -10,11 +10,12 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { MachineData } from "../machine-data.ts";
 import { useMemo } from "react";
+import { AdaptiveScrollArea } from "@/components/ui/adaptive-scroll-area.tsx";
 
 function formatHexView(hexString: string) {
-  if(!hexString) return "";
+  if (!hexString) return "";
   if (hexString.length % 2 !== 0) {
-    return "Invalid hex string"
+    return "Invalid hex string";
   }
   let formatted = "";
   for (let i = 0; i < hexString.length; i += 2) {
@@ -25,8 +26,7 @@ function formatHexView(hexString: string) {
 }
 
 export function BytecodeVisualizer({ data }: { data: MachineData }) {
-
-  const formattedByteCode = useMemo(() => formatHexView(data.ByteCode), [data])
+  const formattedByteCode = useMemo(() => formatHexView(data.ByteCode), [data]);
 
   return (
     <Tabs defaultValue="memory">
@@ -45,7 +45,7 @@ export function BytecodeVisualizer({ data }: { data: MachineData }) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[600px]">
+            <AdaptiveScrollArea>
               <div className="grid grid-cols-1 gap-1">
                 {data.Memory.map((item, index) => (
                   <div key={item} className="flex items-center p-2 rounded-md">
@@ -56,7 +56,7 @@ export function BytecodeVisualizer({ data }: { data: MachineData }) {
                   </div>
                 ))}
               </div>
-            </ScrollArea>
+            </AdaptiveScrollArea>
           </CardContent>
         </Card>
       </TabsContent>
@@ -68,17 +68,19 @@ export function BytecodeVisualizer({ data }: { data: MachineData }) {
             <CardDescription>Jump targets in the bytecode</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 gap-1">
-              {data.Labels.map((item: any, index: number) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-2 rounded-md"
-                >
-                  <span className="font-mono text-sm">{item.label}</span>
-                  <Badge variant="secondary">Address: {item.address}</Badge>
-                </div>
-              ))}
-            </div>
+            <AdaptiveScrollArea>
+              <div className="grid grid-cols-1 gap-1">
+                {data.Labels.map((item: any, index: number) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-2 rounded-md"
+                  >
+                    <span className="font-mono text-sm">{item.label}</span>
+                    <Badge variant="secondary">Address: {item.address}</Badge>
+                  </div>
+                ))}
+              </div>
+            </AdaptiveScrollArea>
           </CardContent>
         </Card>
       </TabsContent>
@@ -88,17 +90,19 @@ export function BytecodeVisualizer({ data }: { data: MachineData }) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Bytecode Hex View</CardTitle>
             <CardDescription>
-              Hexadecimal representation of the bytecode ({data.ByteCode.length/2} bytes)
+              Hexadecimal representation of the bytecode (
+              {data.ByteCode.length / 2} bytes)
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="rounded-md font-mono text-sm overflow-x-auto">
-              {formattedByteCode}
-            </div>
+            <AdaptiveScrollArea>
+              <div className="rounded-md font-mono text-sm overflow-x-auto">
+                {formattedByteCode}
+              </div>
+            </AdaptiveScrollArea>
           </CardContent>
         </Card>
       </TabsContent>
     </Tabs>
   );
 }
-

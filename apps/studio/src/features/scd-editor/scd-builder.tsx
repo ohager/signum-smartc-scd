@@ -2,6 +2,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useSearchParams } from "react-router";
 import { SCDFormEditor } from "./form-editor";
 import { SCDJsonEditor } from "./code-editor";
+import { AdaptiveScrollArea } from "@/components/ui/adaptive-scroll-area.tsx";
 
 const SCDBuilder = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -24,7 +25,9 @@ const SCDBuilder = () => {
         </TabsList>
 
         <TabsContent value="form">
-          <SCDFormEditor />
+          <AdaptiveScrollArea>
+            <SCDFormEditor />
+          </AdaptiveScrollArea>
         </TabsContent>
 
         <TabsContent value="json">
