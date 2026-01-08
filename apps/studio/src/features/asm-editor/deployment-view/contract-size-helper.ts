@@ -3,7 +3,8 @@ import type { MachineData } from "@/features/asm-editor/machine-data.ts";
 // HTTP GET URLs have a practical limit of ~8KiB
 // Contracts larger than this need to use Form POST method
 const MAX_CONTRACT_SIZE_FOR_GET = 8192; // 8KiB in bytes
-
+// Absolute maximum contract size for deployment (10KiB)
+const MAX_CONTRACT_SIZE_FOR_POST = 10240; // 10KiB in bytes
 /**
  * Calculate the total size of the contract in bytes
  * Size is based on the hex-encoded ByteCode and ByteData
@@ -12,6 +13,14 @@ export function calculateContractSize(data: MachineData): number {
   const byteCodeSize = data.ByteCode.length / 2; // hex string, 2 chars = 1 byte
   const byteDataSize = data.ByteData.length / 2;
   return byteCodeSize + byteDataSize;
+}
+
+/**
+ * Check if the contract is too large at all and cannot be deployed!
+ * @param data
+ */
+export function isTooLarge(data: MachineData): boolean {
+  return calculateContractSize(data) > MAX_CONTRACT_SIZE_FOR_POST;
 }
 
 /**

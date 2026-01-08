@@ -30,7 +30,7 @@ import type { Amount } from "@signumjs/util";
 import { ExplorerLink } from "@/components/ui/explorer-link.tsx";
 import type { Ledger } from "@signumjs/core";
 import { HttpError } from "@signumjs/http";
-import { isLargeContract } from "./contract-size-helper";
+import { isLargeContract, isTooLarge, calculateContractSize, formatContractSize } from "./contract-size-helper";
 import { LargeContractDeployment } from "./large-contract-deployment";
 
 async function waitForBroadcastedTx(
@@ -80,7 +80,33 @@ export function DeploymentFlow({
   const [errorMessage, setErrorMessage] = useState("");
   const status = useWalletStatus();
 
-  // TODO: Remove this check once SignumJS/XT Wallet support POST body signing for large contracts
+  // Check if contract exceeds the absolute maximum size
+  if (isTooLarge(data)) {
+    const contractSize = calculateContractSize(data);
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Contract Too Large</CardTitle>
+          <CardDescription>
+            This contract cannot be deployed
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Alert className="border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950">
+            <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+            <AlertTitle className="text-red-800 dark:text-red-200">
+              Contract Exceeds Maximum Size
+            </AlertTitle>
+            <AlertDescription className="text-red-700 dark:text-red-300">
+              Your contract size is {formatContractSize(contractSize)}, which exceeds the maximum deployment limit of 10 KiB (10240 bytes).
+              Please optimize your contract code to reduce its size before deployment.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (status && isLargeContract(data)) {
     return (
       <LargeContractDeployment

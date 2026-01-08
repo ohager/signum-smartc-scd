@@ -28,7 +28,7 @@ import type { MachineData } from "@/features/asm-editor/machine-data.ts";
 import { toast } from "sonner";
 import type { Amount } from "@signumjs/util";
 import { ExplorerLink } from "@/components/ui/explorer-link.tsx";
-import { formatContractSize, calculateContractSize } from "./contract-size-helper";
+import { formatContractSize, calculateContractSize, isTooLarge } from "./contract-size-helper";
 
 /**
  * TEMPORARY COMPONENT FOR LARGE CONTRACT DEPLOYMENT
@@ -67,6 +67,7 @@ export function LargeContractDeployment({
   const [errorMessage, setErrorMessage] = useState("");
 
   const contractSize = calculateContractSize(data);
+  const contractTooLarge = isTooLarge(data);
 
   const handleStartDeployment = () => {
     setDeploymentStep("passphrase_input");
@@ -164,18 +165,34 @@ export function LargeContractDeployment({
 
   return (
     <div className="space-y-6">
+      {/* Error if contract exceeds maximum size */}
+      {contractTooLarge && (
+        <Alert className="border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950">
+          <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+          <AlertTitle className="text-red-800 dark:text-red-200">
+            Contract Exceeds Maximum Size
+          </AlertTitle>
+          <AlertDescription className="text-red-700 dark:text-red-300">
+            Your contract size is {formatContractSize(contractSize)}, which exceeds the maximum deployment limit of 10 KiB (10240 bytes).
+            Please optimize your contract code to reduce its size before deployment.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Warning about large contract */}
-      <Alert className="border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950">
-        <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-        <AlertTitle className="text-amber-800 dark:text-amber-200">
-          Large Contract Detected ({formatContractSize(contractSize)})
-        </AlertTitle>
-        <AlertDescription className="text-amber-700 dark:text-amber-300">
-          This contract is too large (&gt;8KiB) for standard deployment. XT
-          Wallet signing is not supported for large contracts. You must provide
-          your passphrase for direct submission to the node.
-        </AlertDescription>
-      </Alert>
+      {!contractTooLarge && (
+        <Alert className="border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950">
+          <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <AlertTitle className="text-amber-800 dark:text-amber-200">
+            Large Contract Detected ({formatContractSize(contractSize)})
+          </AlertTitle>
+          <AlertDescription className="text-amber-700 dark:text-amber-300">
+            This contract is too large (&gt;8KiB) for standard deployment. XT
+            Wallet signing is not supported for large contracts. You must provide
+            your passphrase for direct submission to the node.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Card>
         <CardHeader>
@@ -319,7 +336,7 @@ export function LargeContractDeployment({
           {/* Action Buttons */}
           <div className="flex gap-3">
             {deploymentStep === "idle" && (
-              <Button onClick={handleStartDeployment} className="flex-1">
+              <Button onClick={handleStartDeployment} className="flex-1" disabled={contractTooLarge}>
                 <Zap className="h-4 w-4 mr-2" />
                 Deploy Large Contract
               </Button>
