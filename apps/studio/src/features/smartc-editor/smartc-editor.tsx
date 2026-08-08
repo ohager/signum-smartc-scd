@@ -233,9 +233,10 @@ function SmartCEditor({ file }: Props) {
   };
 
   const handleValidate = (markers: any[]) => {
-    console.log("SmartC Validation:", markers);
-    const error = markers.length > 0 ? markers[0].message : undefined;
-    setValidationError(error ?? "");
+    // Only compile errors block save/compile; warnings are informational.
+    const MARKER_SEVERITY_ERROR = 8; // monaco.MarkerSeverity.Error
+    const firstError = markers.find((m) => m.severity === MARKER_SEVERITY_ERROR);
+    setValidationError(firstError?.message ?? "");
   };
 
   return (

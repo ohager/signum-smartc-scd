@@ -43,7 +43,7 @@ export function analyzeWithCompiler(source: string): CompileAnalysis {
       error: null,
       compiler: {
         variables: (mc.Memory ?? []).filter((n) => !isInternalName(n)),
-        labels: (mc.Labels ?? []).map((l) => l.label),
+        labels: (mc.Labels ?? []).map((l) => l.label).filter((name) => !name.startsWith("__")),
         warnings: mc.Warnings ?? "",
       },
     };

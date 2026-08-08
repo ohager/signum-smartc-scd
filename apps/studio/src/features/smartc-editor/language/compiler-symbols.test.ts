@@ -32,4 +32,10 @@ describe("analyzeWithCompiler", () => {
     expect(r.error).not.toBeNull();
     expect(typeof r.error!.message).toBe("string");
   });
+
+  it("filters out internal compiler labels (double-underscore)", () => {
+    const r = analyzeWithCompiler("#pragma maxAuxVars 2\nlong a;\nwhile (a) { a--; }");
+    expect(r.compiler).not.toBeNull();
+    expect(r.compiler!.labels.every((l) => !l.startsWith("__"))).toBe(true);
+  });
 });
