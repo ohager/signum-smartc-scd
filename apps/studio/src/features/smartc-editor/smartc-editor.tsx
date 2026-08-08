@@ -254,7 +254,7 @@ function SmartCEditor({ file }: Props) {
                     </small>
                   </div>
                 </TooltipTrigger>
-                <TooltipContent side="right">Invalid SCD</TooltipContent>
+                <TooltipContent side="right">Invalid code</TooltipContent>
               </Tooltip>
             </span>
           )}

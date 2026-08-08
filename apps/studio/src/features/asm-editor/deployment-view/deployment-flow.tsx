@@ -28,14 +28,14 @@ import { wallet } from "@/lib/wallet.ts";
 import type { ConfirmedTransaction } from "@signumjs/wallets";
 import type { Amount } from "@signumjs/util";
 import { ExplorerLink } from "@/components/ui/explorer-link.tsx";
-import type { Ledger } from "@signumjs/core";
+import type { StandardLedger } from "@signumjs/core";
 import { HttpError } from "@signumjs/http";
 import { isLargeContract, isTooLarge, calculateContractSize, formatContractSize } from "./contract-size-helper";
 import { LargeContractDeployment } from "./large-contract-deployment";
 
 async function waitForBroadcastedTx(
   txId: string,
-  ledger: Ledger,
+  ledger: StandardLedger,
   timeout = 30,
 ) {
   const { unconfirmedTransactions } =
@@ -127,20 +127,7 @@ export function DeploymentFlow({
     try {
       setErrorMessage("");
       setDeploymentStep("preparing");
-
-      const parameters = {
-        data: initialData,
-        codeHex: data.ByteCode,
-        description: data.PDescription,
-        name: data.PName,
-        deadline,
-        activationAmountPlanck: data.PActivationAmount,
-        senderPublicKey: status.publicKey,
-        dataPages: data.DataPages,
-        feePlanck: fee.getPlanck(),
-      }
-
-      await status.ledger.service.send("POST", parameters, {})
+      console.log("Deploying contract...");
 
       const unsignedTx = await status.ledger.contract.publishContract({
         data: initialData,
@@ -151,8 +138,13 @@ export function DeploymentFlow({
         activationAmountPlanck: data.PActivationAmount,
         senderPublicKey: status.publicKey,
         dataPages: data.DataPages,
+        callStackPages: data.CodeStackPages,
+        userStackPages: data.UserStackPages,
         feePlanck: fee.getPlanck(),
+        skipAdditionalSecurityCheck: true
       });
+
+      console.log("Unsigned Transaction Bytes:", unsignedTx.unsignedTransactionBytes);
 
       setDeploymentStep("wallet_confirmation");
       setUnsignedBytes(unsignedTx.unsignedTransactionBytes);

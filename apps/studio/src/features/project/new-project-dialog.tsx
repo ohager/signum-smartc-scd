@@ -43,7 +43,12 @@ export function NewProjectDialog({ close }: Props) {
     const fileName = replaceWhitespace(name);
 
     if (projectType === "create") {
-      await fs.addFile(folderId, `${fileName.toLowerCase()}.scd.json`, FileTypes.SCD, null )
+      await fs.addFile(
+        folderId,
+        `${fileName.toLowerCase()}.smart.c`,
+        FileTypes.SmartC,
+        "// New Signum SmartC contract — start coding here.\n",
+      )
     }
 
     close();

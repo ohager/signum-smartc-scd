@@ -130,7 +130,7 @@ function AsmCodeEditor({ file, onSave }: Props) {
                     </small>
                   </div>
                 </TooltipTrigger>
-                <TooltipContent side="right">Invalid SCD</TooltipContent>
+                <TooltipContent side="right">Invalid assembly</TooltipContent>
               </Tooltip>
             </span>
           )}

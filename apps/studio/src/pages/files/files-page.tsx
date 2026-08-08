@@ -3,7 +3,6 @@ import { Page, PageContent, PageHeader } from "@/components/ui/page";
 import { Navigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
-import { SCDFileEditor } from "@/features/scd-editor/scd-file-editor.tsx";
 import { useEffect, useState } from "react";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import type {File} from "@/lib/file-system"
@@ -62,12 +61,16 @@ export function FilesPage() {
       </PageHeader>
       <PageContent className="overflow-hidden">
         <div className="flex-1">
-          {type === FileTypes.SCD && <SCDFileEditor key={id} file={file!} />}
           {type === FileTypes.SmartC && (
             <SmartCFileEditor key={id} file={file!} />
           )}
           {type === FileTypes.ASM && (
             <AsmFileEditor key={id} file={file!} />
+          )}
+          {type !== FileTypes.SmartC && type !== FileTypes.ASM && (
+            <div className="p-4 text-sm text-muted-foreground">
+              This file type ("{type}") is no longer supported.
+            </div>
           )}
         </div>
       </PageContent>
