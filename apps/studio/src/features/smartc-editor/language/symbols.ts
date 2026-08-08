@@ -1,3 +1,5 @@
+import type { CompilerSymbols } from "./compiler-symbols";
+
 export type SmartCDecl = "long" | "fixed" | "void" | "struct";
 
 export interface SmartCVariable {
@@ -46,4 +48,25 @@ export interface SmartCSymbols {
 
 export function emptySymbols(): SmartCSymbols {
   return { variables: [], macros: [], functions: [], structs: [], labels: [], constants: [] };
+}
+
+/** Merges scanner symbols with authoritative compiler symbols (variables/labels). */
+export function mergeSymbols(
+  scanned: SmartCSymbols,
+  compiler: CompilerSymbols | null,
+): SmartCSymbols {
+  if (!compiler) return scanned;
+  const known = new Set(scanned.variables.map((v) => v.name));
+  const extraVars: SmartCVariable[] = compiler.variables
+    .filter((name) => !known.has(name))
+    .map((name) => ({ name, declaration: "long" as const, line: 0 }));
+  const knownLabels = new Set(scanned.labels.map((l) => l.name));
+  const extraLabels = compiler.labels
+    .filter((name) => !knownLabels.has(name))
+    .map((name) => ({ name, line: 0 }));
+  return {
+    ...scanned,
+    variables: [...scanned.variables, ...extraVars],
+    labels: [...scanned.labels, ...extraLabels],
+  };
 }

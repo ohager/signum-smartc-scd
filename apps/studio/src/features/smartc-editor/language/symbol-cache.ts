@@ -1,7 +1,7 @@
 import type * as Monaco from "monaco-editor";
 import { scanSymbols } from "./symbol-scanner";
 import { analyzeWithCompiler } from "./compiler-symbols";
-import { type SmartCSymbols, emptySymbols } from "./symbols";
+import { type SmartCSymbols, emptySymbols, mergeSymbols } from "./symbols";
 
 const cache = new Map<string, SmartCSymbols>();
 
@@ -16,7 +16,7 @@ export function updateModel(
   const source = model.getValue();
   const { error, compiler } = analyzeWithCompiler(source);
 
-  cache.set(model.uri.toString(), scanSymbols(source));
+  cache.set(model.uri.toString(), mergeSymbols(scanSymbols(source), compiler));
 
   const markers: Monaco.editor.IMarkerData[] = [];
   if (error) {

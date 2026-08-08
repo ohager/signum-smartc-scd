@@ -1,5 +1,7 @@
 import { describe, it, expect } from "bun:test";
 import { scanSymbols, stripCommentsAndStrings } from "./symbol-scanner";
+import { mergeSymbols } from "./symbols";
+import type { CompilerSymbols } from "./compiler-symbols";
 
 describe("stripCommentsAndStrings", () => {
   it("removes line comments but keeps line count", () => {
@@ -95,5 +97,21 @@ describe("scanSymbols", () => {
       { type: "long", name: "x" },
       { type: "fixed", name: "y" },
     ]);
+  });
+});
+
+describe("mergeSymbols", () => {
+  it("adds compiler-only variables and labels without duplicating scanner ones", () => {
+    const scanned = scanSymbols("long a;");
+    const compiler: CompilerSymbols = { variables: ["a", "b"], labels: ["loop"], warnings: "" };
+    const merged = mergeSymbols(scanned, compiler);
+    expect(merged.variables.map((v) => v.name).sort()).toEqual(["a", "b"]);
+    expect(merged.labels.map((l) => l.name)).toContain("loop");
+  });
+
+  it("returns scanner symbols unchanged when compiler is null", () => {
+    const scanned = scanSymbols("long a;");
+    const merged = mergeSymbols(scanned, null);
+    expect(merged.variables.map((v) => v.name)).toEqual(["a"]);
   });
 });
