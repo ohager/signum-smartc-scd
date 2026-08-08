@@ -1,6 +1,6 @@
 import type * as Monaco from "monaco-editor";
-import { SmartC } from "smartc-signum-compiler";
 import { scanSymbols } from "./symbol-scanner";
+import { analyzeWithCompiler } from "./compiler-symbols";
 import { type SmartCSymbols, emptySymbols } from "./symbols";
 
 const cache = new Map<string, SmartCSymbols>();
@@ -9,33 +9,35 @@ export function getSymbols(model: Monaco.editor.ITextModel): SmartCSymbols {
   return cache.get(model.uri.toString()) ?? emptySymbols();
 }
 
-const SmartCErrorPattern =
-  /At line: (?<line>\d+):(?<column>\d+)\.\s+(?<message>.*)/;
-
 export function updateModel(
   monaco: typeof Monaco,
   model: Monaco.editor.ITextModel,
 ): void {
   const source = model.getValue();
+  const { error, compiler } = analyzeWithCompiler(source);
 
   cache.set(model.uri.toString(), scanSymbols(source));
 
   const markers: Monaco.editor.IMarkerData[] = [];
-  try {
-    new SmartC({ language: "C", sourceCode: source }).compile();
-  } catch (e: any) {
-    const result = SmartCErrorPattern.exec(e.message ?? "");
-    if (result?.groups) {
-      const { line, column, message } = result.groups;
-      markers.push({
-        severity: monaco.MarkerSeverity.Error,
-        message,
-        startLineNumber: parseInt(line),
-        startColumn: parseInt(column),
-        endLineNumber: parseInt(line),
-        endColumn: parseInt(column) + 1,
-      });
-    }
+  if (error) {
+    markers.push({
+      severity: monaco.MarkerSeverity.Error,
+      message: error.message,
+      startLineNumber: error.line,
+      startColumn: error.column,
+      endLineNumber: error.line,
+      endColumn: error.column + 1,
+    });
+  }
+  if (compiler && compiler.warnings.trim()) {
+    markers.push({
+      severity: monaco.MarkerSeverity.Warning,
+      message: compiler.warnings.trim(),
+      startLineNumber: 1,
+      startColumn: 1,
+      endLineNumber: 1,
+      endColumn: 2,
+    });
   }
   monaco.editor.setModelMarkers(model, "smartc", markers);
 }
