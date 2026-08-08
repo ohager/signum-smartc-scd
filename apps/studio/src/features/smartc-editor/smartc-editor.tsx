@@ -290,6 +290,7 @@ function SmartCEditor({ file }: Props) {
             snippetSuggestions: "top",
             suggestOnTriggerCharacters: true,
             renderValidationDecorations: "on",
+            wordBasedSuggestions: "off",
           }}
         />
       </div>
