@@ -1,5 +1,6 @@
 import type * as Monaco from "monaco-editor";
 import { SmartCFunctions } from "../language-definitions/functions";
+import { getSymbols } from "./symbol-cache";
 
 /** Finds the innermost function call name and active parameter index at `textUntilPosition`. */
 export function findActiveCall(
@@ -64,25 +65,35 @@ export function createSignatureHelpProvider(
       const call = findActiveCall(textUntilPosition);
       if (!call) return null;
 
-      const info = SmartCFunctions[call.name];
-      if (!info) return null;
+      const builtin = SmartCFunctions[call.name];
+      if (builtin) {
+        const signature: Monaco.languages.SignatureInformation = {
+          label: builtin.signature,
+          documentation: { value: builtin.documentation, isTrusted: true },
+          parameters: builtin.params.map((p) => ({
+            label: p.name,
+            documentation: { value: p.documentation, isTrusted: true },
+          })),
+        };
+        return {
+          value: { signatures: [signature], activeSignature: 0, activeParameter: Math.min(call.activeParameter, builtin.params.length - 1) },
+          dispose: () => {},
+        };
+      }
 
-      const signature: Monaco.languages.SignatureInformation = {
-        label: info.signature,
-        documentation: { value: info.documentation, isTrusted: true },
-        parameters: info.params.map((p) => ({
-          label: p.name,
-          documentation: { value: p.documentation, isTrusted: true },
-        })),
-      };
-      return {
-        value: {
-          signatures: [signature],
-          activeSignature: 0,
-          activeParameter: Math.min(call.activeParameter, info.params.length - 1),
-        },
-        dispose: () => {},
-      };
+      const userFn = getSymbols(model).functions.find((f) => f.name === call.name);
+      if (userFn) {
+        const label = `${userFn.returnType} ${userFn.name}(${userFn.params.map((p) => `${p.type} ${p.name}`).join(", ")})`;
+        const signature: Monaco.languages.SignatureInformation = {
+          label,
+          parameters: userFn.params.map((p) => ({ label: `${p.type} ${p.name}` })),
+        };
+        return {
+          value: { signatures: [signature], activeSignature: 0, activeParameter: Math.min(call.activeParameter, Math.max(userFn.params.length - 1, 0)) },
+          dispose: () => {},
+        };
+      }
+      return null;
     },
   };
 }
