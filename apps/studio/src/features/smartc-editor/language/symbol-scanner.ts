@@ -34,9 +34,22 @@ export function stripCommentsAndStrings(src: string): string {
 
 interface Declarator { name: string; isPointer?: boolean; isArray?: boolean; value?: string }
 
+/** Splits a string on top-level commas only (ignoring commas nested inside (), [], {}). */
+function splitTopLevelCommas(s: string): string[] {
+  const parts: string[] = [];
+  let depth = 0, buf = "";
+  for (const ch of s) {
+    if (ch === "(" || ch === "[" || ch === "{") depth++;
+    else if (ch === ")" || ch === "]" || ch === "}") depth = Math.max(0, depth - 1);
+    if (ch === "," && depth === 0) { parts.push(buf); buf = ""; }
+    else buf += ch;
+  }
+  if (buf.trim()) parts.push(buf);
+  return parts;
+}
+
 function splitDeclarators(s: string): Declarator[] {
-  return s
-    .split(",")
+  return splitTopLevelCommas(s)
     .map((part): Declarator => {
       const p = part.trim();
       const isPointer = /^\*/.test(p);
@@ -52,15 +65,40 @@ function splitDeclarators(s: string): Declarator[] {
 
 const TYPE = String.raw`(?:long|fixed|void|struct\s+\w+)`;
 
+// Known limitation: function-pointer declarations (e.g. `long (*fp)(long);`) and
+// `\`-continued macros are not fully parsed. This is a best-effort scanner; the
+// compiler augmentation covers variables on a clean compile.
 export function scanSymbols(source: string): SmartCSymbols {
   const syms = emptySymbols();
-  const lines = stripCommentsAndStrings(source).split("\n");
+  const physical = stripCommentsAndStrings(source).split("\n");
+
+  // Coalesce physical lines into logical lines: a statement whose parentheses are
+  // still open continues onto the next physical line. The recorded `line` is the
+  // logical line's STARTING physical line number.
+  const logical: { text: string; line: number }[] = [];
+  let buf = "";
+  let startLine = 0;
+  let parenDepth = 0;
+  for (let i = 0; i < physical.length; i++) {
+    const raw = physical[i].trim();
+    if (parenDepth === 0 && buf === "" && !raw) continue; // skip leading blank lines
+    if (buf === "") startLine = i + 1;
+    buf = buf ? `${buf} ${raw}` : raw;
+    for (const ch of raw) {
+      if (ch === "(") parenDepth++;
+      else if (ch === ")") parenDepth = Math.max(0, parenDepth - 1);
+    }
+    if (parenDepth === 0) {
+      logical.push({ text: buf.trim(), line: startLine });
+      buf = "";
+    }
+  }
+  if (buf.trim()) logical.push({ text: buf.trim(), line: startLine });
 
   let inStruct: { name: string; line: number; members: { name: string; declaration: string }[] } | null = null;
 
-  for (let idx = 0; idx < lines.length; idx++) {
-    const line = lines[idx].trim();
-    const lineNo = idx + 1;
+  for (const { text, line: lineNo } of logical) {
+    const line = text;
     if (!line) continue;
 
     const mDef = /^#define\s+(\w+)\s*(\(([^)]*)\))?\s*(.*)$/.exec(line);

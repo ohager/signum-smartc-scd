@@ -81,4 +81,19 @@ describe("scanSymbols", () => {
     const s = scanSymbols("// long ghost;\nlong real;");
     expect(s.variables.map((v) => v.name)).toEqual(["real"]);
   });
+
+  it("does not split declarators on commas inside initializers", () => {
+    const s = scanSymbols("long a = mdv(1, 2), b;");
+    expect(s.variables.map((v) => v.name)).toEqual(["a", "b"]);
+  });
+
+  it("extracts multi-line function signatures", () => {
+    const s = scanSymbols("long doThing(\n  long x,\n  fixed y\n) {\n  return x;\n}");
+    expect(s.functions).toHaveLength(1);
+    expect(s.functions[0].name).toBe("doThing");
+    expect(s.functions[0].params).toEqual([
+      { type: "long", name: "x" },
+      { type: "fixed", name: "y" },
+    ]);
+  });
 });
