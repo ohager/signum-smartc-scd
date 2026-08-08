@@ -7,7 +7,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useTheme } from "next-themes";
-import { extendCLangWithSmartC } from "./language-definitions/smartc-language-definitions.ts";
+import { registerSmartC, SMARTC_LANGUAGE_ID } from "./language/register.ts";
 import { EditorActionButton } from "@/components/ui/editor/actionButton.tsx";
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
 import { toast } from "sonner";
@@ -211,7 +211,6 @@ function SmartCEditor({ file }: Props) {
   }, [saveSmartCFile]);
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
-    extendCLangWithSmartC(monaco);
     editor.addAction({
       id: ActionType.Compile,
       // TODO: this is not good... we need to use events
@@ -272,11 +271,11 @@ function SmartCEditor({ file }: Props) {
       <div className="flex-1 rounded h-full">
         <Editor
           height={editorHeight}
-          defaultLanguage="c"
+          defaultLanguage={SMARTC_LANGUAGE_ID}
           value={code}
           theme={theme === "dark" ? "vs-dark" : "light"}
           onChange={handleEditorChange}
-          beforeMount={(monaco) => {}}
+          beforeMount={(monaco) => registerSmartC(monaco)}
           onMount={handleEditorDidMount}
           onValidate={handleValidate}
           options={{
