@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Editor, { type OnMount } from "@monaco-editor/react";
-import { SaveIcon, FileWarning, Code2 } from "lucide-react";
+import { SaveIcon, FileWarning, Code2, Bug } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -16,6 +16,7 @@ import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import { type File, FileSystem } from "@/lib/file-system";
 import { FileTypes } from "@/features/project/filetype-icons.tsx";
+import { DebugView } from "@/features/simulator/ui/debug-view.tsx";
 
 async function createAssemblyFile(
   folderId: string,
@@ -97,6 +98,7 @@ interface Props {
 
 enum ActionType {
   Compile = "compile",
+  Debug = "debug",
 }
 
 function SmartCEditor({ file }: Props) {
@@ -109,6 +111,8 @@ function SmartCEditor({ file }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [editorHeight, setEditorHeight] = useState("calc(100vh)"); // Initial height
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [isDebugging, setIsDebugging] = useState(false);
+  const [scenarioJson, setScenarioJson] = useState<string | undefined>(undefined);
   const isValid = !validationError;
 
   useEffect(() => {
@@ -151,6 +155,46 @@ function SmartCEditor({ file }: Props) {
       updates: { disabled: !isValid },
     });
   }, [isValid, updateAction]);
+
+  useEffect(() => {
+    addAction({
+      id: ActionType.Debug,
+      tooltip: "Debug in the SC-Simulator",
+      label: "Debug",
+      icon: <Bug className="h-4 w-4" />,
+      onClick: () => setIsDebugging(true),
+      variant: "default",
+    });
+
+    return () => {
+      removeAction(ActionType.Debug);
+    };
+  }, [addAction, removeAction]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadSiblingScenario() {
+      try {
+        const { files } = fs.listFolderContents(file.metadata.folderId);
+        const scenarioFile = files.find(({ metadata: { name } }) =>
+          name.endsWith(".scenario.json"),
+        );
+        if (!scenarioFile) {
+          if (!cancelled) setScenarioJson(undefined);
+          return;
+        }
+        const loaded = await fs.loadFile(scenarioFile.id);
+        if (!cancelled) setScenarioJson(loaded.content as string);
+      } catch (e) {
+        console.error("Could not load sibling scenario file:", e);
+        if (!cancelled) setScenarioJson(undefined);
+      }
+    }
+    loadSiblingScenario();
+    return () => {
+      cancelled = true;
+    };
+  }, [file.metadata.folderId]);
 
   // TODO: candidate for being extracted to some FilePath lib
   const baseName = useMemo(() => {
@@ -238,6 +282,16 @@ function SmartCEditor({ file }: Props) {
     const firstError = markers.find((m) => m.severity === MARKER_SEVERITY_ERROR);
     setValidationError(firstError?.message ?? "");
   };
+
+  if (isDebugging) {
+    return (
+      <DebugView
+        source={code}
+        scenarioJson={scenarioJson}
+        onClose={() => setIsDebugging(false)}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col" ref={containerRef}>

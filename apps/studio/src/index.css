@@ -5,3 +5,6 @@
   --color-signum-lightblue: #0099ff;
   --color-signum-green: #00ff88;
 }
+
+.debug-current-line { background: rgba(80, 160, 255, 0.18); }
+.debug-current-glyph { background: #5aa0ff; }
