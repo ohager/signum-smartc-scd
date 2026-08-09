@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Editor, { type OnMount } from "@monaco-editor/react";
-import { SaveIcon, FileWarning, Code2, Bug } from "lucide-react";
+import { SaveIcon, FileWarning, Code2, Bug, FilePlus2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -17,6 +17,11 @@ import { useFileSystem } from "@/hooks/use-file-system.ts";
 import { type File, FileSystem } from "@/lib/file-system";
 import { FileTypes } from "@/features/project/filetype-icons.tsx";
 import { DebugView } from "@/features/simulator/ui/debug-view.tsx";
+import {
+  defaultScenario,
+  serializeScenario,
+} from "@/features/simulator/scenario/scenario-io";
+import { useNavigate } from "react-router";
 
 async function createAssemblyFile(
   folderId: string,
@@ -99,11 +104,13 @@ interface Props {
 enum ActionType {
   Compile = "compile",
   Debug = "debug",
+  NewScenario = "new-scenario",
 }
 
 function SmartCEditor({ file }: Props) {
   const { addAction, removeAction, updateAction } = usePageHeaderActions();
   const fs = useFileSystem();
+  const navigate = useNavigate();
   const [code, setCode] = useState(file.content as string);
   const [isDirty, setIsDirty] = useState(false);
   const [validationError, setValidationError] = useState("");
@@ -201,6 +208,33 @@ function SmartCEditor({ file }: Props) {
     if (!file) return "";
     return file.metadata.name.split(".")[0];
   }, [file]);
+
+  useEffect(() => {
+    addAction({
+      id: ActionType.NewScenario,
+      tooltip: "Create a run scenario for this contract",
+      label: "New Scenario",
+      icon: <FilePlus2 className="h-4 w-4" />,
+      onClick: async () => {
+        const fileName = `${baseName.toLowerCase()}.scenario.json`;
+        const siblings = fs.listFolderContents(file.metadata.folderId).files;
+        const existing = siblings.find((f) => f.metadata.name === fileName);
+        if (existing) {
+          navigate(`/projects/${file.metadata.folderId}/files/${existing.id}`);
+          return;
+        }
+        const createdId = await fs.addFile(
+          file.metadata.folderId,
+          fileName,
+          FileTypes.Scenario,
+          serializeScenario(defaultScenario()),
+        );
+        navigate(`/projects/${file.metadata.folderId}/files/${createdId}`);
+      },
+      variant: "default",
+    });
+    return () => removeAction(ActionType.NewScenario);
+  }, [addAction, removeAction, baseName, file.metadata.folderId]);
 
   const compileSmartC = useCallback(async () => {
     const { files } = fs.listFolderContents(file.metadata.folderId);

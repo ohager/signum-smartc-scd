@@ -4,10 +4,12 @@ import {
   FileCog2Icon,
   FileDigitIcon,
   FileIcon,
+  PlayIcon,
 } from "lucide-react";
 
 export enum FileTypes {
   SmartC = "smartc",
+  Scenario = "scenario",
   Test = "test",
   Doc = "doc",
   ASM = "asm",
@@ -15,6 +17,7 @@ export enum FileTypes {
 
 export const FileTypeIcons: Record<FileTypes, any> = {
   [FileTypes.SmartC]: FileCog2Icon,
+  [FileTypes.Scenario]: PlayIcon,
   [FileTypes.Test]: FileBadgeIcon,
   [FileTypes.Doc]: FileTextIcon,
   [FileTypes.ASM]: FileDigitIcon,
@@ -22,8 +25,7 @@ export const FileTypeIcons: Record<FileTypes, any> = {
 
 /**
  * Resolves the icon for a file type, falling back to a generic file icon for
- * legacy/unknown types (e.g. deprecated "scd" files still present in saved
- * projects) so the UI never renders `undefined`.
+ * legacy/unknown types so the UI never renders `undefined`.
  */
 export function getFileTypeIcon(type: string) {
   return FileTypeIcons[type as FileTypes] ?? FileIcon;

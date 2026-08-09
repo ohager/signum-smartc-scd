@@ -9,6 +9,7 @@ import type {File} from "@/lib/file-system"
 import { SmartCFileEditor } from "@/features/smartc-editor/smartc-file-editor.tsx";
 import { FileTypes } from "@/features/project/filetype-icons.tsx";
 import { AsmFileEditor } from "@/features/asm-editor/asm-file-editor.tsx";
+import { ScenarioEditor } from "@/features/simulator/scenario/scenario-editor.tsx";
 
 type FilesPageParams = {
   projectId: string;
@@ -67,7 +68,8 @@ export function FilesPage() {
           {type === FileTypes.ASM && (
             <AsmFileEditor key={id} file={file!} />
           )}
-          {type !== FileTypes.SmartC && type !== FileTypes.ASM && (
+          {type === FileTypes.Scenario && <ScenarioEditor key={id} file={file!} />}
+          {type !== FileTypes.SmartC && type !== FileTypes.ASM && type !== FileTypes.Scenario && (
             <div className="p-4 text-sm text-muted-foreground">
               This file type ("{type}") is no longer supported.
             </div>
