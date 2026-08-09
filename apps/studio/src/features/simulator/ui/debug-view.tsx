@@ -1,5 +1,5 @@
 import Editor, { type OnMount } from "@monaco-editor/react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type * as Monaco from "monaco-editor";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
@@ -12,6 +12,7 @@ import type { ScenarioFile } from "../scenario/scenario.types";
 import { DebugToolbar } from "./debug-toolbar";
 import { VariablesPanel } from "./variables-panel";
 import { useDebugDecorations } from "./use-debug-decorations";
+import { setDebugMemory, clearDebugMemory } from "@/features/smartc-editor/language/debug-memory";
 
 export interface ScenarioEntry {
   name: string;
@@ -81,13 +82,25 @@ function DebugSession({
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof Monaco | null>(null);
   const controllerRef = useRef<DebugController | null>(null);
+  const modelUriRef = useRef<string | null>(null);
   const [state, setState] = useState<DebugState | null>(null);
   const { theme } = useTheme();
+
+  // Publish live memory for the hover provider; clear on unmount.
+  useEffect(() => {
+    if (modelUriRef.current && state) setDebugMemory(modelUriRef.current, state.memory);
+  }, [state]);
+  useEffect(() => {
+    return () => {
+      if (modelUriRef.current) clearDebugMemory(modelUriRef.current);
+    };
+  }, []);
 
   const onMount: OnMount = (editor, monaco) => {
     registerSmartC(monaco);
     editorRef.current = editor;
     monacoRef.current = monaco;
+    modelUriRef.current = editor.getModel()?.uri.toString() ?? null;
     try {
       const controller = new DebugController(new ScSimulatorEngine());
       controllerRef.current = controller;
