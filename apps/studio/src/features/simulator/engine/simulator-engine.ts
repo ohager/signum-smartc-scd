@@ -52,7 +52,7 @@ export class ScSimulatorEngine implements SimulatorEngine {
     if (!this.node || !this.scenario || this.contractId === null) return;
     // Activation txs are submitted at blockheight 0 (the chain's current
     // height before forging); one forgeBlock() then activates the contract.
-    const txs = toEngineTxs(this.scenario, String(this.contractId), 0).map((t) => ({
+    const txs = toEngineTxs(this.scenario, String(this.contractId)).map((t) => ({
       sender: String(this.idFor(t.sender)),
       recipient: String(this.contractId),
       amount: t.amount.replace(/_/g, ""),

@@ -3,25 +3,20 @@ import { toEngineTxs } from "./to-engine-txs";
 import type { ScenarioFile } from "./scenario.types";
 
 const scenario: ScenarioFile = {
-  version: 1,
-  contract: { creator: "c", activationAmount: "1" },
+  version: 2,
+  creator: "555",
   accounts: [],
-  timeline: [
-    { type: "tx", sender: "alice", amount: "5" },
-    { type: "blocks", count: 2 },
-    { type: "tx", sender: "bob", amount: "3", message: "hi" },
+  transactions: [
+    { block: 1, sender: "1001", amount: "5" },
+    { block: 3, sender: "1002", amount: "3", txId: "77", message: "hi" },
   ],
 };
 
-describe("toEngineTxs", () => {
-  it("assigns blockheights from the timeline and stamps the contract as recipient", () => {
-    expect(toEngineTxs(scenario, "CONTRACT", 1)).toEqual([
-      { sender: "alice", recipient: "CONTRACT", amount: "5", blockheight: 1 },
-      { sender: "bob", recipient: "CONTRACT", amount: "3", blockheight: 3, message: "hi" },
+describe("toEngineTxs (v2)", () => {
+  it("maps block N to engine blockheight N-1, stamps the contract recipient, and passes txId", () => {
+    expect(toEngineTxs(scenario, "999")).toEqual([
+      { sender: "1001", recipient: "999", amount: "5", blockheight: 0 },
+      { sender: "1002", recipient: "999", amount: "3", blockheight: 2, txId: "77", message: "hi" },
     ]);
-  });
-  it("defaults the start height to 1", () => {
-    const txs = toEngineTxs(scenario, "CONTRACT");
-    expect(txs[0].blockheight).toBe(1);
   });
 });
