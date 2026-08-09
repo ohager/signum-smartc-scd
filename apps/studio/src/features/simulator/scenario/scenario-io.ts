@@ -1,3 +1,4 @@
+import JSON5 from "json5";
 import type { ScenarioFile } from "./scenario.types";
 
 export function defaultScenario(): ScenarioFile {
@@ -38,7 +39,7 @@ export function validateScenario(value: unknown): ValidationResult {
 }
 
 export function parseScenario(json: string): ScenarioFile {
-  const parsed = JSON.parse(json);
+  const parsed = JSON5.parse(json); // JSON5: comments, trailing commas, unquoted keys
   const r = validateScenario(parsed);
   if (!r.valid) throw new Error("Invalid scenario: " + r.errors.join("; "));
   return r.scenario;

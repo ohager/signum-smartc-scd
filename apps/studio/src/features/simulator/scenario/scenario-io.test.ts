@@ -20,4 +20,16 @@ describe("scenario-io", () => {
   it("parseScenario throws on structurally invalid scenario", () => {
     expect(() => parseScenario(JSON.stringify({ version: 2 }))).toThrow();
   });
+  it("parseScenario accepts JSON5 (comments, trailing commas, unquoted keys)", () => {
+    const src = `{
+      // activation scenario
+      version: 1,
+      contract: { creator: "c", activationAmount: "1", },
+      accounts: [],
+      timeline: [ { type: "tx", sender: "alice", amount: "5" }, ],
+    }`;
+    const s = parseScenario(src);
+    expect(s.version).toBe(1);
+    expect(s.timeline.length).toBe(1);
+  });
 });

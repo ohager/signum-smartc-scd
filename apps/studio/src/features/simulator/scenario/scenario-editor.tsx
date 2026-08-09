@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import type { File } from "@/lib/file-system";
+import JSON5 from "json5";
 import { validateScenario } from "./scenario-io";
 
 const TOOLBAR_HEIGHT = 30;
@@ -12,9 +13,9 @@ const TOOLBAR_HEIGHT = 30;
 function validationErrors(text: string): string[] {
   let parsed: unknown;
   try {
-    parsed = JSON.parse(text);
+    parsed = JSON5.parse(text);
   } catch (e: any) {
-    return ["JSON: " + e.message];
+    return ["JSON5: " + e.message];
   }
   const r = validateScenario(parsed);
   return r.valid ? [] : r.errors;
@@ -93,6 +94,9 @@ export function ScenarioEditor({ file }: { file: File }) {
           value={content}
           theme={theme === "dark" ? "vs-dark" : "light"}
           onChange={onChange}
+          beforeMount={(monaco) =>
+            monaco.languages.json?.jsonDefaults.setDiagnosticsOptions({ validate: false })
+          }
           options={{
             minimap: { enabled: false },
             fontSize: 14,
