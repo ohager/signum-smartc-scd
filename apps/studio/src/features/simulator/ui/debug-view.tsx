@@ -12,6 +12,7 @@ import type { ScenarioFile } from "../scenario/scenario.types";
 import { DebugToolbar } from "./debug-toolbar";
 import { VariablesPanel } from "./variables-panel";
 import { useDebugDecorations } from "./use-debug-decorations";
+import { AsmView } from "./asm-view";
 import { setDebugMemory, clearDebugMemory } from "@/features/smartc-editor/language/debug-memory";
 
 export interface ScenarioEntry {
@@ -84,6 +85,8 @@ function DebugSession({
   const controllerRef = useRef<DebugController | null>(null);
   const modelUriRef = useRef<string | null>(null);
   const [state, setState] = useState<DebugState | null>(null);
+  const [viewMode, setViewMode] = useState<"source" | "asm">("source");
+  const [assembly, setAssembly] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const [editorHeight, setEditorHeight] = useState("calc(100vh)"); // Initial height
   const { theme } = useTheme();
@@ -160,6 +163,7 @@ function DebugSession({
       const controller = new DebugController(new ScSimulatorEngine());
       controllerRef.current = controller;
       setState(controller.start(source, scenario));
+      setAssembly(controller.getAssembly());
     } catch (e: any) {
       controllerRef.current = null;
       toast.error("Cannot start debug: " + e.message);
@@ -195,25 +199,36 @@ function DebugSession({
         onStepInto={run(() => controllerRef.current!.stepInto())}
         onContinue={run(() => controllerRef.current!.continue())}
         onReset={run(() => controllerRef.current!.reset())}
+        viewMode={viewMode}
+        onViewMode={setViewMode}
         onClose={onClose}
       />
       <div className="flex flex-1 overflow-hidden">
         <div className="flex-1 min-w-0">
-          <Editor
-            height={editorHeight}
-            defaultLanguage={SMARTC_LANGUAGE_ID}
-            value={source}
-            theme={theme === "dark" ? "vs-dark" : "light"}
-            options={{
-              readOnly: true,
-              minimap: { enabled: false },
-              glyphMargin: true,
-              fontSize: 14,
-              automaticLayout: true,
-              scrollBeyondLastLine: false,
-            }}
-            onMount={onMount}
-          />
+          <div className={viewMode === "asm" ? "hidden" : ""}>
+            <Editor
+              height={editorHeight}
+              defaultLanguage={SMARTC_LANGUAGE_ID}
+              value={source}
+              theme={theme === "dark" ? "vs-dark" : "light"}
+              options={{
+                readOnly: true,
+                minimap: { enabled: false },
+                glyphMargin: true,
+                fontSize: 14,
+                automaticLayout: true,
+                scrollBeyondLastLine: false,
+              }}
+              onMount={onMount}
+            />
+          </div>
+          {viewMode === "asm" && (
+            <AsmView
+              assembly={assembly}
+              currentAsmLine={state?.instructionPointer ?? 0}
+              height={editorHeight}
+            />
+          )}
         </div>
         <div
           onMouseDown={onPanelResize}

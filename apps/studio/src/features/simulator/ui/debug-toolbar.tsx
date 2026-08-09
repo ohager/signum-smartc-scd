@@ -7,9 +7,20 @@ interface Props {
   onContinue: () => void;
   onReset: () => void;
   onClose: () => void;
+  viewMode: "source" | "asm";
+  onViewMode: (mode: "source" | "asm") => void;
 }
 
-export function DebugToolbar({ state, onStep, onStepInto, onContinue, onReset, onClose }: Props) {
+export function DebugToolbar({
+  state,
+  onStep,
+  onStepInto,
+  onContinue,
+  onReset,
+  onClose,
+  viewMode,
+  onViewMode,
+}: Props) {
   const status = state?.status ?? "ready";
   const done = status === "finished" || status === "error";
   return (
@@ -24,6 +35,20 @@ export function DebugToolbar({ state, onStep, onStepInto, onContinue, onReset, o
         Step (asm)
       </button>
       <button className="px-2 py-0.5 border rounded" onClick={onReset}>Reset</button>
+      <span className="mx-1 inline-flex rounded border overflow-hidden">
+        <button
+          className={"px-2 py-0.5 " + (viewMode === "source" ? "bg-blue-500/30" : "")}
+          onClick={() => onViewMode("source")}
+        >
+          source
+        </button>
+        <button
+          className={"px-2 py-0.5 border-l " + (viewMode === "asm" ? "bg-blue-500/30" : "")}
+          onClick={() => onViewMode("asm")}
+        >
+          asm
+        </button>
+      </span>
       <span className="ml-auto opacity-70">
         {status} · step {state?.steps ?? 0} · line {state?.currentSourceLine ?? "—"}
         {state && state.breakpoints.length > 0 ? ` · bp ${state.breakpoints.join(",")}` : ""}
