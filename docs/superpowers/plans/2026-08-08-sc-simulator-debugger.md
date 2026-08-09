@@ -967,3 +967,23 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 Walking skeleton complete: compile → embed-load → run scenario → step → source-line highlight + live variables, all on the `SimulatorEngine` seam with pure, tested cores. `bun test apps/studio/src/features/simulator` green; `bun run build` green.
 
 **Plan 2 (next):** breakpoints + `continue` (with max-step cap), assembly view + source/asm toggle, full Inspector (registers / watch / call-stack / breakpoints tabs), bottom dock (console / emitted-txs / balance), and the full `.scenario.json` **form** editor as a first-class `scenario` file type. Written after Plan 1 proves the engine behavior.
+
+---
+
+## Spike Outcome & Plan Deltas (2026-08-09) — AUTHORITATIVE over the Slice bodies above
+
+Slice 1 is **DONE** (`docs/superpowers/notes/sc-simulator-api.md`, commit `17ddb4c`). The spike **confirmed drivability** and simplified the architecture:
+
+- **Sourcing = npm package** `smartc-signum-simulator@^3.1.0` (deleterium's packaged engine, BSD-3; the same one `signum-smartc-testbed` uses). **No vendoring.** (npm metadata mislabels the license "Proprietary" — cosmetic; the package ships a real BSD-3 LICENSE + headers.) Add it as an `apps/studio` dependency.
+- **Headless-drivable** with `bun`/`node` (`new SimNode()`, no DOM) → the engine adapter gets a real node integration test.
+- **The engine compiles the C source itself** (`loadSmartContract(cSource, creatorId)`) and builds its own **C↔assembly map** (`cToAsmMap`, from the `^comment line N` verbose comments it emits). `instructionPointer` is an **assembly line index**; `cToAsmMap[instructionPointer]` = 1-based C line.
+- **Both step modes exist natively:** `contract.step()` = one assembly instruction; `Simulator.stepIntoSlotContract()` = step until the C line changes (source-level).
+- State via `dumpContractData()`: memory as `{varName,value}[]` (names match `getMachineCode().Memory`), registers A/B, balance, enqueued/emitted txs, status, steps.
+- Scenario = JSON array of `{sender, recipient, amount, blockheight, messageText?/messageHex?, tokens?}` + forge blocks. **Gotcha:** an activation tx's `blockheight` must equal the *current* height before forging (a `currentBlock-1` check).
+
+**Deltas (win over the Slice bodies above where they conflict):**
+1. **DROP `source-map.ts` (old Slice 3)** — engine provides `cToAsmMap`; `currentSourceLine` comes from the engine, not our parser.
+2. **DROP `compile-for-debug.ts`** — the engine compiles the C source; the adapter takes `cSource`, not pre-compiled assembly. (The sim bundles its own compiler; aligning versions with the editor's `smartc-signum-compiler` is a later concern — fine for the skeleton.)
+3. **Revised `SimulatorEngine`:** `load(cSource, creatorId?)`, `applyScenario(ScenarioFile)`, `step()` (asm), `stepInto()` (source-level), `reset()`, `getState()`, `getAssembly()`. `DebugState` carries both `instructionPointer` (asm line) and `currentSourceLine` (from engine); no `EngineState`/`LoadedContract` split.
+4. **ADD `scenario/to-engine-txs.ts`** — pure `ScenarioFile → engine transactions JSON` translation (incl. the activation-blockheight rule), unit-tested.
+5. **Revised slices:** Slice 2 = engine.types + scenario types/io + `to-engine-txs` + fake engine (pure, TDD). Slice 3 = real adapter over `smartc-signum-simulator` (+ dep + integration test). Slice 4 = debug-controller (TDD w/ fake). Slice 5 = UI skeleton (toolbar **Step / Step Into / Reset** + current-line highlight from `currentSourceLine` + variables + Debug action).
