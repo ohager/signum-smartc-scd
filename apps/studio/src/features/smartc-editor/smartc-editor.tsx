@@ -119,7 +119,7 @@ function SmartCEditor({ file }: Props) {
   const [editorHeight, setEditorHeight] = useState("calc(100vh)"); // Initial height
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isDebugging, setIsDebugging] = useState(false);
-  const [scenarioJson, setScenarioJson] = useState<string | undefined>(undefined);
+  const [scenarios, setScenarios] = useState<{ name: string; json: string }[]>([]);
   const isValid = !validationError;
 
   useEffect(() => {
@@ -180,24 +180,25 @@ function SmartCEditor({ file }: Props) {
 
   useEffect(() => {
     let cancelled = false;
-    async function loadSiblingScenario() {
+    async function loadScenarios() {
       try {
         const { files } = fs.listFolderContents(file.metadata.folderId);
-        const scenarioFile = files.find(({ metadata: { name } }) =>
+        const scenarioFiles = files.filter(({ metadata: { name } }) =>
           name.endsWith(".scenario.json"),
         );
-        if (!scenarioFile) {
-          if (!cancelled) setScenarioJson(undefined);
-          return;
-        }
-        const loaded = await fs.loadFile(scenarioFile.id);
-        if (!cancelled) setScenarioJson(loaded.content as string);
+        const loaded = await Promise.all(
+          scenarioFiles.map(async (f) => ({
+            name: f.metadata.name,
+            json: (await fs.loadFile(f.id)).content as string,
+          })),
+        );
+        if (!cancelled) setScenarios(loaded);
       } catch (e) {
-        console.error("Could not load sibling scenario file:", e);
-        if (!cancelled) setScenarioJson(undefined);
+        console.error("Could not load scenario files:", e);
+        if (!cancelled) setScenarios([]);
       }
     }
-    loadSiblingScenario();
+    loadScenarios();
     return () => {
       cancelled = true;
     };
@@ -216,12 +217,15 @@ function SmartCEditor({ file }: Props) {
       label: "New Scenario",
       icon: <FilePlus2 className="h-4 w-4" />,
       onClick: async () => {
-        const fileName = `${baseName.toLowerCase()}.scenario.json`;
-        const siblings = fs.listFolderContents(file.metadata.folderId).files;
-        const existing = siblings.find((f) => f.metadata.name === fileName);
-        if (existing) {
-          navigate(`/projects/${file.metadata.folderId}/files/${existing.id}`);
-          return;
+        const base = baseName.toLowerCase();
+        const existingNames = new Set(
+          fs
+            .listFolderContents(file.metadata.folderId)
+            .files.map((f) => f.metadata.name),
+        );
+        let fileName = `${base}.scenario.json`;
+        for (let n = 2; existingNames.has(fileName); n++) {
+          fileName = `${base}-${n}.scenario.json`;
         }
         const createdId = await fs.addFile(
           file.metadata.folderId,
@@ -321,7 +325,7 @@ function SmartCEditor({ file }: Props) {
     return (
       <DebugView
         source={code}
-        scenarioJson={scenarioJson}
+        scenarios={scenarios}
         onClose={() => setIsDebugging(false)}
       />
     );
