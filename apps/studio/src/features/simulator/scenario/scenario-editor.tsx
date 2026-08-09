@@ -59,7 +59,7 @@ export function ScenarioEditor({ file }: { file: File }) {
           {errors.length > 0 ? `${errors.length} error(s): ${errors[0]}` : "valid ✓"}
         </span>
       </div>
-      <div className="flex-1">
+      <div className="flex-1 overflow-hidden">
         <Editor
           height="100%"
           defaultLanguage="json"
