@@ -5,6 +5,7 @@ interface Props {
   onStep: () => void;
   onStepInto: () => void;
   onContinue: () => void;
+  onForgeNextBlock: () => void;
   onReset: () => void;
   onClose: () => void;
   viewMode: "source" | "asm";
@@ -16,6 +17,7 @@ export function DebugToolbar({
   onStep,
   onStepInto,
   onContinue,
+  onForgeNextBlock,
   onReset,
   onClose,
   viewMode,
@@ -34,7 +36,16 @@ export function DebugToolbar({
       <button className="px-2 py-0.5 border rounded disabled:opacity-40" onClick={onStep} disabled={done}>
         Step (asm)
       </button>
-      <button className="px-2 py-0.5 border rounded" onClick={onReset}>Reset</button>
+      <button
+        className="px-2 py-0.5 border rounded"
+        onClick={onForgeNextBlock}
+        title="Forge the next block and deliver its scheduled transactions"
+      >
+        ⛏ Next Block
+      </button>
+      <button className="px-2 py-0.5 border rounded" onClick={onReset}>
+        Reset
+      </button>
       <span className="mx-1 inline-flex rounded border overflow-hidden">
         <button
           className={"px-2 py-0.5 " + (viewMode === "source" ? "bg-blue-500/30" : "")}
@@ -50,10 +61,13 @@ export function DebugToolbar({
         </button>
       </span>
       <span className="ml-auto opacity-70">
-        {status} · step {state?.steps ?? 0} · line {state?.currentSourceLine ?? "—"}
+        block {state?.currentBlock ?? 0} · {status} · step {state?.steps ?? 0} · line{" "}
+        {state?.currentSourceLine ?? "—"}
         {state && state.breakpoints.length > 0 ? ` · bp ${state.breakpoints.join(",")}` : ""}
       </span>
-      <button className="px-2 py-0.5 border rounded" onClick={onClose}>✕ Close</button>
+      <button className="px-2 py-0.5 border rounded" onClick={onClose}>
+        ✕ Close
+      </button>
     </div>
   );
 }

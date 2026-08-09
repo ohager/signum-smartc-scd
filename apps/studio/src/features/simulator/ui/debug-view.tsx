@@ -7,7 +7,7 @@ import { SMARTC_LANGUAGE_ID, registerSmartC } from "@/features/smartc-editor/lan
 import { DebugController } from "../debug-controller";
 import { ScSimulatorEngine } from "../engine/simulator-engine";
 import { parseScenario, defaultScenario } from "../scenario/scenario-io";
-import type { DebugState } from "../engine/engine.types";
+import type { DebugState, LedgerState } from "../engine/engine.types";
 import type { ScenarioFile } from "../scenario/scenario.types";
 import { DebugToolbar } from "./debug-toolbar";
 import { InspectorPanel } from "./inspector-panel";
@@ -88,6 +88,7 @@ function DebugSession({
   const controllerRef = useRef<DebugController | null>(null);
   const modelUriRef = useRef<string | null>(null);
   const [state, setState] = useState<DebugState | null>(null);
+  const [ledger, setLedger] = useState<LedgerState | null>(null);
   const [viewMode, setViewMode] = useState<"source" | "asm">("source");
   const [assembly, setAssembly] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -167,6 +168,7 @@ function DebugSession({
       const controller = new DebugController(new ScSimulatorEngine());
       controllerRef.current = controller;
       setState(controller.start(source, scenario));
+      setLedger(controller.getLedger());
       setAssembly(controller.getAssembly());
     } catch (e: any) {
       controllerRef.current = null;
@@ -195,6 +197,20 @@ function DebugSession({
     if (controllerRef.current) setState(fn());
   };
 
+  const onForgeNextBlock = () => {
+    if (controllerRef.current) {
+      setState(controllerRef.current.forgeNextBlock());
+      setLedger(controllerRef.current.getLedger());
+    }
+  };
+
+  const onReset = () => {
+    if (controllerRef.current) {
+      setState(controllerRef.current.reset());
+      setLedger(controllerRef.current.getLedger());
+    }
+  };
+
   return (
     <div className="flex flex-col h-full" ref={containerRef}>
       <DebugToolbar
@@ -202,7 +218,8 @@ function DebugSession({
         onStep={run(() => controllerRef.current!.step())}
         onStepInto={run(() => controllerRef.current!.stepInto())}
         onContinue={run(() => controllerRef.current!.continue())}
-        onReset={run(() => controllerRef.current!.reset())}
+        onForgeNextBlock={onForgeNextBlock}
+        onReset={onReset}
         viewMode={viewMode}
         onViewMode={setViewMode}
         onClose={onClose}
@@ -250,7 +267,7 @@ function DebugSession({
           />
         </div>
       </div>
-      <BottomDock state={state} />
+      <BottomDock state={state} ledger={ledger} />
     </div>
   );
 }
