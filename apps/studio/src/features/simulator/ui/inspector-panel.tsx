@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { DebugState } from "../engine/engine.types";
 import { isInternalVar } from "./vars";
 
-type Tab = "variables" | "registers" | "watch" | "breakpoints";
+type Tab = "variables" | "registers" | "watch" | "breakpoints" | "emitted";
 
 interface Props {
   state: DebugState | null;
@@ -16,7 +16,7 @@ export function InspectorPanel({ state, onRemoveBreakpoint }: Props) {
   const [watchInput, setWatchInput] = useState("");
 
   const memory = state?.memory ?? {};
-  const tabs: Tab[] = ["variables", "registers", "watch", "breakpoints"];
+  const tabs: Tab[] = ["variables", "registers", "watch", "breakpoints", "emitted"];
 
   return (
     <div className="flex flex-col h-full text-xs">
@@ -101,6 +101,21 @@ export function InspectorPanel({ state, onRemoveBreakpoint }: Props) {
                 <button className="opacity-0 group-hover:opacity-60" onClick={() => onRemoveBreakpoint(line)}>
                   ✕
                 </button>
+              </div>
+            ))}
+          </>
+        )}
+
+        {tab === "emitted" && (
+          <>
+            {(state?.emittedTx ?? []).length === 0 && <div className="opacity-50 font-sans">— none —</div>}
+            {(state?.emittedTx ?? []).map((tx, i) => (
+              <div key={i} className="flex justify-between gap-4">
+                <span>
+                  → {tx.recipient}
+                  {tx.message ? ` · "${tx.message}"` : ""}
+                </span>
+                <span className="opacity-80">{tx.amount}</span>
               </div>
             ))}
           </>
