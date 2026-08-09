@@ -70,12 +70,23 @@ describe("scenario-io (v2)", () => {
     const r = validateScenario({ version: 1, contract: {}, accounts: [], timeline: [] });
     expect(r.valid).toBe(false);
   });
-  it("rejects missing creator", () => {
+  it("rejects a missing creator", () => {
     expect(validateScenario({ version: 2, accounts: [], transactions: [] }).valid).toBe(false);
   });
-  it("rejects a transaction with block < 1", () => {
-    const bad = { version: 2, creator: "c", accounts: [], transactions: [{ block: 0, sender: "a", amount: "1" }] };
+  it("rejects a non-numeric account id", () => {
+    const bad = { version: 2, creator: "555", accounts: [{ id: "alice", balance: "100" }], transactions: [] };
     expect(validateScenario(bad).valid).toBe(false);
+  });
+  it("rejects a non-numeric creator", () => {
+    expect(validateScenario({ version: 2, creator: "boss", accounts: [], transactions: [] }).valid).toBe(false);
+  });
+  it("rejects a transaction with block < 1", () => {
+    const bad = { version: 2, creator: "555", accounts: [], transactions: [{ block: 0, sender: "1001", amount: "1" }] };
+    expect(validateScenario(bad).valid).toBe(false);
+  });
+  it("accepts an optional numeric txId", () => {
+    const ok = { version: 2, creator: "555", accounts: [], transactions: [{ block: 1, sender: "1001", amount: "1", txId: "42" }] };
+    expect(validateScenario(ok).valid).toBe(true);
   });
   it("parseScenario throws on invalid JSON", () => {
     expect(() => parseScenario("{ not json")).toThrow();
@@ -84,9 +95,9 @@ describe("scenario-io (v2)", () => {
     const src = `{
       // activation
       version: 2,
-      creator: "creator",
-      accounts: [ { id: "alice", balance: "100", }, ],
-      transactions: [ { block: 1, sender: "alice", amount: "5" }, ],
+      creator: "555",
+      accounts: [ { id: "1001", balance: "100", }, ],
+      transactions: [ { block: 1, sender: "1001", amount: "5" }, ],
     }`;
     const s = parseScenario(src);
     expect(s.version).toBe(2);
@@ -106,19 +117,19 @@ import type { ScenarioFile } from "./scenario.types";
 
 const scenario: ScenarioFile = {
   version: 2,
-  creator: "creator",
+  creator: "555",
   accounts: [],
   transactions: [
-    { block: 1, sender: "alice", amount: "5" },
-    { block: 3, sender: "bob", amount: "3", message: "hi" },
+    { block: 1, sender: "1001", amount: "5" },
+    { block: 3, sender: "1002", amount: "3", txId: "77", message: "hi" },
   ],
 };
 
 describe("toEngineTxs (v2)", () => {
-  it("maps block N to engine blockheight N-1 and stamps the contract recipient", () => {
-    expect(toEngineTxs(scenario, "CONTRACT")).toEqual([
-      { sender: "alice", recipient: "CONTRACT", amount: "5", blockheight: 0 },
-      { sender: "bob", recipient: "CONTRACT", amount: "3", blockheight: 2, message: "hi" },
+  it("maps block N to engine blockheight N-1, stamps the contract recipient, and passes txId", () => {
+    expect(toEngineTxs(scenario, "999")).toEqual([
+      { sender: "1001", recipient: "999", amount: "5", blockheight: 0 },
+      { sender: "1002", recipient: "999", amount: "3", blockheight: 2, txId: "77", message: "hi" },
     ]);
   });
 });
@@ -136,19 +147,20 @@ Replace the entire contents of `src/features/simulator/scenario/scenario.types.t
 ```ts
 export interface ScenarioTx {
   block: number; // 1-based; block 1 = first forged (activation) block
-  sender: string; // account id (name or numeric)
+  sender: string; // numeric account id (bigint as string; "_" allowed)
   amount: string; // NQT string; "_" separators allowed
+  txId?: string; // optional self-defined tx id (bigint as string); random if omitted
   message?: string; // → messageText
 }
 
 export interface ScenarioAccount {
-  id: string; // account id (name or numeric)
+  id: string; // numeric account id (bigint as string; "_" allowed)
   balance: string; // NQT string; "_" separators allowed
 }
 
 export interface ScenarioFile {
   version: 2;
-  creator: string;
+  creator: string; // numeric account id (bigint as string)
   accounts: ScenarioAccount[];
   transactions: ScenarioTx[];
 }
@@ -165,9 +177,9 @@ import type { ScenarioFile } from "./scenario.types";
 export function defaultScenario(): ScenarioFile {
   return {
     version: 2,
-    creator: "creator",
-    accounts: [{ id: "alice", balance: "100_0000_0000" }],
-    transactions: [{ block: 1, sender: "alice", amount: "5_0000_0000", message: "activate" }],
+    creator: "555",
+    accounts: [{ id: "1001", balance: "100_0000_0000" }],
+    transactions: [{ block: 1, sender: "1001", amount: "5_0000_0000", message: "activate" }],
   };
 }
 
@@ -175,27 +187,28 @@ export type ValidationResult =
   | { valid: true; scenario: ScenarioFile }
   | { valid: false; errors: string[] };
 
-const isStr = (v: unknown): v is string => typeof v === "string";
-const isNonEmptyStr = (v: unknown): v is string => typeof v === "string" && v.length > 0;
+// numeric bigint string: digits + optional "_" separators, at least one digit
+const isNum = (v: unknown): v is string => typeof v === "string" && /^[0-9_]+$/.test(v) && /[0-9]/.test(v);
 
 export function validateScenario(value: unknown): ValidationResult {
   const errors: string[] = [];
   const v = value as any;
   if (!v || typeof v !== "object") return { valid: false, errors: ["not an object"] };
   if (v.version !== 2) errors.push("version must be 2");
-  if (!isNonEmptyStr(v.creator)) errors.push("creator must be a non-empty string");
+  if (!isNum(v.creator)) errors.push("creator must be a numeric account id");
   if (!Array.isArray(v.accounts)) errors.push("accounts must be an array");
   else
     v.accounts.forEach((a: any, i: number) => {
-      if (!isStr(a?.id) || !isStr(a?.balance)) errors.push(`accounts[${i}] needs string id and balance`);
+      if (!isNum(a?.id) || !isNum(a?.balance)) errors.push(`accounts[${i}] needs numeric id and balance`);
     });
   if (!Array.isArray(v.transactions)) errors.push("transactions must be an array");
   else
     v.transactions.forEach((t: any, i: number) => {
       if (typeof t?.block !== "number" || !Number.isInteger(t.block) || t.block < 1)
         errors.push(`transactions[${i}] needs an integer block >= 1`);
-      if (!isStr(t?.sender) || !isStr(t?.amount)) errors.push(`transactions[${i}] needs string sender and amount`);
-      if (t?.message !== undefined && !isStr(t.message)) errors.push(`transactions[${i}] message must be a string`);
+      if (!isNum(t?.sender) || !isNum(t?.amount)) errors.push(`transactions[${i}] needs numeric sender and amount`);
+      if (t?.txId !== undefined && !isNum(t.txId)) errors.push(`transactions[${i}] txId must be numeric`);
+      if (t?.message !== undefined && typeof t.message !== "string") errors.push(`transactions[${i}] message must be a string`);
     });
   return errors.length ? { valid: false, errors } : { valid: true, scenario: value as ScenarioFile };
 }
@@ -224,6 +237,7 @@ export interface EngineTx {
   recipient: string;
   amount: string;
   blockheight: number; // engine height = scenario block - 1
+  txId?: string;
   message?: string;
 }
 
@@ -239,6 +253,7 @@ export function toEngineTxs(scenario: ScenarioFile, contractId: string): EngineT
       amount: tx.amount,
       blockheight: tx.block - 1,
     };
+    if (tx.txId !== undefined) t.txId = tx.txId;
     if (tx.message !== undefined) t.message = tx.message;
     return t;
   });
@@ -309,16 +324,16 @@ describe("FakeEngine — block + ledger", () => {
     e.load("a\nb\nc");
     e.applyScenario({
       version: 2,
-      creator: "creator",
-      accounts: [{ id: "alice", balance: "100" }],
+      creator: "555",
+      accounts: [{ id: "1001", balance: "100" }],
       transactions: [
-        { block: 1, sender: "alice", amount: "5" },
-        { block: 3, sender: "bob", amount: "0" },
+        { block: 1, sender: "1001", amount: "5" },
+        { block: 3, sender: "1002", amount: "0" },
       ],
     });
     const l1 = e.getLedger();
     expect(l1.currentBlock).toBe(1);
-    expect(l1.accounts.map((a) => a.id)).toContain("alice");
+    expect(l1.accounts.map((a) => a.id)).toContain("1001");
     expect(l1.transactions.length).toBe(1); // block-3 tx not delivered yet
     e.forgeNextBlock();
     e.forgeNextBlock();
@@ -433,6 +448,7 @@ export interface LedgerAccount {
 
 export interface LedgerTx {
   block: number; // 1-based display block (engine blockheight + 1)
+  txId: string; // transaction id (bigint as string)
   sender: string;
   recipient: string;
   amount: string;
@@ -545,6 +561,7 @@ export class FakeEngine implements SimulatorEngine {
       .filter((t) => t.block <= this.block)
       .map((t) => ({
         block: t.block,
+        txId: t.txId ?? "",
         sender: t.sender,
         recipient: "contract",
         amount: t.amount,
@@ -601,25 +618,26 @@ In `src/features/simulator/engine/simulator-engine.ts`:
 import type { DebugState, DebugStatus, EmittedTx, LedgerAccount, LedgerState, LedgerTx, SimulatorEngine } from "./engine.types";
 ```
 
-(b) Add a reverse-name map field next to `breakpointLines`:
+(b) Replace the `accountIds`/`nextAccountId` fields with a reverse-name map. Change:
+
+```ts
+  private accountIds = new Map<string, bigint>();
+  private nextAccountId = 1000n;
+  private breakpointLines = new Set<number>();
+```
+
+to:
 
 ```ts
   private idToName = new Map<bigint, string>();
+  private breakpointLines = new Set<number>();
 ```
 
-(c) In `idFor`, register the name when a new id is minted, and add a `nameFor` helper right after `idFor`:
+(c) Replace `idFor` with a numeric parser (account ids are validated numeric now) and add a `nameFor` helper right after it:
 
 ```ts
-  private idFor(name: string): bigint {
-    if (/^\d+$/.test(name)) return BigInt(name);
-    let id = this.accountIds.get(name);
-    if (id === undefined) {
-      id = this.nextAccountId;
-      this.nextAccountId += 1n;
-      this.accountIds.set(name, id);
-      this.idToName.set(id, name);
-    }
-    return id;
+  private idFor(idStr: string): bigint {
+    return BigInt(idStr.replace(/_/g, ""));
   }
 
   private nameFor(id: bigint): string {
@@ -670,6 +688,7 @@ and in the main return object (next to `instructionPointer`):
     }));
     const transactions: LedgerTx[] = bc.transactions.map((t) => ({
       block: t.blockheight + 1,
+      txId: String(t.txid),
       sender: this.nameFor(t.sender),
       recipient: this.nameFor(t.recipient),
       amount: String(t.amount),
@@ -715,11 +734,11 @@ describe("ScSimulatorEngine — scenario application", () => {
     e.load(C);
     e.applyScenario({
       version: 2,
-      creator: "creator",
-      accounts: [{ id: "alice", balance: "100_0000_0000" }],
-      transactions: [{ block: 1, sender: "alice", amount: "5_0000_0000" }],
+      creator: "555",
+      accounts: [{ id: "1001", balance: "100_0000_0000" }],
+      transactions: [{ block: 1, sender: "1001", amount: "5_0000_0000" }],
     });
-    const alice = e.getLedger().accounts.find((a) => a.id === "alice");
+    const alice = e.getLedger().accounts.find((a) => a.id === "1001");
     expect(alice).toBeDefined();
     expect(BigInt(alice!.balance)).toBe(9500000000n); // 100e8 - 5e8, not negative
   });
@@ -729,11 +748,11 @@ describe("ScSimulatorEngine — scenario application", () => {
     e.load(C);
     e.applyScenario({
       version: 2,
-      creator: "creator",
-      accounts: [{ id: "alice", balance: "100_0000_0000" }],
+      creator: "555",
+      accounts: [{ id: "1001", balance: "100_0000_0000" }],
       transactions: [
-        { block: 1, sender: "alice", amount: "5_0000_0000" },
-        { block: 3, sender: "alice", amount: "1_0000_0000", message: "later" },
+        { block: 1, sender: "1001", amount: "5_0000_0000" },
+        { block: 3, sender: "1001", amount: "1_0000_0000", message: "later" },
       ],
     });
     expect(e.getLedger().transactions.some((t) => t.block === 3)).toBe(false);
@@ -742,16 +761,16 @@ describe("ScSimulatorEngine — scenario application", () => {
     expect(e.getLedger().transactions.some((t) => t.block === 3)).toBe(true);
   });
 
-  it("accepts a named creator without throwing (BigInt regression) and names it in the ledger", () => {
+  it("accepts a numeric creator and honours a self-defined txId in the ledger", () => {
     const e = new ScSimulatorEngine();
-    e.load(C, "boss"); // named, not numeric — BigInt("boss") would throw
+    e.load(C, "555");
     e.applyScenario({
       version: 2,
-      creator: "boss",
-      accounts: [{ id: "boss", balance: "200_0000_0000" }],
-      transactions: [{ block: 1, sender: "boss", amount: "5_0000_0000" }],
+      creator: "555",
+      accounts: [{ id: "1001", balance: "100_0000_0000" }],
+      transactions: [{ block: 1, sender: "1001", amount: "5_0000_0000", txId: "1234567890" }],
     });
-    expect(e.getLedger().accounts.some((a) => a.id === "boss")).toBe(true);
+    expect(e.getLedger().transactions.some((t) => t.txId === "1234567890")).toBe(true);
   });
 });
 ```
@@ -759,7 +778,7 @@ describe("ScSimulatorEngine — scenario application", () => {
 - [ ] **Step 2: Run the tests to verify they fail**
 
 Run: `bun test src/features/simulator/engine/simulator-engine.test.ts`
-Expected: FAIL — the named-creator test throws (`BigInt("boss")`), and `alice`'s balance is negative (`-500000000`) because accounts are not pre-funded.
+Expected: FAIL — the pre-funded sender's balance is negative (`-500000000`) because accounts are not seeded, and the self-defined `txId` is absent (a random id is assigned) because `txId` is not yet passed through.
 
 - [ ] **Step 3: Wire the creator via idFor**
 
@@ -791,6 +810,7 @@ In `src/features/simulator/engine/simulator-engine.ts`, update `submitScenario` 
       recipient: String(this.contractId),
       amount: t.amount.replace(/_/g, ""),
       blockheight: t.blockheight,
+      ...(t.txId ? { txid: t.txId.replace(/_/g, "") } : {}),
       ...(t.message ? { messageText: t.message } : {}),
     }));
     this.node.setScenario(JSON.stringify(txs));
@@ -915,7 +935,7 @@ function LedgerView({ ledger }: { ledger: LedgerState | null }) {
         {ledger.transactions.length === 0 && <div className="opacity-50">— none —</div>}
         {ledger.transactions.map((t, i) => (
           <div key={i}>
-            #{t.block} {t.sender} → {t.recipient} : {t.amount}
+            #{t.block} · tx {t.txId} · {t.sender} → {t.recipient} : {t.amount}
             {t.message ? ` · "${t.message}"` : ""}
           </div>
         ))}
@@ -1109,7 +1129,7 @@ Expected: only the **pre-existing** monaco `IStandaloneCodeEditor` "not assignab
 - [ ] **Step 5: Manual verification**
 
 Run `bun run dev`, open a `.smart.c` contract, click **Debug**. Confirm:
-- Toolbar shows `block 1` after start; the **Ledger** tab (default) lists the `contract` account (positive balance) and the sender (e.g. `alice`) with a **non-negative** balance, plus the activation tx.
+- Toolbar shows `block 1` after start; the **Ledger** tab (default) lists the `contract` account (positive balance) and the sender (e.g. `1001`) with a **non-negative** balance, plus the activation tx.
 - Stepping through the contract works as before.
 - Clicking **⛏ Next Block** increments the block indicator and, for a scenario with a later-block tx, that tx appears in the Ledger's Transactions list at the right block.
 
@@ -1151,6 +1171,8 @@ Then hand off via **superpowers:finishing-a-development-branch**.
 **Spec coverage:**
 - §4 Schema v2 → Task 1 (types + io). ✓
 - §4 "No backward compatibility" (reject non-2) → Task 1 Step 1 test + `validateScenario`. ✓
+- §4 numeric account ids (`creator`/`id`/`sender`) + optional numeric `txId` → Task 1 (validation `isNum` + types + mapping) and Task 3 (adapter `txid` passthrough). ✓
+- §6 `LedgerTx.txId` displayed → Task 2 (type + `getLedger`), Task 4 (`LedgerView`). ✓
 - §5 creator wiring → Task 3 Steps 3, 5. ✓
 - §5 pre-fund accounts → Task 3 Step 4. ✓
 - §5 single initial forge → unchanged `submitScenario` forges once (Task 1/3). ✓

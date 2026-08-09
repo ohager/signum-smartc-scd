@@ -59,47 +59,55 @@ transactions — advancing block by block.
 ```json5
 {
   version: 2,
-  creator: "creator",            // account id used as the contract creator
+  creator: "555",                // numeric account id of the contract creator
   accounts: [
-    { id: "alice", balance: "100_0000_0000" },
-    { id: "bob",   balance: "50_0000_0000" },
+    { id: "1001", balance: "100_0000_0000" },
+    { id: "1002", balance: "50_0000_0000" },
   ],
   transactions: [
-    { block: 1, sender: "alice", amount: "5_0000_0000", message: "activate" },
-    { block: 3, sender: "bob",   amount: "0",           message: "getStatus" },
+    { block: 1, sender: "1001", amount: "5_0000_0000", message: "activate" },
+    { block: 3, sender: "1002", amount: "0", txId: "1002000000003", message: "getStatus" },
   ],
 }
 ```
+
+**Account ids are numeric.** Signum account IDs are 64-bit integers; using them
+verbatim lets contract code compare against concrete ids (`sender == 1001`) and keeps
+scenarios faithful to a real node. `_` digit separators are allowed and stripped.
+`txId` is optional (a random id is assigned when omitted) and useful when the contract
+reads/dedups by transaction id.
 
 **Types** (`scenario/scenario.types.ts`):
 
 ```ts
 export interface ScenarioTx {
   block: number;        // 1-based; block 1 = first forged (activation) block
-  sender: string;       // account id (name or numeric)
+  sender: string;       // numeric account id (bigint as string; "_" allowed)
   amount: string;       // NQT string; "_" separators allowed
+  txId?: string;        // optional self-defined tx id (bigint as string); random if omitted
   message?: string;     // → messageText
 }
 
 export interface ScenarioAccount {
-  id: string;           // account id (name or numeric)
+  id: string;           // numeric account id (bigint as string; "_" allowed)
   balance: string;      // NQT string; "_" separators allowed
 }
 
 export interface ScenarioFile {
   version: 2;
-  creator: string;
+  creator: string;      // numeric account id (bigint as string)
   accounts: ScenarioAccount[];
   transactions: ScenarioTx[];
 }
 ```
 
-**Validation rules** (`validateScenario`):
+**Validation rules** (`validateScenario`), where a "numeric string" matches
+`/^[0-9_]+$/` with at least one digit:
 - `version === 2`.
-- `creator` is a non-empty string.
-- `accounts` is an array; each has string `id` + string `balance`.
-- `transactions` is an array; each has integer `block >= 1`, string `sender`,
-  string `amount`, optional string `message`.
+- `creator` is a numeric string.
+- `accounts` is an array; each has a numeric `id` + numeric `balance`.
+- `transactions` is an array; each has integer `block >= 1`, numeric `sender`,
+  numeric `amount`, optional numeric `txId`, optional string `message`.
 
 **Removed vs v1:** the `contract { creator, activationAmount }` wrapper and the
 `timeline` union (`{type:"tx"}` / `{type:"blocks"}`).
@@ -114,14 +122,17 @@ fails validation and the caller falls back to the built-in default (existing
 
 ## 5. Adapter changes (`engine/simulator-engine.ts`)
 
-- **Creator:** `load(source, creatorId?)` already exists; `DebugController.start`
-  passes `scenario.creator` so `creatorId = idFor(scenario.creator)`.
-- **Pre-fund accounts:** in `init()`, after `loadSmartContract`, for every
-  `scenario.accounts[]` call
+- **Creator:** `DebugController.start` passes `scenario.creator`; `load` resolves it
+  via `idFor` (= `BigInt(id.replace(/_/g, ""))`) so a numeric creator id is wired into
+  `loadSmartContract(source, creatorId)`.
+- **Pre-fund accounts:** in `submitScenario()`, before `setScenario`/`forgeBlock`, for
+  every `scenario.accounts[]` call
   `node.Blockchain.addBalanceTo(idFor(a.id), BigInt(a.balance.replace(/_/g, "")))`.
   Done *before* any forge.
 - **Transactions:** replace `to-engine-txs` mapping to emit, per `ScenarioTx`,
-  `{ sender: idFor(tx.sender), recipient: contractId, amount, blockheight: tx.block - 1, messageText? }`.
+  `{ sender: idFor(tx.sender), recipient: contractId, amount, blockheight: tx.block - 1, txid?, messageText? }`.
+  A self-defined `txId` is passed through as a string (the sim's JSON reviver converts
+  numeric strings to bigint and strips `_`); random ids are only assigned when omitted.
   `setScenario(JSON.stringify(txs))` once.
 - **Initial forge:** `init()`/`submitScenario()` forges **exactly one** block
   (`node.forgeBlock()`), landing on user block 1 (first activation).
@@ -130,10 +141,9 @@ fails validation and the caller falls back to the built-in default (existing
   that block's scheduled txs and re-activating the contract if applicable.
 - **`DebugState.currentBlock: number`** ← `node.Blockchain.getCurrentBlock()`.
 - **New method `getLedger(): LedgerState`** (see below), read from `Blockchain`.
-- **Name resolution for display:** keep a reverse map alongside `accountIds`
-  (`idToName: Map<bigint,string>`) populated in `idFor`; also register the contract id
-  as `"contract"` and account `0n` as `"fees"`. `nameFor(id)` returns the mapped name
-  or the numeric string.
+- **Name resolution for display:** an `idToName: Map<bigint,string>` labels only the
+  contract id (`"contract"`) and account `0n` (`"fees"`). `nameFor(id)` returns the
+  mapped label or the numeric id as a string (all user accounts show as their number).
 
 ## 6. Ledger types
 
@@ -150,7 +160,8 @@ export interface LedgerAccount {
 
 export interface LedgerTx {
   block: number;         // 1-based display block (engine blockheight + 1)
-  sender: string;        // display name
+  txId: string;          // transaction id (bigint as string)
+  sender: string;        // display name (numeric id, or "contract"/"fees")
   recipient: string;     // display name
   amount: string;        // NQT string
   message?: string;
@@ -165,7 +176,7 @@ export interface LedgerState {
 
 `getLedger()` maps `Blockchain.accounts` → `LedgerAccount[]` (via `nameFor`) and
 `Blockchain.transactions` → `LedgerTx[]` (`block = tx.blockheight + 1`,
-`sender/recipient` via `nameFor`, amounts stringified).
+`txId = String(tx.txid)`, `sender/recipient` via `nameFor`, amounts stringified).
 
 `DebugController` gains `forgeNextBlock(): DebugState` and `getLedger(): LedgerState`
 relays. `FakeEngine` implements both deterministically for controller/UI tests.
@@ -218,13 +229,14 @@ ScenarioFile (v2)
   rejects a non-2 `version`, missing fields, and `block < 1` (an old v1-shaped
   document is rejected so the caller falls back to the default).
 - **tx mapping (pure):** v2 `transactions` → engine txs with `blockheight = block-1`
-  and stripped underscores.
+  and `txId` passed through when present.
 - **`FakeEngine`:** deterministic `currentBlock`, `forgeNextBlock`, `getLedger` so
   controller + UI logic are tested without the real VM.
 - **`ScSimulatorEngine` (real SimNode, headless):** a tiny contract verifying
   (a) a pre-funded sender's balance is **not negative** after activation,
   (b) a tx scheduled at `block: 3` is delivered only after forging to block 3,
-  (c) `creator` is the wired id (contract sees the creator account).
+  (c) a numeric `creator` is accepted and wired, and
+  (d) a self-defined `txId` shows up in the ledger's transaction history.
 
 ## 11. Out of scope (explicitly deferred)
 
