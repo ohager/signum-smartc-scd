@@ -104,18 +104,13 @@ export interface ScenarioFile {
 **Removed vs v1:** the `contract { creator, activationAmount }` wrapper and the
 `timeline` union (`{type:"tx"}` / `{type:"blocks"}`).
 
-### v1 → v2 migration (on parse)
+### No backward compatibility
 
-`parseScenario` detects a v1 document (`version === 1` with a `timeline` array) and
-upgrades it in memory before validating:
-- `creator` ← `v1.contract.creator` (fallback `"creator"`).
-- `accounts` carried over unchanged.
-- `activationAmount` dropped.
-- `timeline` folded into `transactions`: walk the entries keeping a 1-based running
-  block starting at 1; each `{type:"tx"}` becomes `{block, sender, amount, message?}`;
-  each `{type:"blocks", count}` advances the running block by `count`.
-
-`serializeScenario` always writes v2. `defaultScenario()` returns a v2 document.
+v1 was never deployed, so there is **no migration**. `parseScenario` accepts only
+`version === 2`; any pre-existing local `.scenario.json` in the old v1 shape simply
+fails validation and the caller falls back to the built-in default (existing
+`DebugView` behaviour). Old files should be recreated via "New Scenario".
+`serializeScenario` writes v2; `defaultScenario()` returns a v2 document.
 
 ## 5. Adapter changes (`engine/simulator-engine.ts`)
 
@@ -219,9 +214,9 @@ ScenarioFile (v2)
 
 ## 10. Testing strategy
 
-- **`scenario-io` (pure, bun:test):** v2 round-trip (serialize→parse); v1→v2 migration
-  (timeline + blocks → transactions with correct block numbers; activationAmount
-  dropped); validation rejects bad `version`, missing fields, `block < 1`.
+- **`scenario-io` (pure, bun:test):** v2 round-trip (serialize→parse); validation
+  rejects a non-2 `version`, missing fields, and `block < 1` (an old v1-shaped
+  document is rejected so the caller falls back to the default).
 - **tx mapping (pure):** v2 `transactions` → engine txs with `blockheight = block-1`
   and stripped underscores.
 - **`FakeEngine`:** deterministic `currentBlock`, `forgeNextBlock`, `getLedger` so
