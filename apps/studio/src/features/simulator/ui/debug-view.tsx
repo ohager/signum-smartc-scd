@@ -51,9 +51,23 @@ export function DebugView({ source, scenarioJson, onClose }: Props) {
     editorRef.current = editor;
     monacoRef.current = monaco;
     startSession();
+    editor.onMouseDown((e) => {
+      if (
+        e.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN ||
+        e.target.type === monaco.editor.MouseTargetType.GUTTER_LINE_NUMBERS
+      ) {
+        const line = e.target.position?.lineNumber;
+        if (line && controllerRef.current) setState(controllerRef.current.toggleBreakpoint(line));
+      }
+    });
   };
 
-  useDebugDecorations(editorRef.current, monacoRef.current, state?.currentSourceLine ?? null);
+  useDebugDecorations(
+    editorRef.current,
+    monacoRef.current,
+    state?.currentSourceLine ?? null,
+    state?.breakpoints ?? [],
+  );
 
   const run = (fn: () => DebugState) => () => {
     if (controllerRef.current) setState(fn());
@@ -65,6 +79,7 @@ export function DebugView({ source, scenarioJson, onClose }: Props) {
         state={state}
         onStep={run(() => controllerRef.current!.step())}
         onStepInto={run(() => controllerRef.current!.stepInto())}
+        onContinue={run(() => controllerRef.current!.continue())}
         onReset={run(() => controllerRef.current!.reset())}
         onClose={onClose}
       />

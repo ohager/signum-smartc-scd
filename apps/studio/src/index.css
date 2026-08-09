@@ -8,3 +8,4 @@
 
 .debug-current-line { background: rgba(80, 160, 255, 0.18); }
 .debug-current-glyph { background: #5aa0ff; }
+.debug-breakpoint { background: #e5484d; border-radius: 50%; width: 10px !important; height: 10px !important; margin: 5px 0 0 6px; }
