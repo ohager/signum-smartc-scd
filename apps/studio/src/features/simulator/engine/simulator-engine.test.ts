@@ -89,3 +89,51 @@ describe("ScSimulatorEngine — block + ledger", () => {
     expect(l.transactions.length).toBeGreaterThan(0);
   });
 });
+
+describe("ScSimulatorEngine — scenario application", () => {
+  const C = "#pragma maxAuxVars 2\nlong n, acc;\nvoid main() { n = 3; acc = n + 1; }";
+
+  it("pre-funds a sender so its balance is not negative after activation", () => {
+    const e = new ScSimulatorEngine();
+    e.load(C);
+    e.applyScenario({
+      version: 2,
+      creator: "555",
+      accounts: [{ id: "1001", balance: "100_0000_0000" }],
+      transactions: [{ block: 1, sender: "1001", amount: "5_0000_0000" }],
+    });
+    const alice = e.getLedger().accounts.find((a) => a.id === "1001");
+    expect(alice).toBeDefined();
+    expect(BigInt(alice!.balance)).toBe(9500000000n); // 100e8 - 5e8, not negative
+  });
+
+  it("delivers a transaction scheduled for a later block only after forging to it", () => {
+    const e = new ScSimulatorEngine();
+    e.load(C);
+    e.applyScenario({
+      version: 2,
+      creator: "555",
+      accounts: [{ id: "1001", balance: "100_0000_0000" }],
+      transactions: [
+        { block: 1, sender: "1001", amount: "5_0000_0000" },
+        { block: 3, sender: "1001", amount: "1_0000_0000", message: "later" },
+      ],
+    });
+    expect(e.getLedger().transactions.some((t) => t.block === 3)).toBe(false);
+    e.forgeNextBlock(); // -> block 2
+    e.forgeNextBlock(); // -> block 3, delivers the block-3 tx
+    expect(e.getLedger().transactions.some((t) => t.block === 3)).toBe(true);
+  });
+
+  it("accepts a numeric creator and honours a self-defined txId in the ledger", () => {
+    const e = new ScSimulatorEngine();
+    e.load(C, "555");
+    e.applyScenario({
+      version: 2,
+      creator: "555",
+      accounts: [{ id: "1001", balance: "100_0000_0000" }],
+      transactions: [{ block: 1, sender: "1001", amount: "5_0000_0000", txId: "1234567890" }],
+    });
+    expect(e.getLedger().transactions.some((t) => t.txId === "1234567890")).toBe(true);
+  });
+});

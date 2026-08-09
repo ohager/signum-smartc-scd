@@ -18,7 +18,7 @@ export class ScSimulatorEngine implements SimulatorEngine {
 
   load(cSource: string, creatorId?: string): void {
     this.cSource = cSource;
-    if (creatorId) this.creatorId = BigInt(creatorId);
+    this.creatorId = creatorId ? this.idFor(creatorId) : Constants.creatorID;
     this.init();
   }
 
@@ -48,6 +48,10 @@ export class ScSimulatorEngine implements SimulatorEngine {
 
   private submitScenario(): void {
     if (!this.node || !this.scenario || this.contractId === null) return;
+    // Pre-fund declared accounts before any tx is processed (else senders go negative).
+    for (const acc of this.scenario.accounts) {
+      this.node.Blockchain.addBalanceTo(this.idFor(acc.id), BigInt(acc.balance.replace(/_/g, "")));
+    }
     // Activation txs are submitted at blockheight 0 (the chain's current
     // height before forging); one forgeBlock() then activates the contract.
     const txs = toEngineTxs(this.scenario, String(this.contractId)).map((t) => ({
@@ -55,6 +59,7 @@ export class ScSimulatorEngine implements SimulatorEngine {
       recipient: String(this.contractId),
       amount: t.amount.replace(/_/g, ""),
       blockheight: t.blockheight,
+      ...(t.txId ? { txid: t.txId.replace(/_/g, "") } : {}),
       ...(t.message ? { messageText: t.message } : {}),
     }));
     this.node.setScenario(JSON.stringify(txs));
