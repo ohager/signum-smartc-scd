@@ -4,6 +4,7 @@ import { jotaiStore } from "./stores/jotai-store";
 import { Provider as JotaiProvider } from "jotai";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { FilesPage } from "./pages/files/files-page";
+import { LedgerLivePage } from "./pages/ledger/ledger-live-page";
 export function App() {
   return (
     <JotaiProvider store={jotaiStore}>
@@ -23,6 +24,7 @@ export function App() {
               element={<FilesPage />}
             />
           </Route>
+          <Route path="/debug/ledger" element={<LedgerLivePage />} />
         </Routes>
       </BrowserRouter>
     </JotaiProvider>
