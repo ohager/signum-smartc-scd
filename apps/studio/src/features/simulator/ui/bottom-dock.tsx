@@ -1,11 +1,12 @@
 import { useState } from "react";
-import type { DebugState } from "../engine/engine.types";
+import type { DebugState, LedgerState } from "../engine/engine.types";
 
-type Tab = "console" | "txs" | "balance";
+type Tab = "ledger" | "console" | "txs" | "balance";
 
-export function BottomDock({ state }: { state: DebugState | null }) {
-  const [tab, setTab] = useState<Tab>("console");
+export function BottomDock({ state, ledger }: { state: DebugState | null; ledger: LedgerState | null }) {
+  const [tab, setTab] = useState<Tab>("ledger");
   const tabs: { id: Tab; label: string }[] = [
+    { id: "ledger", label: `Ledger${ledger ? ` · block ${ledger.currentBlock}` : ""}` },
     { id: "console", label: "Console" },
     { id: "txs", label: `Emitted Txs (${state?.emittedTx.length ?? 0})` },
     { id: "balance", label: "Balance" },
@@ -24,6 +25,7 @@ export function BottomDock({ state }: { state: DebugState | null }) {
         ))}
       </div>
       <div className="flex-1 overflow-auto p-2 font-mono">
+        {tab === "ledger" && <LedgerView ledger={ledger} />}
         {tab === "console" && (
           <>
             <div>
@@ -44,6 +46,39 @@ export function BottomDock({ state }: { state: DebugState | null }) {
           </>
         )}
         {tab === "balance" && <div>contract balance: {state?.balance ?? "0"}</div>}
+      </div>
+    </div>
+  );
+}
+
+function LedgerView({ ledger }: { ledger: LedgerState | null }) {
+  if (!ledger) return <div className="opacity-50">— no ledger —</div>;
+  return (
+    <div className="flex gap-6">
+      <div className="min-w-[240px]">
+        <div className="font-medium mb-1">Accounts · block {ledger.currentBlock}</div>
+        {ledger.accounts.length === 0 && <div className="opacity-50">— none —</div>}
+        <table className="border-collapse">
+          <tbody>
+            {ledger.accounts.map((a) => (
+              <tr key={a.id}>
+                <td className="pr-3">{a.id}</td>
+                <td className="pr-3 text-right">{a.balance}</td>
+                <td className="opacity-70">{a.tokens.map((t) => `${t.asset}×${t.quantity}`).join(", ")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="min-w-[280px]">
+        <div className="font-medium mb-1">Transactions</div>
+        {ledger.transactions.length === 0 && <div className="opacity-50">— none —</div>}
+        {ledger.transactions.map((t, i) => (
+          <div key={i}>
+            #{t.block} · tx {t.txId} · {t.sender} → {t.recipient} : {t.amount}
+            {t.message ? ` · "${t.message}"` : ""}
+          </div>
+        ))}
       </div>
     </div>
   );
