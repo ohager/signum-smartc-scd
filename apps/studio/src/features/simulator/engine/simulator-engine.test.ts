@@ -61,3 +61,31 @@ describe("ScSimulatorEngine (real smartc-signum-simulator)", () => {
     expect(s.currentSourceLine).toBe(BP_LINE);
   });
 });
+
+describe("ScSimulatorEngine — block + ledger", () => {
+  const C = "#pragma maxAuxVars 2\nlong n, acc;\nvoid main() { n = 3; acc = n + 1; }";
+
+  it("reports currentBlock 1 after applying a scenario", () => {
+    const e = new ScSimulatorEngine();
+    e.load(C);
+    e.applyScenario(defaultScenario());
+    expect(e.getState().currentBlock).toBe(1);
+  });
+
+  it("forgeNextBlock advances currentBlock", () => {
+    const e = new ScSimulatorEngine();
+    e.load(C);
+    e.applyScenario(defaultScenario());
+    expect(e.forgeNextBlock().currentBlock).toBe(2);
+  });
+
+  it("getLedger lists the contract account and the activation tx", () => {
+    const e = new ScSimulatorEngine();
+    e.load(C);
+    e.applyScenario(defaultScenario());
+    const l = e.getLedger();
+    expect(l.currentBlock).toBe(1);
+    expect(l.accounts.some((a) => a.id === "contract")).toBe(true);
+    expect(l.transactions.length).toBeGreaterThan(0);
+  });
+});

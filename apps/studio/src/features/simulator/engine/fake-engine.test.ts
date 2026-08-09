@@ -56,3 +56,40 @@ describe("FakeEngine", () => {
     expect(e.continue().status).toBe("finished");
   });
 });
+
+describe("FakeEngine — block + ledger", () => {
+  it("starts on block 1 after applyScenario", () => {
+    const e = new FakeEngine();
+    e.load("a\nb\nc");
+    e.applyScenario(defaultScenario());
+    expect(e.getState().currentBlock).toBe(1);
+  });
+  it("forgeNextBlock advances the block and re-arms stepping", () => {
+    const e = new FakeEngine();
+    e.load("a\nb\nc");
+    e.applyScenario(defaultScenario());
+    const s = e.forgeNextBlock();
+    expect(s.currentBlock).toBe(2);
+    expect(s.status).not.toBe("finished");
+  });
+  it("getLedger lists accounts and only transactions up to the current block", () => {
+    const e = new FakeEngine();
+    e.load("a\nb\nc");
+    e.applyScenario({
+      version: 2,
+      creator: "555",
+      accounts: [{ id: "1001", balance: "100" }],
+      transactions: [
+        { block: 1, sender: "1001", amount: "5" },
+        { block: 3, sender: "1002", amount: "0" },
+      ],
+    });
+    const l1 = e.getLedger();
+    expect(l1.currentBlock).toBe(1);
+    expect(l1.accounts.map((a) => a.id)).toContain("1001");
+    expect(l1.transactions.length).toBe(1); // block-3 tx not delivered yet
+    e.forgeNextBlock();
+    e.forgeNextBlock();
+    expect(e.getLedger().transactions.length).toBe(2);
+  });
+});

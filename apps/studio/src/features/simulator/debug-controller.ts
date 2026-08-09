@@ -1,4 +1,4 @@
-import type { SimulatorEngine, DebugState } from "./engine/engine.types";
+import type { SimulatorEngine, DebugState, LedgerState } from "./engine/engine.types";
 import type { ScenarioFile } from "./scenario/scenario.types";
 
 /**
@@ -11,7 +11,7 @@ export class DebugController {
   constructor(private readonly engine: SimulatorEngine) {}
 
   start(cSource: string, scenario: ScenarioFile, creatorId?: string): DebugState {
-    this.engine.load(cSource, creatorId);
+    this.engine.load(cSource, creatorId ?? scenario.creator);
     this.engine.applyScenario(scenario);
     return this.engine.getState();
   }
@@ -26,6 +26,14 @@ export class DebugController {
 
   continue(): DebugState {
     return this.engine.continue();
+  }
+
+  forgeNextBlock(): DebugState {
+    return this.engine.forgeNextBlock();
+  }
+
+  getLedger(): LedgerState {
+    return this.engine.getLedger();
   }
 
   toggleBreakpoint(sourceLine: number): DebugState {

@@ -1,5 +1,5 @@
 import { SimNode, Constants, type CONTRACT } from "smartc-signum-simulator";
-import type { DebugState, DebugStatus, EmittedTx, SimulatorEngine } from "./engine.types";
+import type { DebugState, DebugStatus, EmittedTx, LedgerAccount, LedgerState, LedgerTx, SimulatorEngine } from "./engine.types";
 import type { ScenarioFile } from "../scenario/scenario.types";
 import { toEngineTxs } from "../scenario/to-engine-txs";
 
@@ -13,8 +13,7 @@ export class ScSimulatorEngine implements SimulatorEngine {
   private creatorId: bigint = Constants.creatorID;
   private scenario: ScenarioFile | null = null;
   private steps = 0;
-  private accountIds = new Map<string, bigint>();
-  private nextAccountId = 1000n;
+  private idToName = new Map<bigint, string>();
   private breakpointLines = new Set<number>();
 
   load(cSource: string, creatorId?: string): void {
@@ -32,20 +31,19 @@ export class ScSimulatorEngine implements SimulatorEngine {
     this.node = new SimNode();
     const contract = this.node.loadSmartContract(this.cSource, this.creatorId);
     this.contractId = contract ? contract.contract : null;
+    if (this.contractId !== null) this.idToName.set(this.contractId, "contract");
+    this.idToName.set(0n, "fees");
     this.steps = 0;
     if (this.scenario) this.submitScenario();
     for (const line of this.breakpointLines) this.node.Simulator.toggleBreakpoint(line);
   }
 
-  private idFor(name: string): bigint {
-    if (/^\d+$/.test(name)) return BigInt(name);
-    let id = this.accountIds.get(name);
-    if (id === undefined) {
-      id = this.nextAccountId;
-      this.nextAccountId += 1n;
-      this.accountIds.set(name, id);
-    }
-    return id;
+  private idFor(idStr: string): bigint {
+    return BigInt(idStr.replace(/_/g, ""));
+  }
+
+  private nameFor(id: bigint): string {
+    return this.idToName.get(id) ?? String(id);
   }
 
   private submitScenario(): void {
@@ -80,6 +78,30 @@ export class ScSimulatorEngine implements SimulatorEngine {
     return this.getState();
   }
 
+  forgeNextBlock(): DebugState {
+    this.node?.forgeBlock();
+    return this.getState();
+  }
+
+  getLedger(): LedgerState {
+    const bc = this.node?.Blockchain;
+    if (!bc) return { currentBlock: 0, accounts: [], transactions: [] };
+    const accounts: LedgerAccount[] = bc.accounts.map((a) => ({
+      id: this.nameFor(a.id),
+      balance: String(a.balance),
+      tokens: (a.tokens ?? []).map((t) => ({ asset: String(t.asset), quantity: String(t.quantity) })),
+    }));
+    const transactions: LedgerTx[] = bc.transactions.map((t) => ({
+      block: t.blockheight + 1,
+      txId: String(t.txid),
+      sender: this.nameFor(t.sender),
+      recipient: this.nameFor(t.recipient),
+      amount: String(t.amount),
+      ...(t.messageText ? { message: t.messageText } : {}),
+    }));
+    return { currentBlock: bc.getCurrentBlock(), accounts, transactions };
+  }
+
   toggleBreakpoint(sourceLine: number): void {
     if (!this.node) return;
     const result = this.node.Simulator.toggleBreakpoint(sourceLine);
@@ -104,6 +126,7 @@ export class ScSimulatorEngine implements SimulatorEngine {
       return {
         instructionPointer: 0,
         currentSourceLine: null,
+        currentBlock: this.node ? this.node.Blockchain.getCurrentBlock() : 0,
         memory: {},
         registers: {},
         balance: "0",
@@ -130,6 +153,7 @@ export class ScSimulatorEngine implements SimulatorEngine {
     return {
       instructionPointer: d.instructionPointer,
       currentSourceLine: currentSourceLine === null ? null : Number(currentSourceLine),
+      currentBlock: this.node ? this.node.Blockchain.getCurrentBlock() : 0,
       memory,
       registers,
       balance: String(d.balance),

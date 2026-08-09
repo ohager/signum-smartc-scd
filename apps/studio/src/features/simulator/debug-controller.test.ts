@@ -44,4 +44,23 @@ describe("DebugController", () => {
     c.toggleBreakpoint(3);
     expect(c.continue().currentSourceLine).toBe(3);
   });
+
+  it("forgeNextBlock advances the current block", () => {
+    const c = new DebugController(new FakeEngine());
+    c.start("a\nb\nc", defaultScenario());
+    expect(c.forgeNextBlock().currentBlock).toBe(2);
+  });
+
+  it("getLedger returns the engine's ledger", () => {
+    const c = new DebugController(new FakeEngine());
+    c.start("a\nb\nc", defaultScenario());
+    expect(c.getLedger().currentBlock).toBe(1);
+  });
+
+  it("start passes scenario.creator to the engine as the creator id", () => {
+    const engine = new FakeEngine();
+    const c = new DebugController(engine);
+    c.start("a\nb\nc", { version: 2, creator: "777", accounts: [], transactions: [] });
+    expect(engine.lastCreatorId).toBe("777");
+  });
 });
