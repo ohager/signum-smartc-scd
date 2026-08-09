@@ -47,45 +47,51 @@ docs/superpowers/notes/
 
 Resolves the only real unknowns. Deliverable is a findings doc, not product code.
 
-### Task 1.1: Obtain SC-Simulator and drive it once
+### Task 1.1: Study deleterium's SC-Simulator, decide sourcing, drive it once (throwaway)
+
+**Facts** (repo `https://github.com/deleterium/SC-Simulator`, default branch `main`, **BSD-3-Clause**):
+- The only external **package** is the compiler (`smartc-signum-compiler`, already a dep). The **simulator** is deleterium's own app: TypeScript engine under `src/` (constants in `src/index.ts`), interactive UI in `try.html` / `try.js`. Build/run: `npm ci && npm run build && npm run start`.
+- There is a **packageable build of the simulator class** (`tsconfig.pkg.json`, `esbuild.pkg.config.js`, `npm run pack:pkg` / `publish:pkg`) intended for headless Jest/Vitest use — the owner's `signum-smartc-testbed` likely already drives this.
+- The engine **runs assembly, not bytecode** ("cannot directly interpret bytecode") → we feed it `getAssemblyCode()`, and it steps **assembly lines** (matches our source-map granularity, 1 hop).
+- It takes **transactions as JSON**, runs contracts in **block order**, supports **breakpoints + memory inspection**, and tracks contract **status** (running / frozen / dead / …).
 
 **Files:**
 - Create: `docs/superpowers/notes/sc-simulator-api.md`
-- Scratch (do NOT commit): a throwaway script under `/tmp` or `apps/studio/scratch/` that imports SC-Simulator.
+- Possibly create (if the decision is to vendor): `apps/studio/src/features/simulator/vendor/sc-simulator/**` (BSD-3, headers retained + a `NOTICE`).
+- Scratch (do NOT commit): a throwaway script/HTML under `apps/studio/scratch/`.
 
-- [ ] **Step 1: Get the simulator available to the studio.** Determine how deleterium's SC-Simulator is consumed as an importable JS module. Check, in order: (a) an npm package (search `npm view sc-simulator` / `signum` simulator packages), (b) the GitHub repo `https://github.com/deleterium/SC-Simulator` for an ESM/module entry, (c) whether it must be vendored. Record the exact import path/mechanism in the notes doc.
+- [ ] **Step 1: Decide how we source the engine — investigate both tracks, record the decision + rationale in the notes:**
+  - **(a) Depend on the packaged simulator class.** Check whether `pack:pkg`/`publish:pkg` is published and under what name, and **`grep` `signum-smartc-testbed`'s `package.json`** for the simulator dependency it already uses (the owner drives this sim in their testbed). If a maintained package exposes load/step/inspect, prefer depending on it for the **core engine** (least maintenance).
+  - **(b) Vendor the engine + driving code (BSD-3).** If no consumable package covers the interactive parts, copy the needed `src/` engine modules and the relevant `try.js` driving logic into `apps/studio/src/features/simulator/vendor/sc-simulator/`, **retaining the BSD-3 copyright header on every file** and adding a `NOTICE` crediting deleterium. Use `try.js` as the reference for how stepping / breakpoints / memory-inspection are invoked.
 
-- [ ] **Step 2: Write a scratch proof script** that:
-  1. compiles a known contract with `smartc-signum-compiler`:
-     ```ts
-     import { SmartC } from "smartc-signum-compiler";
-     const src = "#pragma maxAuxVars 2\nlong n, acc;\nvoid main() { n = 3; acc = n + 1; }";
-     const c = new SmartC({ language: "C", sourceCode: src }); c.compile();
-     const mc = c.getMachineCode(); // ByteCode (hex), AssemblyCode, Memory, Labels
-     ```
-  2. loads `mc.ByteCode` (or `mc.AssemblyCode`) into SC-Simulator,
-  3. steps one instruction,
-  4. prints: the object/functions used to load, step, continue, reset; and how to read: current position (asm line index vs code address), memory (and whether variable names are available or only addresses), registers, contract balance, emitted transactions, run status/step count.
+- [ ] **Step 2: Scratch proof.** Compile a known contract to **assembly** and drive the engine (packaged or vendored): load the assembly, apply a tiny transactions-JSON scenario, step one instruction, read state.
+  ```ts
+  import { SmartC } from "smartc-signum-compiler";
+  const src = "#pragma maxAuxVars 2\nlong n, acc;\nvoid main() { n = 3; acc = n + 1; }";
+  const c = new SmartC({ language: "C", sourceCode: src }); c.compile();
+  const assembly = c.getAssemblyCode();   // ← the engine consumes THIS (NOT ByteCode)
+  // ...construct the simulator, load `assembly`, feed a transactions JSON, step(), read state...
+  ```
 
-- [ ] **Step 3: Capture a verbose-assembly sample.** Compile the same contract with verbose assembly enabled (determine the exact mechanism — likely injecting `#pragma verboseAssembly true` as the first source line). Paste the resulting `AssemblyCode` (with its source-line comments) verbatim into the notes doc, and note the exact comment syntax that carries the source line number.
+- [ ] **Step 3: Write findings** to the notes doc, explicitly:
+  - Sourcing decision (package name, or vendored file list + attribution).
+  - How to construct/init the simulator; the **transactions-JSON scenario shape** (informs `scenario-io`'s translation).
+  - `load(assembly)`, single-step, run-to-breakpoint, reset call shapes.
+  - State accessors → current **assembly line**, **memory** (by variable name — cross-reference `getMachineCode().Memory` names — or by address, and how to map name→address), **registers**, **balance**, **emitted transactions**, **status**, **step count**. Confirm current position is an **assembly line** (expected).
 
-- [ ] **Step 4: Write findings** to `docs/superpowers/notes/sc-simulator-api.md` covering, explicitly:
-  - Import mechanism (package/vendored path).
-  - `load`, `step`, `continue`, `reset` call shapes.
-  - State accessors → how to read current-position / memory / registers / balance / emitted-txs / status / step-count, and whether memory is keyed by variable **name** (from `mc.Memory`) or by address (and if by address, how to map `mc.Memory[i]` name → address).
-  - Whether the engine reports the current **assembly line** directly (source map = 1 hop) or a **code address** (2 hops).
-  - The captured verbose-assembly snippet + the source-line comment syntax.
+- [ ] **Step 4: Capture a verbose-assembly sample.** Compile with verbose enabled (confirm the mechanism — likely `#pragma verboseAssembly true` as the first line) and paste the resulting assembly (with source-line comments) into the notes, noting the exact comment syntax (feeds Slice 3's fixture).
 
-- [ ] **Step 5: Commit only the notes doc.**
+- [ ] **Step 5: Commit** the notes doc (and, if vendoring, the `vendor/sc-simulator/**` files with BSD-3 headers + `NOTICE`).
 ```bash
 cd /Users/oliverhager/Code/signum/signum-smartc-scd
 git add docs/superpowers/notes/sc-simulator-api.md
-git commit -m "docs(sim): SC-Simulator API spike findings
+# if vendored: git add apps/studio/src/features/simulator/vendor
+git commit -m "docs(sim): SC-Simulator spike findings + engine sourcing decision (BSD-3)
 
 Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ```
 
-**If SC-Simulator turns out NOT to be cleanly embeddable as a module:** STOP and report BLOCKED with what you found — the design's "embed engine" decision needs revisiting (fallback: vendor the engine core). Do not proceed to Slice 4 without a documented load/step/state API.
+**Escalate (BLOCKED)** if neither a consumable package nor a vendorable engine can be driven headlessly or in-browser — the design's "embed engine, own UI" decision would need revisiting. Do not proceed to Slice 4 without a documented load/step/state API in the notes.
 
 ---
 
@@ -123,8 +129,7 @@ export interface DebugState extends EngineState {
 }
 
 export interface LoadedContract {
-  machineCode: string; // ByteCode hex from getMachineCode()
-  assembly: string; // AssemblyCode text
+  assembly: string; // AssemblyCode text — the engine runs ASSEMBLY, not bytecode
 }
 
 import type { ScenarioFile } from "../scenario/scenario.types";
@@ -288,7 +293,7 @@ import { defaultScenario } from "../scenario/scenario-io";
 describe("FakeEngine", () => {
   it("advances step count and asm line on step()", () => {
     const e = new FakeEngine();
-    e.load({ machineCode: "00", assembly: "line0\nline1\nline2" });
+    e.load({ assembly: "line0\nline1\nline2" });
     e.applyScenario(defaultScenario());
     const s1 = e.step();
     expect(s1.steps).toBe(1);
@@ -300,7 +305,7 @@ describe("FakeEngine", () => {
 
   it("reset returns to the initial state", () => {
     const e = new FakeEngine();
-    e.load({ machineCode: "00", assembly: "a\nb" });
+    e.load({ assembly: "a\nb" });
     e.applyScenario(defaultScenario());
     e.step();
     const r = e.reset();
@@ -311,7 +316,7 @@ describe("FakeEngine", () => {
 
   it("finishes at the last asm line", () => {
     const e = new FakeEngine();
-    e.load({ machineCode: "00", assembly: "a\nb" });
+    e.load({ assembly: "a\nb" });
     e.applyScenario(defaultScenario());
     e.step(); // line 1
     const last = e.step(); // clamp at last, finished
@@ -575,7 +580,7 @@ import type { ScenarioFile } from "../scenario/scenario.types";
 
 export class ScSimulatorEngine implements SimulatorEngine {
   // hold the sim instance + loaded program + translated scenario
-  load(contract: LoadedContract): void { /* load contract.machineCode/assembly per notes */ }
+  load(contract: LoadedContract): void { /* load contract.assembly (assembly, NOT bytecode) per notes */ }
   applyScenario(scenario: ScenarioFile): void { /* translate ScenarioFile -> sim setup per notes */ }
   step(): EngineState { /* advance one instruction; return readState() */ }
   stepOver(): EngineState { /* if the sim lacks step-over, alias to step(); note it */ }
@@ -596,11 +601,11 @@ import { defaultScenario } from "../scenario/scenario-io";
 
 describe("ScSimulatorEngine (integration)", () => {
   it("loads a compiled contract, steps, and reports advancing state", () => {
-    const { machineCode, assembly } = compileForDebug(
+    const { assembly } = compileForDebug(
       "#pragma maxAuxVars 2\nlong n, acc;\nvoid main() { n = 3; acc = n + 1; }",
     );
     const e = new ScSimulatorEngine();
-    e.load({ machineCode, assembly });
+    e.load({ assembly });
     e.applyScenario(defaultScenario());
     const before = e.getState();
     const after = e.step();
@@ -609,11 +614,11 @@ describe("ScSimulatorEngine (integration)", () => {
   });
 
   it("eventually reaches a terminal status when stepping to the end", () => {
-    const { machineCode, assembly } = compileForDebug(
+    const { assembly } = compileForDebug(
       "#pragma maxAuxVars 2\nlong n;\nvoid main() { n = 1; }",
     );
     const e = new ScSimulatorEngine();
-    e.load({ machineCode, assembly });
+    e.load({ assembly });
     e.applyScenario(defaultScenario());
     let s = e.getState();
     for (let i = 0; i < 1000 && s.status !== "finished" && s.status !== "halted"; i++) s = e.step();
@@ -715,7 +720,7 @@ export class DebugController {
 
   start(program: DebugProgram, scenario: ScenarioFile): DebugState {
     this.sourceMap = program.sourceMap;
-    this.engine.load({ machineCode: program.machineCode, assembly: program.assembly });
+    this.engine.load({ assembly: program.assembly });
     this.engine.applyScenario(scenario);
     return this.enrich(this.engine.getState());
   }
