@@ -47,6 +47,7 @@
     "react-resizable-panels": "^2.1.7",
     "react-router": "^7.5.0",
     "smartc-signum-compiler": "^2.3.0",
+    "smartc-signum-simulator": "^3.1.0",
     "sonner": "^2.0.3",
     "swr": "^2.3.8",
     "tailwind-merge": "^3.0.1",
