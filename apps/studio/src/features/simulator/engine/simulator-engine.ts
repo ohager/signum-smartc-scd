@@ -111,6 +111,7 @@ export class ScSimulatorEngine implements SimulatorEngine {
         status: "ready",
         steps: this.steps,
         breakpoints: [...this.breakpointLines].sort((a, b) => a - b),
+        error: undefined,
       };
     }
     const currentSourceLine = Array.isArray(d.cToAsmMap) ? (d.cToAsmMap[d.instructionPointer] ?? null) : null;
@@ -124,6 +125,8 @@ export class ScSimulatorEngine implements SimulatorEngine {
       amount: String(tx.amount),
       message: tx.messageText,
     }));
+    const dump = d as any;
+    const error = dump.exception || (dump.ERR != null ? `ERR ${dump.ERR}` : undefined);
     return {
       instructionPointer: d.instructionPointer,
       currentSourceLine: currentSourceLine === null ? null : Number(currentSourceLine),
@@ -134,6 +137,7 @@ export class ScSimulatorEngine implements SimulatorEngine {
       status: this.statusOf(d),
       steps: this.steps,
       breakpoints: [...this.breakpointLines].sort((a, b) => a - b),
+      error,
     };
   }
 

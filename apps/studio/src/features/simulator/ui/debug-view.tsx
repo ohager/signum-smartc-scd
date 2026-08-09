@@ -13,6 +13,9 @@ import { DebugToolbar } from "./debug-toolbar";
 import { InspectorPanel } from "./inspector-panel";
 import { useDebugDecorations } from "./use-debug-decorations";
 import { AsmView } from "./asm-view";
+import { BottomDock } from "./bottom-dock";
+
+const DOCK_HEIGHT = 150;
 import { setDebugMemory, clearDebugMemory } from "@/features/smartc-editor/language/debug-memory";
 
 export interface ScenarioEntry {
@@ -141,7 +144,8 @@ function DebugSession({
     const calculateEditorHeight = () => {
       if (containerRef.current) {
         const containerTop = containerRef.current.getBoundingClientRect().top;
-        const newHeight = `calc(100vh - ${containerTop + 30}px)`;
+        // subtract the 30px toolbar and the bottom dock so nothing overflows
+        const newHeight = `calc(100vh - ${containerTop + 30 + DOCK_HEIGHT}px)`;
         setEditorHeight(newHeight);
       }
     };
@@ -246,6 +250,7 @@ function DebugSession({
           />
         </div>
       </div>
+      <BottomDock state={state} />
     </div>
   );
 }

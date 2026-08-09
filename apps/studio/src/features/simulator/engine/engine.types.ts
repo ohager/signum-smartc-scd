@@ -18,6 +18,7 @@ export interface DebugState {
   status: DebugStatus;
   steps: number;
   breakpoints: number[]; // source lines (1-based) that have a breakpoint
+  error?: string; // halt/exception reason when the contract aborts
 }
 
 export interface SimulatorEngine {
