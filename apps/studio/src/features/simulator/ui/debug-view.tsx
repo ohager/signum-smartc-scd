@@ -84,15 +84,70 @@ function DebugSession({
   const controllerRef = useRef<DebugController | null>(null);
   const modelUriRef = useRef<string | null>(null);
   const [state, setState] = useState<DebugState | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [editorHeight, setEditorHeight] = useState("calc(100vh)"); // Initial height
   const { theme } = useTheme();
+
+  // Resizable right inspector panel (drag handle mutates width live, commits on release).
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [panelWidth, setPanelWidth] = useState<string>(
+    () => (typeof window !== "undefined" && localStorage.getItem("debug-panel-width")) || "320px",
+  );
+  useEffect(() => {
+    localStorage.setItem("debug-panel-width", panelWidth);
+  }, [panelWidth]);
+  const onPanelResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    let latest = panelWidth;
+    let frame = 0;
+    const onMove = (ev: MouseEvent) => {
+      const w = Math.min(Math.max(window.innerWidth - ev.clientX, 220), 680);
+      latest = `${w}px`;
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        if (panelRef.current) panelRef.current.style.width = latest;
+      });
+    };
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      if (frame) cancelAnimationFrame(frame);
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+      setPanelWidth(latest);
+    };
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "col-resize";
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  };
 
   // Publish live memory for the hover provider; clear on unmount.
   useEffect(() => {
-    if (modelUriRef.current && state) setDebugMemory(modelUriRef.current, state.memory);
+    if (modelUriRef.current && state)
+      setDebugMemory(modelUriRef.current, state.memory);
   }, [state]);
   useEffect(() => {
     return () => {
       if (modelUriRef.current) clearDebugMemory(modelUriRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    const calculateEditorHeight = () => {
+      if (containerRef.current) {
+        const containerTop = containerRef.current.getBoundingClientRect().top;
+        const newHeight = `calc(100vh - ${containerTop + 30}px)`;
+        setEditorHeight(newHeight);
+      }
+    };
+
+    calculateEditorHeight();
+    window.addEventListener("resize", calculateEditorHeight);
+
+    return () => {
+      window.removeEventListener("resize", calculateEditorHeight);
     };
   }, []);
 
@@ -115,7 +170,8 @@ function DebugSession({
         e.target.type === monaco.editor.MouseTargetType.GUTTER_LINE_NUMBERS
       ) {
         const line = e.target.position?.lineNumber;
-        if (line && controllerRef.current) setState(controllerRef.current.toggleBreakpoint(line));
+        if (line && controllerRef.current)
+          setState(controllerRef.current.toggleBreakpoint(line));
       }
     });
   };
@@ -132,7 +188,7 @@ function DebugSession({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full" ref={containerRef}>
       <DebugToolbar
         state={state}
         onStep={run(() => controllerRef.current!.step())}
@@ -144,15 +200,29 @@ function DebugSession({
       <div className="flex flex-1 overflow-hidden">
         <div className="flex-1 min-w-0">
           <Editor
-            height="100%"
+            height={editorHeight}
             defaultLanguage={SMARTC_LANGUAGE_ID}
             value={source}
             theme={theme === "dark" ? "vs-dark" : "light"}
-            options={{ readOnly: true, minimap: { enabled: false }, glyphMargin: true, fontSize: 14, automaticLayout: true }}
+            options={{
+              readOnly: true,
+              minimap: { enabled: false },
+              glyphMargin: true,
+              fontSize: 14,
+              automaticLayout: true,
+              scrollBeyondLastLine: false,
+            }}
             onMount={onMount}
           />
         </div>
-        <div className="w-[240px] border-l overflow-auto">
+        <div
+          onMouseDown={onPanelResize}
+          role="separator"
+          aria-orientation="vertical"
+          title="Drag to resize"
+          className="w-1.5 shrink-0 cursor-col-resize hover:bg-blue-500/40"
+        />
+        <div ref={panelRef} style={{ width: panelWidth }} className="shrink-0 border-l overflow-auto">
           <VariablesPanel state={state} />
         </div>
       </div>
