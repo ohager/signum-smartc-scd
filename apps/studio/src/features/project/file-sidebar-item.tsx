@@ -1,4 +1,4 @@
-import { FileTypeIcons } from "./filetype-icons";
+import { getFileTypeIcon } from "./filetype-icons";
 import {
   SidebarMenuSubItem,
   SidebarMenuSubButton,
@@ -25,7 +25,7 @@ interface Props {
 
 export function FileSidebarItem({ file, projectId, isActive }: Props) {
   const fs = useFileSystem();
-  const FileIcon = FileTypeIcons[file.type];
+  const FileIcon = getFileTypeIcon(file.type);
   const navigate = useNavigate();
   const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false);
 
