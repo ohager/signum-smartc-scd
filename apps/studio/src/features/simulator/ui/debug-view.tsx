@@ -10,7 +10,7 @@ import { parseScenario, defaultScenario } from "../scenario/scenario-io";
 import type { DebugState } from "../engine/engine.types";
 import type { ScenarioFile } from "../scenario/scenario.types";
 import { DebugToolbar } from "./debug-toolbar";
-import { VariablesPanel } from "./variables-panel";
+import { InspectorPanel } from "./inspector-panel";
 import { useDebugDecorations } from "./use-debug-decorations";
 import { AsmView } from "./asm-view";
 import { setDebugMemory, clearDebugMemory } from "@/features/smartc-editor/language/debug-memory";
@@ -237,8 +237,13 @@ function DebugSession({
           title="Drag to resize"
           className="w-1.5 shrink-0 cursor-col-resize hover:bg-blue-500/40"
         />
-        <div ref={panelRef} style={{ width: panelWidth }} className="shrink-0 border-l overflow-auto">
-          <VariablesPanel state={state} />
+        <div ref={panelRef} style={{ width: panelWidth }} className="shrink-0 border-l overflow-hidden">
+          <InspectorPanel
+            state={state}
+            onRemoveBreakpoint={(line) => {
+              if (controllerRef.current) setState(controllerRef.current.toggleBreakpoint(line));
+            }}
+          />
         </div>
       </div>
     </div>
