@@ -25,28 +25,26 @@ export function ScenarioEditor({ file }: { file: File }) {
   const { theme } = useTheme();
   const [content, setContent] = useState(file.content as string);
   const [errors, setErrors] = useState<string[]>(() => validationErrors(file.content as string));
-  const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
 
-  // Absolute editor height (same approach as the SmartC editor): flex/percentage
-  // height chains collapse Monaco, so compute an explicit px height from the
-  // container's viewport offset plus the toolbar height.
   const containerRef = useRef<HTMLDivElement>(null);
   const [editorHeight, setEditorHeight] = useState("calc(100vh)");
   useEffect(() => {
-    const recalc = () => {
+    const calculateEditorHeight = () => {
       if (containerRef.current) {
-        const top = containerRef.current.getBoundingClientRect().top;
-        setEditorHeight(`calc(100vh - ${Math.round(top) + TOOLBAR_HEIGHT}px)`);
+        const containerTop = containerRef.current.getBoundingClientRect().top;
+        const newHeight = `calc(100vh - ${containerTop + 30}px)`;
+        setEditorHeight(newHeight);
       }
     };
-    recalc();
-    window.addEventListener("resize", recalc);
-    return () => window.removeEventListener("resize", recalc);
+
+    calculateEditorHeight();
+    window.addEventListener("resize", calculateEditorHeight);
+
+    return () => {
+      window.removeEventListener("resize", calculateEditorHeight);
+    };
   }, []);
 
-  const onMount: OnMount = (editor) => {
-    editorRef.current = editor;
-  };
 
   const onChange = (value: string | undefined) => {
     const text = value ?? "";
@@ -71,22 +69,36 @@ export function ScenarioEditor({ file }: { file: File }) {
     <div className="flex flex-col" ref={containerRef}>
       <div className="flex items-center gap-2 h-[30px] px-2 border-b bg-muted text-xs">
         <span className="font-medium">Scenario</span>
-        <button className="px-2 py-0.5 border rounded disabled:opacity-40" onClick={save} disabled={errors.length > 0}>
+        <button
+          className="px-2 py-0.5 border rounded disabled:opacity-40"
+          onClick={save}
+          disabled={errors.length > 0}
+        >
           Save
         </button>
-        <span className={"ml-auto " + (errors.length > 0 ? "text-red-500" : "opacity-70")}>
-          {errors.length > 0 ? `${errors.length} error(s): ${errors[0]}` : "valid ✓"}
+        <span
+          className={
+            "ml-auto " + (errors.length > 0 ? "text-red-500" : "opacity-70")
+          }
+        >
+          {errors.length > 0
+            ? `${errors.length} error(s): ${errors[0]}`
+            : "valid ✓"}
         </span>
       </div>
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 rounded h-full">
         <Editor
           height={editorHeight}
           defaultLanguage="json"
           value={content}
           theme={theme === "dark" ? "vs-dark" : "light"}
           onChange={onChange}
-          onMount={onMount}
-          options={{ minimap: { enabled: false }, fontSize: 14 }}
+          options={{
+            minimap: { enabled: false },
+            fontSize: 14,
+            scrollBeyondLastLine: false,
+            automaticLayout: true,
+          }}
         />
       </div>
     </div>

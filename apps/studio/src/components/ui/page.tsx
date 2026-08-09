@@ -29,7 +29,7 @@ const Page = React.forwardRef<HTMLDivElement, PageProps>(
     return (
       <div
         ref={ref}
-        className={cn("flex flex-col h-full mx-auto w-full", className)}
+        className={cn("flex flex-col h-full mx-auto w-full min-w-0", className)}
         {...props}
       >
         {children}

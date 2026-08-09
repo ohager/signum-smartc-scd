@@ -84,13 +84,13 @@ export function DebugView({ source, scenarioJson, onClose }: Props) {
         onClose={onClose}
       />
       <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <Editor
             height="100%"
             defaultLanguage={SMARTC_LANGUAGE_ID}
             value={source}
             theme={theme === "dark" ? "vs-dark" : "light"}
-            options={{ readOnly: true, minimap: { enabled: false }, glyphMargin: true, fontSize: 14 }}
+            options={{ readOnly: true, minimap: { enabled: false }, glyphMargin: true, fontSize: 14, automaticLayout: true }}
             onMount={onMount}
           />
         </div>
