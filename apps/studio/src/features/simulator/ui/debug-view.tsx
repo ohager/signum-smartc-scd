@@ -11,12 +11,9 @@ import type { DebugState, LedgerState } from "../engine/engine.types";
 import type { ScenarioFile } from "../scenario/scenario.types";
 import { DebugToolbar } from "./debug-toolbar";
 import { DebugSidePanel } from "./debug-side-panel";
-import { createLedgerHost, type LedgerHost } from "../ledger-broadcast";
+import { createDebugHost, type DebugHost } from "../debug-broadcast";
 import { useDebugDecorations } from "./use-debug-decorations";
 import { AsmView } from "./asm-view";
-import { BottomDock } from "./bottom-dock";
-
-const DOCK_HEIGHT = 150;
 import { setDebugMemory, clearDebugMemory } from "@/features/smartc-editor/language/debug-memory";
 
 export interface ScenarioEntry {
@@ -87,7 +84,7 @@ function DebugSession({
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof Monaco | null>(null);
   const controllerRef = useRef<DebugController | null>(null);
-  const ledgerHostRef = useRef<LedgerHost | null>(null);
+  const debugHostRef = useRef<DebugHost | null>(null);
   const modelUriRef = useRef<string | null>(null);
   const [state, setState] = useState<DebugState | null>(null);
   const [ledger, setLedger] = useState<LedgerState | null>(null);
@@ -143,25 +140,25 @@ function DebugSession({
     };
   }, []);
 
-  // Cross-tab ledger host: created once, closed on unmount.
+  // Cross-tab debug host: created once, closed on unmount.
   useEffect(() => {
-    ledgerHostRef.current = createLedgerHost();
-    return () => ledgerHostRef.current?.close();
+    debugHostRef.current = createDebugHost();
+    return () => debugHostRef.current?.close();
   }, []);
-  // Mirror the current ledger to any popped-out tab whenever it changes.
+  // Mirror the current snapshot to any popped-out dashboard whenever it changes.
   useEffect(() => {
-    if (ledger) ledgerHostRef.current?.publish(ledger);
-  }, [ledger]);
+    if (state && ledger) debugHostRef.current?.publish({ state, ledger });
+  }, [state, ledger]);
 
   const canPopOut = typeof BroadcastChannel !== "undefined";
-  const onPopOut = () => window.open("/debug/ledger", "smartc-ledger");
+  const onPopOut = () => window.open("/debug/dashboard", "smartc-debug");
 
   useEffect(() => {
     const calculateEditorHeight = () => {
       if (containerRef.current) {
         const containerTop = containerRef.current.getBoundingClientRect().top;
-        // subtract the 30px toolbar and the bottom dock so nothing overflows
-        const newHeight = `calc(100vh - ${containerTop + 30 + DOCK_HEIGHT}px)`;
+        // subtract the 30px toolbar so nothing overflows
+        const newHeight = `calc(100vh - ${containerTop + 30}px)`;
         setEditorHeight(newHeight);
       }
     };
@@ -235,6 +232,7 @@ function DebugSession({
         onContinue={run(() => controllerRef.current!.continue())}
         onForgeNextBlock={onForgeNextBlock}
         onReset={onReset}
+        onPopOut={canPopOut ? onPopOut : undefined}
         viewMode={viewMode}
         onViewMode={setViewMode}
         onClose={onClose}
@@ -280,11 +278,9 @@ function DebugSession({
             onRemoveBreakpoint={(line) => {
               if (controllerRef.current) setState(controllerRef.current.toggleBreakpoint(line));
             }}
-            onPopOut={canPopOut ? onPopOut : undefined}
           />
         </div>
       </div>
-      <BottomDock state={state} />
     </div>
   );
 }

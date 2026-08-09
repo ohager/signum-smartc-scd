@@ -1,22 +1,13 @@
 import type { LedgerState } from "../engine/engine.types";
 import { Section } from "./debug-primitives";
 
-export function LedgerView({ ledger, onPopOut }: { ledger: LedgerState | null; onPopOut?: () => void }) {
+export function LedgerView({ ledger }: { ledger: LedgerState | null }) {
   return (
     <div className="flex flex-col h-full text-xs">
       <div className="flex items-center justify-between px-3 py-1.5 border-b shrink-0">
         <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
           Ledger · block {ledger?.currentBlock ?? 0}
         </span>
-        {onPopOut && (
-          <button
-            className="border rounded px-2 py-0.5 font-sans"
-            onClick={onPopOut}
-            title="Open the live debug dashboard in a separate browser tab"
-          >
-            ⧉ pop out
-          </button>
-        )}
       </div>
       <div className="flex-1 overflow-auto">
         {!ledger && <div className="p-3 opacity-50">— no ledger —</div>}

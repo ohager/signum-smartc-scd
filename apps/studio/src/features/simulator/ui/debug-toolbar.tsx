@@ -1,4 +1,5 @@
 import type { DebugState } from "../engine/engine.types";
+import { Pill } from "./debug-primitives";
 
 interface Props {
   state: DebugState | null;
@@ -8,6 +9,7 @@ interface Props {
   onForgeNextBlock: () => void;
   onReset: () => void;
   onClose: () => void;
+  onPopOut?: () => void;
   viewMode: "source" | "asm";
   onViewMode: (mode: "source" | "asm") => void;
 }
@@ -20,6 +22,7 @@ export function DebugToolbar({
   onForgeNextBlock,
   onReset,
   onClose,
+  onPopOut,
   viewMode,
   onViewMode,
 }: Props) {
@@ -60,10 +63,21 @@ export function DebugToolbar({
           asm
         </button>
       </span>
-      <span className="ml-auto opacity-70">
-        block {state?.currentBlock ?? 0} · {status} · step {state?.steps ?? 0} · line{" "}
-        {state?.currentSourceLine ?? "—"}
-        {state && state.breakpoints.length > 0 ? ` · bp ${state.breakpoints.join(",")}` : ""}
+      {onPopOut && (
+        <button
+          className="px-2 py-0.5 border rounded"
+          onClick={onPopOut}
+          title="Open a live debug dashboard in a separate browser tab"
+        >
+          ⧉ Pop out
+        </button>
+      )}
+      <span className="ml-auto flex items-center gap-1.5">
+        <Pill>block {state?.currentBlock ?? 0}</Pill>
+        <Pill tone={status === "error" ? "error" : status === "running" ? "accent" : "default"}>{status}</Pill>
+        <Pill>step {state?.steps ?? 0}</Pill>
+        {state?.currentSourceLine != null && <Pill>line {state.currentSourceLine}</Pill>}
+        {state?.error && <Pill tone="error">{state.error}</Pill>}
       </span>
       <button className="px-2 py-0.5 border rounded" onClick={onClose}>
         ✕ Close

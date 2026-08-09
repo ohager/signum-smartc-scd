@@ -9,12 +9,10 @@ export function DebugSidePanel({
   state,
   ledger,
   onRemoveBreakpoint,
-  onPopOut,
 }: {
   state: DebugState | null;
   ledger: LedgerState | null;
   onRemoveBreakpoint: (line: number) => void;
-  onPopOut?: () => void;
 }) {
   const [view, setView] = useState<View>("contract");
   return (
@@ -34,7 +32,7 @@ export function DebugSidePanel({
         {view === "contract" ? (
           <InspectorPanel state={state} onRemoveBreakpoint={onRemoveBreakpoint} />
         ) : (
-          <LedgerView ledger={ledger} onPopOut={onPopOut} />
+          <LedgerView ledger={ledger} />
         )}
       </div>
     </div>
