@@ -2,6 +2,7 @@ import Editor, { type OnMount } from "@monaco-editor/react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import type * as Monaco from "monaco-editor";
 import { toast } from "sonner";
+import { useTheme } from "next-themes";
 import { SMARTC_LANGUAGE_ID, registerSmartC } from "@/features/smartc-editor/language/register.ts";
 import { DebugController } from "../debug-controller";
 import { ScSimulatorEngine } from "../engine/simulator-engine";
@@ -23,6 +24,7 @@ export function DebugView({ source, scenarioJson, onClose }: Props) {
   const monacoRef = useRef<typeof Monaco | null>(null);
   const controllerRef = useRef<DebugController | null>(null);
   const [state, setState] = useState<DebugState | null>(null);
+  const { theme } = useTheme();
 
   const scenario: ScenarioFile = useMemo(() => {
     try {
@@ -72,6 +74,7 @@ export function DebugView({ source, scenarioJson, onClose }: Props) {
             height="100%"
             defaultLanguage={SMARTC_LANGUAGE_ID}
             value={source}
+            theme={theme === "dark" ? "vs-dark" : "light"}
             options={{ readOnly: true, minimap: { enabled: false }, glyphMargin: true, fontSize: 14 }}
             onMount={onMount}
           />
