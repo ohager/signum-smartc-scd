@@ -10,7 +10,8 @@ import { parseScenario, defaultScenario } from "../scenario/scenario-io";
 import type { DebugState, LedgerState } from "../engine/engine.types";
 import type { ScenarioFile } from "../scenario/scenario.types";
 import { DebugToolbar } from "./debug-toolbar";
-import { InspectorPanel } from "./inspector-panel";
+import { DebugSidePanel } from "./debug-side-panel";
+import { createLedgerHost, type LedgerHost } from "../ledger-broadcast";
 import { useDebugDecorations } from "./use-debug-decorations";
 import { AsmView } from "./asm-view";
 import { BottomDock } from "./bottom-dock";
@@ -86,6 +87,7 @@ function DebugSession({
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof Monaco | null>(null);
   const controllerRef = useRef<DebugController | null>(null);
+  const ledgerHostRef = useRef<LedgerHost | null>(null);
   const modelUriRef = useRef<string | null>(null);
   const [state, setState] = useState<DebugState | null>(null);
   const [ledger, setLedger] = useState<LedgerState | null>(null);
@@ -140,6 +142,19 @@ function DebugSession({
       if (modelUriRef.current) clearDebugMemory(modelUriRef.current);
     };
   }, []);
+
+  // Cross-tab ledger host: created once, closed on unmount.
+  useEffect(() => {
+    ledgerHostRef.current = createLedgerHost();
+    return () => ledgerHostRef.current?.close();
+  }, []);
+  // Mirror the current ledger to any popped-out tab whenever it changes.
+  useEffect(() => {
+    if (ledger) ledgerHostRef.current?.publish(ledger);
+  }, [ledger]);
+
+  const canPopOut = typeof BroadcastChannel !== "undefined";
+  const onPopOut = () => window.open("/debug/ledger", "smartc-ledger");
 
   useEffect(() => {
     const calculateEditorHeight = () => {
@@ -259,15 +274,17 @@ function DebugSession({
           className="w-1.5 shrink-0 cursor-col-resize hover:bg-blue-500/40"
         />
         <div ref={panelRef} style={{ width: panelWidth }} className="shrink-0 border-l overflow-hidden">
-          <InspectorPanel
+          <DebugSidePanel
             state={state}
+            ledger={ledger}
             onRemoveBreakpoint={(line) => {
               if (controllerRef.current) setState(controllerRef.current.toggleBreakpoint(line));
             }}
+            onPopOut={canPopOut ? onPopOut : undefined}
           />
         </div>
       </div>
-      <BottomDock state={state} ledger={ledger} />
+      <BottomDock state={state} />
     </div>
   );
 }

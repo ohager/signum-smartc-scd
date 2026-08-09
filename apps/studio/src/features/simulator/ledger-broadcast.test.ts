@@ -28,18 +28,18 @@ describe("ledger-broadcast", () => {
     const bus = makeBus();
     const host = createLedgerHost(bus);
     host.publish(L(1));
-    let received: LedgerState | null = null;
-    subscribeLedger((l) => (received = l), bus);
-    expect(received).toEqual(L(1));
+    const received: LedgerState[] = [];
+    subscribeLedger((l) => received.push(l), bus);
+    expect(received[received.length - 1]).toEqual(L(1));
   });
 
   it("later publishes reach the subscriber", () => {
     const bus = makeBus();
     const host = createLedgerHost(bus);
-    let received: LedgerState | null = null;
-    subscribeLedger((l) => (received = l), bus);
+    const received: LedgerState[] = [];
+    subscribeLedger((l) => received.push(l), bus);
     host.publish(L(5));
-    expect(received).toEqual(L(5));
+    expect(received[received.length - 1]).toEqual(L(5));
   });
 
   it("unsubscribe stops delivery", () => {
