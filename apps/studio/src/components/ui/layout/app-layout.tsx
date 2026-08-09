@@ -24,7 +24,7 @@ export function AppLayout() {
         <TooltipProvider>
           <SidebarProvider style={{ "--sidebar-width": sidebarWidth } as CSSProperties}>
             <LeftSidebar />
-            <SidebarResizer width={sidebarWidth} onChange={setSidebarWidth} />
+            <SidebarResizer onCommit={setSidebarWidth} />
             <Outlet />
           </SidebarProvider>
           <Toaster />
