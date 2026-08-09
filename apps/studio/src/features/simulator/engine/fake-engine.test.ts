@@ -29,4 +29,30 @@ describe("FakeEngine", () => {
     e.step();
     expect(e.step().status).toBe("finished");
   });
+
+  it("toggleBreakpoint adds then removes a source line", () => {
+    const e = new FakeEngine();
+    e.load("a\nb\nc");
+    e.toggleBreakpoint(2);
+    expect(e.getState().breakpoints).toContain(2);
+    e.toggleBreakpoint(2);
+    expect(e.getState().breakpoints).not.toContain(2);
+  });
+
+  it("continue runs to the next breakpoint line", () => {
+    const e = new FakeEngine();
+    e.load("a\nb\nc\nd\ne");
+    e.applyScenario(defaultScenario());
+    e.toggleBreakpoint(3);
+    const s = e.continue();
+    expect(s.currentSourceLine).toBe(3);
+    expect(s.breakpoints).toContain(3);
+  });
+
+  it("continue runs to finished when there is no breakpoint", () => {
+    const e = new FakeEngine();
+    e.load("a\nb\nc");
+    e.applyScenario(defaultScenario());
+    expect(e.continue().status).toBe("finished");
+  });
 });

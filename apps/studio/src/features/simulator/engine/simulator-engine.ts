@@ -15,6 +15,7 @@ export class ScSimulatorEngine implements SimulatorEngine {
   private steps = 0;
   private accountIds = new Map<string, bigint>();
   private nextAccountId = 1000n;
+  private breakpointLines = new Set<number>();
 
   load(cSource: string, creatorId?: string): void {
     this.cSource = cSource;
@@ -33,6 +34,7 @@ export class ScSimulatorEngine implements SimulatorEngine {
     this.contractId = contract ? contract.contract : null;
     this.steps = 0;
     if (this.scenario) this.submitScenario();
+    for (const line of this.breakpointLines) this.node.Simulator.toggleBreakpoint(line);
   }
 
   private idFor(name: string): bigint {
@@ -73,6 +75,20 @@ export class ScSimulatorEngine implements SimulatorEngine {
     return this.getState();
   }
 
+  continue(): DebugState {
+    this.node?.Simulator.runSlotContract();
+    return this.getState();
+  }
+
+  toggleBreakpoint(sourceLine: number): void {
+    if (!this.node) return;
+    const result = this.node.Simulator.toggleBreakpoint(sourceLine);
+    const r = typeof result === "string" ? result.toUpperCase() : "";
+    if (r.includes("ADDED")) this.breakpointLines.add(sourceLine);
+    else if (r.includes("REMOVED")) this.breakpointLines.delete(sourceLine);
+    // an error like "Line N is not an instruction" leaves the set unchanged
+  }
+
   reset(): DebugState {
     this.init();
     return this.getState();
@@ -94,6 +110,7 @@ export class ScSimulatorEngine implements SimulatorEngine {
         emittedTx: [],
         status: "ready",
         steps: this.steps,
+        breakpoints: [...this.breakpointLines].sort((a, b) => a - b),
       };
     }
     const currentSourceLine = Array.isArray(d.cToAsmMap) ? (d.cToAsmMap[d.instructionPointer] ?? null) : null;
@@ -116,6 +133,7 @@ export class ScSimulatorEngine implements SimulatorEngine {
       emittedTx,
       status: this.statusOf(d),
       steps: this.steps,
+      breakpoints: [...this.breakpointLines].sort((a, b) => a - b),
     };
   }
 

@@ -31,4 +31,17 @@ describe("DebugController", () => {
     c.start("a\nb", defaultScenario());
     expect(typeof c.getAssembly()).toBe("string");
   });
+
+  it("toggleBreakpoint returns state with the breakpoint recorded", () => {
+    const c = new DebugController(new FakeEngine());
+    c.start("a\nb\nc", defaultScenario());
+    expect(c.toggleBreakpoint(2).breakpoints).toContain(2);
+  });
+
+  it("continue runs to a breakpoint line", () => {
+    const c = new DebugController(new FakeEngine());
+    c.start("a\nb\nc\nd", defaultScenario());
+    c.toggleBreakpoint(3);
+    expect(c.continue().currentSourceLine).toBe(3);
+  });
 });

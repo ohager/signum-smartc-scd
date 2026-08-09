@@ -33,4 +33,31 @@ describe("ScSimulatorEngine (real smartc-signum-simulator)", () => {
     for (let i = 0; i < 200 && !["finished", "stopped", "error"].includes(s.status); i++) s = e.stepInto();
     expect(["finished", "stopped", "error"]).toContain(s.status);
   });
+
+  const MULTILINE = [
+    "#pragma maxAuxVars 2",
+    "long n, acc;",
+    "void main() {",
+    "  n = 3;",
+    "  acc = n + 1;",
+    "}",
+  ].join("\n");
+  const BP_LINE = 5;
+
+  it("toggleBreakpoint records the line in state", () => {
+    const e = new ScSimulatorEngine();
+    e.load(MULTILINE);
+    e.applyScenario(defaultScenario());
+    e.toggleBreakpoint(BP_LINE);
+    expect(e.getState().breakpoints).toContain(BP_LINE);
+  });
+
+  it("continue stops at a breakpoint", () => {
+    const e = new ScSimulatorEngine();
+    e.load(MULTILINE);
+    e.applyScenario(defaultScenario());
+    e.toggleBreakpoint(BP_LINE);
+    const s = e.continue();
+    expect(s.currentSourceLine).toBe(BP_LINE);
+  });
 });

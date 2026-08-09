@@ -17,6 +17,7 @@ export interface DebugState {
   emittedTx: EmittedTx[];
   status: DebugStatus;
   steps: number;
+  breakpoints: number[]; // source lines (1-based) that have a breakpoint
 }
 
 export interface SimulatorEngine {
@@ -24,7 +25,9 @@ export interface SimulatorEngine {
   applyScenario(scenario: ScenarioFile): void;
   step(): DebugState; // one assembly instruction
   stepInto(): DebugState; // step until the C source line changes (source-level)
+  continue(): DebugState;
   reset(): DebugState;
+  toggleBreakpoint(sourceLine: number): void;
   getState(): DebugState;
   getAssembly(): string; // assembly listing for the asm view
 }

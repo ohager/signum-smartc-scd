@@ -24,6 +24,15 @@ export class DebugController {
     return this.engine.stepInto();
   }
 
+  continue(): DebugState {
+    return this.engine.continue();
+  }
+
+  toggleBreakpoint(sourceLine: number): DebugState {
+    this.engine.toggleBreakpoint(sourceLine);
+    return this.engine.getState();
+  }
+
   reset(): DebugState {
     return this.engine.reset();
   }
