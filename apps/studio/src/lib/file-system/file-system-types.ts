@@ -24,6 +24,7 @@ export type FileSystemEventType =
   | "file:added"
   | "file:deleted"
   | "file:updated"
+  | "file:renamed"
   | "file:moved"
   | "folder:*"
   | "folder:created"

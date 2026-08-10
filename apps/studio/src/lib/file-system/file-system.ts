@@ -253,6 +253,35 @@ export class FileSystem extends EventTarget {
     });
   }
 
+  /**
+   * Renames a file (name + path). The file `type` is preserved.
+   *
+   * @param {string} fileId - The identifier of the file to rename.
+   * @param {string} newName - The new file name.
+   * @return {Promise<void>}
+   * @throws {Error} If the file does not exist.
+   */
+  async renameFile(fileId: string, newName: string): Promise<void> {
+    const meta = this.metadata.files[fileId];
+    if (!meta) {
+      throw new Error(`File not found: ${fileId}`);
+    }
+
+    const folderId = this.getFolderIdOfFile(fileId);
+    const folderPath = folderId ? this.metadata.folders[folderId].path : "";
+
+    meta.name = newName;
+    meta.path = `${folderPath === "/" ? "" : folderPath}/${newName}`;
+    meta.lastModified = Date.now();
+    this.saveMetadata();
+
+    this.emitEvent({
+      type: "file:renamed",
+      id: fileId,
+      metadata: meta
+    });
+  }
+
   async deleteFile(fileId: string): Promise<void> {
     const fileMetadata = this.metadata.files[fileId];
     if (!fileMetadata) {
