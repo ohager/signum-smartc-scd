@@ -103,12 +103,14 @@ Add **`acceptedFileType(name): FileTypes | null`** — `.smart.c`→SmartC,
 `importEntries`. *(pure, unit-tested)*
 
 ### `src/lib/download.ts` (DOM)
-**`downloadText(filename, text)`** / **`downloadBlob(filename, blob)`** — object URL + a
-temporary `<a download>` click + revoke.
+**`downloadBlob(filename: string, blob: Blob)`** — object URL + a temporary `<a download>`
+click + `revoke()`. Text callers wrap their string themselves
+(`new Blob([text], { type: "text/plain;charset=utf-8" })`).
 
 ## 5. UI wiring
 
-- **`FileSidebarItem`** menu: **Download** → `fs.loadFile(id)` → `downloadText(file.name, content)`.
+- **`FileSidebarItem`** menu: **Download** → `fs.loadFile(id)` →
+  `downloadBlob(file.name, new Blob([content]))`.
 - **`FolderNode`** menu adds:
   - **Download (zip)** → `fs.transfer.exportFolderZip(folderId)` → `downloadBlob("<folder>.zip", blob)`.
   - **Upload File(s)…** → hidden `<input type="file" multiple accept=".smart.c,.scenario.json,.asm">`
@@ -126,7 +128,7 @@ temporary `<a download>` click + revoke.
   `asm-code-editor.tsx`, Scenario `scenario-editor.tsx`) registers a **Download** action via
   `usePageHeaderActions().addAction({ id: "download", label: "Download", icon: <DownloadIcon/>, onClick })`
   (removed on unmount). `onClick` downloads the **current editor buffer** (not the last
-  saved copy) via `downloadText(file.metadata.name, buffer)`. To keep the closure fresh
+  saved copy) via `downloadBlob(file.metadata.name, new Blob([buffer]))`. To keep the closure fresh
   without re-registering, the live buffer is held in a ref that `onClick` reads. SmartC
   already uses `usePageHeaderActions`; ASM + Scenario start using it for this action.
 
