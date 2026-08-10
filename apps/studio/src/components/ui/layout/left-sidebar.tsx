@@ -27,7 +27,7 @@ import { Button } from "../button";
 import { Dialog, DialogTrigger } from "../dialog";
 import { NewProjectDialog } from "@/features/project/new-project-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
-import { ProjectSidebarItem } from "@/features/project/project-sidebar-item";
+import { FolderNode } from "@/features/project/folder-node";
 import { useEffect, useState } from "react";
 import { ThemeSwitch } from "@/components/theme-switch";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
@@ -110,10 +110,7 @@ export function LeftSidebar() {
                 </SidebarMenuItem>
               ) : (
                 projects.map((project) => (
-                  <ProjectSidebarItem
-                    key={project.id}
-                    project={project.metadata}
-                  />
+                  <FolderNode key={project.id} folder={project.metadata} />
                 ))
               )}
             </SidebarMenu>
