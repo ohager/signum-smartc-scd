@@ -35,12 +35,19 @@ the API.
 
 Add **`fflate`** (`^0.8.2`, tiny zero-dependency zip) to `apps/studio` for ZIP build/parse.
 Added by editing `apps/studio/package.json` + `bun install` (do **not** `bun update`; see
-`[[bun-monorepo-dep-updates]]`).
+`[[bun-monorepo-dep-updates]]`). Imported only by `lib/file-system/transfer.ts`.
 
 ## 4. Modules
 
-### `features/project/file-transfer.ts`
-A small structural FS interface keeps the fs-touching functions unit-testable with a fake:
+The transfer **core is headless** and lives inside `lib/file-system` (which stays 100 %
+DOM/React-free); the UI (sidebar, editors) consumes it. The DOM bits (triggering a browser
+download, reading `<input>` files) and the app's *type policy* live in the UI layer.
+
+### `lib/file-system/transfer.ts` (headless — no DOM/React)
+Pure zip/dir helpers + fs-driven collect/import. The accepted-type policy is **injected**
+(`resolveType`) so the lib does not depend on the app's `FileTypes`. A structural FS
+interface (a subset of `FileSystem`) keeps the fs-touching functions unit-testable with a
+fake; the real `FileSystem` satisfies it. Re-exported from `lib/file-system/index.ts`.
 
 ```ts
 export interface TransferFs {
@@ -54,31 +61,32 @@ export interface TransferFs {
   addFile<T>(folderId: string, name: string, type: string, content: T): Promise<string>;
 }
 
-export interface TransferEntry { path: string; content: string } // path is relative, "/"-joined
+export interface TransferEntry { path: string; content: string } // relative, "/"-joined
 export interface ImportResult { imported: number; skipped: number }
+export type ResolveType = (fileName: string) => string | null;   // null => reject/skip
+
+export function buildZip(entries: TransferEntry[]): Uint8Array;   // fflate.zipSync + TextEncoder (pure)
+export function parseZip(bytes: Uint8Array): TransferEntry[];     // fflate.unzipSync + TextDecoder; skips dir entries (pure)
+export function dirsForEntries(paths: string[]): string[];        // intermediate dirs, deduped, parent-first, no root (pure)
+export function collectFolderEntries(fs: TransferFs, folderId: string): Promise<TransferEntry[]>; // paths relative to folderId
+export function importEntries(
+  fs: TransferFs, targetFolderId: string, entries: TransferEntry[], resolveType: ResolveType,
+): Promise<ImportResult>;
 ```
 
-Functions:
-- **`acceptedFileType(name): FileTypes | null`** — `.smart.c`→SmartC, `.scenario.json`→
-  Scenario, `.asm`→ASM, else `null`. *(pure)*
-- **`buildZip(entries: TransferEntry[]): Uint8Array`** — `fflate.zipSync`, encoding each
-  `content` with `TextEncoder`. *(pure)*
-- **`parseZip(bytes: Uint8Array): TransferEntry[]`** — `fflate.unzipSync` + `TextDecoder`;
-  skips directory entries (names ending `/`). *(pure)*
-- **`dirsForEntries(paths: string[]): string[]`** — the set of intermediate directory
-  paths implied by the file paths, deduped and sorted shallow→deep (so parents are
-  created first); excludes the root. *(pure)*
-- **`collectFolderEntries(fs, folderId): Promise<TransferEntry[]>`** — recurse
-  `listFolderContents` + `loadFile`; paths are **relative to `folderId`** (the folder's
-  own name is not included).
-- **`importEntries(fs, targetFolderId, entries): Promise<ImportResult>`** — filter to
-  `acceptedFileType !== null`; create the needed subfolders (via `dirsForEntries`, mapping
-  each dir path to its parent's id, deduping existing folders by name); `addFile` each file
-  with the inferred type and a name made unique within its folder; returns counts.
+`importEntries` filters entries to `resolveType(name) !== null`, creates the needed
+subfolders (via `dirsForEntries`, resolving each dir path to a folder id and reusing an
+existing subfolder of that name), then `addFile`s each surviving file with the resolved
+type + a name made unique within its folder; returns `{ imported, skipped }`.
 
-### `features/project/download.ts` (DOM)
-- **`downloadText(filename, text)`** / **`downloadBlob(filename, blob)`** — object URL +
-  a temporary `<a download>` click + revoke.
+### `features/project/filetype-icons.tsx` (UI type policy — extend)
+Add **`acceptedFileType(name): FileTypes | null`** — `.smart.c`→SmartC,
+`.scenario.json`→Scenario, `.asm`→ASM, else `null`. Passed as `resolveType` into
+`importEntries`. *(pure, unit-tested)*
+
+### `src/lib/download.ts` (DOM)
+**`downloadText(filename, text)`** / **`downloadBlob(filename, blob)`** — object URL + a
+temporary `<a download>` click + revoke.
 
 ## 5. UI wiring
 
@@ -104,6 +112,11 @@ Functions:
   without re-registering, the live buffer is held in a ref that `onClick` reads. SmartC
   already uses `usePageHeaderActions`; ASM + Scenario start using it for this action.
 
+All import/upload paths pass `acceptedFileType` (from `filetype-icons.tsx`) as the
+`resolveType` argument to `importEntries`; downloads use `lib/download`. The sidebar and
+editors are thin callers of the headless `lib/file-system/transfer` core (via
+`collectFolderEntries` / `buildZip` / `parseZip` / `importEntries`).
+
 Round-trip: *Download (zip)* of `FolderA` yields `FolderA.zip` whose entries are relative
 to A; *top-level Import* of that zip recreates a project `FolderA` with the same contents;
 *Import ZIP* into an existing folder drops A's contents directly into it.
@@ -118,15 +131,17 @@ to A; *top-level Import* of that zip recreates a project `FolderA` with the same
 
 ## 7. Testing
 
-- **`file-transfer.test.ts` (bun:test):**
-  - `acceptedFileType` — the three accepted extensions + several rejected ones → `null`.
+- **`lib/file-system/transfer.test.ts` (bun:test):**
   - `buildZip` → `parseZip` round-trip preserves paths + text content.
   - `dirsForEntries` — nested paths → correct deduped, parent-first directory list;
     root-level files → `[]`.
-  - `importEntries` / `collectFolderEntries` against an in-memory **fake `TransferFs`**:
-    import filters rejected entries, creates nested folders once, dedupes names, and
-    returns the right `{imported, skipped}`; collect returns relative paths that round-trip
-    through `buildZip`/`importEntries`.
+  - `importEntries` / `collectFolderEntries` against an in-memory **fake `TransferFs`**
+    (with a test `resolveType`): import filters rejected entries, creates nested folders
+    once, dedupes names, and returns the right `{imported, skipped}`; collect returns
+    relative paths that round-trip through `buildZip`/`importEntries`.
+- **`features/project/filetype-icons.test.ts` (bun:test):** `acceptedFileType` — the three
+  accepted extensions map correctly; several rejected ones (`.md`, `.png`, no extension) →
+  `null`.
 - **DOM download, hidden-input uploads, `webkitdirectory` picker, editor-header Download:**
   `bun run build` + manual (download a file from the sidebar **and** from each editor's
   header — reflecting unsaved edits; download a folder zip; upload files; import a zip;
