@@ -10,7 +10,7 @@ download + upload/import, per file and per folder, to the sidebar.
 ## 1. Goal
 
 - **Download** a single file (its text content) and a whole folder (a ZIP of the
-  subtree).
+  subtree) — from the sidebar, and also from each editor's page header (the open file).
 - **Upload** file(s) into a folder; **Import** a folder as a ZIP or via the native
   directory picker; **Import** a whole project from a ZIP at the sidebar top level (new
   root folder).
@@ -96,6 +96,13 @@ Functions:
 - **`LeftSidebar`** header: an **Import** button (icon) beside the New-Project `+` → hidden
   `<input type="file" accept=".zip">` → `createFolder("/", uniqueName(<zip base name>, root folder names))`
   → `importEntries(newFolderId, parseZip(bytes))`.
+- **Editor page headers** — each editor (SmartC `smartc-editor.tsx`, ASM
+  `asm-code-editor.tsx`, Scenario `scenario-editor.tsx`) registers a **Download** action via
+  `usePageHeaderActions().addAction({ id: "download", label: "Download", icon: <DownloadIcon/>, onClick })`
+  (removed on unmount). `onClick` downloads the **current editor buffer** (not the last
+  saved copy) via `downloadText(file.metadata.name, buffer)`. To keep the closure fresh
+  without re-registering, the live buffer is held in a ref that `onClick` reads. SmartC
+  already uses `usePageHeaderActions`; ASM + Scenario start using it for this action.
 
 Round-trip: *Download (zip)* of `FolderA` yields `FolderA.zip` whose entries are relative
 to A; *top-level Import* of that zip recreates a project `FolderA` with the same contents;
@@ -120,9 +127,11 @@ to A; *top-level Import* of that zip recreates a project `FolderA` with the same
     import filters rejected entries, creates nested folders once, dedupes names, and
     returns the right `{imported, skipped}`; collect returns relative paths that round-trip
     through `buildZip`/`importEntries`.
-- **DOM download, hidden-input uploads, `webkitdirectory` picker:** `bun run build` +
-  manual (download a file + a folder zip; upload files; import a zip; import a directory;
-  top-level import → new project; confirm unsupported files are skipped + reported).
+- **DOM download, hidden-input uploads, `webkitdirectory` picker, editor-header Download:**
+  `bun run build` + manual (download a file from the sidebar **and** from each editor's
+  header — reflecting unsaved edits; download a folder zip; upload files; import a zip;
+  import a directory; top-level import → new project; confirm unsupported files are skipped
+  + reported).
 
 ## 8. Out of scope (deferred)
 
