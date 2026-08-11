@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Editor, { type OnMount } from "@monaco-editor/react";
-import { SaveIcon, FileWarning, Code2, Bug, FilePlus2 } from "lucide-react";
+import { SaveIcon, FileWarning, Code2, Bug, FilePlus2, DownloadIcon } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -22,6 +22,7 @@ import {
   serializeScenario,
 } from "@/features/simulator/scenario/scenario-io";
 import { useNavigate } from "react-router";
+import { downloadBlob } from "@/lib/download.ts";
 
 async function createAssemblyFile(
   folderId: string,
@@ -105,6 +106,7 @@ enum ActionType {
   Compile = "compile",
   Debug = "debug",
   NewScenario = "new-scenario",
+  Download = "download",
 }
 
 function SmartCEditor({ file }: Props) {
@@ -112,6 +114,8 @@ function SmartCEditor({ file }: Props) {
   const fs = useFileSystem();
   const navigate = useNavigate();
   const [code, setCode] = useState(file.content as string);
+  const codeRef = useRef(code);
+  codeRef.current = code;
   const [isDirty, setIsDirty] = useState(false);
   const [validationError, setValidationError] = useState("");
   const { theme } = useTheme();
@@ -177,6 +181,22 @@ function SmartCEditor({ file }: Props) {
       removeAction(ActionType.Debug);
     };
   }, [addAction, removeAction]);
+
+  useEffect(() => {
+    addAction({
+      id: ActionType.Download,
+      tooltip: "Download this file",
+      label: "Download",
+      icon: <DownloadIcon className="h-4 w-4" />,
+      onClick: () =>
+        downloadBlob(
+          file.metadata.name,
+          new Blob([codeRef.current], { type: "text/plain;charset=utf-8" }),
+        ),
+      variant: "default",
+    });
+    return () => removeAction(ActionType.Download);
+  }, [addAction, removeAction, file.metadata.name]);
 
   useEffect(() => {
     let cancelled = false;

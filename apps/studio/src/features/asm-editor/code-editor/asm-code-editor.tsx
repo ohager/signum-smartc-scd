@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Editor, { type BeforeMount, type OnMount } from "@monaco-editor/react";
-import { FileWarning, SaveIcon } from "lucide-react";
+import { FileWarning, SaveIcon, DownloadIcon } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -15,6 +15,8 @@ import { type File } from "@/lib/file-system";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import type { MachineData } from "@/features/asm-editor/machine-data.ts";
 import { tryAssemble } from "../lib/try-assemble.ts";
+import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
+import { downloadBlob } from "@/lib/download.ts";
 
 const preventDefaultSave = (e: KeyboardEvent) => {
   if ((e.ctrlKey || e.metaKey) && e.key === "s") {
@@ -29,7 +31,10 @@ interface Props {
 
 function AsmCodeEditor({ file, onSave }: Props) {
   const fs = useFileSystem();
+  const { addAction, removeAction } = usePageHeaderActions();
   const [code, setCode] = useState(file.content as string);
+  const codeRef = useRef(code);
+  codeRef.current = code;
   const [isDirty, setIsDirty] = useState(false);
   const [validationError, setValidationError] = useState("");
   const { theme } = useTheme();
@@ -56,6 +61,22 @@ function AsmCodeEditor({ file, onSave }: Props) {
       window.removeEventListener("keydown", preventDefaultSave);
     };
   }, []);
+
+  useEffect(() => {
+    addAction({
+      id: "download",
+      tooltip: "Download this file",
+      label: "Download",
+      icon: <DownloadIcon className="h-4 w-4" />,
+      onClick: () =>
+        downloadBlob(
+          file.metadata.name,
+          new Blob([codeRef.current], { type: "text/plain;charset=utf-8" }),
+        ),
+      variant: "default",
+    });
+    return () => removeAction("download");
+  }, [addAction, removeAction, file.metadata.name]);
 
   const handleEditorChange = (value: string | undefined) => {
     if (value !== undefined) {
