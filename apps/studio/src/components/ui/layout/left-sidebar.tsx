@@ -22,15 +22,19 @@ import {
   FlaskConicalIcon,
   CrownIcon,
   WalletIcon,
+  UploadIcon,
 } from "lucide-react";
 import { Button } from "../button";
 import { Dialog, DialogTrigger } from "../dialog";
 import { NewProjectDialog } from "@/features/project/new-project-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
 import { FolderNode } from "@/features/project/folder-node";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ThemeSwitch } from "@/components/theme-switch";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { acceptedFileType } from "@/features/project/filetype-icons";
+import { uniqueName } from "@/features/project/file-naming";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,6 +77,29 @@ export function LeftSidebar() {
 
 
   const [isOpen, setIsOpen] = useState(false);
+
+  const importInputRef = useRef<HTMLInputElement>(null);
+
+  const onImportProject = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    try {
+      if (file) {
+        const rootNames = fs.listFolderContents().folders.map((f) => f.metadata.name);
+        const base = file.name.replace(/\.zip$/i, "");
+        const folderId = await fs.createFolder("/", uniqueName(base, rootNames));
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        const res = await fs.transfer.importZip(folderId, bytes, acceptedFileType);
+        toast.success(
+          `Imported ${res.imported} file(s)` + (res.skipped ? ` (${res.skipped} skipped)` : ""),
+        );
+      }
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      e.target.value = "";
+    }
+  };
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -80,22 +107,42 @@ export function LeftSidebar() {
           <SidebarGroupLabel>
             <div className="w-full flex justify-between items-center">
               Projects
-              <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                <DialogTrigger>
-                  <Tooltip delayDuration={1000}>
-                    <TooltipTrigger>
-                      <PlusIcon className="h-6 w-6 p-1 rounded-sm hover:bg-black/5 cursor-pointer" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Add new project</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </DialogTrigger>
-                <NewProjectDialog close={() => setIsOpen(false)} />
-              </Dialog>
+              <div className="flex items-center gap-1">
+                <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                  <DialogTrigger>
+                    <Tooltip delayDuration={1000}>
+                      <TooltipTrigger>
+                        <PlusIcon className="h-6 w-6 p-1 rounded-sm hover:bg-black/5 cursor-pointer" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Add new project</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </DialogTrigger>
+                  <NewProjectDialog close={() => setIsOpen(false)} />
+                </Dialog>
+                <Tooltip delayDuration={1000}>
+                  <TooltipTrigger asChild>
+                    <UploadIcon
+                      onClick={() => importInputRef.current?.click()}
+                      className="h-6 w-6 p-1 rounded-sm hover:bg-black/5 cursor-pointer"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Import project (zip)</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
             </div>
           </SidebarGroupLabel>
           <SidebarGroupContent>
+            <input
+              ref={importInputRef}
+              type="file"
+              accept=".zip"
+              hidden
+              onChange={onImportProject}
+            />
             <SidebarMenu>
               {projects.length === 0 ? (
                 <SidebarMenuItem className="mx-auto">
