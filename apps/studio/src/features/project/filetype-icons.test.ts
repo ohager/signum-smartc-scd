@@ -1,16 +1,22 @@
 import { describe, it, expect } from "bun:test";
-import { getFileTypeIcon, FileTypes } from "./filetype-icons";
+import { acceptedFileType, FileTypes } from "./filetype-icons";
 
-describe("getFileTypeIcon", () => {
-  it("returns a defined icon component for every known file type", () => {
-    for (const type of Object.values(FileTypes)) {
-      expect(getFileTypeIcon(type)).toBeDefined();
-    }
+describe("acceptedFileType", () => {
+  it("maps the three accepted extensions", () => {
+    expect(acceptedFileType("main.smart.c")).toBe(FileTypes.SmartC);
+    expect(acceptedFileType("run.scenario.json")).toBe(FileTypes.Scenario);
+    expect(acceptedFileType("code.asm")).toBe(FileTypes.ASM);
   });
 
-  it("returns a fallback icon (never undefined) for legacy/unknown types", () => {
-    // "scd" is a deprecated legacy file type that may still exist in saved projects
-    expect(getFileTypeIcon("scd")).toBeDefined();
-    expect(getFileTypeIcon("totally-unknown")).toBeDefined();
+  it("is case-insensitive on the extension", () => {
+    expect(acceptedFileType("MAIN.SMART.C")).toBe(FileTypes.SmartC);
+  });
+
+  it("rejects everything else", () => {
+    expect(acceptedFileType("README.md")).toBeNull();
+    expect(acceptedFileType("logo.png")).toBeNull();
+    expect(acceptedFileType("data.json")).toBeNull();
+    expect(acceptedFileType("Makefile")).toBeNull();
+    expect(acceptedFileType("")).toBeNull();
   });
 });

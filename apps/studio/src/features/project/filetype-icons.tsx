@@ -30,3 +30,16 @@ export const FileTypeIcons: Record<FileTypes, any> = {
 export function getFileTypeIcon(type: string) {
   return FileTypeIcons[type as FileTypes] ?? FileIcon;
 }
+
+/**
+ * Maps an incoming file name to the UI-supported type, or `null` to reject it.
+ * Used as the `resolveType` policy for uploads/imports. Only SmartC
+ * (`.smart.c`), Scenario (`.scenario.json`) and ASM (`.asm`) are accepted.
+ */
+export function acceptedFileType(name: string): FileTypes | null {
+  const lower = name.toLowerCase();
+  if (lower.endsWith(".smart.c")) return FileTypes.SmartC;
+  if (lower.endsWith(".scenario.json")) return FileTypes.Scenario;
+  if (lower.endsWith(".asm")) return FileTypes.ASM;
+  return null;
+}
