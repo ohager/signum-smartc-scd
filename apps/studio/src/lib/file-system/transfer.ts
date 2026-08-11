@@ -90,3 +90,120 @@ export function dirsForEntries(paths: string[]): string[] {
     (a, b) => a.split("/").length - b.split("/").length || a.localeCompare(b),
   );
 }
+
+// --- Internal path/name helpers (kept local so the lib stays decoupled) ----
+
+function baseName(path: string): string {
+  const i = path.lastIndexOf("/");
+  return i === -1 ? path : path.slice(i + 1);
+}
+
+function parentDir(path: string): string {
+  const i = path.lastIndexOf("/");
+  return i === -1 ? "" : path.slice(0, i);
+}
+
+/**
+ * Return a name not present in `existing`, inserting -2, -3, … before the
+ * (possibly compound, e.g. `.smart.c`) extension. Splits on the first dot.
+ */
+function uniqueNameIn(name: string, existing: Iterable<string>): string {
+  const set = new Set(existing);
+  if (!set.has(name)) return name;
+  const dot = name.indexOf(".");
+  const stem = dot === -1 ? name : name.slice(0, dot);
+  const ext = dot === -1 ? "" : name.slice(dot);
+  let candidate = name;
+  for (let n = 2; set.has(candidate); n++) candidate = `${stem}-${n}${ext}`;
+  return candidate;
+}
+
+// --- Orchestration over the injected fs collaborator ----------------------
+
+export class FileTransfer {
+  constructor(private readonly fs: TransferFs) {}
+
+  /** Collect every file under `folderId` as entries with paths relative to it. */
+  async collectFolderEntries(folderId: string): Promise<TransferEntry[]> {
+    const entries: TransferEntry[] = [];
+    const walk = async (id: string, prefix: string): Promise<void> => {
+      const { folders, files } = this.fs.listFolderContents(id);
+      for (const f of files) {
+        const { content } = await this.fs.loadFile<unknown>(f.id);
+        entries.push({
+          path: prefix ? `${prefix}/${f.metadata.name}` : f.metadata.name,
+          content: typeof content === "string" ? content : String(content ?? ""),
+        });
+      }
+      for (const sub of folders) {
+        await walk(
+          sub.id,
+          prefix ? `${prefix}/${sub.metadata.name}` : sub.metadata.name,
+        );
+      }
+    };
+    await walk(folderId, "");
+    return entries;
+  }
+
+  /** ZIP of the whole subtree under `folderId`. */
+  async exportFolderZip(folderId: string): Promise<Uint8Array> {
+    return buildZip(await this.collectFolderEntries(folderId));
+  }
+
+  /**
+   * Import `entries` into `targetFolderId`: entries rejected by either gate —
+   * binary (content === null) or wrong extension (resolveType → null) — are
+   * skipped, needed subfolders are created (reusing existing ones by name), and
+   * each surviving file is added with a name unique in its folder.
+   */
+  async importEntries(
+    targetFolderId: string,
+    entries: ImportEntry[],
+    resolveType: ResolveType,
+  ): Promise<ImportResult> {
+    // Two gates: real text (content !== null) AND accepted extension.
+    const accepted = entries.filter(
+      (e) => e.content !== null && resolveType(baseName(e.path)) !== null,
+    ) as { path: string; content: string }[];
+    const skipped = entries.length - accepted.length;
+
+    // Resolve every needed directory path to a folder id (parent-first).
+    const dirIds = new Map<string, string>([["", targetFolderId]]);
+    for (const dir of dirsForEntries(accepted.map((e) => e.path))) {
+      const parent = parentDir(dir);
+      const name = baseName(dir);
+      const parentId = dirIds.get(parent)!;
+      const existing = this.fs
+        .listFolderContents(parentId)
+        .folders.find((f) => f.metadata.name === name);
+      const id = existing
+        ? existing.id
+        : await this.fs.createFolder(this.fs.getFolder(parentId).path, name);
+      dirIds.set(dir, id);
+    }
+
+    let imported = 0;
+    for (const e of accepted) {
+      const name = baseName(e.path);
+      const type = resolveType(name)!;
+      const folderId = dirIds.get(parentDir(e.path))!;
+      const existingNames = this.fs
+        .listFolderContents(folderId)
+        .files.map((f) => f.metadata.name);
+      await this.fs.addFile(folderId, uniqueNameIn(name, existingNames), type, e.content);
+      imported++;
+    }
+
+    return { imported, skipped };
+  }
+
+  /** Import a ZIP archive into `targetFolderId`. */
+  async importZip(
+    targetFolderId: string,
+    bytes: Uint8Array,
+    resolveType: ResolveType,
+  ): Promise<ImportResult> {
+    return this.importEntries(targetFolderId, parseZip(bytes), resolveType);
+  }
+}
