@@ -10,10 +10,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVerticalIcon } from "lucide-react";
+import { MoreVerticalIcon, DownloadIcon } from "lucide-react";
 import { useMatch, useNavigate } from "react-router";
 import type { FileMetadata } from "@/lib/file-system";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { downloadBlob } from "@/lib/download.ts";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
 import { NameInputDialog } from "./name-input-dialog";
 import { useState } from "react";
@@ -42,6 +43,19 @@ export function FileSidebarItem({ file, projectId }: Props) {
       .filter((n) => n !== file.name),
   );
 
+  const onDownload = async () => {
+    try {
+      const loaded = await fs.loadFile<unknown>(file.id);
+      const text =
+        typeof loaded.content === "string"
+          ? loaded.content
+          : String(loaded.content ?? "");
+      downloadBlob(file.name, new Blob([text], { type: "text/plain;charset=utf-8" }));
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
   return (
     <SidebarMenuSubItem>
       <div
@@ -68,6 +82,10 @@ export function FileSidebarItem({ file, projectId }: Props) {
             </SidebarMenuAction>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-[160px]">
+            <DropdownMenuItem onClick={onDownload}>
+              <DownloadIcon className="h-4 w-4" />
+              Download
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setShowRename(true)}>Rename</DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setShowDelete(true)}
