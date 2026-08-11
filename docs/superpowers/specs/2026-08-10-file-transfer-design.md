@@ -21,15 +21,32 @@ download + upload/import, per file and per folder, to the sidebar.
 
 The app can open exactly three types (`files-page.tsx` routes them): **SmartC**
 (`.smart.c`), **Scenario** (`.scenario.json`), **ASM** (`.asm`). On upload/import, each
-incoming entry is mapped by extension to one of these or **rejected**. Rejected entries
-(unknown extensions, `.md`, images, `.DS_Store`, no extension, …) are skipped; the UI
-reports "Imported N files (M skipped)". Folders are created only for surviving files, so
-junk directories never appear. Download is unrestricted (you can always take out what is
+incoming entry is gated by **two cheap, layered checks**:
+
+1. **Extension** — mapped by extension to one of the three or **rejected** (unknown
+   extensions, `.md`, images, `.DS_Store`, no extension, …).
+2. **Text vs. binary** — the raw bytes are strict-UTF-8-decoded (plus a NUL-byte check);
+   anything that isn't decodable text is **rejected**. This catches binary content that
+   merely wears an accepted extension (e.g. a WebAssembly `.wasm` renamed to `.asm`, or a
+   `.png` renamed to `.smart.c`), which would otherwise import as lossy mojibake.
+
+Rejected entries (either check) are skipped; the UI reports "Imported N files (M skipped)"
+counting **both** reasons. Folders are created only for surviving files, so junk
+directories never appear. Download is unrestricted (you can always take out what is
 already in the workspace).
 
-All accepted types are text (UTF-8). Binary is out of scope now, but the transfer layer
-reads bytes and decodes to text, so binary support can be added later without reshaping
-the API.
+**Content *correctness* is deliberately NOT validated at import.** Whether a file actually
+compiles (SmartC), assembles (ASM), or matches the scenario schema (Scenario) is validated
+by the **editors on open** — non-blocking diagnostics that already exist (`onValidate` /
+`handleValidate` / `validationErrors`). Import must not run the compiler or reject
+half-finished work, because a not-yet-compiling contract is a legitimate workspace file.
+So a `.md` renamed to `.smart.c` imports fine (it's valid text) and simply shows compile
+errors the moment it's opened. The transfer layer only guarantees "accepted extension +
+real UTF-8 text"; the editors own everything beyond that.
+
+All accepted types are text (UTF-8). Binary support is out of scope now; the byte→text
+boundary (`decodeTextOrNull`) already reads bytes, so binary support could be added later
+without reshaping the API.
 
 ## 3. Dependency
 
@@ -63,29 +80,34 @@ export interface TransferFs {
   addFile<T>(folderId: string, name: string, type: string, content: T): Promise<string>;
 }
 
-export interface TransferEntry { path: string; content: string } // relative, "/"-joined
+export interface TransferEntry { path: string; content: string }        // export side; content is real text
+export interface ImportEntry  { path: string; content: string | null }  // import side; null => binary/undecodable
 export interface ImportResult { imported: number; skipped: number }
-export type ResolveType = (fileName: string) => string | null;   // null => reject/skip
+export type ResolveType = (fileName: string) => string | null;          // null => reject/skip
 
 // Pure, stateless, dependency-free → functions (used internally by the service):
 export function buildZip(entries: TransferEntry[]): Uint8Array;   // fflate.zipSync + TextEncoder
-export function parseZip(bytes: Uint8Array): TransferEntry[];     // fflate.unzipSync + TextDecoder; skips dir entries
+export function parseZip(bytes: Uint8Array): ImportEntry[];       // fflate.unzipSync; decodeTextOrNull per entry; skips dir entries
 export function dirsForEntries(paths: string[]): string[];        // intermediate dirs, deduped, parent-first, no root
+export function decodeTextOrNull(bytes: Uint8Array): string | null; // strict UTF-8 + NUL-byte check; null => binary
 
 // Orchestration over the injected fs collaborator → service class:
 export class FileTransfer {
   constructor(fs: TransferFs);
   collectFolderEntries(folderId: string): Promise<TransferEntry[]>;      // paths relative to folderId
   exportFolderZip(folderId: string): Promise<Uint8Array>;                // = buildZip(collectFolderEntries)
-  importEntries(targetFolderId: string, entries: TransferEntry[], resolveType: ResolveType): Promise<ImportResult>;
+  importEntries(targetFolderId: string, entries: ImportEntry[], resolveType: ResolveType): Promise<ImportResult>;
   importZip(targetFolderId: string, bytes: Uint8Array, resolveType: ResolveType): Promise<ImportResult>; // = importEntries(parseZip)
 }
 ```
 
-`importEntries` filters entries to `resolveType(name) !== null`, creates the needed
-subfolders (via `dirsForEntries`, resolving each dir path to a folder id and reusing an
-existing subfolder of that name), then `addFile`s each surviving file with the resolved
-type + a name made unique within its folder; returns `{ imported, skipped }`.
+`importEntries` keeps only entries that pass **both** gates — `content !== null` (real
+text) **and** `resolveType(name) !== null` (accepted extension) — counting every dropped
+entry as `skipped`. For survivors it creates the needed subfolders (via `dirsForEntries`,
+resolving each dir path to a folder id and reusing an existing subfolder of that name),
+then `addFile`s each with the resolved type + a name made unique within its folder;
+returns `{ imported, skipped }`. `TransferEntry[]` is assignable to `ImportEntry[]`, so
+`collectFolderEntries` output round-trips through `importEntries` unchanged.
 
 ### `FileSystem` — expose the service via injection
 `FileSystem` (singleton, private constructor) composes the service internally and exposes
@@ -132,9 +154,12 @@ click + `revoke()`. Text callers wrap their string themselves
   without re-registering, the live buffer is held in a ref that `onClick` reads. SmartC
   already uses `usePageHeaderActions`; ASM + Scenario start using it for this action.
 
-All import paths pass `acceptedFileType` (from `filetype-icons.tsx`) as the `resolveType`
-argument; downloads use `lib/download`. The sidebar and editors are thin callers of the
-headless `fs.transfer` (`FileTransfer`) service.
+For the file/folder pickers the UI builds `ImportEntry`s by reading each `File`'s **bytes**
+(`arrayBuffer()`) and decoding via `decodeTextOrNull` (so binary content becomes
+`content: null` and is counted as skipped). All import paths pass `acceptedFileType` (from
+`filetype-icons.tsx`) as the `resolveType` argument; downloads use `lib/download`. The
+sidebar and editors are thin callers of the headless `fs.transfer` (`FileTransfer`)
+service.
 
 Round-trip: *Download (zip)* of `FolderA` yields `FolderA.zip` whose entries are relative
 to A; *top-level Import* of that zip recreates a project `FolderA` with the same contents;
@@ -142,7 +167,10 @@ to A; *top-level Import* of that zip recreates a project `FolderA` with the same
 
 ## 6. Error handling
 
-- Empty/`null`-typed entries are skipped (counted as `skipped`), never fail the import.
+- Entries rejected by either gate — wrong extension (`resolveType` → null) or binary
+  (`content` → null) — are skipped (counted as `skipped`), never failing the import.
+- Content correctness (compile/assemble/schema) is NOT checked at import; the editors
+  surface it on open (non-blocking). Import never runs the compiler.
 - Name collisions are resolved with `uniqueName` (never overwrite).
 - `fflate`/read errors surface via `toast.error`; a partial import keeps whatever
   succeeded.
@@ -154,9 +182,11 @@ to A; *top-level Import* of that zip recreates a project `FolderA` with the same
   - `buildZip` → `parseZip` round-trip preserves paths + text content.
   - `dirsForEntries` — nested paths → correct deduped, parent-first directory list;
     root-level files → `[]`.
+  - `decodeTextOrNull` — UTF-8 text → string; bytes with a NUL / invalid UTF-8 → `null`.
   - `new FileTransfer(fakeFs)` against an in-memory **fake `TransferFs`** (with a test
-    `resolveType`): `importEntries`/`importZip` filter rejected entries, create nested
-    folders once, dedupe names, and return the right `{imported, skipped}`;
+    `resolveType`): `importEntries`/`importZip` filter rejected entries **by both gates**
+    (wrong extension AND `content: null` binary), create nested folders once, dedupe
+    names, and return the right `{imported, skipped}`;
     `collectFolderEntries`/`exportFolderZip` return relative paths that round-trip back
     through `importZip`.
 - **`features/project/filetype-icons.test.ts` (bun:test):** `acceptedFileType` — the three
