@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { DragEvent } from "react";
 import {
   SidebarMenuItem,
@@ -15,16 +15,23 @@ import {
 import {
   ChevronDownIcon,
   ChevronRightIcon,
+  DownloadIcon,
   EditIcon,
+  FileArchiveIcon,
   FilePlus2,
   FolderIcon,
+  FolderInputIcon,
   FolderOpenIcon,
   FolderPlusIcon,
   MoreVerticalIcon,
   TrashIcon,
+  UploadIcon,
 } from "lucide-react";
-import type { FolderMetadata } from "@/lib/file-system";
+import type { FolderMetadata, ImportEntry } from "@/lib/file-system";
+import { decodeTextOrNull } from "@/lib/file-system";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { downloadBlob } from "@/lib/download.ts";
+import { acceptedFileType } from "./filetype-icons";
 import { useNavigate } from "react-router";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { NameInputDialog } from "./name-input-dialog";
@@ -46,6 +53,86 @@ export function FolderNode({ folder }: { folder: FolderMetadata }) {
   const { folders, files } = fs.listFolderContents(folder.id);
   const fileNames = files.map((f) => f.metadata.name);
   const folderNames = folders.map((f) => f.metadata.name);
+
+  const uploadInputRef = useRef<HTMLInputElement>(null);
+  const zipInputRef = useRef<HTMLInputElement>(null);
+  const dirInputRef = useRef<HTMLInputElement>(null);
+
+  const reportImport = (imported: number, skipped: number) => {
+    toast.success(
+      `Imported ${imported} file(s)` + (skipped ? ` (${skipped} skipped)` : ""),
+    );
+  };
+
+  const filesToEntries = async (
+    list: FileList,
+    relative: boolean,
+  ): Promise<ImportEntry[]> => {
+    const entries: ImportEntry[] = [];
+    for (const f of Array.from(list)) {
+      const path = relative ? f.webkitRelativePath || f.name : f.name;
+      const bytes = new Uint8Array(await f.arrayBuffer());
+      entries.push({ path, content: decodeTextOrNull(bytes) });
+    }
+    return entries;
+  };
+
+  const onDownloadZip = async () => {
+    try {
+      const bytes = await fs.transfer.exportFolderZip(folder.id);
+      downloadBlob(`${folder.name}.zip`, new Blob([bytes], { type: "application/zip" }));
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
+
+  const onUploadFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const list = e.target.files;
+    try {
+      if (list && list.length) {
+        const entries = await filesToEntries(list, false);
+        const res = await fs.transfer.importEntries(folder.id, entries, acceptedFileType);
+        setExpanded(true);
+        reportImport(res.imported, res.skipped);
+      }
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      e.target.value = "";
+    }
+  };
+
+  const onImportZip = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    try {
+      if (file) {
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        const res = await fs.transfer.importZip(folder.id, bytes, acceptedFileType);
+        setExpanded(true);
+        reportImport(res.imported, res.skipped);
+      }
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      e.target.value = "";
+    }
+  };
+
+  const onImportFolder = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const list = e.target.files;
+    try {
+      if (list && list.length) {
+        const entries = await filesToEntries(list, true);
+        const res = await fs.transfer.importEntries(folder.id, entries, acceptedFileType);
+        setExpanded(true);
+        reportImport(res.imported, res.skipped);
+      }
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      e.target.value = "";
+    }
+  };
 
   const onDrop = async (e: DragEvent) => {
     e.preventDefault();
@@ -103,6 +190,22 @@ export function FolderNode({ folder }: { folder: FolderMetadata }) {
                 <FolderPlusIcon className="h-4 w-4" />
                 New Folder
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={onDownloadZip}>
+                <DownloadIcon className="h-4 w-4" />
+                Download (zip)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => uploadInputRef.current?.click()}>
+                <UploadIcon className="h-4 w-4" />
+                Upload File(s)…
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => zipInputRef.current?.click()}>
+                <FileArchiveIcon className="h-4 w-4" />
+                Import ZIP…
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => dirInputRef.current?.click()}>
+                <FolderInputIcon className="h-4 w-4" />
+                Import Folder…
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setShowRename(true)}>
                 <EditIcon className="h-4 w-4" />
                 Rename
@@ -129,6 +232,23 @@ export function FolderNode({ folder }: { folder: FolderMetadata }) {
           </SidebarMenuSub>
         )}
       </SidebarMenuItem>
+
+      <input
+        ref={uploadInputRef}
+        type="file"
+        multiple
+        accept=".smart.c,.scenario.json,.asm"
+        hidden
+        onChange={onUploadFiles}
+      />
+      <input ref={zipInputRef} type="file" accept=".zip" hidden onChange={onImportZip} />
+      <input
+        ref={dirInputRef}
+        type="file"
+        hidden
+        onChange={onImportFolder}
+        {...({ webkitdirectory: "" } as any)}
+      />
 
       <NewFileDialog
         open={showNewFile}
