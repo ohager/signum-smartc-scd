@@ -6,6 +6,7 @@ import type {
   FileSystemEventType,
   File
 } from "./file-system-types.ts";
+import { FileTransfer } from "./transfer.ts";
 
 // Constants
 const LS_METADATA_KEY = "scd:fs-metadata";
@@ -52,6 +53,7 @@ export class FileSystem extends EventTarget {
 
   private db: IDBPDatabase | null = null;
   private readonly metadata: FileSystemMetadata;
+  private _transfer?: FileTransfer;
 
   private constructor() {
     super();
@@ -699,5 +701,13 @@ export class FileSystem extends EventTarget {
     }
     return this.metadata.folders[folderId];
   };
+
+  /**
+   * Headless download/upload/import service, composed lazily. The real
+   * `FileSystem` satisfies the service's structural `TransferFs` interface.
+   */
+  get transfer(): FileTransfer {
+    return (this._transfer ??= new FileTransfer(this));
+  }
 
 }
