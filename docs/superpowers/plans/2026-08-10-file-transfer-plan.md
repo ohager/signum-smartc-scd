@@ -948,7 +948,11 @@ Inside `FolderNode`, after the existing `useState` declarations (around line 44)
   const onDownloadZip = async () => {
     try {
       const bytes = await fs.transfer.exportFolderZip(folder.id);
-      downloadBlob(`${folder.name}.zip`, new Blob([bytes], { type: "application/zip" }));
+      // Copy into an ArrayBuffer-backed view so it's a valid BlobPart under TS 5.7.
+      downloadBlob(
+        `${folder.name}.zip`,
+        new Blob([new Uint8Array(bytes)], { type: "application/zip" }),
+      );
     } catch (err: any) {
       toast.error(err.message);
     }
