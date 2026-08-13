@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Editor, { type OnMount } from "@monaco-editor/react";
-import { SaveIcon, FileWarning, Code2, Bug, FilePlus2, DownloadIcon } from "lucide-react";
+import { FileWarning, Code2, Bug, FilePlus2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -8,7 +8,10 @@ import {
 } from "@/components/ui/tooltip";
 import { useTheme } from "next-themes";
 import { registerSmartC, SMARTC_LANGUAGE_ID } from "./language/register.ts";
-import { EditorActionButton } from "@/components/ui/editor/actionButton.tsx";
+import {
+  EditorFileActions,
+  registerEditorFileActions,
+} from "@/components/ui/editor/file-actions.tsx";
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
 import { toast } from "sonner";
 import { SmartC } from "smartc-signum-compiler";
@@ -106,7 +109,6 @@ enum ActionType {
   Compile = "compile",
   Debug = "debug",
   NewScenario = "new-scenario",
-  Download = "download",
 }
 
 function SmartCEditor({ file }: Props) {
@@ -123,7 +125,9 @@ function SmartCEditor({ file }: Props) {
   const [editorHeight, setEditorHeight] = useState("calc(100vh)"); // Initial height
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isDebugging, setIsDebugging] = useState(false);
-  const [scenarios, setScenarios] = useState<{ name: string; json: string }[]>([]);
+  const [scenarios, setScenarios] = useState<{ name: string; json: string }[]>(
+    [],
+  );
   const isValid = !validationError;
 
   useEffect(() => {
@@ -182,21 +186,14 @@ function SmartCEditor({ file }: Props) {
     };
   }, [addAction, removeAction]);
 
-  useEffect(() => {
-    addAction({
-      id: ActionType.Download,
-      tooltip: "Download this file",
-      label: "Download",
-      icon: <DownloadIcon className="h-4 w-4" />,
-      onClick: () =>
-        downloadBlob(
-          file.metadata.name,
-          new Blob([codeRef.current], { type: "text/plain;charset=utf-8" }),
-        ),
-      variant: "default",
-    });
-    return () => removeAction(ActionType.Download);
-  }, [addAction, removeAction, file.metadata.name]);
+  const download = useCallback(
+    () =>
+      downloadBlob(
+        file.metadata.name,
+        new Blob([codeRef.current], { type: "text/plain;charset=utf-8" }),
+      ),
+    [file.metadata.name],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -322,22 +319,15 @@ function SmartCEditor({ file }: Props) {
         monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyC,
       ],
     });
-    editor.addAction({
-      id: "save-content",
-      label: "Save Content",
-      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS],
-      contextMenuGroupId: "navigation",
-      contextMenuOrder: 1.5,
-      run: () => {
-        document.dispatchEvent(new CustomEvent("editor:save"));
-      },
-    });
+    registerEditorFileActions(editor, monaco, { onDownload: download });
   };
 
   const handleValidate = (markers: any[]) => {
     // Only compile errors block save/compile; warnings are informational.
     const MARKER_SEVERITY_ERROR = 8; // monaco.MarkerSeverity.Error
-    const firstError = markers.find((m) => m.severity === MARKER_SEVERITY_ERROR);
+    const firstError = markers.find(
+      (m) => m.severity === MARKER_SEVERITY_ERROR,
+    );
     setValidationError(firstError?.message ?? "");
   };
 
@@ -371,15 +361,12 @@ function SmartCEditor({ file }: Props) {
             </span>
           )}
         </div>
-        <div>
-          <EditorActionButton
-            tooltip={isDirty ? "Unsaved changes" : "All Saved"}
-            disabled={!isValid}
-            onClick={saveSmartCFile}
-          >
-            <SaveIcon className={isDirty ? "text-red-600" : "text-green-600"} />
-          </EditorActionButton>
-        </div>
+        <EditorFileActions
+          isDirty={isDirty}
+          canSave={isValid}
+          onSave={saveSmartCFile}
+          onDownload={download}
+        />
       </section>
       <div className="flex-1 rounded h-full">
         <Editor

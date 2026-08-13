@@ -6,15 +6,17 @@ import { useFileSystem } from "@/hooks/use-file-system.ts";
 import type { File } from "@/lib/file-system";
 import JSON5 from "json5";
 import { validateScenario } from "./scenario-io";
-import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
 import { downloadBlob } from "@/lib/download.ts";
-import { AlignLeft, DownloadIcon, FileWarning, SaveIcon } from "lucide-react";
+import { FileWarning } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { EditorActionButton } from "@/components/ui/editor/actionButton.tsx";
+import {
+  EditorFileActions,
+  registerEditorFileActions,
+} from "@/components/ui/editor/file-actions.tsx";
 
 const TOOLBAR_HEIGHT = 30;
 
@@ -37,12 +39,13 @@ function validationErrors(text: string): string[] {
 
 export function ScenarioEditor({ file }: { file: File }) {
   const fs = useFileSystem();
-  const { addAction, removeAction } = usePageHeaderActions();
   const { theme } = useTheme();
   const [content, setContent] = useState(file.content as string);
   const contentRef = useRef(content);
   contentRef.current = content;
-  const [errors, setErrors] = useState<string[]>(() => validationErrors(file.content as string));
+  const [errors, setErrors] = useState<string[]>(() =>
+    validationErrors(file.content as string),
+  );
   const [isDirty, setIsDirty] = useState(false);
   const isValid = errors.length === 0;
   // Typed off OnMount rather than the `monaco-editor` package: the app resolves
@@ -70,21 +73,14 @@ export function ScenarioEditor({ file }: { file: File }) {
     };
   }, []);
 
-  useEffect(() => {
-    addAction({
-      id: "download",
-      tooltip: "Download this file",
-      label: "Download",
-      icon: <DownloadIcon className="h-4 w-4" />,
-      onClick: () =>
-        downloadBlob(
-          file.metadata.name,
-          new Blob([contentRef.current], { type: "text/plain;charset=utf-8" }),
-        ),
-      variant: "default",
-    });
-    return () => removeAction("download");
-  }, [addAction, removeAction, file.metadata.name]);
+  const download = useCallback(
+    () =>
+      downloadBlob(
+        file.metadata.name,
+        new Blob([contentRef.current], { type: "text/plain;charset=utf-8" }),
+      ),
+    [file.metadata.name],
+  );
 
   // Monaco's bundled JSON language service provides the formatter; running its
   // action keeps the button, the context menu and Shift+Alt+F on one code path.
@@ -100,18 +96,6 @@ export function ScenarioEditor({ file }: { file: File }) {
       toast.error("Could not format: " + e.message);
     }
   }, []);
-
-  useEffect(() => {
-    addAction({
-      id: "format",
-      tooltip: "Re-indent this scenario (Shift+Alt+F)",
-      label: "Format",
-      icon: <AlignLeft className="h-4 w-4" />,
-      onClick: formatDocument,
-      variant: "default",
-    });
-    return () => removeAction("format");
-  }, [addAction, removeAction, formatDocument]);
 
   const onChange = (value: string | undefined) => {
     const text = value ?? "";
@@ -141,16 +125,7 @@ export function ScenarioEditor({ file }: { file: File }) {
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
-    editor.addAction({
-      id: "save-content",
-      label: "Save Content",
-      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS],
-      contextMenuGroupId: "navigation",
-      contextMenuOrder: 1.5,
-      run: () => {
-        document.dispatchEvent(new CustomEvent("editor:save"));
-      },
-    });
+    registerEditorFileActions(editor, monaco, { onDownload: download });
   };
 
   return (
@@ -175,15 +150,13 @@ export function ScenarioEditor({ file }: { file: File }) {
             </span>
           )}
         </div>
-        <div>
-          <EditorActionButton
-            tooltip={isDirty ? "Unsaved changes" : "All Saved"}
-            disabled={!isValid}
-            onClick={save}
-          >
-            <SaveIcon className={isDirty ? "text-red-600" : "text-green-600"} />
-          </EditorActionButton>
-        </div>
+        <EditorFileActions
+          isDirty={isDirty}
+          canSave={isValid}
+          onSave={save}
+          onDownload={download}
+          onFormat={formatDocument}
+        />
       </section>
       <div className="flex-1 rounded h-full">
         <Editor
@@ -193,7 +166,9 @@ export function ScenarioEditor({ file }: { file: File }) {
           theme={theme === "dark" ? "vs-dark" : "light"}
           onChange={onChange}
           beforeMount={(monaco) =>
-            monaco.languages.json?.jsonDefaults.setDiagnosticsOptions({ validate: false })
+            monaco.languages.json?.jsonDefaults.setDiagnosticsOptions({
+              validate: false,
+            })
           }
           onMount={handleEditorDidMount}
           options={{

@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Editor, { type BeforeMount, type OnMount } from "@monaco-editor/react";
-import { FileWarning, SaveIcon, DownloadIcon } from "lucide-react";
+import { FileWarning } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useTheme } from "next-themes";
-import { EditorActionButton } from "@/components/ui/editor/actionButton.tsx";
+import {
+  EditorFileActions,
+  registerEditorFileActions,
+} from "@/components/ui/editor/file-actions.tsx";
 import { toast } from "sonner";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
 import { registerAsmLanguage } from "./language-definitions/asm-language-definitions.ts";
@@ -15,7 +18,6 @@ import { type File } from "@/lib/file-system";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import type { MachineData } from "@/features/asm-editor/machine-data.ts";
 import { tryAssemble } from "../lib/try-assemble.ts";
-import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
 import { downloadBlob } from "@/lib/download.ts";
 
 const preventDefaultSave = (e: KeyboardEvent) => {
@@ -31,7 +33,6 @@ interface Props {
 
 function AsmCodeEditor({ file, onSave }: Props) {
   const fs = useFileSystem();
-  const { addAction, removeAction } = usePageHeaderActions();
   const [code, setCode] = useState(file.content as string);
   const codeRef = useRef(code);
   codeRef.current = code;
@@ -62,21 +63,14 @@ function AsmCodeEditor({ file, onSave }: Props) {
     };
   }, []);
 
-  useEffect(() => {
-    addAction({
-      id: "download",
-      tooltip: "Download this file",
-      label: "Download",
-      icon: <DownloadIcon className="h-4 w-4" />,
-      onClick: () =>
-        downloadBlob(
-          file.metadata.name,
-          new Blob([codeRef.current], { type: "text/plain;charset=utf-8" }),
-        ),
-      variant: "default",
-    });
-    return () => removeAction("download");
-  }, [addAction, removeAction, file.metadata.name]);
+  const download = useCallback(
+    () =>
+      downloadBlob(
+        file.metadata.name,
+        new Blob([codeRef.current], { type: "text/plain;charset=utf-8" }),
+      ),
+    [file.metadata.name],
+  );
 
   const handleEditorChange = (value: string | undefined) => {
     if (value !== undefined) {
@@ -87,7 +81,7 @@ function AsmCodeEditor({ file, onSave }: Props) {
 
   const saveAsmFile = useCallback(async () => {
     try {
-      if(!code){
+      if (!code) {
         toast.warning("Nothing to save!");
         return;
       }
@@ -127,16 +121,7 @@ function AsmCodeEditor({ file, onSave }: Props) {
   };
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
-    editor.addAction({
-      id: "save-content",
-      label: "Save Content",
-      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS],
-      contextMenuGroupId: "navigation",
-      contextMenuOrder: 1.5,
-      run: () => {
-        document.dispatchEvent(new CustomEvent("editor:save"));
-      },
-    });
+    registerEditorFileActions(editor, monaco, { onDownload: download });
   };
   return (
     <div className="flex flex-col" ref={containerRef}>
@@ -159,17 +144,17 @@ function AsmCodeEditor({ file, onSave }: Props) {
           )}
         </div>
         <div>
-          <small className="font-medium opacity-70">Change this file only if you know what you are doing! (Each smart.c compilation will overwrite your manual changes)</small>
+          <small className="font-medium opacity-70">
+            Change this file only if you know what you are doing! (Each smart.c
+            compilation will overwrite your manual changes)
+          </small>
         </div>
-        <div>
-          <EditorActionButton
-            tooltip={isDirty ? "Unsaved changes" : "All Saved"}
-            disabled={!isValid}
-            onClick={saveAsmFile}
-          >
-            <SaveIcon className={isDirty ? "text-red-600" : "text-green-600"} />
-          </EditorActionButton>
-        </div>
+        <EditorFileActions
+          isDirty={isDirty}
+          canSave={isValid}
+          onSave={saveAsmFile}
+          onDownload={download}
+        />
       </section>
       <div className="flex-1 rounded h-full">
         <Editor
