@@ -1,5 +1,6 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { DragEvent } from "react";
+import { useAtomValue } from "jotai";
 import {
   SidebarMenuItem,
   SidebarMenuButton,
@@ -38,6 +39,7 @@ import { NameInputDialog } from "./name-input-dialog";
 import { NewFileDialog } from "./new-file-dialog";
 import { FileSidebarItem, FILE_DND_MIME } from "./file-sidebar-item";
 import { uniqueName } from "./file-naming";
+import { revealFileRequestAtom } from "@/stores/project-tree-atoms";
 import { toast } from "sonner";
 
 export function FolderNode({ folder }: { folder: FolderMetadata }) {
@@ -49,6 +51,13 @@ export function FolderNode({ folder }: { folder: FolderMetadata }) {
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [showRename, setShowRename] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+
+  // Expand on the way to a revealed file. Children mount only once their
+  // parent is expanded, so the chain unfolds level by level.
+  const revealRequest = useAtomValue(revealFileRequestAtom);
+  useEffect(() => {
+    if (revealRequest?.folderIds.has(folder.id)) setExpanded(true);
+  }, [revealRequest, folder.id]);
 
   const { folders, files } = fs.listFolderContents(folder.id);
   const fileNames = files.map((f) => f.metadata.name);

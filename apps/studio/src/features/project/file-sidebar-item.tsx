@@ -17,7 +17,9 @@ import { useFileSystem } from "@/hooks/use-file-system.ts";
 import { downloadBlob } from "@/lib/download.ts";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
 import { NameInputDialog } from "./name-input-dialog";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useAtom } from "jotai";
+import { revealFileRequestAtom } from "@/stores/project-tree-atoms";
 import { toast } from "sonner";
 
 /** MIME key used when dragging a file onto a folder to move it. */
@@ -36,6 +38,17 @@ export function FileSidebarItem({ file, projectId }: Props) {
   const [showRename, setShowRename] = useState(false);
 
   const isActive = !!useMatch(`/projects/${projectId}/files/${file.id}`);
+
+  // Scroll into view when this file is the target of a reveal request. Runs on
+  // mount too, i.e. when the enclosing folders just expanded for us.
+  const rowRef = useRef<HTMLDivElement>(null);
+  const [revealRequest, setRevealRequest] = useAtom(revealFileRequestAtom);
+  useEffect(() => {
+    if (revealRequest?.fileId !== file.id) return;
+    rowRef.current?.scrollIntoView({ block: "nearest" });
+    setRevealRequest(null);
+  }, [revealRequest, file.id]);
+
   const siblingNames = new Set(
     fs
       .listFolderContents(projectId)
@@ -59,6 +72,7 @@ export function FileSidebarItem({ file, projectId }: Props) {
   return (
     <SidebarMenuSubItem>
       <div
+        ref={rowRef}
         className="relative flex items-center cursor-pointer"
         draggable
         onDragStart={(e) => {

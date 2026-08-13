@@ -6,23 +6,15 @@ import {
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuItem,
-  SidebarMenuButton,
   SidebarFooter,
-  SidebarMenuAction,
+
 } from "../sidebar";
 
 import {
   SettingsIcon,
   PlusIcon,
-  MoreVerticalIcon,
-  FilePlus2,
-  EditIcon,
-  TrashIcon,
-  FlaskConical,
-  FlaskConicalIcon,
-  CrownIcon,
-  WalletIcon,
   UploadIcon,
+  CrosshairIcon,
 } from "lucide-react";
 import { Button } from "../button";
 import { Dialog, DialogTrigger } from "../dialog";
@@ -34,17 +26,11 @@ import { ThemeSwitch } from "@/components/theme-switch";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import { acceptedFileType } from "@/features/project/filetype-icons";
 import { uniqueName } from "@/features/project/file-naming";
+import { findFolderChainToFile } from "@/features/project/tree-reveal";
+import { revealFileRequestAtom } from "@/stores/project-tree-atoms";
+import { useSetAtom } from "jotai";
+import { useMatch } from "react-router";
 import { toast } from "sonner";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu.tsx";
-import { wallet } from "@/lib/wallet.ts";
-import type { NetworkType } from "@/types/wallet.types.ts";
-import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
-import { AlertDialog } from "@/components/ui/alert-dialog.tsx";
 import { WalletStatusCard } from "@/components/ui/wallet-status-card.tsx";
 
 const footerItems = [
@@ -77,6 +63,16 @@ export function LeftSidebar() {
 
 
   const [isOpen, setIsOpen] = useState(false);
+
+  const openedFileId = useMatch("/projects/:projectId/files/:fileId")?.params.fileId;
+  const setRevealRequest = useSetAtom(revealFileRequestAtom);
+
+  const onSelectOpenedFile = () => {
+    if (!openedFileId) return;
+    const chain = findFolderChainToFile(fs, openedFileId);
+    if (!chain.length) return;
+    setRevealRequest({ fileId: openedFileId, folderIds: new Set(chain) });
+  };
 
   const importInputRef = useRef<HTMLInputElement>(null);
 
@@ -130,6 +126,23 @@ export function LeftSidebar() {
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Import project (zip)</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip delayDuration={1000}>
+                  <TooltipTrigger asChild>
+                    <CrosshairIcon
+                      aria-label="Select opened file"
+                      onClick={onSelectOpenedFile}
+                      className={
+                        "h-6 w-6 p-1 rounded-sm " +
+                        (openedFileId
+                          ? "hover:bg-black/5 cursor-pointer"
+                          : "opacity-40 cursor-default")
+                      }
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Select opened file</p>
                   </TooltipContent>
                 </Tooltip>
               </div>
