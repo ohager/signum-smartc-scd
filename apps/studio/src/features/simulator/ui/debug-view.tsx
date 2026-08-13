@@ -173,6 +173,7 @@ function DebugSession({
 
   const onMount: OnMount = (editor, monaco) => {
     registerSmartC(monaco);
+    // @ts-ignore
     editorRef.current = editor;
     monacoRef.current = monaco;
     modelUriRef.current = editor.getModel()?.uri.toString() ?? null;

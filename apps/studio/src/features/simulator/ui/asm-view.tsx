@@ -1,7 +1,11 @@
-import Editor, { type OnMount } from "@monaco-editor/react";
+import Editor, { type BeforeMount, type OnMount } from "@monaco-editor/react";
 import { useEffect, useRef, useState } from "react";
 import type * as Monaco from "monaco-editor";
 import { useTheme } from "next-themes";
+import {
+  ASM_LANGUAGE_ID,
+  registerAsmLanguage,
+} from "@/features/asm-editor/code-editor/language-definitions/asm-language-definitions.ts";
 
 /**
  * Read-only view of the generated assembly with the current instruction
@@ -21,6 +25,10 @@ export function AsmView({
   const monacoRef = useRef<typeof Monaco | null>(null);
   const decoRef = useRef<Monaco.editor.IEditorDecorationsCollection | null>(null);
   const [ready, setReady] = useState(false);
+
+  const onBeforeMount: BeforeMount = (monaco) => {
+    registerAsmLanguage(monaco);
+  };
 
   const onMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
@@ -50,9 +58,9 @@ export function AsmView({
   return (
     <Editor
       height={height}
-      defaultLanguage="plaintext"
+      defaultLanguage={ASM_LANGUAGE_ID}
       value={assembly}
-      theme={theme === "dark" ? "vs-dark" : "light"}
+      theme={theme === "dark" ? "asm-dark" : "asm-light"}
       options={{
         readOnly: true,
         minimap: { enabled: false },
@@ -62,6 +70,7 @@ export function AsmView({
         automaticLayout: true,
         scrollBeyondLastLine: false,
       }}
+      beforeMount={onBeforeMount}
       onMount={onMount}
     />
   );

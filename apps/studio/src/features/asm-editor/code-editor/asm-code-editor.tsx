@@ -157,7 +157,7 @@ function AsmCodeEditor({ file, onSave }: Props) {
           )}
         </div>
         <div>
-          <small className="font-medium opacity-70">Change this file only if you know what you are doing!</small>
+          <small className="font-medium opacity-70">Change this file only if you know what you are doing! (Each smart.c compilation will overwrite your manual changes)</small>
         </div>
         <div>
           <EditorActionButton

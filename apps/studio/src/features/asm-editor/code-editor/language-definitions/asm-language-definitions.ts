@@ -6,10 +6,19 @@ import {
   createFunctionCallCompletionItems,
 } from "./functions.ts";
 import { AsmDirectives, createDirectiveCompletionItems } from "./directives.ts";
+import { createAsmHoverProvider } from "../language/hover-provider.ts";
+
+export const ASM_LANGUAGE_ID = "asm";
 
 export function registerAsmLanguage(monaco: Monaco) {
+  // Monaco is a global singleton - registering twice would duplicate the
+  // completion provider (and its suggestions), so bail out if already done.
+  if (monaco.languages.getLanguages().some(({ id }) => id === ASM_LANGUAGE_ID)) {
+    return;
+  }
+
   // Register a new language
-  monaco.languages.register({ id: "asm" });
+  monaco.languages.register({ id: ASM_LANGUAGE_ID });
 
   // Register a tokens provider for the language
   monaco.languages.setMonarchTokensProvider("asm", {
@@ -140,6 +149,11 @@ export function registerAsmLanguage(monaco: Monaco) {
       whitespace: [[/[ \t\r\n]+/, "white"]],
     },
   });
+
+  monaco.languages.registerHoverProvider(
+    ASM_LANGUAGE_ID,
+    createAsmHoverProvider(),
+  );
 
   // Register a completion item provider for the language
   monaco.languages.registerCompletionItemProvider("asm", {

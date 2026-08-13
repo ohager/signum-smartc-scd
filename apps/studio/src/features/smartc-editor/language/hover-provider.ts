@@ -1,8 +1,10 @@
 import type * as Monaco from "monaco-editor";
 import { SmartCKeywords } from "../language-definitions/keywords";
 import { SmartCFunctions } from "../language-definitions/functions";
+import { SmartCDirectives } from "../language-definitions/directives";
 import { getSymbols } from "./symbol-cache";
 import { getDebugMemory } from "./debug-memory";
+import { matchDirectiveContext } from "./directive-context";
 
 /**
  * If the hovered word is a struct member (`prefix.word`), build the compiler's
@@ -20,6 +22,46 @@ function qualifiedMemberName(lineText: string, startColumn: number, word: string
   return prefix ? `${prefix}_${word}` : null;
 }
 
+/**
+ * Documentation for `#program` / `#pragma` and their properties.
+ *
+ * `lineToWordEnd` is the line up to the end of the hovered word, which is what
+ * lets the shared `matchDirectiveContext` classify the word under the cursor
+ * rather than the word being typed.
+ *
+ * Returns `undefined` when this is not a directive line, so the caller keeps
+ * looking; `null` when it is one but carries nothing worth showing (a value, or
+ * a directive like `#define` that has no entry).
+ */
+function directiveHover(
+  lineToWordEnd: string,
+  word: string,
+): Monaco.languages.Hover | null | undefined {
+  const context = matchDirectiveContext(lineToWordEnd);
+  if (!context) return undefined;
+  if (context.kind === "value") return null;
+
+  if (context.kind === "directive") {
+    const info = SmartCDirectives[word as keyof typeof SmartCDirectives];
+    if (!info) return null; // e.g. #define, #include
+    return {
+      contents: [
+        { value: `\`#${word}\` — **${info.detail}**` },
+        { value: info.documentation },
+      ],
+    };
+  }
+
+  const property = SmartCDirectives[context.directive].properties[word];
+  if (!property) return null;
+  return {
+    contents: [
+      { value: `\`#${context.directive} ${word}\` — **${property.detail}**` },
+      { value: property.documentation },
+    ],
+  };
+}
+
 export function createHoverProvider(
   _monaco: typeof Monaco,
 ): Monaco.languages.HoverProvider {
@@ -28,11 +70,21 @@ export function createHoverProvider(
       const word = model.getWordAtPosition(position);
       if (!word) return null;
 
+      // `#program` / `#pragma` lines are resolved first and never fall through:
+      // `name` or `version` on a directive line is a property, not whatever
+      // variable of the same name the file happens to declare.
+      const lineText = model.getLineContent(position.lineNumber);
+      const directive = directiveHover(
+        lineText.slice(0, word.endColumn - 1),
+        word.word,
+      );
+      if (directive !== undefined) return directive;
+
       // Live value from an active debug session (empty for non-debug models).
       // Handle struct-member access (`currentTx.sender` → `currentTx_sender`).
       const memory = getDebugMemory(model.uri.toString());
       const qualified = qualifiedMemberName(
-        model.getLineContent(position.lineNumber),
+        lineText,
         word.startColumn,
         word.word,
       );
