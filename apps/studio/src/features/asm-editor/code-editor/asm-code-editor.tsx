@@ -107,10 +107,12 @@ function AsmCodeEditor({ file, onSave }: Props) {
     }
   }, [code, validationError]);
 
+  // Must match the dispatch target below: "editor:save" does not bubble, so a
+  // listener on window would never see an event dispatched on document.
   useEffect(() => {
-    window.addEventListener("editor:save", saveAsmFile);
+    document.addEventListener("editor:save", saveAsmFile);
     return () => {
-      window.removeEventListener("editor:save", saveAsmFile);
+      document.removeEventListener("editor:save", saveAsmFile);
     };
   }, [saveAsmFile]);
 

@@ -20,9 +20,12 @@ import {
 import { FileTypes } from "./filetype-icons";
 import { replaceWhitespace } from "@/lib/string";
 import { withExtension, uniqueName } from "./file-naming";
-import { serializeScenario, defaultScenario } from "@/features/simulator/scenario/scenario-io";
+import { smartcStarter } from "./smartc-starter";
+import {
+  serializeScenario,
+  defaultScenario,
+} from "@/features/simulator/scenario/scenario-io";
 
-const SMARTC_STARTER = "// New Signum SmartC contract — start coding here.\n";
 const EXT: Record<string, string> = {
   [FileTypes.SmartC]: ".smart.c",
   [FileTypes.Scenario]: ".scenario.json",
@@ -35,7 +38,12 @@ interface Props {
   onCreate: (name: string, type: FileTypes, content: string) => void;
 }
 
-export function NewFileDialog({ open, onOpenChange, existingNames, onCreate }: Props) {
+export function NewFileDialog({
+  open,
+  onOpenChange,
+  existingNames,
+  onCreate,
+}: Props) {
   const [name, setName] = useState("");
   const [type, setType] = useState<FileTypes>(FileTypes.SmartC);
   useEffect(() => {
@@ -52,7 +60,10 @@ export function NewFileDialog({ open, onOpenChange, existingNames, onCreate }: P
     if (!canSubmit) return;
     const ext = EXT[type];
     const finalName = uniqueName(withExtension(base, ext), existingNames, ext);
-    const content = type === FileTypes.Scenario ? serializeScenario(defaultScenario()) : SMARTC_STARTER;
+    const content =
+      type === FileTypes.Scenario
+        ? serializeScenario(defaultScenario())
+        : smartcStarter(finalName.slice(0, -ext.length));
     onCreate(finalName, type, content);
     onOpenChange(false);
   };
@@ -71,8 +82,12 @@ export function NewFileDialog({ open, onOpenChange, existingNames, onCreate }: P
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={FileTypes.SmartC}>SmartC contract (.smart.c)</SelectItem>
-                <SelectItem value={FileTypes.Scenario}>Scenario (.scenario.json)</SelectItem>
+                <SelectItem value={FileTypes.SmartC}>
+                  SmartC contract (.smart.c)
+                </SelectItem>
+                <SelectItem value={FileTypes.Scenario}>
+                  Scenario (.scenario.json)
+                </SelectItem>
               </SelectContent>
             </Select>
             <Label htmlFor="new-file-name">Name</Label>
