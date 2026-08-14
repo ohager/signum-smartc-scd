@@ -6,6 +6,7 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import { ThemeProvider } from "next-themes";
 import { FilesPage } from "./pages/files/files-page";
 import { DebugDashboardPage } from "./pages/debug/debug-dashboard-page";
+import { HomePage } from "./pages/home/home-page";
 export function App() {
   return (
     <JotaiProvider store={jotaiStore}>
@@ -13,14 +14,7 @@ export function App() {
         <BrowserRouter>
           <Routes>
             <Route element={<AppLayout />}>
-              <Route
-                path="/"
-                element={
-                  <div>
-                    <h1>TO DO: some home page</h1>
-                  </div>
-                }
-              />
+              <Route path="/" element={<HomePage />} />
               <Route path="/projects/:projectId/files/:fileId" element={<FilesPage />} />
             </Route>
             <Route path="/debug/dashboard" element={<DebugDashboardPage />} />

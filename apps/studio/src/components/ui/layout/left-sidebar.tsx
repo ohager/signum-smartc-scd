@@ -6,6 +6,7 @@ import {
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuItem,
+  SidebarMenuButton,
   SidebarFooter,
 
 } from "../sidebar";
@@ -15,6 +16,7 @@ import {
   PlusIcon,
   UploadIcon,
   CrosshairIcon,
+  HouseIcon,
 } from "lucide-react";
 import { Button } from "../button";
 import { Dialog, DialogTrigger } from "../dialog";
@@ -29,7 +31,7 @@ import { uniqueName } from "@/features/project/file-naming";
 import { findFolderChainToFile } from "@/features/project/tree-reveal";
 import { revealFileRequestAtom } from "@/stores/project-tree-atoms";
 import { useSetAtom } from "jotai";
-import { useMatch } from "react-router";
+import { Link, useMatch } from "react-router";
 import { toast } from "sonner";
 import { WalletStatusCard } from "@/components/ui/wallet-status-card.tsx";
 
@@ -65,6 +67,7 @@ export function LeftSidebar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const openedFileId = useMatch("/projects/:projectId/files/:fileId")?.params.fileId;
+  const isHome = !!useMatch("/");
   const setRevealRequest = useSetAtom(revealFileRequestAtom);
 
   const onSelectOpenedFile = () => {
@@ -99,6 +102,20 @@ export function LeftSidebar() {
   return (
     <Sidebar>
       <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isHome}>
+                  <Link to="/">
+                    <HouseIcon className="h-4 w-4" />
+                    <span>Home</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
         <SidebarGroup>
           <SidebarGroupLabel>
             <div className="w-full flex justify-between items-center">
