@@ -2,6 +2,7 @@ import { Page, PageContent } from "@/components/ui/page";
 import { useFileSystem } from "@/hooks/use-file-system";
 import { summarizeProjects, type ProjectSummary } from "@/features/home/project-summary";
 import { Hero } from "@/features/home/hero";
+import { HowItWorks } from "@/features/home/how-it-works";
 import { acceptedFileType } from "@/features/project/filetype-icons";
 import { uniqueName } from "@/features/project/file-naming";
 import { useEffect, useRef, useState } from "react";
@@ -55,6 +56,7 @@ export function HomePage() {
           variant={isEmptyWorkspace ? "full" : "band"}
           onImportClick={() => importInputRef.current?.click()}
         />
+        <HowItWorks />
       </PageContent>
     </Page>
   );
