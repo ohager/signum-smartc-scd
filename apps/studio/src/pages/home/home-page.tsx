@@ -5,6 +5,7 @@ import { Hero } from "@/features/home/hero";
 import { HowItWorks } from "@/features/home/how-it-works";
 import { ContinueList } from "@/features/home/continue-list";
 import { ProjectGrid } from "@/features/home/project-grid";
+import { LearnRail } from "@/features/home/learn-rail";
 import { useRecentFiles } from "@/hooks/use-recent-files";
 import { acceptedFileType } from "@/features/project/filetype-icons";
 import { uniqueName } from "@/features/project/file-naming";
@@ -56,13 +57,20 @@ export function HomePage() {
     <Page>
       <PageContent className="overflow-y-auto">
         <input ref={importInputRef} type="file" accept=".zip" hidden onChange={onImportProject} />
+
         <Hero
           variant={isEmptyWorkspace ? "full" : "band"}
           onImportClick={() => importInputRef.current?.click()}
         />
-        {!isEmptyWorkspace && <ContinueList recents={recents} />}
-        {!isEmptyWorkspace && <ProjectGrid projects={projects} />}
-        <HowItWorks />
+
+        <div className="flex flex-col lg:flex-row">
+          <div className="min-w-0 flex-1">
+            {!isEmptyWorkspace && <ContinueList recents={recents} />}
+            {!isEmptyWorkspace && <ProjectGrid projects={projects} />}
+            <HowItWorks />
+          </div>
+          <LearnRail />
+        </div>
       </PageContent>
     </Page>
   );
