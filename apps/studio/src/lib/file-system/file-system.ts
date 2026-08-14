@@ -7,6 +7,7 @@ import type {
   File
 } from "./file-system-types.ts";
 import { FileTransfer } from "./transfer.ts";
+import { RecentFiles, sanitizeRecents, type RecentEntry } from "./recent-files.ts";
 
 // Constants
 const LS_METADATA_KEY = "scd:fs-metadata";
@@ -29,6 +30,8 @@ interface FileSystemMetadata {
     }
   >;
   rootFolder: string;
+  /** Recently opened file ids, newest first. See `recent-files.ts`. */
+  recentFiles: RecentEntry[];
 }
 
 /**
@@ -54,6 +57,7 @@ export class FileSystem extends EventTarget {
   private db: IDBPDatabase | null = null;
   private readonly metadata: FileSystemMetadata;
   private _transfer?: FileTransfer;
+  private _recents?: RecentFiles;
 
   private constructor() {
     super();
@@ -61,6 +65,9 @@ export class FileSystem extends EventTarget {
 
     if (storedMetadata) {
       this.metadata = JSON.parse(storedMetadata);
+      // Blobs written before recents existed have no such field, and a corrupt
+      // one must not break startup.
+      this.metadata.recentFiles = sanitizeRecents(this.metadata.recentFiles);
     } else {
       // Create initial structure with root folder
       const rootFolderId = this.generateId();
@@ -82,7 +89,8 @@ export class FileSystem extends EventTarget {
             folders: []
           }
         },
-        rootFolder: rootFolderId
+        rootFolder: rootFolderId,
+        recentFiles: []
       };
 
       this.saveMetadata();
@@ -314,6 +322,7 @@ export class FileSystem extends EventTarget {
 
     // Update metadata
     delete this.metadata.files[fileId];
+    this.recents.forget(fileId);
     this.metadata.folderContents[parentFolderId].files =
       this.metadata.folderContents[parentFolderId].files.filter(
         (id) => id !== fileId
@@ -506,6 +515,7 @@ export class FileSystem extends EventTarget {
       const metadata = { ...this.metadata.files[fileId] };
       await db.delete(IdbStores.FileContent, fileId);
       delete this.metadata.files[fileId];
+      this.recents.forget(fileId);
 
       this.emitEvent({
         type: "file:deleted",
@@ -708,6 +718,21 @@ export class FileSystem extends EventTarget {
    */
   get transfer(): FileTransfer {
     return (this._transfer ??= new FileTransfer(this));
+  }
+
+  /**
+   * Recently opened files, composed lazily. Persisted with the rest of the
+   * metadata, so reads stay synchronous.
+   */
+  get recents(): RecentFiles {
+    return (this._recents ??= new RecentFiles({
+      getRecents: () => this.metadata.recentFiles,
+      setRecents: (recents) => {
+        this.metadata.recentFiles = recents;
+        this.saveMetadata();
+      },
+      exists: (fileId) => this.exists(fileId),
+    }));
   }
 
 }
