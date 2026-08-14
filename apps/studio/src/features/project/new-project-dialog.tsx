@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select.tsx";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import { FileTypes } from "@/features/project/filetype-icons.tsx";
+import { smartcStarter } from "./smartc-starter";
 
 type ProjectType = "create" | "inspect";
 
@@ -43,11 +44,12 @@ export function NewProjectDialog({ close }: Props) {
     const fileName = replaceWhitespace(name);
 
     if (projectType === "create") {
+      const baseName = fileName.toLowerCase();
       await fs.addFile(
         folderId,
-        `${fileName.toLowerCase()}.smart.c`,
+        `${baseName}.smart.c`,
         FileTypes.SmartC,
-        "// New Signum SmartC contract — start coding here.\n",
+        smartcStarter(baseName),
       )
     }
 
