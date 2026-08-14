@@ -122,11 +122,15 @@ src/features/home/
   continue-list.tsx                 recently opened files
   project-grid.tsx                  project cards
   learn-rail.tsx                    video cards + outbound links
-  recent-files.ts                   headless: recents ring buffer, DOM-free
   project-summary.ts                headless: recursive project stats + main-file pick
   learn-content.ts                  typed content index (data only)
-src/hooks/use-recent-files.ts       React binding over recent-files.ts
+src/lib/file-system/
+  recent-files.ts                   headless: recents ring buffer + RecentFiles service
+src/hooks/use-recent-files.ts       React binding over fs.recents
 ```
+
+Recents live in the **file-system layer**, not `features/home/`, because the file system
+owns the data and its lifecycle (§5.1). Everything else on the page is home-specific.
 
 This follows the pattern the codebase already uses — pure, tested, DOM-free logic in a
 module with thin UI callers on top, as in `file-naming.ts`, `tree-reveal.ts` and
@@ -140,27 +144,59 @@ generic shadcn primitives, these are home-specific).
 
 ## 5. Headless logic
 
-### 5.1 `recent-files.ts`
+### 5.1 `recent-files.ts` — owned by the file system
 
 There is **no "recently opened" data in the app today** — `FileMetadata` carries only
-`lastModified`. This module adds it as a `localStorage`-backed ring buffer.
+`lastModified`. This adds it, **inside `FileSystem`**, alongside the rest of the workspace
+metadata.
 
-An entry is **`{ fileId, openedAt }` and nothing else.** Name, type and owning project are
+**Where it is stored.** In `FileSystemMetadata`, which is persisted as one
+`localStorage` blob under `scd:fs-metadata` and hydrated synchronously in the constructor.
+Deliberately **not** IndexedDB: that database holds only file *content* (a single
+`fs-content` store keyed by file id, `DB_VERSION = 1`), so using it would mean a version
+bump, a new object store, and an async read that turns a synchronous first render into a
+loading state — all for eight small objects. Keeping recents in the metadata blob also
+means the app has one persistence mechanism rather than a second stray `localStorage` key.
+
+**Why the file system owns it.** Deletion then prunes at the source, so a recents entry can
+never dangle. Two call sites must do this, because they are separate code paths:
+`deleteFile()` and `recursiveDeleteFolder()` — the latter inlines file removal rather than
+calling `deleteFile`, so hooking only the former would leak entries whenever a folder or
+project is deleted.
+
+**An entry is `{ fileId, openedAt }` and nothing else.** Name, type and owning project are
 resolved live at render through `fs.getFileMetadata(fileId)` and
-`fs.getFolderIdOfFile(fileId)`. This is deliberate: storing the name would go stale the
-moment a file is renamed, and storing the project id would go stale on a drag-and-drop
-move — both of which the app supports today. Resolving live also collapses staleness and
-pruning into one code path: metadata resolves to `null` → the entry is dropped.
+`fs.getFolderIdOfFile(fileId)`. Storing the name would go stale the moment a file is
+renamed, and storing the project id would go stale on a drag-and-drop move — both of which
+the app supports today.
 
-API, pure over an injected `StorageLike { getItem, setItem }` (tests pass a `Map`-backed
-fake, mirroring how `FileTransfer` takes a structural `TransferFs`):
+**Structure.** The ring-buffer logic stays pure and separately tested; a small `RecentFiles`
+service binds it to the file system. This mirrors `FileTransfer`, which is composed into
+`FileSystem` as `get transfer()` over a structural host interface. The composition matters:
+`file-system.ts` is already ~713 lines, past the 500-line ceiling in the project's
+`CLAUDE.md`, so the new behaviour must not be inlined into it.
 
-- `readRecents(storage): RecentEntry[]` — parse; return `[]` on absent, malformed or
-  unparseable data. Never throws.
-- `recordOpen(storage, fileId, openedAt): void` — dedupe by `fileId`, move to front, cap at
-  **8**.
+Pure functions (array in, array out — no storage, no DOM):
+
+- `sanitizeRecents(value: unknown): RecentEntry[]` — hydration guard. Returns `[]` for
+  absent or non-array input and drops individual malformed entries, so a hand-edited or
+  older `scd:fs-metadata` blob can never break startup.
+- `addRecent(recents, fileId, openedAt): RecentEntry[]` — dedupe by `fileId`, move to
+  front, cap at **8**.
 - `pruneRecents(recents, exists): RecentEntry[]` — drop entries whose `fileId` no longer
   resolves.
+
+`RecentFiles`, constructed over a structural `RecentsHost { getRecents, setRecents, exists }`:
+
+- `list(): RecentEntry[]` — pruned, newest first.
+- `record(fileId, openedAt): void`
+- `forget(fileId): void` — called by both deletion paths.
+
+**Migration.** Existing installs have a `scd:fs-metadata` blob with no `recentFiles` key,
+and the constructor `JSON.parse`s it straight into `this.metadata`. The field is therefore
+defaulted through `sanitizeRecents` on hydration rather than assumed present. No version
+bump and no migration step are needed, because an absent field is indistinguishable from an
+empty buffer.
 
 ### 5.2 `project-summary.ts`
 
@@ -213,11 +249,13 @@ All local and synchronous. No network requests except the YouTube thumbnail imag
 - **Projects** — `home-page.tsx` lists root folders and calls `summarizeProject()` per
   folder. It subscribes to `file:*` and `folder:*` and refreshes on both, exactly as
   `LeftSidebar` does, so create/delete/rename/move updates the grid live.
-- **Recents (read)** — `useRecentFiles()` calls `readRecents()`, then
-  `pruneRecents(recents, fs.exists)`, and writes the pruned list back so the buffer
-  self-heals.
-- **Recents (write)** — `FilesPage` calls `recordOpen()` inside its existing file-load
-  effect, keyed on `fileId`. This is the only change to `FilesPage`.
+- **Recents (read)** — `useRecentFiles()` calls `fs.recents.list()` and resolves each
+  entry's name, type and project id live. It refreshes on `file:*` / `folder:*` so a
+  deletion elsewhere updates the list immediately.
+- **Recents (write)** — `FilesPage` calls `fs.recents.record(fileId, Date.now())` inside its
+  existing file-load effect, keyed on `fileId`. This is the only change to `FilesPage`.
+- **Recents (prune)** — not a UI concern: `deleteFile()` and `recursiveDeleteFolder()` each
+  call `forget()`, so the buffer is already correct by the time any view reads it.
 - **Learn** — an imported constant. No async, no loading state, no error path.
 
 ## 7. Navigation wiring
@@ -239,9 +277,12 @@ All local and synchronous. No network requests except the YouTube thumbnail imag
 
 ## 8. Error handling and edge cases
 
-- **Corrupt or unavailable `localStorage`** — `readRecents` returns `[]`; the Continue
-  section is simply absent. Never throws, never blocks the page.
-- **Deleted / renamed / moved recent file** — handled by live resolution plus prune (§5.1).
+- **Malformed or absent `recentFiles` in the stored metadata** — `sanitizeRecents` returns
+  `[]` or drops the bad entries, so the Continue section is simply absent. It runs during
+  `FileSystem` construction, so it must never throw: a corrupt recents field cannot be
+  allowed to take down the whole workspace.
+- **Deleted / renamed / moved recent file** — deletion is pruned at the source by
+  `forget()`; renames and moves are handled by resolving metadata live (§5.1).
 - **Empty project** — card shows `0 files` and a disabled open action.
 - **Project deleted while home is open** — FS event subscription refreshes the grid.
 - **Video thumbnails** — `img.youtube.com/vi/<id>/mqdefault.jpg`, with an `onError`
@@ -257,9 +298,11 @@ All local and synchronous. No network requests except the YouTube thumbnail imag
 `bun test` (root `"test": "bun test"`), with `*.test.ts` colocated beside sources as in
 `file-naming.test.ts` and `transfer.test.ts`.
 
-- **`recent-files.test.ts`** — dedupe by `fileId`; move-to-front on re-open; cap at 8;
-  `pruneRecents` against a fake `exists`; malformed/absent storage → `[]`. All over a
-  `Map`-backed `StorageLike` fake.
+- **`recent-files.test.ts`** (in `lib/file-system/`, beside `transfer.test.ts`) — the pure
+  functions: `addRecent` dedupes by `fileId`, moves to front and caps at 8; `pruneRecents`
+  against a fake `exists`; `sanitizeRecents` on absent, non-array and partially malformed
+  input. Plus the `RecentFiles` service against an in-memory `RecentsHost` fake, including
+  that `forget()` removes an entry — the same fake-host style `transfer.test.ts` uses.
 - **`project-summary.test.ts`** — recursive `fileCount` and `lastModified` across nested
   folders on an in-memory fake FS; `mainFileId` prefers `.smart.c` over a newer file of
   another type; falls back to newest-of-any-type; `null` for an empty project.
