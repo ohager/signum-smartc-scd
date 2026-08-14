@@ -30,6 +30,7 @@ export function FilesPage() {
       try {
         const file = await fs.loadFile(fileId);
         setFile(file);
+        fs.recents.record(fileId, Date.now());
       } catch (err) {
         setError(err as Error);
       } finally {

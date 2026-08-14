@@ -3,6 +3,8 @@ import { useFileSystem } from "@/hooks/use-file-system";
 import { summarizeProjects, type ProjectSummary } from "@/features/home/project-summary";
 import { Hero } from "@/features/home/hero";
 import { HowItWorks } from "@/features/home/how-it-works";
+import { ContinueList } from "@/features/home/continue-list";
+import { useRecentFiles } from "@/hooks/use-recent-files";
 import { acceptedFileType } from "@/features/project/filetype-icons";
 import { uniqueName } from "@/features/project/file-naming";
 import { useEffect, useRef, useState } from "react";
@@ -11,6 +13,7 @@ import { toast } from "sonner";
 export function HomePage() {
   const fs = useFileSystem();
   const [projects, setProjects] = useState<ProjectSummary[]>(() => summarizeProjects(fs));
+  const recents = useRecentFiles();
 
   // Keep the page live: creating, deleting, renaming or moving anything in the
   // workspace re-summarizes. Same subscription the sidebar uses.
@@ -56,6 +59,7 @@ export function HomePage() {
           variant={isEmptyWorkspace ? "full" : "band"}
           onImportClick={() => importInputRef.current?.click()}
         />
+        {!isEmptyWorkspace && <ContinueList recents={recents} />}
         <HowItWorks />
       </PageContent>
     </Page>
