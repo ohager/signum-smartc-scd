@@ -35,17 +35,16 @@ and test-execution layer around it.
 
 These were verified by spike, not assumed:
 
-1. `signum-smartc-testbed@1.1.0` has exactly **one** Node dependency: `readFileSync`
-   in `loadContract(codePath)`. Everything else is browser-safe.
-2. Bun's browser target silently stubs `fs` as `{}` — the build stays green and
-   `readFileSync` is `undefined` at runtime, so an unguarded call fails late with a
-   cryptic `readFileSync is not a function`. Harmless as long as that code path is
-   never reached, which is what the file-reader adapter guarantees.
-3. A Bun plugin aliasing `fs` to a custom module works in both the dev server
-   (`bunfig.toml` `[serve.static] plugins`) and production (`Bun.build({ plugins })`).
-   This was the original approach; it was rejected in favour of the adapter (see
-   "The file-reader seam") because it aliases `fs` globally for the entire bundle to
-   fix one function in one dependency, and is invisible to anyone reading the code.
+1. `signum-smartc-testbed@1.2.0` has **zero** Node imports and bundles clean for the
+   browser target (verified: no node builtins in `dist`, no stubbed modules in the
+   emitted bundle). `loadContract(code, options)` now takes the contract source
+   instead of a path; every other method is unchanged from 1.1.0.
+2. Consequently the test file itself does the file reading — the idiomatic pattern in
+   the package's own suite is a `context.ts` doing
+   `readFileSync(join(__dirname + "/x.smart.c"), "utf-8")`. `fs` and `path` are
+   therefore on the common path of every test, and the runner must provide them.
+3. Studio's own tests confirm `smartc-signum-compiler` and `smartc-signum-simulator`
+   already run in the browser, so the engine underneath needs no work.
 4. `@vitest/expect` + `chai` bundle for the browser (~300KB) and handle `bigint`
    correctly (`expect(1n).toBe(2n)` → `expected 1n to be 2n`, with `expected` and
    `actual` exposed for diffing). Matcher parity is therefore real, not a subset.
@@ -57,48 +56,29 @@ These were verified by spike, not assumed:
 
 ## Architecture
 
-### The file-reader seam
+### The `fs` and `path` seam
 
-`loadContract(codePath)` is the only part of `signum-smartc-testbed` that touches
-Node. Rather than aliasing `fs` in the bundler, the package gains a pluggable file
-reader in **`signum-smartc-testbed@1.2.0`**:
+Because `loadContract` takes source code, the only filesystem access left is in the
+test file itself, and that goes through `require("fs")` / `require("path")` — which
+the runner's module registry resolves to virtual modules it fully controls. There is
+no bundler alias and no upstream hook: the same test file reads real files under Node
+and the project VFS under Studio.
 
-```ts
-export type FileReader = (path: string) => string;
+`runner/virtual-modules.ts` provides:
 
-/** Override how `loadContract` reads source files. Defaults to Node's fs. */
-export function setFileReader(read: FileReader): void;
-```
+- **`fs`** — `readFileSync(path, encoding?)` returning a string, backed by
+  `runner/vfs-file-reader.ts`. On a miss it throws an ENOENT-style error naming the
+  resolved VFS path and listing sibling `.smart.c` files, since a typo'd contract path
+  is the most likely first-run failure. `existsSync` is provided too.
+- **`path`** — `join`, `dirname`, `basename`, `resolve`, normalising POSIX paths.
+  `join` must tolerate a single argument, because `join(__dirname + "/x.smart.c")` is
+  the pattern the package's own docs and tests use.
+- **`vitest`** — the test API and `expect` (see below).
+- **`signum-smartc-testbed`** — the real package, wrapped for recording.
 
-`loadContract` calls the registered reader instead of calling `readFileSync`
-directly. The default reader is the Node one, so every existing vitest suite keeps
-working untouched — a minor bump, not a breaking change. No conditional exports are
-needed: the static `import { readFileSync } from "fs"` can stay, because bundlers
-stub it harmlessly and the browser never reaches that path. The default reader
-guards with a clear "no file reader available — call setFileReader()" message.
-
-Studio registers a reader over the VFS snapshot at runner startup, in both the worker
-and the main thread:
-
-```ts
-setFileReader((path) => vfsSnapshot.read(path));
-```
-
-`src/features/testbed/runner/vfs-file-reader.ts` holds that reader: a lookup over the
-posted `Map<path, content>` that throws an ENOENT-style error naming the resolved VFS
-path and listing sibling `.smart.c` files. It is a module singleton, so the worker and
-the main thread each register their own.
-
-This keeps browser support a documented, versioned feature of the testbed — testable
-in that package's own CI and reusable by any other browser consumer — instead of a
-Bun-specific bundler trick living in Studio.
-
-**Upstream work item.** Studio's Phase 1 depends on `signum-smartc-testbed@1.2.0`
-being published: add `FileReader` and `setFileReader`, route `loadContract` through
-it, keep the Node default, document the browser use, release as a minor. Develop
-against a local `bun link` until it lands. The API can later widen from a function to
-an object (`{ readFile, exists }`) without breaking callers, should the package ever
-need more filesystem surface.
+The module registry injects `__dirname` and `__filename` per module from the file's
+VFS path, so `join(__dirname, "./counter.smart.c")` resolves against the folder the
+test lives in — the same relative layout as a repo.
 
 ### Modules (`src/features/testbed/`)
 
@@ -109,7 +89,7 @@ need more filesystem surface.
 | `runner/virtual-modules.ts` | Bare specifier → exports: `vitest`, `signum-smartc-testbed`, `path`, `fs` |
 | `runner/test-api.ts` | `describe/it/test`, `.only/.skip/.todo`, `beforeAll/beforeEach/afterEach/afterAll`; collect-then-run, emits events |
 | `runner/expect.ts` | chai + `@vitest/expect` (`JestChaiExpect`, `JestExtend`, `JestAsymmetricMatchers`) |
-| `runner/vfs-file-reader.ts` | `FileReader` over the VFS snapshot, registered via `setFileReader` |
+| `runner/vfs-file-reader.ts` | Backing store for the virtual `fs`: lookup + ENOENT message |
 | `runner/recording.ts` | Proxy over `SimulatorTestbed` capturing the contract and the effective tx stream |
 | `runner/worker.ts` | Worker entry: build registry, require entries, stream events |
 | `runner-client.ts` | Main thread: transpile, spawn/terminate worker, watchdog, map stacks through sourcemaps |
@@ -125,8 +105,7 @@ emits a sourcemap. Each module is evaluated as
 `new Function("require", "exports", "module", "__dirname", "__filename", code)` with
 `//# sourceURL=<vfs path>` appended. Relative specifiers resolve against the project
 VFS — so `./context.ts` and `./test.scenarios.ts` work exactly as they do in a repo —
-and bare specifiers resolve to injected virtual modules — including `fs` and `path`,
-for the rare test file that imports them directly.
+and bare specifiers resolve to injected virtual modules.
 
 The identical registry code runs in a Web Worker (the default) and on the main thread
 (debug runs). That duality is what makes DevTools debugging nearly free.
@@ -141,7 +120,7 @@ here.
 
 1. The main thread snapshots the project from `FileSystem` (path → content) and
    transpiles every `.ts` in it — test files plus helpers. `.smart.c` files ride
-   along as raw text for the file reader.
+   along as raw text for the virtual `fs`.
 2. It posts `{ modules, rawFiles, entryPaths, filter }` to the worker. BigInt
    survives structured clone, so results need no special encoding.
 3. The worker requires each entry; `test-api` collects the suite tree, then runs it,
@@ -159,7 +138,8 @@ here.
 
 The `signum-smartc-testbed` virtual module wraps the real class and records:
 
-- `loadContract` — path, resolved source, initializers, creator
+- `loadContract` — source, initializers, creator (the source arrives directly now,
+  so there is nothing to resolve)
 - every transaction passed to `runScenario` and `sendTransactionAndGetResponse`,
   captured *after* the testbed mutates `blockheight`, so the stream is exact
 
@@ -178,6 +158,11 @@ Two deltas to close:
 
 The replay reproduces the **transaction stream, not the JS control flow** — assertions
 do not re-evaluate while stepping. For debugging a contract, that is the intent.
+
+A test may call `loadContract` more than once (the testbed supports multi-contract
+setups, where the last-loaded contract is the active one). `DebugView` takes a single
+`source`, so Debug opens the active contract and the panel notes that other loaded
+contracts are present but not steppable.
 
 ## User interface
 
@@ -203,9 +188,10 @@ folder, mirroring how `smartcStarter` works:
 ```ts
 import { describe, it, expect, beforeEach } from "vitest";
 import { SimulatorTestbed } from "signum-smartc-testbed";
+import { readFileSync } from "fs";
 import { join } from "path";
 
-const ContractPath = join(__dirname, "./counter.smart.c");
+const ContractCode = readFileSync(join(__dirname, "./counter.smart.c"), "utf-8");
 ```
 
 `files-page.tsx` routes `FileTypes.Test` to `TestFileEditor`.
@@ -231,7 +217,7 @@ Each failure mode gets a message that names the thing that went wrong:
 | --- | --- |
 | TS syntax error | File reports a collection error; nothing runs |
 | Unknown bare import | Error naming the specifier and listing what is injectable |
-| `loadContract` on a missing path | ENOENT naming the **resolved VFS path**, listing sibling `.smart.c` files |
+| `readFileSync` on a missing contract | ENOENT naming the **resolved VFS path**, listing sibling `.smart.c` files |
 | SmartC compile failure | Surfaces as the test failure, carrying the compiler's own message |
 | Worker crash or timeout | Run marked errored; panel offers re-run |
 
@@ -242,7 +228,8 @@ Colocated `*.test.ts` files run by `bun test`, per repo convention:
 - `module-registry` — relative resolution, circular-import guard, `sourceURL`
 - `test-api` — collection order, `only`/`skip`, hook ordering, async tests, failure capture
 - `to-debug-scenario` — recording → `ScenarioFile` including `messageHex` and funding
-- `vfs-file-reader` — resolution, ENOENT message content
+- `virtual-modules` — `fs.readFileSync` resolution and ENOENT message, `path.join`
+  with one and many arguments
 - **Integration:** pre-transpiled JS of a real contract test driven through the
   registry and test-api against the real `signum-smartc-testbed`. This runs in Bun
   without a browser and covers the whole runner core.
@@ -251,9 +238,9 @@ Colocated `*.test.ts` files run by `bun test`, per repo convention:
 
 ## Phases
 
-1. Upstream: `signum-smartc-testbed@1.2.0` with `setFileReader`. Then in Studio:
-   dependencies (`signum-smartc-testbed@^1.2.0`, `@vitest/expect`, `chai`) plus
-   `vfs-file-reader`; prove `loadContract` works in the browser
+1. Dependencies (`signum-smartc-testbed@^1.2.0`, `@vitest/expect`, `chai`) and the
+   virtual `fs` / `path` modules over a VFS snapshot; prove a contract loads and runs
+   in the browser
 2. Runner core: registry, virtual modules, test-api, expect (+ bun tests, no UI)
 3. Worker, client, main-thread watchdog, sourcemap stack mapping
 4. File-type wiring, starter template, Monaco TypeScript editor
