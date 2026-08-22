@@ -220,13 +220,21 @@ routes `FileTypes.Test` to `TestFileEditor`. A hand-created test starts from
 
 ```ts
 import { describe, it, expect, beforeEach } from "vitest";
-import { SimulatorTestbed } from "signum-smartc-testbed";
+import { SimulatorTestbed, type TransactionObj } from "signum-smartc-testbed";
 import ContractCode from "../counter.smart.c?raw";
+
+const Scenario: TransactionObj[] = [
+  { blockheight: 1, amount: 1_0000_0000n, sender: 10n, recipient: 1n },
+];
 
 describe("Counter", () => {
   let testbed: SimulatorTestbed;
   beforeEach(() => {
     testbed = new SimulatorTestbed(Scenario).loadContract(ContractCode).runScenario();
+  });
+
+  it("activates", () => {
+    expect(testbed.getContractMemoryValue("counter")).toBe(0n);
   });
 });
 ```
