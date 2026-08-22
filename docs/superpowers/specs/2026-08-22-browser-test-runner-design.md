@@ -119,7 +119,8 @@ here.
    with durations.
 4. **Timeouts are enforced by the main thread, not the worker.** A synchronous
    infinite loop in a contract blocks the worker's own timers, so only an outside
-   watchdog can recover. On expiry the client terminates the worker and marks the
+   watchdog can recover. The default budget is 5s per test, settable per run from the
+   toolbar. On expiry the client terminates the worker and marks the
    test named by the most recent `test:start` as timed out.
 5. Failures carry `message`, `expected`, `actual` and a stack. The client maps stack
    frames back to `.test.ts` line/column through the sourcemap.
@@ -141,8 +142,9 @@ Two deltas to close:
 - `ScenarioTx` gains an optional `messageHex`. The testbed's `asHexMessage` path is
   common and today's scenario format only carries `message` (text).
 - The testbed never pre-funds accounts while `ScSimulatorEngine.submitScenario` does.
-  The generated scenario funds each sender with its total outgoing amount plus a
-  margin, so replay does not fail on negative balances.
+  The generated scenario funds each sender with its total outgoing amount plus
+  1 SIGNA (`1_0000_0000` NQT) of headroom, so replay does not fail on negative
+  balances.
 
 The replay reproduces the **transaction stream, not the JS control flow** — assertions
 do not re-evaluate while stepping. For debugging a contract, that is the intent.
