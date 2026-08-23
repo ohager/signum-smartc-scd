@@ -137,7 +137,11 @@ export function TestFileEditor({ file }: Props) {
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={40} minSize={20}>
-          <TestResultsPanel state={state} onRevealLine={revealLine} onDebug={() => setDebugging(true)} />
+          <TestResultsPanel
+            state={state}
+            onRevealLine={revealLine}
+            onDebug={recording?.contractSource ? () => setDebugging(true) : undefined}
+          />
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>

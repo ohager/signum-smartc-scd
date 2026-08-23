@@ -101,7 +101,9 @@ export function TestResultsPanel({
           {state.durationMs !== undefined && (
             <span className="text-muted-foreground">{state.durationMs}ms</span>
           )}
-          {onDebug && state.recordings && Object.keys(state.recordings).length > 0 && (
+          {/* The owner decides whether this run is debuggable; a recording without a
+              contract source is not, so it passes no callback rather than a dead button. */}
+          {onDebug && (
             <button type="button" onClick={onDebug} className="flex items-center gap-1 hover:underline">
               <Bug className="h-3.5 w-3.5" /> Debug
             </button>
