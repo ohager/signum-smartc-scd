@@ -17,7 +17,7 @@ describe("createTraceSink", () => {
       values: ["2n"],
       count: 1,
       name: "counter",
-      detail: "2n",
+      detail: { kind: "leaf", text: "2n" },
     });
   });
 
@@ -101,7 +101,13 @@ describe("value detail", () => {
     const sink = createTraceSink();
     sink.value(FILE, 7, "account", { id: 10n, balance: 5n });
     const { trace } = sink.endTest();
-    expect(trace[FILE][7].detail).toBe("{\n  id: 10n,\n  balance: 5n\n}");
+    expect(trace[FILE][7].detail).toEqual({
+      kind: "object",
+      entries: [
+        { key: "id", value: { kind: "leaf", text: "10n" } },
+        { key: "balance", value: { kind: "leaf", text: "5n" } },
+      ],
+    });
   });
 
   it("keeps the detail of the LAST value, matching what the inline text shows", () => {
@@ -109,7 +115,10 @@ describe("value detail", () => {
     sink.value(FILE, 7, "r", { n: 1n });
     sink.value(FILE, 7, "r", { n: 2n });
     const { trace } = sink.endTest();
-    expect(trace[FILE][7].detail).toBe("{\n  n: 2n\n}");
+    expect(trace[FILE][7].detail).toEqual({
+      kind: "object",
+      entries: [{ key: "n", value: { kind: "leaf", text: "2n" } }],
+    });
   });
 
   it("keeps one detail per line, not one per value", () => {
@@ -117,7 +126,7 @@ describe("value detail", () => {
     const sink = createTraceSink({ valuesPerLine: 2 });
     for (let n = 1; n <= 50; n++) sink.value(FILE, 7, "r", BigInt(n));
     const { trace } = sink.endTest();
-    expect(trace[FILE][7].detail).toBe("50n");
+    expect(trace[FILE][7].detail).toEqual({ kind: "leaf", text: "50n" });
   });
 
   it("goes deeper in the detail than the inline text does", () => {
@@ -125,7 +134,8 @@ describe("value detail", () => {
     sink.value(FILE, 7, "deep", { a: { b: { c: { d: 1n } } } });
     const { trace } = sink.endTest();
     expect(trace[FILE][7].values[0]).toContain("[Object]");
-    expect(trace[FILE][7].detail).toContain("d: 1n");
+    // The tree reaches all the way down, where the inline text gave up.
+    expect(JSON.stringify(trace[FILE][7].detail)).toContain('"text":"1n"');
   });
 
   it("has no detail for a line that only completed an assertion", () => {

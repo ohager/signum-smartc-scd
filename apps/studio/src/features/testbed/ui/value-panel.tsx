@@ -1,5 +1,6 @@
 import { useAtomValue } from "jotai";
 import { inspectedValueAtom } from "../test-trace-store";
+import { ValueTree } from "./value-tree";
 
 /**
  * The full value behind an inline annotation.
@@ -40,7 +41,9 @@ export function ValuePanel() {
 
       <div className="flex-1 overflow-auto">
         {trace.detail !== undefined ? (
-          <pre className="whitespace-pre px-3 py-2 font-mono text-xs">{trace.detail}</pre>
+          <div className="px-3 py-2 font-mono text-xs">
+            <ValueTree node={trace.detail} />
+          </div>
         ) : (
           <p className="p-4 text-sm text-muted-foreground">
             This line completed an assertion but bound no value.
