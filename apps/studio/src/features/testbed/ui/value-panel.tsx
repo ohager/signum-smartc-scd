@@ -46,8 +46,10 @@ export function ValuePanel() {
   }, []);
 
   /**
-   * Opens on the shape of the value rather than all of it: the top level stays
-   * expanded and everything nested inside it starts folded.
+   * Opens the value part-expanded: four levels deep, then folded.
+   *
+   * Tuned against a real testbed, which is deep enough that folding everything
+   * below the root hides the part you came to read.
    *
    * Deferred a tick because the folding ranges are computed from the model
    * after it is set, so triggering during the same turn finds nothing to fold.
@@ -55,7 +57,7 @@ export function ValuePanel() {
   useEffect(() => {
     if (!sourceText) return;
     const timer = setTimeout(() => {
-      editorRef.current?.trigger("value-panel", "editor.foldLevel2", null);
+      editorRef.current?.trigger("value-panel", "editor.foldLevel4", null);
     }, 0);
     return () => clearTimeout(timer);
   }, [sourceText]);
