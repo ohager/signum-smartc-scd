@@ -11,15 +11,28 @@ import { createLineResolver } from "./line-resolver";
 import { detectWrapperOffset } from "./source-position";
 import { tracesAtom, activeTestIdAtom, resetTracesAtom } from "./test-trace-store";
 
+/**
+ * Named `TestRunOptions`, not `RunOptions`: `runner-client.ts` already exports a
+ * `RunOptions` for the watchdog budget, and two unrelated types under one name
+ * in the same feature is a trap.
+ */
+export interface TestRunOptions {
+  /** One `*.test.ts` to run. Omitted, every test file in the project runs. */
+  entryPath?: string;
+  /** Run on the main thread so DevTools can attach. See `main-thread-transport.ts`. */
+  debug?: boolean;
+  /** Run only the test at this name path, e.g. `["Counter", "counts up"]`. */
+  filter?: string[];
+}
+
 export interface UseTestRun {
   state: RunState;
   isRunning: boolean;
-  /**
-   * Runs one test file, or every `*.test.ts` in the project when `entryPath` is
-   * omitted. When `debug` is true, the run executes on the main thread instead
-   * of a worker, so DevTools can attach — see `main-thread-transport.ts`.
-   */
-  run: (monaco: typeof Monaco, projectFolderId: string, entryPath?: string, debug?: boolean) => Promise<void>;
+  run: (
+    monaco: typeof Monaco,
+    projectFolderId: string,
+    options?: TestRunOptions,
+  ) => Promise<void>;
 }
 
 export function useTestRun(): UseTestRun {
@@ -33,7 +46,8 @@ export function useTestRun(): UseTestRun {
   const resetTraces = useSetAtom(resetTracesAtom);
 
   const run = useCallback(
-    async (monaco: typeof Monaco, projectFolderId: string, entryPath?: string, debug?: boolean) => {
+    async (monaco: typeof Monaco, projectFolderId: string, options: TestRunOptions = {}) => {
+      const { entryPath, debug, filter } = options;
       setIsRunning(true);
       latest.current = initialRunState();
       setState(latest.current);
@@ -54,7 +68,7 @@ export function useTestRun(): UseTestRun {
           : Object.keys(snapshot.tsFiles).filter(isTestEntry);
 
         await runTests(
-          { modules, rawFiles: snapshot.rawFiles, entryPaths },
+          { modules, rawFiles: snapshot.rawFiles, entryPaths, filter },
           debug ? createMainThreadTransport() : createWorkerTransport(),
           (event) => {
             const enriched =

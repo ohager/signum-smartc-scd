@@ -106,13 +106,16 @@ export function TestFileEditor({ file }: Props) {
     editor.focus();
   }, []);
 
-  const runFile = useCallback(async () => {
-    const monaco = monacoRef.current;
-    if (!monaco) return;
-    // Save first: the runner reads the project from the file system, not the editor buffer.
-    await fs.saveFile(file.metadata.id, codeRef.current);
-    await run(monaco, projectId, file.metadata.path, debugRun);
-  }, [fs, file.metadata.id, file.metadata.path, projectId, run, debugRun]);
+  const runFile = useCallback(
+    async (filter?: string[]) => {
+      const monaco = monacoRef.current;
+      if (!monaco) return;
+      // Save first: the runner reads the project from the file system, not the editor buffer.
+      await fs.saveFile(file.metadata.id, codeRef.current);
+      await run(monaco, projectId, { entryPath: file.metadata.path, debug: debugRun, filter });
+    },
+    [fs, file.metadata.id, file.metadata.path, projectId, run, debugRun],
+  );
 
   useEffect(() => {
     addAction({
