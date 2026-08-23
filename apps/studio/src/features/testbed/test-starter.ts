@@ -1,8 +1,8 @@
 /**
  * Contents of a new `.test.ts`.
  *
- * Tests live in a `tests/` folder, so the contract is one level up — hence the
- * `../` in the `?raw` import. `contractFileName` is null when no contract sits
+ * `contractFileName` is resolved from the new file's own folder, so the import
+ * is always a sibling path. It is null when no contract sits
  * beside the new file, in which case it must still be runnable rather than
  * importing something that does not exist.
  */
@@ -14,7 +14,7 @@ export function testStarter(fileName: string, contractFileName: string | null): 
 
 // Point this at your contract to start testing it, then load it with
 // new SimulatorTestbed(Scenario).loadContract(ContractCode).runScenario():
-// import ContractCode from "../my-contract.smart.c?raw";
+// import ContractCode from "./my-contract.smart.c?raw";
 
 describe("${suite}", () => {
   it("needs a contract to test", () => {
@@ -26,7 +26,7 @@ describe("${suite}", () => {
 
   return `import { describe, it, expect, beforeEach } from "vitest";
 import { SimulatorTestbed, type TransactionObj } from "signum-smartc-testbed";
-import ContractCode from "../${contractFileName}?raw";
+import ContractCode from "./${contractFileName}?raw";
 
 // Transactions sent to the contract. Block 1 activates it.
 const Scenario: TransactionObj[] = [

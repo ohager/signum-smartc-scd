@@ -4,8 +4,9 @@ import { acceptedFileType, FileTypes } from "@/features/project/filetype-icons";
 
 describe("testStarter", () => {
   it("imports the named contract with a ?raw import", () => {
+    // Sibling path: the dialog only finds contracts in the new file's own folder.
     expect(testStarter("counter.test.ts", "counter.smart.c")).toContain(
-      'import ContractCode from "../counter.smart.c?raw"',
+      'import ContractCode from "./counter.smart.c?raw"',
     );
   });
 
