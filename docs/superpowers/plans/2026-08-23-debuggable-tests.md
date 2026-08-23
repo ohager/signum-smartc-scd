@@ -660,7 +660,22 @@ export interface TestRow {
     }
 ```
 
-3. In the `test:end` case, the fallback that synthesises a row from an id now only fires when no plan arrived. Leave it in place as a safety net, but add a comment saying so:
+3. In the `test:start` case, reuse the planned row instead of pushing a second one — a
+planned run already has a row for that id, and appending would orphan it:
+
+```ts
+    case "test:start": {
+      const at = state.index[event.id];
+      if (at !== undefined) {
+        const rows = [...state.rows];
+        rows[at] = { ...rows[at], name: event.name, path: event.path, file: event.file, status: "running" };
+        return { ...state, status: "running", rows };
+      }
+      // …existing append path, for runs with no plan…
+    }
+```
+
+4. In the `test:end` case, the fallback that synthesises a row from an id now only fires when no plan arrived. Leave it in place as a safety net, but add a comment saying so:
 
 ```ts
         // Only reached when no run:plan preceded this — a planned run already
