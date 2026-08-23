@@ -111,6 +111,16 @@ export async function runSuite(
 ): Promise<void> {
   const onlyMode = hasOnly(root);
 
+  /** A suite runs when nothing above skipped it and, in only-mode, it is or contains a focused test. */
+  function isSuiteSkipped(node: Suite, skipped: boolean, insideOnly: boolean): boolean {
+    return skipped || node.mode === "skip" || (onlyMode && !insideOnly && !hasOnly(node));
+  }
+
+  /** A test runs when nothing above skipped it and, in only-mode, it is focused or inside a focused suite. */
+  function isTestSkipped(test: TestCase, skipped: boolean, withinOnly: boolean): boolean {
+    return skipped || test.mode === "skip" || (onlyMode && !withinOnly && test.mode !== "only");
+  }
+
   // Reports every test in `node`'s subtree as failed with `failure`, without running
   // anything — used when the suite's own `beforeAll` threw, so none of it ever ran.
   // Respects the same skip/only filtering a normal run would have applied.
@@ -119,7 +129,7 @@ export async function runSuite(
       emit({ type: "test:end", id: test.id, status: "todo", durationMs: 0 });
       return;
     }
-    if (skipped || test.mode === "skip" || (onlyMode && !withinOnly && test.mode !== "only")) {
+    if (isTestSkipped(test, skipped, withinOnly)) {
       emit({ type: "test:end", id: test.id, status: "skipped", durationMs: 0 });
       return;
     }
@@ -129,7 +139,7 @@ export async function runSuite(
 
   function failSuite(node: Suite, skipped: boolean, withinOnly: boolean, failure: TestFailure) {
     const insideOnly = withinOnly || node.mode === "only";
-    const suiteSkipped = skipped || node.mode === "skip" || (onlyMode && !insideOnly && !hasOnly(node));
+    const suiteSkipped = isSuiteSkipped(node, skipped, insideOnly);
     for (const child of node.children) {
       if (child.kind === "suite") failSuite(child, suiteSkipped, insideOnly, failure);
       else failTest(child, suiteSkipped, insideOnly, failure);
@@ -145,7 +155,7 @@ export async function runSuite(
   ) {
     // `describe.only` promotes every test inside it, so carry that down the tree.
     const insideOnly = withinOnly || node.mode === "only";
-    const suiteSkipped = skipped || node.mode === "skip" || (onlyMode && !insideOnly && !hasOnly(node));
+    const suiteSkipped = isSuiteSkipped(node, skipped, insideOnly);
 
     // A throwing `beforeAll` must not reject `runSuite` (that would strand sibling
     // suites and the final `run:end`). Instead, every test in this subtree is
@@ -204,7 +214,7 @@ export async function runSuite(
       emit({ type: "test:end", id: test.id, status: "todo", durationMs: 0 });
       return;
     }
-    if (skipped || test.mode === "skip" || (onlyMode && !withinOnly && test.mode !== "only")) {
+    if (isTestSkipped(test, skipped, withinOnly)) {
       emit({ type: "test:end", id: test.id, status: "skipped", durationMs: 0 });
       return;
     }
