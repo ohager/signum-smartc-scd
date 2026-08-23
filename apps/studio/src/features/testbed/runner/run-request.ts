@@ -90,7 +90,7 @@ export async function runRequest(
         // `runSuite` should never reject after the hook-failure-containment fix, but
         // `run:end` is the UI's only signal that the run finished, and a future bug
         // in the runner must not be able to strand it — hence this defensive catch.
-        await runSuite(root, entry, emitWithTrace);
+        await runSuite(root, entry, emitWithTrace, request.filter);
       } catch (error) {
         const e = error as Error;
         emitTracked({ type: "collect:error", file: entry, message: e.message, stack: e.stack });

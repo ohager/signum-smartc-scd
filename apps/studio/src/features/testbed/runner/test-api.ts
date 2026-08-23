@@ -119,6 +119,7 @@ export async function runSuite(
   root: Suite,
   file: string,
   emit: (event: TestEvent) => void,
+  filter?: string[],
 ): Promise<void> {
   // Announce every collected test before running, so the UI can show them all
   // as pending — including skipped and todo tests, which never emit test:start.
@@ -133,15 +134,33 @@ export async function runSuite(
     })),
   });
 
-  const onlyMode = hasOnly(root);
+  // An explicit filter is a more specific request than `.only` in the source,
+  // so it wins outright rather than intersecting.
+  const onlyMode = filter === undefined && hasOnly(root);
+
+  /** Whether `path` is a prefix of, or equal to, the filter. */
+  function leadsToFilter(path: string[]): boolean {
+    if (!filter) return true;
+    return path.length <= filter.length && path.every((part, at) => part === filter[at]);
+  }
+
+  /** Whether `path` is the filtered test itself. */
+  function isFilterTarget(path: string[]): boolean {
+    if (!filter) return true;
+    return path.length === filter.length && leadsToFilter(path);
+  }
 
   /** A suite runs when nothing above skipped it and, in only-mode, it is or contains a focused test. */
   function isSuiteSkipped(node: Suite, skipped: boolean, insideOnly: boolean): boolean {
+    if (!leadsToFilter(node.path)) return true;
     return skipped || node.mode === "skip" || (onlyMode && !insideOnly && !hasOnly(node));
   }
 
   /** A test runs when nothing above skipped it and, in only-mode, it is focused or inside a focused suite. */
   function isTestSkipped(test: TestCase, skipped: boolean, withinOnly: boolean): boolean {
+    // The filter clause comes first, but `.skip` is still honoured below it: an
+    // explicit annotation in the source outranks a click in the gutter.
+    if (!isFilterTarget(test.path)) return true;
     return skipped || test.mode === "skip" || (onlyMode && !withinOnly && test.mode !== "only");
   }
 

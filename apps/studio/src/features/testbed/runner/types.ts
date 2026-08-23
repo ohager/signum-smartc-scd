@@ -15,6 +15,13 @@ export interface RunRequest {
   rawFiles: Record<string, string>;
   /** VFS paths of the test files to run. */
   entryPaths: string[];
+  /**
+   * Run only the test at this name path, e.g. `["Counter", "counts up"]`.
+   *
+   * A name path rather than a test id: ids are collection-order counters, so
+   * inserting a test above shifts every id below it.
+   */
+  filter?: string[];
 }
 
 export type TestMode = "run" | "skip" | "todo" | "only";
