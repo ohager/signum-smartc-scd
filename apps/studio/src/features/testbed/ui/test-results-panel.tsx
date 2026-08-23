@@ -13,22 +13,43 @@ const STATUS_ICON: Record<TestRow["status"], ReactNode> = {
   pending: <MinusCircle className="h-4 w-4 text-muted-foreground" />,
 };
 
-function TestRowView({ row, onRevealLine }: { row: TestRow; onRevealLine?: (line: number) => void }) {
+function TestRowView({
+  row,
+  onRevealLine,
+  onSelectTest,
+  isActive,
+}: {
+  row: TestRow;
+  onRevealLine?: (line: number) => void;
+  onSelectTest?: (id: string) => void;
+  isActive?: boolean;
+}) {
   return (
-    <div className="border-b border-border/50 px-3 py-2 text-sm">
+    <div
+      className={`border-b border-border/50 px-3 py-2 text-sm${isActive ? " bg-muted/40" : ""}`}
+    >
       <div className="flex items-center gap-2">
         {STATUS_ICON[row.status]}
         {row.line !== undefined && onRevealLine ? (
           <button
             type="button"
-            onClick={() => onRevealLine(row.line!)}
+            onClick={() => {
+              onSelectTest?.(row.id);
+              onRevealLine(row.line!);
+            }}
             className="truncate text-left hover:underline"
             title={`Go to line ${row.line}`}
           >
             {row.path.length ? row.path.join(" › ") : row.name}
           </button>
         ) : (
-          <span className="truncate">{row.path.length ? row.path.join(" › ") : row.name}</span>
+          <button
+            type="button"
+            onClick={() => onSelectTest?.(row.id)}
+            className="truncate text-left hover:underline"
+          >
+            {row.path.length ? row.path.join(" › ") : row.name}
+          </button>
         )}
         {row.durationMs !== undefined && (
           <span className="ml-auto shrink-0 text-xs text-muted-foreground">{row.durationMs}ms</span>
@@ -73,10 +94,14 @@ export function TestResultsPanel({
   state,
   onRevealLine,
   onDebug,
+  onSelectTest,
+  activeTestId,
 }: {
   state: RunState;
   onRevealLine?: (line: number) => void;
   onDebug?: () => void;
+  onSelectTest?: (id: string) => void;
+  activeTestId?: string | null;
 }) {
   const { counts } = state;
 
@@ -123,7 +148,13 @@ export function TestResultsPanel({
         ))}
 
         {state.rows.map((row) => (
-          <TestRowView key={row.id} row={row} onRevealLine={onRevealLine} />
+          <TestRowView
+            key={row.id}
+            row={row}
+            onRevealLine={onRevealLine}
+            onSelectTest={onSelectTest}
+            isActive={row.id === activeTestId}
+          />
         ))}
 
         {state.logs.length > 0 && (

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
 import Editor, { type OnMount } from "@monaco-editor/react";
 import type * as Monaco from "monaco-editor";
 import { useTheme } from "next-themes";
@@ -17,6 +18,8 @@ import { useTestRun } from "../use-test-run";
 import { toDebugScenario } from "../to-debug-scenario";
 import { TestResultsPanel } from "./test-results-panel";
 import { useTestDecorations } from "./use-test-decorations";
+import { useValueDecorations } from "./use-value-decorations";
+import { fileTraceAtom, activeTestIdAtom } from "../test-trace-store";
 
 interface Props {
   file: File;
@@ -34,10 +37,16 @@ export function TestFileEditor({ file }: Props) {
   codeRef.current = code;
   const { state, isRunning, run } = useTestRun();
   useTestDecorations(editorRef.current, state.rows);
+
+  const traceForFile = useAtomValue(fileTraceAtom);
+  const setActiveTestId = useSetAtom(activeTestIdAtom);
+  const activeTestId = useAtomValue(activeTestIdAtom);
+  useValueDecorations(editorRef.current, monacoRef.current, traceForFile(file.metadata.path));
   const [debugging, setDebugging] = useState(false);
   const [debugRun, setDebugRun] = useState(false);
 
   const recording = state.recordings?.[file.metadata.path];
+  const activeRow = state.rows.find((row) => row.id === activeTestId);
 
   // `h-full` does not resolve here: PageContent (src/components/ui/page.tsx)
   // is a plain block div, not a flex container, so a percentage height on its
@@ -126,16 +135,32 @@ export function TestFileEditor({ file }: Props) {
     <div ref={containerRef} style={{ height: panelHeight }}>
       <ResizablePanelGroup direction="horizontal" className="h-full">
         <ResizablePanel defaultSize={60} minSize={30}>
-          <Editor
-            height="100%"
-            language="typescript"
-            path={"file://" + file.metadata.path}
-            theme={theme === "dark" ? "vs-dark" : "light"}
-            value={code}
-            onChange={(value) => setCode(value ?? "")}
-            onMount={onMount}
-            options={{ minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false, glyphMargin: true }}
-          />
+          <div className="flex h-full flex-col">
+            {activeRow && (
+              <div className="shrink-0 border-b border-border px-3 py-1 text-xs text-muted-foreground">
+                showing values from:{" "}
+                {activeRow.path.length ? activeRow.path.join(" › ") : activeRow.name}
+                {activeRow.traceTruncated && " — trace truncated, some values were not recorded"}
+              </div>
+            )}
+            <div className="min-h-0 flex-1">
+              <Editor
+                height="100%"
+                language="typescript"
+                path={"file://" + file.metadata.path}
+                theme={theme === "dark" ? "vs-dark" : "light"}
+                value={code}
+                onChange={(value) => setCode(value ?? "")}
+                onMount={onMount}
+                options={{
+                  minimap: { enabled: false },
+                  fontSize: 13,
+                  scrollBeyondLastLine: false,
+                  glyphMargin: true,
+                }}
+              />
+            </div>
+          </div>
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={40} minSize={20}>
@@ -155,6 +180,8 @@ export function TestFileEditor({ file }: Props) {
                 state={state}
                 onRevealLine={revealLine}
                 onDebug={recording?.contractSource ? () => setDebugging(true) : undefined}
+                activeTestId={activeTestId}
+                onSelectTest={setActiveTestId}
               />
             </div>
           </div>
