@@ -1,5 +1,7 @@
-import { resolveFrom } from "./resolve-path";
+import { dirnameOf, resolveFrom } from "./resolve-path";
 import type { CompiledModule } from "./types";
+
+const RAW_SUFFIX = "?raw";
 
 export interface RegistryOptions {
   /** VFS path → transpiled CommonJS. */
@@ -13,6 +15,26 @@ export interface RegistryOptions {
 export function createRegistry(opts: RegistryOptions) {
   const cache = new Map<string, { exports: any }>();
 
+  function siblingsOf(path: string): string[] {
+    const dir = dirnameOf(path);
+    return Object.keys(opts.rawFiles).filter((p) => dirnameOf(p) === dir);
+  }
+
+  function loadRaw(importer: string, specifier: string) {
+    const bare = specifier.slice(0, -RAW_SUFFIX.length);
+    const path = bare.startsWith(".") ? resolveFrom(importer, bare) : bare;
+    const text = opts.rawFiles[path];
+    if (text === undefined) {
+      const siblings = siblingsOf(path);
+      throw new Error(
+        `Cannot find file "${path}" imported from "${importer}".` +
+          (siblings.length ? ` Files in that folder: ${siblings.join(", ")}` : ""),
+      );
+    }
+    // TS's `__importDefault` checks `__esModule` before taking `.default`.
+    return { __esModule: true, default: text };
+  }
+
   function resolveModulePath(importer: string, specifier: string): string {
     const base = resolveFrom(importer, specifier);
     for (const candidate of [base, base + ".ts", base + "/index.ts"]) {
@@ -22,6 +44,7 @@ export function createRegistry(opts: RegistryOptions) {
   }
 
   function requireFrom(importer: string, specifier: string): unknown {
+    if (specifier.endsWith(RAW_SUFFIX)) return loadRaw(importer, specifier);
     if (!specifier.startsWith(".")) {
       if (Object.hasOwn(opts.virtuals, specifier)) return opts.virtuals[specifier];
       throw new Error(

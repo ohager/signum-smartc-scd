@@ -95,4 +95,45 @@ describe("module-registry", () => {
     });
     expect(() => registry.require("/proj/a.ts")).toThrow(/toString.*Available: vitest/s);
   });
+
+  it("serves a ?raw import as the file text", () => {
+    const registry = createRegistry({
+      modules: {
+        "/proj/tests/a.ts": {
+          js: `const c = require("../counter.smart.c?raw"); exports.code = c.default;`,
+        },
+      },
+      rawFiles: { "/proj/counter.smart.c": "#program name Counter" },
+      virtuals: {},
+    });
+    expect((registry.require("/proj/tests/a.ts") as any).code).toBe("#program name Counter");
+  });
+
+  it("marks the ?raw module as __esModule so TS default-interop works", () => {
+    const registry = createRegistry({
+      modules: {
+        "/proj/a.ts": {
+          js: `var __importDefault = (this && this.__importDefault) || function (mod) {
+                 return (mod && mod.__esModule) ? mod : { "default": mod };
+               };
+               const c = __importDefault(require("./x.smart.c?raw"));
+               exports.code = c.default;`,
+        },
+      },
+      rawFiles: { "/proj/x.smart.c": "SOURCE" },
+      virtuals: {},
+    });
+    expect((registry.require("/proj/a.ts") as any).code).toBe("SOURCE");
+  });
+
+  it("lists sibling files when a ?raw import misses", () => {
+    const registry = createRegistry({
+      modules: { "/proj/tests/a.ts": { js: `require("../typo.smart.c?raw");` } },
+      rawFiles: { "/proj/counter.smart.c": "x", "/proj/token.smart.c": "y" },
+      virtuals: {},
+    });
+    expect(() => registry.require("/proj/tests/a.ts")).toThrow(
+      /\/proj\/typo\.smart\.c.*counter\.smart\.c.*token\.smart\.c/s,
+    );
+  });
 });
