@@ -82,18 +82,39 @@ export function describeValue(value: unknown, options: DescribeOptions = {}): Va
   return walk(value, 0);
 }
 
-const plural = (count: number, noun: string) => `${count} ${noun}${count === 1 ? "" : "s"}`;
+const INDENT = "  ";
+const IDENTIFIER = /^[A-Za-z_$][A-Za-z0-9_$]*$/;
 
-/** One line standing in for a node while it is collapsed. */
-export function summarize(node: ValueNode): string {
+/**
+ * Renders a node as indented JavaScript-literal source, for display in a
+ * read-only editor.
+ *
+ * JavaScript rather than JSON because contract values are full of bigints:
+ * `amount: 200000000n` is a literal here, where JSON would have to lie about
+ * the type or quote it into a string. A class name becomes a leading comment,
+ * so the text stays valid and the editor highlights it as an aside.
+ *
+ * Empty objects and arrays stay on one line — there is nothing to fold, and a
+ * fold marker on `{}` is just noise.
+ */
+export function toSourceText(node: ValueNode, depth = 0): string {
   if (node.kind === "leaf") return node.text;
 
+  const pad = INDENT.repeat(depth);
+  const inner = INDENT.repeat(depth + 1);
+
   if (node.kind === "array") {
-    return node.items.length === 0 ? "[]" : `[ … ${plural(node.items.length, "item")} ]`;
+    if (node.items.length === 0) return "[]";
+    const items = node.items.map((item) => `${inner}${toSourceText(item, depth + 1)},`);
+    return `[\n${items.join("\n")}\n${pad}]`;
   }
 
-  const prefix = node.ctor ? `${node.ctor} ` : "";
-  return node.entries.length === 0
-    ? `${prefix}{}`
-    : `${prefix}{ … ${plural(node.entries.length, "key")} }`;
+  const prefix = node.ctor ? `/* ${node.ctor} */ ` : "";
+  if (node.entries.length === 0) return `${prefix}{}`;
+
+  const entries = node.entries.map(({ key, value }) => {
+    const name = IDENTIFIER.test(key) ? key : JSON.stringify(key);
+    return `${inner}${name}: ${toSourceText(value, depth + 1)},`;
+  });
+  return `${prefix}{\n${entries.join("\n")}\n${pad}}`;
 }

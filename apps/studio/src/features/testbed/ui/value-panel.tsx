@@ -1,16 +1,23 @@
 import { useAtomValue } from "jotai";
+import Editor from "@monaco-editor/react";
+import { useTheme } from "next-themes";
 import { inspectedValueAtom } from "../test-trace-store";
-import { ValueTree } from "./value-tree";
+import { toSourceText } from "../value-node";
 
 /**
- * The full value behind an inline annotation.
+ * The full value behind an inline annotation, in a read-only editor.
  *
- * This replaces the decoration hover, which could never be made reliable: the
+ * A real editor rather than a bespoke tree widget: it brings folding, find,
+ * selection and copy for free, and a captured contract value is often large
+ * enough that searching it matters more than clicking through it.
+ *
+ * This replaces the decoration hover, which could never be made reliable — the
  * annotation is injected text sitting outside its decoration's zero-width
  * range, so Monaco frequently had nothing to hover-test against.
  */
 export function ValuePanel() {
   const inspected = useAtomValue(inspectedValueAtom);
+  const { theme } = useTheme();
 
   if (!inspected) {
     return (
@@ -39,35 +46,54 @@ export function ValuePanel() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto">
+      <div className="min-h-0 flex-1">
         {trace.detail !== undefined ? (
-          <div className="px-3 py-2 font-mono text-xs">
-            <ValueTree node={trace.detail} />
-          </div>
+          <Editor
+            height="100%"
+            // JavaScript, not JSON: captured values are full of bigints, and
+            // `200000000n` is a literal here rather than a quoted lie.
+            language="javascript"
+            theme={theme === "dark" ? "vs-dark" : "light"}
+            value={toSourceText(trace.detail)}
+            options={{
+              readOnly: true,
+              domReadOnly: true,
+              minimap: { enabled: false },
+              fontSize: 12,
+              lineNumbers: "off",
+              folding: true,
+              wordWrap: "on",
+              renderLineHighlight: "none",
+              overviewRulerLanes: 0,
+              scrollBeyondLastLine: false,
+              automaticLayout: true,
+              contextmenu: false,
+            }}
+          />
         ) : (
           <p className="p-4 text-sm text-muted-foreground">
             This line completed an assertion but bound no value.
           </p>
         )}
-
-        {trace.count > 1 && (
-          <div className="border-t border-border px-3 py-2">
-            <div className="mb-1 text-xs text-muted-foreground">
-              {dropped > 0
-                ? `Each run, showing the last ${trace.values.length} of ${trace.count}`
-                : "Each run"}
-            </div>
-            <ol className="font-mono text-xs">
-              {trace.values.map((value, index) => (
-                <li key={index} className="flex gap-2">
-                  <span className="shrink-0 text-muted-foreground">{dropped + index + 1}:</span>
-                  <span className="break-all">{value}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-        )}
       </div>
+
+      {trace.count > 1 && (
+        <div className="max-h-40 shrink-0 overflow-auto border-t border-border px-3 py-2">
+          <div className="mb-1 text-xs text-muted-foreground">
+            {dropped > 0
+              ? `Each run, showing the last ${trace.values.length} of ${trace.count}`
+              : "Each run"}
+          </div>
+          <ol className="font-mono text-xs">
+            {trace.values.map((value, index) => (
+              <li key={index} className="flex gap-2">
+                <span className="shrink-0 text-muted-foreground">{dropped + index + 1}:</span>
+                <span className="break-all">{value}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
     </div>
   );
 }

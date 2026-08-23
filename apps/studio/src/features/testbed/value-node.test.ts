@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { describeValue, summarize } from "./value-node";
+import { describeValue, toSourceText } from "./value-node";
 
 describe("describeValue", () => {
   it("describes a primitive as a leaf", () => {
@@ -110,33 +110,42 @@ describe("describeValue", () => {
   });
 });
 
-describe("summarize", () => {
-  it("summarises an object by key count", () => {
-    expect(summarize(describeValue({ a: 1n, b: 2n }))).toBe("{ … 2 keys }");
+describe("toSourceText", () => {
+  it("renders a leaf as itself", () => {
+    expect(toSourceText(describeValue(5n))).toBe("5n");
   });
 
-  it("uses the singular for one key", () => {
-    expect(summarize(describeValue({ a: 1n }))).toBe("{ … 1 key }");
+  it("renders an object as an indented literal", () => {
+    expect(toSourceText(describeValue({ id: 10n, balance: 5n }))).toBe(
+      "{\n  id: 10n,\n  balance: 5n,\n}",
+    );
   });
 
-  it("includes the constructor name", () => {
+  it("indents nested structures", () => {
+    expect(toSourceText(describeValue({ a: { b: 1n } }))).toBe("{\n  a: {\n    b: 1n,\n  },\n}");
+  });
+
+  it("renders an array with one element per line", () => {
+    expect(toSourceText(describeValue([1n, 2n]))).toBe("[\n  1n,\n  2n,\n]");
+  });
+
+  it("keeps empty structures on one line, since there is nothing to fold", () => {
+    expect(toSourceText(describeValue({}))).toBe("{}");
+    expect(toSourceText(describeValue([]))).toBe("[]");
+  });
+
+  it("names a class instance in a comment, so the text stays valid JavaScript", () => {
     class Recorded {
       node = 1n;
     }
-    expect(summarize(describeValue(new Recorded()))).toBe("Recorded { … 1 key }");
+    expect(toSourceText(describeValue(new Recorded()))).toBe("/* Recorded */ {\n  node: 1n,\n}");
   });
 
-  it("summarises an array by length", () => {
-    expect(summarize(describeValue([1n, 2n]))).toBe("[ … 2 items ]");
-    expect(summarize(describeValue([1n]))).toBe("[ … 1 item ]");
+  it("quotes a key that is not a plain identifier", () => {
+    expect(toSourceText(describeValue({ "a-b": 1n }))).toBe('{\n  "a-b": 1n,\n}');
   });
 
-  it("shows an empty object or array in full", () => {
-    expect(summarize(describeValue({}))).toBe("{}");
-    expect(summarize(describeValue([]))).toBe("[]");
-  });
-
-  it("returns a leaf's own text", () => {
-    expect(summarize(describeValue(5n))).toBe("5n");
+  it("leaves a bigint as a literal rather than a string, which JSON could not", () => {
+    expect(toSourceText(describeValue({ amount: 200000000n }))).toContain("amount: 200000000n");
   });
 });
