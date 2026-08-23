@@ -1,5 +1,6 @@
 import type { ConsoleLevel, TestEvent, TestFailure, TestStatus } from "./runner/types";
 import type { TestRecording } from "./runner/recording";
+import type { TestTrace } from "./runner/trace";
 
 export interface LogLine {
   level: ConsoleLevel;
@@ -17,6 +18,10 @@ export interface TestRow {
   logs: LogLine[];
   /** 1-based line of the `it()` in the user's source, when it could be resolved. */
   line?: number;
+  /** Values captured while this test ran. */
+  trace?: TestTrace;
+  /** True when capture hit its budget and stopped. */
+  traceTruncated?: boolean;
 }
 
 export interface RunState {
@@ -129,6 +134,8 @@ export function reduceEvent(state: RunState, event: TestEvent): RunState {
         status: event.status,
         durationMs: event.durationMs,
         failure: event.failure,
+        trace: event.trace,
+        traceTruncated: event.traceTruncated,
       };
 
       return {

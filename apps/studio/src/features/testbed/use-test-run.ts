@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { useSetAtom } from "jotai";
 import type * as Monaco from "monaco-editor";
 import { FileSystem } from "@/lib/file-system";
 import { snapshotProject, isTestEntry } from "./project-snapshot";
@@ -8,6 +9,7 @@ import { createMainThreadTransport } from "./main-thread-transport";
 import { initialRunState, reduceEvent, type RunState } from "./test-run-model";
 import { createLineResolver } from "./line-resolver";
 import { detectWrapperOffset } from "./source-position";
+import { tracesAtom, activeTestIdAtom, resetTracesAtom } from "./test-trace-store";
 
 export interface UseTestRun {
   state: RunState;
@@ -26,11 +28,17 @@ export function useTestRun(): UseTestRun {
   // Events arrive faster than React commits, so fold against a ref, not state.
   const latest = useRef<RunState>(initialRunState());
 
+  const setTraces = useSetAtom(tracesAtom);
+  const setActiveTestId = useSetAtom(activeTestIdAtom);
+  const resetTraces = useSetAtom(resetTracesAtom);
+
   const run = useCallback(
     async (monaco: typeof Monaco, projectFolderId: string, entryPath?: string, debug?: boolean) => {
       setIsRunning(true);
       latest.current = initialRunState();
       setState(latest.current);
+      // A new run must never show the previous one's values.
+      resetTraces();
 
       try {
         const fs = FileSystem.getInstance();
@@ -72,6 +80,24 @@ export function useTestRun(): UseTestRun {
 
             latest.current = reduceEvent(latest.current, enriched as typeof event);
             setState(latest.current);
+
+            if (event.type === "test:end" && event.trace) {
+              const { id, trace } = event;
+              setTraces((current) => ({ ...current, [id]: trace }));
+              // Land on the first test that produced values, so something is
+              // shown without anyone clicking. A failure takes precedence, but
+              // that decision needs the whole run, so it is made at run:end.
+              setActiveTestId((current) => current ?? id);
+            }
+
+            if (event.type === "run:end") {
+              // Now that every result is known, prefer the first failure — that
+              // is almost always the test the user is here to look at.
+              const firstFailure = latest.current.rows.find(
+                (row) => row.status === "failed" || row.status === "timedout",
+              );
+              if (firstFailure) setActiveTestId(firstFailure.id);
+            }
           },
           // A debug run is paused at a breakpoint for as long as the user needs,
           // so the no-progress watchdog must not fire. It cannot be disabled with
@@ -94,7 +120,7 @@ export function useTestRun(): UseTestRun {
         setIsRunning(false);
       }
     },
-    [],
+    [resetTraces, setTraces, setActiveTestId],
   );
 
   return { state, isRunning, run };

@@ -158,3 +158,41 @@ describe("test-run-model", () => {
     expect(s.rows[0].line).toBe(12);
   });
 });
+
+describe("traces", () => {
+  it("carries a test's trace onto its row", () => {
+    const trace = { "/p/a.test.ts": { 3: { values: ["2n"], count: 1, name: "x" } } };
+    let state = initialRunState();
+    state = reduceEvent(state, {
+      type: "test:start",
+      id: "a#0",
+      name: "t",
+      path: ["t"],
+      file: "/p/a.test.ts",
+    });
+    state = reduceEvent(state, { type: "test:end", id: "a#0", status: "passed", durationMs: 1, trace });
+
+    expect(state.rows[0].trace).toEqual(trace);
+  });
+
+  it("records that a trace was truncated", () => {
+    let state = initialRunState();
+    state = reduceEvent(state, {
+      type: "test:start",
+      id: "a#0",
+      name: "t",
+      path: ["t"],
+      file: "/p/a.test.ts",
+    });
+    state = reduceEvent(state, {
+      type: "test:end",
+      id: "a#0",
+      status: "passed",
+      durationMs: 1,
+      trace: {},
+      traceTruncated: true,
+    });
+
+    expect(state.rows[0].traceTruncated).toBe(true);
+  });
+});
