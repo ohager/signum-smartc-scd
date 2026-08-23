@@ -40,7 +40,7 @@ Task 1 therefore proves that in a browser before anything is built on top of it,
 | `src/features/testbed/transpile.ts` | Monaco TS worker → `{ js, sourceMap }` per file. Deliberately logic-free |
 | `src/features/testbed/monaco-setup.ts` | TypeScript compiler options and ambient typings for the editor |
 | `src/features/testbed/typings/ambient.ts` | Hand-written `.d.ts` text for `vitest`, `signum-smartc-testbed`, `*?raw` |
-| `src/features/testbed/vfs-snapshot.ts` | Walk a project folder → `{ tsFiles, rawFiles }` |
+| `src/features/testbed/project-snapshot.ts` | Walk a project folder → `{ tsFiles, rawFiles }` |
 | `src/features/testbed/test-run-model.ts` | Pure reducer: `TestEvent` stream → renderable run state |
 | `src/features/testbed/use-test-run.ts` | Hook wiring snapshot → transpile → `runTests` → reducer |
 | `src/features/testbed/test-starter.ts` | Starter content for a new `.test.ts` |
@@ -74,9 +74,9 @@ import type { CompiledModule } from "./runner/types";
  * and no extra bytes.
  *
  * Deliberately logic-free: it cannot be unit-tested without a browser, so
- * anything with decisions in it belongs in vfs-snapshot.ts or test-run-model.ts.
+ * anything with decisions in it belongs in project-snapshot.ts or test-run-model.ts.
  *
- * `files` maps VFS paths (`/proj/tests/a.test.ts`) to source text. The returned
+ * `files` maps file system paths (`/proj/tests/a.test.ts`) to source text. The returned
  * record is keyed by the same paths, ready to drop into a RunRequest.
  */
 export async function transpileAll(
@@ -86,7 +86,7 @@ export async function transpileAll(
   const uris: Monaco.Uri[] = [];
 
   for (const [path, content] of Object.entries(files)) {
-    // `file://` + an absolute VFS path, so uri.path round-trips back to the key.
+    // `file://` + the absolute file system path, so uri.path round-trips to the key.
     const uri = monaco.Uri.parse("file://" + path);
     const existing = monaco.editor.getModel(uri);
     if (existing) {
@@ -199,35 +199,39 @@ git commit -m "feat(studio): transpile project TypeScript with Monaco's TS worke
 ## Task 2: Project snapshot
 
 **Files:**
-- Create: `src/features/testbed/vfs-snapshot.ts`
-- Test: `src/features/testbed/vfs-snapshot.test.ts`
+- Create: `src/features/testbed/project-snapshot.ts`
+- Test: `src/features/testbed/project-snapshot.test.ts`
 
 A run needs every `.ts` in the project (tests plus helpers) and every `.smart.c` (for `?raw` imports). This walks the folder tree and splits them.
 
 - [ ] **Step 1: Write the failing test**
 
-Create `src/features/testbed/vfs-snapshot.test.ts`:
+Create `src/features/testbed/project-snapshot.test.ts`:
 
 ```ts
 import { describe, it, expect } from "bun:test";
-import { snapshotProject, isTestEntry, type SnapshotSource } from "./vfs-snapshot";
+import { snapshotProject, isTestEntry, type SnapshotSource } from "./project-snapshot";
 
-/** Minimal stand-in for the app's FileSystem, shaped like the parts we use. */
+/**
+ * Stand-in for the app's FileSystem. The real class cannot be constructed here —
+ * it reads `localStorage` at module load — so this supplies just the two methods
+ * `snapshotProject` calls, cast to the picked type.
+ */
 function fakeFs(
   tree: Record<string, { folders: string[]; files: { id: string; path: string }[] }>,
   contents: Record<string, string>,
 ): SnapshotSource {
   return {
-    listFolderContents: (folderId: string) => {
-      const node = tree[folderId];
+    listFolderContents: (folderId?: string) => {
+      const node = tree[folderId!];
       if (!node) throw new Error("Folder not found: " + folderId);
       return {
-        folders: node.folders.map((id) => ({ id, metadata: { id } as any })),
-        files: node.files.map((f) => ({ id: f.id, metadata: { id: f.id, path: f.path } as any })),
+        folders: node.folders.map((id) => ({ id, metadata: { id } })),
+        files: node.files.map((f) => ({ id: f.id, metadata: { id: f.id, path: f.path } })),
       };
     },
     loadFile: async (fileId: string) => ({ content: contents[fileId] }),
-  };
+  } as unknown as SnapshotSource;
 }
 
 describe("snapshotProject", () => {
@@ -306,27 +310,30 @@ describe("snapshotProject", () => {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `bun test src/features/testbed/vfs-snapshot.test.ts`
-Expected: FAIL — cannot find module `./vfs-snapshot`
+Run: `bun test src/features/testbed/project-snapshot.test.ts`
+Expected: FAIL — cannot find module `./project-snapshot`
 
 - [ ] **Step 3: Write the implementation**
 
-Create `src/features/testbed/vfs-snapshot.ts`:
+Create `src/features/testbed/project-snapshot.ts`:
 
 ```ts
-/** The slice of the app's FileSystem this module needs, so it can be tested without IndexedDB. */
-export interface SnapshotSource {
-  listFolderContents(folderId?: string): {
-    folders: { id: string; metadata: { id: string } }[];
-    files: { id: string; metadata: { id: string; path: string } }[];
-  };
-  loadFile(fileId: string): Promise<{ content: unknown }>;
-}
+import type { FileSystem } from "@/lib/file-system";
+
+/**
+ * The slice of the app's FileSystem this module needs.
+ *
+ * A `Pick` over the real class rather than a hand-written interface, so the two
+ * cannot drift. The import is type-only on purpose: `file-system.ts` builds its
+ * singleton at module load and touches `localStorage`, which throws under `bun
+ * test` — an erased import keeps this module testable without a DOM.
+ */
+export type SnapshotSource = Pick<FileSystem, "listFolderContents" | "loadFile">;
 
 export interface ProjectSnapshot {
-  /** VFS path → TypeScript source, awaiting transpilation. */
+  /** File system path → TypeScript source, awaiting transpilation. */
   tsFiles: Record<string, string>;
-  /** VFS path → contract source, served to `?raw` imports. */
+  /** File system path → contract source, served to `?raw` imports. */
   rawFiles: Record<string, string>;
 }
 
@@ -369,13 +376,13 @@ export async function snapshotProject(
 
 - [ ] **Step 4: Run the test to verify it passes**
 
-Run: `bun test src/features/testbed/vfs-snapshot.test.ts`
+Run: `bun test src/features/testbed/project-snapshot.test.ts`
 Expected: PASS, 5 tests
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/features/testbed/vfs-snapshot.ts src/features/testbed/vfs-snapshot.test.ts
+git add src/features/testbed/project-snapshot.ts src/features/testbed/project-snapshot.test.ts
 git commit -m "feat(studio): snapshot a project's sources for a test run"
 ```
 
@@ -1116,7 +1123,7 @@ Create `src/features/testbed/use-test-run.ts`:
 import { useCallback, useRef, useState } from "react";
 import type * as Monaco from "monaco-editor";
 import { FileSystem } from "@/lib/file-system";
-import { snapshotProject, isTestEntry } from "./vfs-snapshot";
+import { snapshotProject, isTestEntry } from "./project-snapshot";
 import { transpileAll } from "./transpile";
 import { runTests, createWorkerTransport } from "./runner-client";
 import { initialRunState, reduceEvent, type RunState } from "./test-run-model";
@@ -1382,7 +1389,7 @@ export function TestFileEditor({ file }: Props) {
   const runFile = useCallback(async () => {
     const monaco = monacoRef.current;
     if (!monaco) return;
-    // Save first: the runner reads the project from the VFS, not the editor buffer.
+    // Save first: the runner reads the project from the file system, not the editor buffer.
     await fs.saveFile(file.metadata.id, codeRef.current);
     await run(monaco, projectId, file.metadata.path);
   }, [fs, file.metadata.id, file.metadata.path, projectId, run]);
