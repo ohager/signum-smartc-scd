@@ -94,4 +94,49 @@ describe("test-run-model", () => {
     const s = fold([started, { type: "test:end", id: "a#0", status: "timedout", durationMs: 5000 }]);
     expect(s.counts.timedout).toBe(1);
   });
+
+  it("pre-creates pending rows from the run plan", () => {
+    const s = fold([
+      {
+        type: "run:plan",
+        file: "/a.test.ts",
+        tests: [
+          { id: "a#0", name: "one", path: ["s", "one"] },
+          { id: "a#1", name: "two", path: ["s", "two"] },
+        ],
+      },
+    ]);
+    expect(s.rows.map((r) => r.status)).toEqual(["pending", "pending"]);
+    expect(s.rows[1]).toMatchObject({ id: "a#1", name: "two", file: "/a.test.ts" });
+  });
+
+  it("updates the planned row rather than adding a second one", () => {
+    const s = fold([
+      { type: "run:plan", file: "/a.test.ts", tests: [{ id: "a#0", name: "one", path: ["one"] }] },
+      { type: "test:start", id: "a#0", name: "one", path: ["one"], file: "/a.test.ts" },
+      { type: "test:end", id: "a#0", status: "passed", durationMs: 4 },
+    ]);
+    expect(s.rows).toHaveLength(1);
+    expect(s.rows[0]).toMatchObject({ status: "passed", durationMs: 4 });
+  });
+
+  it("gives a skipped test its real name, not a synthesised one", () => {
+    const s = fold([
+      { type: "run:plan", file: "/a.test.ts", tests: [{ id: "a#0", name: "skipped one", path: ["s", "skipped one"] }] },
+      { type: "test:end", id: "a#0", status: "skipped", durationMs: 0 },
+    ]);
+    expect(s.rows[0].name).toBe("skipped one");
+    expect(s.rows[0].path).toEqual(["s", "skipped one"]);
+  });
+
+  it("keeps a line supplied with the plan", () => {
+    const s = fold([
+      {
+        type: "run:plan",
+        file: "/a.test.ts",
+        tests: [{ id: "a#0", name: "one", path: ["one"], line: 12 }],
+      },
+    ]);
+    expect(s.rows[0].line).toBe(12);
+  });
 });

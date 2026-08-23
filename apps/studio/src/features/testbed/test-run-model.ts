@@ -10,10 +10,12 @@ export interface TestRow {
   name: string;
   path: string[];
   file: string;
-  status: TestStatus | "running";
+  status: TestStatus | "running" | "pending";
   durationMs?: number;
   failure?: TestFailure;
   logs: LogLine[];
+  /** 1-based line of the `it()` in the user's source, when it could be resolved. */
+  line?: number;
 }
 
 export interface RunState {
@@ -49,24 +51,53 @@ export function initialRunState(): RunState {
  */
 export function reduceEvent(state: RunState, event: TestEvent): RunState {
   switch (event.type) {
+    case "run:plan": {
+      const rows = [...state.rows];
+      const index = { ...state.index };
+      for (const test of event.tests) {
+        if (index[test.id] !== undefined) continue;
+        rows.push({
+          id: test.id,
+          name: test.name,
+          path: test.path,
+          file: event.file,
+          status: "pending",
+          line: test.line,
+          logs: [],
+        });
+        index[test.id] = rows.length - 1;
+      }
+      return { ...state, status: "running", rows, index };
+    }
+
     case "test:start": {
-      const rows = [
-        ...state.rows,
-        {
+      const rows = [...state.rows];
+      const index = { ...state.index };
+      const at = index[event.id];
+
+      if (at !== undefined) {
+        // A run:plan already created this row (pending) — carry it forward
+        // rather than pushing a duplicate.
+        rows[at] = {
+          ...rows[at],
+          name: event.name,
+          path: event.path,
+          file: event.file,
+          status: "running",
+        };
+      } else {
+        rows.push({
           id: event.id,
           name: event.name,
           path: event.path,
           file: event.file,
-          status: "running" as const,
+          status: "running",
           logs: [],
-        },
-      ];
-      return {
-        ...state,
-        status: "running",
-        rows,
-        index: { ...state.index, [event.id]: rows.length - 1 },
-      };
+        });
+        index[event.id] = rows.length - 1;
+      }
+
+      return { ...state, status: "running", rows, index };
     }
 
     case "test:end": {
@@ -75,6 +106,8 @@ export function reduceEvent(state: RunState, event: TestEvent): RunState {
       let index = state.index;
 
       if (at === undefined) {
+        // Only reached when no run:plan preceded this — a planned run already
+        // has a row carrying the test's real name and path.
         // Skipped/todo tests never start, so the row appears for the first time here.
         rows.push({
           id: event.id,
