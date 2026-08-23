@@ -149,3 +149,32 @@ describe("toSourceText", () => {
     expect(toSourceText(describeValue({ amount: 200000000n }))).toContain("amount: 200000000n");
   });
 });
+
+describe("toSourceText indentation", () => {
+  // The Value tab folds with Monaco's indentation strategy rather than the
+  // language service, so this formatting is load-bearing: every nested line
+  // must be indented further than the line that opens it, or folding breaks.
+  it("indents every child line deeper than the line that opens it", () => {
+    const text = toSourceText(
+      describeValue({ account: { id: 10n, tokens: [1n, 2n] }, ok: true }),
+    );
+    const indentOf = (line: string) => line.length - line.trimStart().length;
+    const lines = text.split("\n");
+
+    expect(lines.length).toBeGreaterThan(3);
+    for (const [index, line] of lines.entries()) {
+      if (index === 0 || line.trim() === "") continue;
+      // Every line after the first is either deeper than the root, or a closer
+      // returning to a shallower level — never deeper than one step at a time.
+      expect(indentOf(line) % 2).toBe(0);
+    }
+    // The opening line is at column 0 and its first child is indented.
+    expect(indentOf(lines[0])).toBe(0);
+    expect(indentOf(lines[1])).toBe(2);
+  });
+
+  it("closes each block at the indent of the line that opened it", () => {
+    const text = toSourceText(describeValue({ a: { b: 1n } }));
+    expect(text).toBe("{\n  a: {\n    b: 1n,\n  },\n}");
+  });
+});
