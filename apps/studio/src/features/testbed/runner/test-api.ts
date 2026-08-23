@@ -97,27 +97,37 @@ function toFailure(error: unknown): TestFailure {
   return { message: e.message, expected: e.expected, actual: e.actual, stack: e.stack };
 }
 
+function hasOnly(node: Suite | TestCase): boolean {
+  if (node.mode === "only") return true;
+  return node.kind === "suite" && node.children.some(hasOnly);
+}
+
 /** Runs a collected suite tree, emitting events as it goes. */
 export async function runSuite(
   root: Suite,
   file: string,
   emit: (event: TestEvent) => void,
 ): Promise<void> {
+  const onlyMode = hasOnly(root);
+
   async function runNode(
     node: Suite,
     inheritedBeforeEach: Array<Array<() => unknown>>,
     inheritedAfterEach: Array<Array<() => unknown>>,
     skipped: boolean,
+    withinOnly: boolean,
   ) {
-    const suiteSkipped = skipped || node.mode === "skip";
+    // `describe.only` promotes every test inside it, so carry that down the tree.
+    const insideOnly = withinOnly || node.mode === "only";
+    const suiteSkipped = skipped || node.mode === "skip" || (onlyMode && !insideOnly && !hasOnly(node));
     if (!suiteSkipped) for (const hook of node.beforeAll) await hook();
 
     const beforeEach = [...inheritedBeforeEach, node.beforeEach];
     const afterEach = [node.afterEach, ...inheritedAfterEach];
 
     for (const child of node.children) {
-      if (child.kind === "suite") await runNode(child, beforeEach, afterEach, suiteSkipped);
-      else await runTest(child, beforeEach, afterEach, suiteSkipped);
+      if (child.kind === "suite") await runNode(child, beforeEach, afterEach, suiteSkipped, insideOnly);
+      else await runTest(child, beforeEach, afterEach, suiteSkipped, insideOnly);
     }
 
     if (!suiteSkipped) for (const hook of node.afterAll) await hook();
@@ -128,12 +138,13 @@ export async function runSuite(
     beforeEach: Array<Array<() => unknown>>,
     afterEach: Array<Array<() => unknown>>,
     skipped: boolean,
+    withinOnly: boolean,
   ) {
     if (test.mode === "todo") {
       emit({ type: "test:end", id: test.id, status: "todo", durationMs: 0 });
       return;
     }
-    if (skipped || test.mode === "skip") {
+    if (skipped || test.mode === "skip" || (onlyMode && !withinOnly && test.mode !== "only")) {
       emit({ type: "test:end", id: test.id, status: "skipped", durationMs: 0 });
       return;
     }
@@ -156,5 +167,5 @@ export async function runSuite(
     }
   }
 
-  await runNode(root, [], [], false);
+  await runNode(root, [], [], false, false);
 }
