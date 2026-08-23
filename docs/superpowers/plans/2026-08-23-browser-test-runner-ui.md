@@ -40,7 +40,7 @@ Task 1 therefore proves that in a browser before anything is built on top of it,
 | `src/features/testbed/transpile.ts` | Monaco TS worker → `{ js, sourceMap }` per file. Deliberately logic-free |
 | `src/features/testbed/monaco-setup.ts` | TypeScript compiler options and ambient typings for the editor |
 | `src/features/testbed/typings/ambient.ts` | Hand-written `.d.ts` text for `vitest`, `signum-smartc-testbed`, `*?raw` |
-| `src/features/testbed/project-snapshot.ts` | Walk a project folder → `{ tsFiles, rawFiles }` |
+| `src/features/testbed/project-snapshot.ts` | Project subtree → `{ tsFiles, rawFiles }`, split by extension |
 | `src/features/testbed/test-run-model.ts` | Pure reducer: `TestEvent` stream → renderable run state |
 | `src/features/testbed/use-test-run.ts` | Hook wiring snapshot → transpile → `runTests` → reducer |
 | `src/features/testbed/test-starter.ts` | Starter content for a new `.test.ts` |
@@ -202,7 +202,7 @@ git commit -m "feat(studio): transpile project TypeScript with Monaco's TS worke
 - Create: `src/features/testbed/project-snapshot.ts`
 - Test: `src/features/testbed/project-snapshot.test.ts`
 
-A run needs every `.ts` in the project (tests plus helpers) and every `.smart.c` (for `?raw` imports). This walks the folder tree and splits them.
+A run needs every `.ts` in the project (tests plus helpers) and every `.smart.c` (for `?raw` imports). `FileSystem.listFilesRecursive(folderId)` already returns the subtree, so this module only decides which files matter and reads them.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -213,47 +213,28 @@ import { describe, it, expect } from "bun:test";
 import { snapshotProject, isTestEntry, type SnapshotSource } from "./project-snapshot";
 
 /**
- * Stand-in for the app's FileSystem. The real class cannot be constructed here —
- * it reads `localStorage` at module load — so this supplies just the two methods
- * `snapshotProject` calls, cast to the picked type.
+ * Stands in for FileSystem. The real class reads `localStorage` when its module
+ * loads, so tests supply just the two methods `snapshotProject` calls.
  */
-function fakeFs(
-  tree: Record<string, { folders: string[]; files: { id: string; path: string }[] }>,
-  contents: Record<string, string>,
-): SnapshotSource {
+function fakeFs(files: { id: string; path: string }[], contents: Record<string, string>): SnapshotSource {
   return {
-    listFolderContents: (folderId?: string) => {
-      const node = tree[folderId!];
-      if (!node) throw new Error("Folder not found: " + folderId);
-      return {
-        folders: node.folders.map((id) => ({ id, metadata: { id } })),
-        files: node.files.map((f) => ({ id: f.id, metadata: { id: f.id, path: f.path } })),
-      };
-    },
+    listFilesRecursive: () => files.map((f) => ({ id: f.id, path: f.path })),
     loadFile: async (fileId: string) => ({ content: contents[fileId] }),
   } as unknown as SnapshotSource;
 }
 
 describe("snapshotProject", () => {
-  it("collects .ts files as sources and .smart.c as raw files", async () => {
+  it("splits .ts sources from .smart.c contract sources", async () => {
     const fs = fakeFs(
-      {
-        root: {
-          folders: ["tests"],
-          files: [{ id: "c1", path: "/proj/counter.smart.c" }],
-        },
-        tests: {
-          folders: [],
-          files: [
-            { id: "t1", path: "/proj/tests/counter.test.ts" },
-            { id: "h1", path: "/proj/tests/context.ts" },
-          ],
-        },
-      },
+      [
+        { id: "c1", path: "/proj/counter.smart.c" },
+        { id: "t1", path: "/proj/tests/counter.test.ts" },
+        { id: "h1", path: "/proj/tests/context.ts" },
+      ],
       { c1: "#program name Counter", t1: "// test", h1: "// helper" },
     );
 
-    const snap = await snapshotProject(fs, "root");
+    const snap = await snapshotProject(fs, "proj");
 
     expect(snap.tsFiles).toEqual({
       "/proj/tests/counter.test.ts": "// test",
@@ -262,42 +243,44 @@ describe("snapshotProject", () => {
     expect(snap.rawFiles).toEqual({ "/proj/counter.smart.c": "#program name Counter" });
   });
 
-  it("descends through nested folders", async () => {
+  it("ignores file types the runner has no use for", async () => {
     const fs = fakeFs(
-      {
-        root: { folders: ["a"], files: [] },
-        a: { folders: ["b"], files: [] },
-        b: { folders: [], files: [{ id: "deep", path: "/proj/a/b/deep.ts" }] },
-      },
-      { deep: "// deep" },
-    );
-    const snap = await snapshotProject(fs, "root");
-    expect(snap.tsFiles["/proj/a/b/deep.ts"]).toBe("// deep");
-  });
-
-  it("ignores file types it does not understand", async () => {
-    const fs = fakeFs(
-      {
-        root: {
-          folders: [],
-          files: [
-            { id: "s", path: "/proj/x.scenario.json" },
-            { id: "a", path: "/proj/x.asm" },
-            { id: "t", path: "/proj/x.test.ts" },
-          ],
-        },
-      },
+      [
+        { id: "s", path: "/proj/x.scenario.json" },
+        { id: "a", path: "/proj/x.asm" },
+        { id: "t", path: "/proj/x.test.ts" },
+      ],
       { s: "{}", a: "SET @a", t: "// test" },
     );
-    const snap = await snapshotProject(fs, "root");
+    const snap = await snapshotProject(fs, "proj");
     expect(Object.keys(snap.tsFiles)).toEqual(["/proj/x.test.ts"]);
     expect(snap.rawFiles).toEqual({});
   });
 
+  it("scopes the snapshot to the project folder it is given", async () => {
+    const calls: (string | undefined)[] = [];
+    const fs = {
+      listFilesRecursive: (folderId?: string) => {
+        calls.push(folderId);
+        return [];
+      },
+      loadFile: async () => ({ content: "" }),
+    } as unknown as SnapshotSource;
+
+    await snapshotProject(fs, "demo");
+    expect(calls).toEqual(["demo"]);
+  });
+
   it("returns empty maps for an empty project", async () => {
-    const snap = await snapshotProject(fakeFs({ root: { folders: [], files: [] } }, {}), "root");
+    const snap = await snapshotProject(fakeFs([], {}), "proj");
     expect(snap.tsFiles).toEqual({});
     expect(snap.rawFiles).toEqual({});
+  });
+
+  it("treats a file with no content as empty rather than failing", async () => {
+    const fs = fakeFs([{ id: "t", path: "/proj/x.test.ts" }], {});
+    const snap = await snapshotProject(fs, "proj");
+    expect(snap.tsFiles["/proj/x.test.ts"]).toBe("");
   });
 
   it("treats only .test.ts files as run entries", () => {
@@ -321,14 +304,14 @@ Create `src/features/testbed/project-snapshot.ts`:
 import type { FileSystem } from "@/lib/file-system";
 
 /**
- * The slice of the app's FileSystem this module needs.
+ * The slice of FileSystem this module needs.
  *
  * A `Pick` over the real class rather than a hand-written interface, so the two
  * cannot drift. The import is type-only on purpose: `file-system.ts` builds its
- * singleton at module load and touches `localStorage`, which throws under `bun
- * test` — an erased import keeps this module testable without a DOM.
+ * singleton at module load and touches `localStorage`, which throws under
+ * `bun test` — an erased import keeps this module testable without a DOM.
  */
-export type SnapshotSource = Pick<FileSystem, "listFolderContents" | "loadFile">;
+export type SnapshotSource = Pick<FileSystem, "listFilesRecursive" | "loadFile">;
 
 export interface ProjectSnapshot {
   /** File system path → TypeScript source, awaiting transpilation. */
@@ -337,15 +320,16 @@ export interface ProjectSnapshot {
   rawFiles: Record<string, string>;
 }
 
-/** Only `*.test.ts` files are run; other `.ts` files are helpers reachable by import. */
+/** Only `*.test.ts` files are run; other `.ts` files are helpers they import. */
 export function isTestEntry(path: string): boolean {
   return path.endsWith(".test.ts");
 }
 
 /**
- * Walks a project folder and splits its contents into what the runner needs.
- * Everything is read eagerly: projects are small, and a run must see a
- * consistent snapshot rather than files shifting mid-run.
+ * Reads everything in a project the runner can use, split by kind.
+ *
+ * Contents are read eagerly: projects are small, and a run should see one
+ * consistent snapshot rather than files shifting underneath it mid-run.
  */
 export async function snapshotProject(
   fs: SnapshotSource,
@@ -354,20 +338,12 @@ export async function snapshotProject(
   const tsFiles: Record<string, string> = {};
   const rawFiles: Record<string, string> = {};
 
-  const pending: string[] = [projectFolderId];
-  while (pending.length) {
-    const folderId = pending.pop()!;
-    const { folders, files } = fs.listFolderContents(folderId);
-
-    for (const folder of folders) pending.push(folder.id);
-
-    for (const file of files) {
-      const path = file.metadata.path;
-      const target = path.endsWith(".ts") ? tsFiles : path.endsWith(".smart.c") ? rawFiles : null;
-      if (!target) continue;
-      const loaded = await fs.loadFile(file.id);
-      target[path] = String(loaded.content ?? "");
-    }
+  for (const metadata of fs.listFilesRecursive(projectFolderId)) {
+    const path = metadata.path;
+    const target = path.endsWith(".ts") ? tsFiles : path.endsWith(".smart.c") ? rawFiles : null;
+    if (!target) continue;
+    const loaded = await fs.loadFile(metadata.id);
+    target[path] = String(loaded.content ?? "");
   }
 
   return { tsFiles, rawFiles };
@@ -377,7 +353,7 @@ export async function snapshotProject(
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `bun test src/features/testbed/project-snapshot.test.ts`
-Expected: PASS, 5 tests
+Expected: PASS, 6 tests
 
 - [ ] **Step 5: Commit**
 
