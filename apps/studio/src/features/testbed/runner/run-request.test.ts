@@ -87,3 +87,60 @@ describe("runRequest", () => {
     expect(events[events.length - 1].type).toBe("run:end");
   });
 });
+
+describe("value traces", () => {
+  it("instruments the module, so a plain binding is captured end to end", async () => {
+    const events: TestEvent[] = [];
+    await runRequest(
+      {
+        modules: {
+          "/p/a.test.ts": {
+            js: `const v = require("vitest");\nv.it("t", () => { const counter = 2n; v.expect(counter).toBe(2n); });`,
+          },
+        },
+        rawFiles: {},
+        entryPaths: ["/p/a.test.ts"],
+      },
+      (event) => events.push(event),
+    );
+
+    const end = events.find((e) => e.type === "test:end") as Extract<
+      TestEvent,
+      { type: "test:end" }
+    >;
+    expect(end.status).toBe("passed");
+    // The source is uninstrumented here; run-request instruments it, which is
+    // exactly what this asserts — the value arrives without the test doing
+    // anything special.
+    expect(end.trace!["/p/a.test.ts"][2]).toEqual({ values: ["2n"], count: 1, name: "counter" });
+  });
+
+  it("does not leak one test's values into the next", async () => {
+    const events: TestEvent[] = [];
+    await runRequest(
+      {
+        modules: {
+          "/p/a.test.ts": {
+            js: `const v = require("vitest");
+                 v.it("one", () => { __v(10,"a", 1n); });
+                 v.it("two", () => { __v(20,"b", 2n); });`,
+          },
+        },
+        rawFiles: {},
+        entryPaths: ["/p/a.test.ts"],
+      },
+      (event) => events.push(event),
+    );
+
+    const ends = events.filter((e) => e.type === "test:end") as Array<
+      Extract<TestEvent, { type: "test:end" }>
+    >;
+    expect(ends).toHaveLength(2);
+    // Lines 10 and 20 are arbitrary labels chosen not to collide with line 1,
+    // where instrumentation wraps this fixture's own `const v = require(...)`.
+    expect(ends[0].trace!["/p/a.test.ts"][10].values).toEqual(["1n"]);
+    expect(ends[0].trace!["/p/a.test.ts"][20]).toBeUndefined();
+    expect(ends[1].trace!["/p/a.test.ts"][20].values).toEqual(["2n"]);
+    expect(ends[1].trace!["/p/a.test.ts"][10]).toBeUndefined();
+  });
+});

@@ -1,4 +1,5 @@
 import type { TestRecording } from "./recording";
+import type { TestTrace } from "./trace";
 
 /** A TypeScript project file after transpilation to CommonJS. */
 export interface CompiledModule {
@@ -35,7 +36,17 @@ export type ConsoleLevel = "log" | "info" | "warn" | "error" | "debug";
 export type TestEvent =
   | { type: "run:plan"; file: string; tests: { id: string; name: string; path: string[]; stack?: string; line?: number }[] }
   | { type: "test:start"; id: string; name: string; path: string[]; file: string }
-  | { type: "test:end"; id: string; status: TestStatus; durationMs: number; failure?: TestFailure }
+  | {
+      type: "test:end";
+      id: string;
+      status: TestStatus;
+      durationMs: number;
+      failure?: TestFailure;
+      /** Values captured while this test ran, by file and line. */
+      trace?: TestTrace;
+      /** True when the trace hit its budget and stopped recording. */
+      traceTruncated?: boolean;
+    }
   | { type: "console"; testId: string | null; level: ConsoleLevel; text: string }
   | { type: "collect:error"; file: string; message: string; stack?: string }
   | { type: "hook:error"; file: string; suite: string[]; phase: "beforeAll" | "afterAll"; message: string; stack?: string }
