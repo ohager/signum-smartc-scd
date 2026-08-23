@@ -949,8 +949,9 @@ Then append to the same file:
 
 ```ts
 function toFailure(error: unknown): TestFailure {
-  const e = error as any;
-  if (!(e instanceof Error)) return { message: String(error) };
+  if (!(error instanceof Error)) return { message: String(error) };
+  // chai's AssertionError carries expected/actual; the base Error type does not.
+  const e = error as Error & { expected?: unknown; actual?: unknown };
   return { message: e.message, expected: e.expected, actual: e.actual, stack: e.stack };
 }
 
