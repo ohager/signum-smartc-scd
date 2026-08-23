@@ -19,6 +19,7 @@ import { toDebugScenario } from "../to-debug-scenario";
 import { TestResultsPanel } from "./test-results-panel";
 import { useTestDecorations } from "./use-test-decorations";
 import { useValueDecorations } from "./use-value-decorations";
+import { DevToolsHelp } from "./devtools-help";
 import { fileTraceAtom, activeTestIdAtom } from "../test-trace-store";
 
 interface Props {
@@ -171,6 +172,7 @@ export function TestFileEditor({ file }: Props) {
                 onCheckedChange={(checked) => setDebugRun(checked === true)}
               />
               Debug run (DevTools)
+              <DevToolsHelp />
               <span className="text-muted-foreground/70">
                 — runs in the page so DevTools can break; a runaway contract will freeze the tab
               </span>

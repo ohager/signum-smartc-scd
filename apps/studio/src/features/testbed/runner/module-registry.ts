@@ -15,6 +15,39 @@ export interface RegistryOptions {
   trace?: TraceSink;
 }
 
+/** UTF-8 safe base64. `btoa` alone throws on any code point above 0xFF. */
+function toBase64(text: string): string {
+  const bytes = new TextEncoder().encode(text);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
+/**
+ * The text handed to `new Function`, with the trailing comments that make an
+ * evaluated module navigable in DevTools.
+ *
+ * `sourceURL` gives the module its real path in the Sources tree; the inline
+ * `sourceMappingURL` makes DevTools display the original TypeScript rather than
+ * the instrumented JavaScript, so breakpoints land on lines the user wrote.
+ *
+ * This does not disturb stack resolution: V8 leaves `Error.stack` addressing
+ * generated positions and only DevTools applies the map, and only for display.
+ *
+ * Exported for testing: building the string is the part with rules in it.
+ */
+export function buildModuleSource(
+  js: string,
+  path: string,
+  sourceMap: string | undefined,
+): string {
+  const source = js + "\n//# sourceURL=" + path;
+  if (!sourceMap) return source;
+  return (
+    source + "\n//# sourceMappingURL=data:application/json;charset=utf-8;base64," + toBase64(sourceMap)
+  );
+}
+
 export function createRegistry(opts: RegistryOptions) {
   const cache = new Map<string, { exports: any }>();
 
@@ -75,7 +108,7 @@ export function createRegistry(opts: RegistryOptions) {
       "module",
       "__v",
       "__ok",
-      compiled.js + "\n//# sourceURL=" + path,
+      buildModuleSource(compiled.js, path, compiled.sourceMap),
     );
 
     const sink = opts.trace;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { createRegistry } from "./module-registry";
+import { createRegistry, buildModuleSource } from "./module-registry";
 
 describe("module-registry", () => {
   it("evaluates a module and returns its exports", () => {
@@ -184,5 +184,44 @@ describe("value tracing", () => {
     });
 
     expect((registry.require("/p/a.ts") as { x: number }).x).toBe(7);
+  });
+});
+
+describe("buildModuleSource", () => {
+  const MAP = JSON.stringify({ version: 3, sources: ["a.ts"], names: [], mappings: "" });
+
+  it("names the module so it appears under its real path in DevTools", () => {
+    expect(buildModuleSource(`module.exports.x = 1;`, "/p/a.ts", MAP)).toContain(
+      "//# sourceURL=/p/a.ts",
+    );
+  });
+
+  it("appends an inline sourceMappingURL when a map is available", () => {
+    expect(buildModuleSource(`module.exports.x = 1;`, "/p/a.ts", MAP)).toContain(
+      "//# sourceMappingURL=data:application/json;charset=utf-8;base64,",
+    );
+  });
+
+  it("keeps the original code first", () => {
+    expect(
+      buildModuleSource(`module.exports.x = 1;`, "/p/a.ts", MAP).startsWith("module.exports.x = 1;"),
+    ).toBe(true);
+  });
+
+  it("omits the sourceMappingURL when there is no map", () => {
+    const built = buildModuleSource(`module.exports.x = 1;`, "/p/a.ts", undefined);
+    expect(built).toContain("//# sourceURL=/p/a.ts");
+    expect(built).not.toContain("sourceMappingURL");
+  });
+
+  it("round-trips non-ASCII through base64", () => {
+    // `btoa` alone throws on any code point above 0xFF, so a map naming a file
+    // with an umlaut is the case that catches a naive implementation.
+    const map = JSON.stringify({ version: 3, sources: ["ü.ts"], names: [], mappings: "" });
+    const encoded = buildModuleSource(`x`, "/p/a.ts", map).split("base64,")[1].trim();
+    const decoded = new TextDecoder().decode(
+      Uint8Array.from(atob(encoded), (char) => char.charCodeAt(0)),
+    );
+    expect(JSON.parse(decoded)).toEqual(JSON.parse(map));
   });
 });
