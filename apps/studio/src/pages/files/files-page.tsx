@@ -10,6 +10,7 @@ import { SmartCFileEditor } from "@/features/smartc-editor/smartc-file-editor.ts
 import { FileTypes } from "@/features/project/filetype-icons.tsx";
 import { AsmFileEditor } from "@/features/asm-editor/asm-file-editor.tsx";
 import { ScenarioEditor } from "@/features/simulator/scenario/scenario-editor.tsx";
+import { TestFileEditor } from "@/features/testbed/ui/test-file-editor";
 
 type FilesPageParams = {
   projectId: string;
@@ -70,7 +71,8 @@ export function FilesPage() {
             <AsmFileEditor key={id} file={file!} />
           )}
           {type === FileTypes.Scenario && <ScenarioEditor key={id} file={file!} />}
-          {type !== FileTypes.SmartC && type !== FileTypes.ASM && type !== FileTypes.Scenario && (
+          {type === FileTypes.Test && <TestFileEditor key={id} file={file!} />}
+          {type !== FileTypes.SmartC && type !== FileTypes.ASM && type !== FileTypes.Scenario && type !== FileTypes.Test && (
             <div className="p-4 text-sm text-muted-foreground">
               This file type ("{type}") is no longer supported.
             </div>
