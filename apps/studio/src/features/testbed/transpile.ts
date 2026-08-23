@@ -1,5 +1,6 @@
 import type * as Monaco from "monaco-editor";
 import type { CompiledModule } from "./runner/types";
+import { configureTypeScriptForTests } from "./monaco-setup";
 
 /**
  * Transpiles project TypeScript to CommonJS using Monaco's own TypeScript
@@ -17,6 +18,11 @@ export async function transpileAll(
   monaco: typeof Monaco,
   files: Record<string, string>,
 ): Promise<Record<string, CompiledModule>> {
+  // Monaco's TypeScript defaults are ESM/no-sourcemap out of the box, and the
+  // runner's module registry evaluates CommonJS — so this configures itself
+  // rather than trusting a caller to have done it before invoking us.
+  configureTypeScriptForTests(monaco);
+
   const uris: Monaco.Uri[] = [];
 
   for (const [path, content] of Object.entries(files)) {

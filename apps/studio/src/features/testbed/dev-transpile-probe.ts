@@ -24,6 +24,9 @@ describe("probe", () => {
     console.log("EMITTED JS:\n", modules["/probe/a.test.ts"]?.js);
     console.log("HAS SOURCEMAP:", Boolean(modules["/probe/a.test.ts"]?.sourceMap));
 
+    const js = modules["/probe/a.test.ts"]?.js ?? "";
+    console.log("IS COMMONJS:", /require\(/.test(js) && !/^\s*import\s/m.test(js));
+
     const events: TestEvent[] = [];
     await runRequest(
       { modules, rawFiles: {}, entryPaths: ["/probe/a.test.ts"] },
