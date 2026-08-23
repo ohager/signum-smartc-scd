@@ -1,6 +1,7 @@
 import { CheckCircle2, XCircle, MinusCircle, Clock, Loader2, Bug } from "lucide-react";
 import type { ReactNode } from "react";
 import type { RunState, TestRow } from "../test-run-model";
+import { serializeValue } from "../serialize-value";
 
 const STATUS_ICON: Record<TestRow["status"], ReactNode> = {
   running: <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />,
@@ -11,17 +12,6 @@ const STATUS_ICON: Record<TestRow["status"], ReactNode> = {
   todo: <MinusCircle className="h-4 w-4 text-muted-foreground" />,
   pending: <MinusCircle className="h-4 w-4 text-muted-foreground" />,
 };
-
-/** bigints have no JSON representation, and they are most of what a contract returns. */
-function formatValue(value: unknown): string {
-  if (typeof value === "bigint") return `${value}n`;
-  if (typeof value === "string") return value;
-  try {
-    return JSON.stringify(value, (_k, v) => (typeof v === "bigint" ? `${v}n` : v)) ?? String(value);
-  } catch {
-    return String(value);
-  }
-}
 
 function TestRowView({ row, onRevealLine }: { row: TestRow; onRevealLine?: (line: number) => void }) {
   return (
@@ -59,8 +49,8 @@ function TestRowView({ row, onRevealLine }: { row: TestRow; onRevealLine?: (line
           </div>
           {row.failure.expected !== undefined && (
             <div className="mt-1 text-muted-foreground">
-              <div>expected: {formatValue(row.failure.expected)}</div>
-              <div>received: {formatValue(row.failure.actual)}</div>
+              <div>expected: {serializeValue(row.failure.expected)}</div>
+              <div>received: {serializeValue(row.failure.actual)}</div>
             </div>
           )}
         </div>

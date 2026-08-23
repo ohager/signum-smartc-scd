@@ -3,18 +3,12 @@ import { createRegistry } from "./module-registry";
 import { createRecorder, type TestRecording } from "./recording";
 import { createCollector, runSuite } from "./test-api";
 import type { ConsoleLevel, RunRequest, TestEvent } from "./types";
+import { serializeValue } from "../serialize-value";
 
 const CONSOLE_LEVELS: ConsoleLevel[] = ["log", "info", "warn", "error", "debug"];
 
-function formatArg(value: unknown): string {
-  if (typeof value === "bigint") return `${value}n`;
-  if (typeof value === "string") return value;
-  try {
-    return JSON.stringify(value, (_k, v) => (typeof v === "bigint" ? `${v}n` : v)) ?? String(value);
-  } catch {
-    return String(value);
-  }
-}
+/** Console output prints a bare string; only nested ones are quoted. */
+const formatArg = (value: unknown) => serializeValue(value, { quoteStrings: false });
 
 /**
  * Executes a run request in the current realm. Used by both the worker
