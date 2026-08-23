@@ -23,7 +23,7 @@ export function createRegistry(opts: RegistryOptions) {
 
   function requireFrom(importer: string, specifier: string): unknown {
     if (!specifier.startsWith(".")) {
-      if (specifier in opts.virtuals) return opts.virtuals[specifier];
+      if (Object.hasOwn(opts.virtuals, specifier)) return opts.virtuals[specifier];
       throw new Error(
         `Cannot find module "${specifier}" imported from "${importer}". ` +
           `Available: ${Object.keys(opts.virtuals).join(", ")}`,
