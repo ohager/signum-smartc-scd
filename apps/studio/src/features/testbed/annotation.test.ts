@@ -51,3 +51,35 @@ describe("formatAnnotation", () => {
     expect(formatAnnotation({ values: [], count: 4, name: "r" })).toBeNull();
   });
 });
+
+describe("formatAnnotation length", () => {
+  const long = "Recorded { node: SimNode { scenario: [Object], blockchain: [Object] }, extra: 1n }";
+
+  it("keeps a long value off the end of the line", () => {
+    const result = formatAnnotation({ values: [long], count: 1, name: "testbed" })!;
+    expect(result.text.length).toBeLessThanOrEqual(72);
+    expect(result.text.endsWith("…")).toBe(true);
+  });
+
+  it("puts the full value in the hover when it had to be shortened", () => {
+    const result = formatAnnotation({ values: [long], count: 1, name: "testbed" })!;
+    expect(result.hover).toContain(long);
+  });
+
+  it("leaves a short value alone and adds no hover", () => {
+    expect(formatAnnotation({ values: ["2n"], count: 1, name: "counter" })).toEqual({
+      text: "counter = 2n",
+    });
+  });
+
+  it("keeps the repeat badge visible even when the value is shortened", () => {
+    const result = formatAnnotation({ values: [long, long], count: 2, name: "testbed" })!;
+    expect(result.text.endsWith("×2")).toBe(true);
+  });
+
+  it("shows both the full value and the repeat list in the hover", () => {
+    const result = formatAnnotation({ values: ["1n", long], count: 2, name: "r" })!;
+    expect(result.hover).toContain(long);
+    expect(result.hover).toContain("1: 1n");
+  });
+});

@@ -111,8 +111,14 @@ describe("value traces", () => {
     expect(end.status).toBe("passed");
     // The source is uninstrumented here; run-request instruments it, which is
     // exactly what this asserts — the value arrives without the test doing
-    // anything special.
-    expect(end.trace!["/p/a.test.ts"][2]).toEqual({ values: ["2n"], count: 1, name: "counter" });
+    // anything special. Line 2 carries both mechanisms: the `counter` binding
+    // and the assertion that follows it on the same line.
+    expect(end.trace!["/p/a.test.ts"][2]).toEqual({
+      values: ["2n"],
+      count: 1,
+      name: "counter",
+      ok: true,
+    });
   });
 
   it("does not leak one test's values into the next", async () => {

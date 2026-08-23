@@ -13,24 +13,37 @@ interface Edit {
 /** Any AST node. acorn's own types are structural and awkward to narrow. */
 type Node = Record<string, any>;
 
+const FUNCTION_TYPES = new Set([
+  "FunctionDeclaration",
+  "FunctionExpression",
+  "ArrowFunctionExpression",
+]);
+
 /**
- * Walks every node in the tree, in no particular order.
+ * Walks every node in the tree, in no particular order, reporting whether each
+ * one sits inside a function body.
  *
  * Written out rather than pulling in `acorn-walk` because edits are collected
  * and sorted before being applied, so traversal order is irrelevant — and not
  * depending on a library's order is one less thing to be wrong about.
  */
-function visit(node: unknown, fn: (node: Node) => void): void {
+function visit(
+  node: unknown,
+  fn: (node: Node, insideFunction: boolean) => void,
+  insideFunction = false,
+): void {
   if (!node || typeof node !== "object") return;
   if (Array.isArray(node)) {
-    for (const child of node) visit(child, fn);
+    for (const child of node) visit(child, fn, insideFunction);
     return;
   }
   const record = node as Node;
-  if (typeof record.type === "string") fn(record);
+  if (typeof record.type === "string") fn(record, insideFunction);
+
+  const childrenInside = insideFunction || FUNCTION_TYPES.has(record.type as string);
   for (const key of Object.keys(record)) {
     if (key === "loc" || key === "start" || key === "end" || key === "range") continue;
-    visit(record[key], fn);
+    visit(record[key], fn, childrenInside);
   }
 }
 
@@ -42,17 +55,46 @@ function safeTraceMap(raw: string): TraceMap | null {
   }
 }
 
-/**
- * The identifier a call chain ultimately starts from: for
- * `expect(a).resolves.toBe(1)` that is `expect`.
- */
-function chainRoot(node: Node): Node | null {
-  let current: Node | null = node;
-  while (current) {
-    if (current.type === "CallExpression") current = current.callee as Node;
-    else if (current.type === "MemberExpression") current = current.object as Node;
-    else return current;
+/** Unwraps `(0, x)`, which is what TypeScript emits for a namespaced import. */
+function unwrapSequence(node: Node): Node {
+  let current = node;
+  while (current?.type === "SequenceExpression") {
+    const parts = current.expressions as Node[];
+    current = parts[parts.length - 1];
   }
+  return current;
+}
+
+/**
+ * The name of the function a call chain starts from.
+ *
+ * Both `expect(a).toBe(b)` and the compiled `(0, vitest_1.expect)(a).toBe(b)`
+ * answer "expect" — which matters because the instrumenter only ever sees the
+ * compiled form, where a bare `expect` identifier never appears.
+ */
+function chainRootName(node: Node): string | null {
+  let current: Node | null = unwrapSequence(node);
+
+  while (current) {
+    if (current.type === "CallExpression") {
+      current = unwrapSequence(current.callee as Node);
+      continue;
+    }
+
+    if (current.type === "MemberExpression") {
+      const object = unwrapSequence(current.object as Node);
+      // A namespaced import bottoms out at a plain identifier, and the name
+      // worth reporting is the property: `vitest_1.expect` is "expect".
+      if (object.type === "Identifier") {
+        return ((current.property as Node)?.name as string) ?? (object.name as string);
+      }
+      current = object;
+      continue;
+    }
+
+    return current.type === "Identifier" ? (current.name as string) : null;
+  }
+
   return null;
 }
 
@@ -92,7 +134,13 @@ export function instrument(js: string, sourceMap?: string): string {
 
   const edits: Edit[] = [];
 
-  visit(ast, (node) => {
+  visit(ast, (node, insideFunction) => {
+    // Nothing at module top level is part of a test. Skipping it removes the
+    // compiled `const vitest_1 = require("vitest")` that every `import` becomes
+    // — which would otherwise annotate the line with an entire module object —
+    // along with module-level constants that never change during a run.
+    if (!insideFunction) return;
+
     if (node.type === "VariableDeclarator" && node.init && node.id?.type === "Identifier") {
       edits.push({
         start: node.init.start,
@@ -116,8 +164,7 @@ export function instrument(js: string, sourceMap?: string): string {
     }
 
     if (node.type === "ExpressionStatement" && node.expression?.type === "CallExpression") {
-      const root = chainRoot(node.expression as Node);
-      if (root?.type === "Identifier" && root.name === "expect") {
+      if (chainRootName(node.expression as Node) === "expect") {
         // A marker after the statement: if the assertion throws, this never runs.
         edits.push({
           start: node.end,
