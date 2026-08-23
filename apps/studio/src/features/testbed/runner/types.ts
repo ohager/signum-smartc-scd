@@ -33,4 +33,5 @@ export type TestEvent =
   | { type: "test:end"; id: string; status: TestStatus; durationMs: number; failure?: TestFailure }
   | { type: "console"; testId: string | null; level: ConsoleLevel; text: string }
   | { type: "collect:error"; file: string; message: string; stack?: string }
+  | { type: "hook:error"; file: string; suite: string[]; phase: "beforeAll" | "afterAll"; message: string; stack?: string }
   | { type: "run:end"; durationMs: number };

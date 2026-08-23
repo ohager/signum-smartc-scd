@@ -63,4 +63,16 @@ describe("collector", () => {
     const { api } = createCollector("/x.test.ts");
     expect(typeof api.expect).toBe("function");
   });
+
+  it("restores the current suite when a describe callback throws", () => {
+    const { api, root } = createCollector("/x.test.ts");
+    expect(() =>
+      api.describe("broken", () => {
+        throw new Error("boom");
+      }),
+    ).toThrow("boom");
+    api.it("still lands at root", () => {});
+    const stray = root.children.find((c: any) => c.kind === "test") as any;
+    expect(stray.path).toEqual(["still lands at root"]);
+  });
 });
