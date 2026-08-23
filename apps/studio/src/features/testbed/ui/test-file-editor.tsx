@@ -62,6 +62,14 @@ export function TestFileEditor({ file }: Props) {
     configureTypeScriptForTests(monaco);
   };
 
+  const revealLine = useCallback((line: number) => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    editor.revealLineInCenter(line);
+    editor.setPosition({ lineNumber: line, column: 1 });
+    editor.focus();
+  }, []);
+
   const runFile = useCallback(async () => {
     const monaco = monacoRef.current;
     if (!monaco) return;
@@ -105,7 +113,7 @@ export function TestFileEditor({ file }: Props) {
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={40} minSize={20}>
-          <TestResultsPanel state={state} />
+          <TestResultsPanel state={state} onRevealLine={revealLine} />
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>
