@@ -277,14 +277,30 @@ describe("module-registry", () => {
   it("survives a circular import by exposing partial exports", () => {
     const registry = createRegistry({
       modules: {
-        "/proj/a.ts": { js: `exports.name = "a"; const b = require("./b"); exports.fromB = b.name;` },
-        "/proj/b.ts": { js: `const a = require("./a"); exports.name = "b"; exports.sawA = a.name;` },
+        "/proj/a.ts": {
+          js: `exports.name = "a"; const b = require("./b"); exports.fromB = b.name; exports.late = "set-after";`,
+        },
+        "/proj/b.ts": {
+          js: `const a = require("./a"); exports.name = "b"; exports.sawName = a.name; exports.sawLate = a.late;`,
+        },
       },
       rawFiles: {},
       virtuals: {},
     });
     const a = registry.require("/proj/a.ts") as any;
+    const b = registry.require("/proj/b.ts") as any;
     expect(a.fromB).toBe("b");
+    expect(b.sawName).toBe("a"); // saw what `a` had exported so far
+    expect(b.sawLate).toBeUndefined(); // did not see what `a` exported later
+  });
+
+  it("does not resolve Object.prototype members as virtual modules", () => {
+    const registry = createRegistry({
+      modules: { "/proj/a.ts": { js: `require("toString");` } },
+      rawFiles: {},
+      virtuals: { vitest: {} },
+    });
+    expect(() => registry.require("/proj/a.ts")).toThrow(/toString.*Available: vitest/s);
   });
 
   it("resolves a bare specifier to a virtual module", () => {
@@ -342,7 +358,9 @@ export function createRegistry(opts: RegistryOptions) {
 
   function requireFrom(importer: string, specifier: string): unknown {
     if (!specifier.startsWith(".")) {
-      if (specifier in opts.virtuals) return opts.virtuals[specifier];
+      // Object.hasOwn, not `in`: `in` walks the prototype chain, so a specifier
+      // like "toString" would resolve to Object.prototype instead of erroring.
+      if (Object.hasOwn(opts.virtuals, specifier)) return opts.virtuals[specifier];
       throw new Error(
         `Cannot find module "${specifier}" imported from "${importer}". ` +
           `Available: ${Object.keys(opts.virtuals).join(", ")}`,
@@ -374,7 +392,7 @@ export function createRegistry(opts: RegistryOptions) {
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `bun test src/features/testbed/runner/module-registry.test.ts`
-Expected: PASS, 7 tests
+Expected: PASS, 8 tests
 
 - [ ] **Step 5: Commit**
 
