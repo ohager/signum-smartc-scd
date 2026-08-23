@@ -914,7 +914,8 @@ describe("testStarter", () => {
     const src = testStarter("empty.test.ts", null);
     expect(src).toContain('import { describe, it, expect } from "vitest"');
     // No executable contract import, but the user is shown the form it takes.
-    expect(src).not.toContain("import ContractCode");
+    // Line-anchored: the commented example necessarily contains the same words.
+    expect(src).not.toMatch(/^import ContractCode/m);
     expect(src).toContain("// import ContractCode from");
   });
 });
@@ -1062,7 +1063,7 @@ import { testStarter } from "@/features/testbed/test-starter";
   };
 ```
 
-4. Add a `SelectItem` alongside the existing two. Read the surrounding markup and match it exactly — the existing items wrap an icon and a label, so follow that shape:
+4. Add a `SelectItem` alongside the existing two. The existing items are plain text labels with no icons, so match that:
 
 ```tsx
                 <SelectItem value={FileTypes.Test}>
