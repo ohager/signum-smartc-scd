@@ -24,6 +24,8 @@ export interface TestFailure {
   expected?: unknown;
   actual?: unknown;
   stack?: string;
+  /** 1-based source line, filled in by the client after mapping. */
+  line?: number;
 }
 
 export type ConsoleLevel = "log" | "info" | "warn" | "error" | "debug";
