@@ -26,6 +26,9 @@ import {
 } from "@/features/simulator/scenario/scenario-io";
 import { useNavigate } from "react-router";
 import { downloadBlob } from "@/lib/download.ts";
+// TEMPORARY: proves Monaco's TS worker can transpile project TS to CommonJS.
+// Remove this import and its call in handleEditorDidMount once the testbed UI lands.
+import { installTranspileProbe } from "@/features/testbed/dev-transpile-probe";
 
 async function createAssemblyFile(
   folderId: string,
@@ -310,6 +313,9 @@ function SmartCEditor({ file }: Props) {
   }, [saveSmartCFile]);
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
+    // TEMPORARY: exposes `__probeTranspile()` on the console. Remove once the
+    // testbed UI lands (see the import above).
+    installTranspileProbe(monaco);
     editor.addAction({
       id: ActionType.Compile,
       // TODO: this is not good... we need to use events
