@@ -6,6 +6,7 @@ import { Play } from "lucide-react";
 import { toast } from "sonner";
 import { useParams } from "react-router";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { Checkbox } from "@/components/ui/checkbox";
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import type { File } from "@/lib/file-system";
@@ -34,6 +35,7 @@ export function TestFileEditor({ file }: Props) {
   const { state, isRunning, run } = useTestRun();
   useTestDecorations(editorRef.current, state.rows);
   const [debugging, setDebugging] = useState(false);
+  const [debugRun, setDebugRun] = useState(false);
 
   const recording = state.recordings?.[file.metadata.path];
 
@@ -81,8 +83,8 @@ export function TestFileEditor({ file }: Props) {
     if (!monaco) return;
     // Save first: the runner reads the project from the file system, not the editor buffer.
     await fs.saveFile(file.metadata.id, codeRef.current);
-    await run(monaco, projectId, file.metadata.path);
-  }, [fs, file.metadata.id, file.metadata.path, projectId, run]);
+    await run(monaco, projectId, file.metadata.path, debugRun);
+  }, [fs, file.metadata.id, file.metadata.path, projectId, run, debugRun]);
 
   useEffect(() => {
     addAction({
@@ -137,11 +139,25 @@ export function TestFileEditor({ file }: Props) {
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={40} minSize={20}>
-          <TestResultsPanel
-            state={state}
-            onRevealLine={revealLine}
-            onDebug={recording?.contractSource ? () => setDebugging(true) : undefined}
-          />
+          <div className="flex h-full flex-col">
+            <label className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-1.5 text-xs text-muted-foreground">
+              <Checkbox
+                checked={debugRun}
+                onCheckedChange={(checked) => setDebugRun(checked === true)}
+              />
+              Debug run (DevTools)
+              <span className="text-muted-foreground/70">
+                — runs in the page so DevTools can break; a runaway contract will freeze the tab
+              </span>
+            </label>
+            <div className="min-h-0 flex-1">
+              <TestResultsPanel
+                state={state}
+                onRevealLine={revealLine}
+                onDebug={recording?.contractSource ? () => setDebugging(true) : undefined}
+              />
+            </div>
+          </div>
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>

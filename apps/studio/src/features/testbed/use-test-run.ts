@@ -4,6 +4,7 @@ import { FileSystem } from "@/lib/file-system";
 import { snapshotProject, isTestEntry } from "./project-snapshot";
 import { transpileAll } from "./transpile";
 import { runTests, createWorkerTransport } from "./runner-client";
+import { createMainThreadTransport } from "./main-thread-transport";
 import { initialRunState, reduceEvent, type RunState } from "./test-run-model";
 import { createLineResolver } from "./line-resolver";
 import { detectWrapperOffset } from "./source-position";
@@ -11,8 +12,12 @@ import { detectWrapperOffset } from "./source-position";
 export interface UseTestRun {
   state: RunState;
   isRunning: boolean;
-  /** Runs one test file, or every `*.test.ts` in the project when `entryPath` is omitted. */
-  run: (monaco: typeof Monaco, projectFolderId: string, entryPath?: string) => Promise<void>;
+  /**
+   * Runs one test file, or every `*.test.ts` in the project when `entryPath` is
+   * omitted. When `debug` is true, the run executes on the main thread instead
+   * of a worker, so DevTools can attach — see `main-thread-transport.ts`.
+   */
+  run: (monaco: typeof Monaco, projectFolderId: string, entryPath?: string, debug?: boolean) => Promise<void>;
 }
 
 export function useTestRun(): UseTestRun {
@@ -22,7 +27,7 @@ export function useTestRun(): UseTestRun {
   const latest = useRef<RunState>(initialRunState());
 
   const run = useCallback(
-    async (monaco: typeof Monaco, projectFolderId: string, entryPath?: string) => {
+    async (monaco: typeof Monaco, projectFolderId: string, entryPath?: string, debug?: boolean) => {
       setIsRunning(true);
       latest.current = initialRunState();
       setState(latest.current);
@@ -42,7 +47,7 @@ export function useTestRun(): UseTestRun {
 
         await runTests(
           { modules, rawFiles: snapshot.rawFiles, entryPaths },
-          createWorkerTransport(),
+          debug ? createMainThreadTransport() : createWorkerTransport(),
           (event) => {
             const enriched =
               event.type === "run:plan"
@@ -68,6 +73,10 @@ export function useTestRun(): UseTestRun {
             latest.current = reduceEvent(latest.current, enriched as typeof event);
             setState(latest.current);
           },
+          // A debug run is paused at a breakpoint for as long as the user needs,
+          // so the no-progress watchdog must not fire. It cannot be disabled with
+          // Infinity — browsers clamp that to ~1ms — hence a long finite budget.
+          debug ? { noProgressTimeoutMs: 60 * 60 * 1000 } : undefined,
         );
       } catch (error) {
         // A failure here is in the harness (snapshot or transpile), not in a
