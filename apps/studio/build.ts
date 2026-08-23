@@ -161,10 +161,37 @@ const result = await build({
   ...cliConfig, // Merge in any CLI-provided options
 });
 
+// Build the test-runner worker as its own entrypoint. Bun's bundler does not
+// transform `new Worker(new URL(..., import.meta.url))`, so the worker must
+// ship as a standalone, self-contained ESM file that the client references by
+// a fixed URL (see src/features/testbed/runner-client.ts and serve.ts). This
+// has to be a separate Bun.build call rather than another entrypoint mixed
+// into the HTML build above: adding a deep .ts entry there would change the
+// computed common root and shift every other output path.
+const workerResult = await build({
+  entrypoints: [path.resolve("src/features/testbed/runner/worker.ts")],
+  outdir,
+  target: "browser",
+  naming: "testbed-worker.js",
+  splitting: false,
+  minify: true,
+  define: {
+    "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "development"),
+  },
+});
+
+if (!workerResult.success) {
+  console.error("❌ Test-runner worker build failed:");
+  for (const message of workerResult.logs) {
+    console.error(message);
+  }
+  throw new Error("Test-runner worker build failed");
+}
+
 // Print the results
 const end = performance.now();
 
-const outputTable = result.outputs.map((output) => ({
+const outputTable = [...result.outputs, ...workerResult.outputs].map((output) => ({
   File: path.relative(process.cwd(), output.path),
   Type: output.kind,
   Size: formatFileSize(output.size),

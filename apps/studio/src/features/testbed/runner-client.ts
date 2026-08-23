@@ -68,9 +68,18 @@ export function runTests(
  * The real transport: a dedicated worker per run, so a wedged run can be
  * terminated without taking anything else down. Not unit-tested — it is a thin
  * wrapper whose behaviour is the Worker API's.
+ *
+ * The worker is loaded from a literal, stable URL rather than the usual
+ * `new URL("./runner/worker.ts", import.meta.url)` idiom. Bun's bundler does
+ * not recognise that pattern the way esbuild/Vite do — the call site ships
+ * verbatim into the bundle with no worker chunk emitted, so in production the
+ * browser would 404 trying to fetch raw TypeScript. Instead the worker is
+ * built as its own entrypoint (see build.ts) and served at a fixed path (see
+ * serve.ts), so `/testbed-worker.js` resolves in both dev and production. Do
+ * not "fix" this back to the `import.meta.url` form.
  */
 export function createWorkerTransport(): RunnerTransport {
-  const worker = new Worker(new URL("./runner/worker.ts", import.meta.url), { type: "module" });
+  const worker = new Worker("/testbed-worker.js", { type: "module" });
   return {
     post: (request) => worker.postMessage(request),
     onEvent: (listener) => {
