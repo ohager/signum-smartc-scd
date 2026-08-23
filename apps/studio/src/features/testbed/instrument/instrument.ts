@@ -43,6 +43,20 @@ function safeTraceMap(raw: string): TraceMap | null {
 }
 
 /**
+ * The identifier a call chain ultimately starts from: for
+ * `expect(a).resolves.toBe(1)` that is `expect`.
+ */
+function chainRoot(node: Node): Node | null {
+  let current: Node | null = node;
+  while (current) {
+    if (current.type === "CallExpression") current = current.callee as Node;
+    else if (current.type === "MemberExpression") current = current.object as Node;
+    else return current;
+  }
+  return null;
+}
+
+/**
  * Rewrites emitted JavaScript so every binding reports its value.
  *
  * Guarantees the output has exactly as many lines as the input: every insert is
@@ -98,6 +112,20 @@ export function instrument(js: string, sourceMap?: string): string {
         prefix: `__v(${lineFor(node)},${JSON.stringify(node.left.name)}, `,
         suffix: ")",
       });
+      return;
+    }
+
+    if (node.type === "ExpressionStatement" && node.expression?.type === "CallExpression") {
+      const root = chainRoot(node.expression as Node);
+      if (root?.type === "Identifier" && root.name === "expect") {
+        // A marker after the statement: if the assertion throws, this never runs.
+        edits.push({
+          start: node.end,
+          end: node.end,
+          prefix: "",
+          suffix: ` __ok(${lineFor(node)});`,
+        });
+      }
     }
   });
 

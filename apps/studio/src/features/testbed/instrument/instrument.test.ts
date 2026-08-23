@@ -96,4 +96,41 @@ describe("instrument", () => {
   it("falls back to the generated line when the map is unusable", () => {
     expect(instrument(`const a = 1;`, "{not json")).toBe(`const a = __v(1,"a", 1);`);
   });
+
+  it("marks a completed assertion", () => {
+    const out = expectLinePreserved(`expect(counter).toBe(2n);`);
+    expect(out).toBe(`expect(counter).toBe(2n); __ok(1);`);
+  });
+
+  it("marks an assertion at the end of a long chain", () => {
+    const out = expectLinePreserved(`expect(a).resolves.toBe(1);`);
+    expect(out).toContain(`__ok(1);`);
+  });
+
+  it("uses the line the assertion starts on when it spans several", () => {
+    const out = expectLinePreserved(`expect(tb.getMap(1n, 10n))\n  .toBe(1n);`);
+    expect(out).toContain(`__ok(1);`);
+    expect(out).not.toContain(`__ok(2);`);
+  });
+
+  it("does not mark a call that merely mentions expect deeper in", () => {
+    const out = expectLinePreserved(`assertThat(expect(a));`);
+    expect(out).not.toContain("__ok(");
+  });
+
+  it("does not mark an ordinary call", () => {
+    const out = expectLinePreserved(`tb.runScenario(txs);`);
+    expect(out).not.toContain("__ok(");
+  });
+
+  it("marks assertions inside a test body", () => {
+    const src = `it("t", () => {\n  expect(1n).toBe(1n);\n});`;
+    const out = expectLinePreserved(src);
+    expect(out).toContain(`__ok(2);`);
+  });
+
+  it("marks an assertion and wraps a binding on the same line independently", () => {
+    const out = expectLinePreserved(`const a = 1; expect(a).toBe(1);`);
+    expect(out).toBe(`const a = __v(1,"a", 1); expect(a).toBe(1); __ok(1);`);
+  });
 });
