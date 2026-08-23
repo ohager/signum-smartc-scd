@@ -1,5 +1,6 @@
 import * as testbedPkg from "signum-smartc-testbed";
 import { createRegistry } from "./module-registry";
+import { createRecorder, type TestRecording } from "./recording";
 import { createCollector, runSuite } from "./test-api";
 import type { ConsoleLevel, RunRequest, TestEvent } from "./types";
 
@@ -42,16 +43,21 @@ export async function runRequest(
   }
   globalThis.console = patched;
 
+  const recordings: Record<string, TestRecording> = {};
+
   try {
     for (const entry of request.entryPaths) {
       // A fresh collector per file, so suites from one file never leak into another.
       const { api, root } = createCollector(entry);
+      const { Recorded, recording } = createRecorder(testbedPkg.SimulatorTestbed as never);
+      recordings[entry] = recording;
+
       const registry = createRegistry({
         modules: request.modules,
         rawFiles: request.rawFiles,
         virtuals: {
           vitest: api,
-          "signum-smartc-testbed": { __esModule: true, ...testbedPkg },
+          "signum-smartc-testbed": { __esModule: true, ...testbedPkg, SimulatorTestbed: Recorded },
         },
       });
 
@@ -77,5 +83,5 @@ export async function runRequest(
     globalThis.console = originalConsole;
   }
 
-  emit({ type: "run:end", durationMs: Date.now() - started });
+  emit({ type: "run:end", durationMs: Date.now() - started, recordings });
 }
