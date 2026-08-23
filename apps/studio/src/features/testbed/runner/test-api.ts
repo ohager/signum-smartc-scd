@@ -1,5 +1,5 @@
 import { expect } from "./expect";
-import type { TestMode } from "./types";
+import type { TestEvent, TestFailure, TestMode } from "./types";
 
 export interface TestCase {
   kind: "test";
@@ -89,4 +89,72 @@ export function createCollector(file: string) {
   };
 
   return { api, root };
+}
+
+function toFailure(error: unknown): TestFailure {
+  if (!(error instanceof Error)) return { message: String(error) };
+  const e = error as Error & { expected?: unknown; actual?: unknown };
+  return { message: e.message, expected: e.expected, actual: e.actual, stack: e.stack };
+}
+
+/** Runs a collected suite tree, emitting events as it goes. */
+export async function runSuite(
+  root: Suite,
+  file: string,
+  emit: (event: TestEvent) => void,
+): Promise<void> {
+  async function runNode(
+    node: Suite,
+    inheritedBeforeEach: Array<Array<() => unknown>>,
+    inheritedAfterEach: Array<Array<() => unknown>>,
+    skipped: boolean,
+  ) {
+    const suiteSkipped = skipped || node.mode === "skip";
+    if (!suiteSkipped) for (const hook of node.beforeAll) await hook();
+
+    const beforeEach = [...inheritedBeforeEach, node.beforeEach];
+    const afterEach = [node.afterEach, ...inheritedAfterEach];
+
+    for (const child of node.children) {
+      if (child.kind === "suite") await runNode(child, beforeEach, afterEach, suiteSkipped);
+      else await runTest(child, beforeEach, afterEach, suiteSkipped);
+    }
+
+    if (!suiteSkipped) for (const hook of node.afterAll) await hook();
+  }
+
+  async function runTest(
+    test: TestCase,
+    beforeEach: Array<Array<() => unknown>>,
+    afterEach: Array<Array<() => unknown>>,
+    skipped: boolean,
+  ) {
+    if (test.mode === "todo") {
+      emit({ type: "test:end", id: test.id, status: "todo", durationMs: 0 });
+      return;
+    }
+    if (skipped || test.mode === "skip") {
+      emit({ type: "test:end", id: test.id, status: "skipped", durationMs: 0 });
+      return;
+    }
+
+    emit({ type: "test:start", id: test.id, name: test.name, path: test.path, file });
+    const started = Date.now();
+    try {
+      for (const hooks of beforeEach) for (const hook of hooks) await hook();
+      await test.fn();
+      for (const hooks of afterEach) for (const hook of hooks) await hook();
+      emit({ type: "test:end", id: test.id, status: "passed", durationMs: Date.now() - started });
+    } catch (error) {
+      emit({
+        type: "test:end",
+        id: test.id,
+        status: "failed",
+        durationMs: Date.now() - started,
+        failure: toFailure(error),
+      });
+    }
+  }
+
+  await runNode(root, [], [], false);
 }
