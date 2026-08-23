@@ -699,6 +699,41 @@ export class FileSystem extends EventTarget {
   }
 
   /**
+   * Retrieves the metadata of every file at or below a folder, at any depth.
+   *
+   * `listFolderContents` is deliberately one level deep; this is its recursive
+   * counterpart, for callers that need a whole project at once. Files of a
+   * folder come before its subfolders' files, in declaration order.
+   *
+   * @param {string} folderId - The folder to start from (default: the root folder).
+   * @return {FileMetadata[]} Metadata for every file in the subtree.
+   * @throws {Error} If the folder with the specified ID is not found.
+   */
+  listFilesRecursive(folderId?: string): FileMetadata[] {
+    const startId = folderId ?? this.metadata.rootFolder;
+
+    if (!this.metadata.folderContents[startId]) {
+      throw new Error(`Folder not found: ${startId}`);
+    }
+
+    const found: FileMetadata[] = [];
+
+    const visit = (id: string) => {
+      const contents = this.metadata.folderContents[id];
+      if (!contents) return;
+      for (const fileId of contents.files) {
+        const metadata = this.metadata.files[fileId];
+        if (metadata) found.push(metadata);
+      }
+      for (const subFolderId of contents.folders) visit(subFolderId);
+    };
+
+    visit(startId);
+
+    return found;
+  }
+
+  /**
    * Retrieves the metadata of a folder by its ID.
    *
    * @param {string} folderId - The unique identifier of the folder to retrieve.
