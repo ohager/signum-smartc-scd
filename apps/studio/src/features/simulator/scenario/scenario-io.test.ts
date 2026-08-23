@@ -46,4 +46,24 @@ describe("scenario-io (v2)", () => {
     expect(s.version).toBe(2);
     expect(s.transactions.length).toBe(1);
   });
+
+  it("accepts an optional messageHex", () => {
+    const ok = {
+      version: 2,
+      creator: "555",
+      accounts: [],
+      transactions: [{ block: 1, sender: "1001", amount: "1", messageHex: "00ff" }],
+    };
+    expect(validateScenario(ok).valid).toBe(true);
+  });
+
+  it("rejects a non-string messageHex", () => {
+    const bad = {
+      version: 2,
+      creator: "555",
+      accounts: [],
+      transactions: [{ block: 1, sender: "1001", amount: "1", messageHex: 42 }],
+    };
+    expect(validateScenario(bad).valid).toBe(false);
+  });
 });

@@ -19,4 +19,14 @@ describe("toEngineTxs (v2)", () => {
       { sender: "1002", recipient: "999", amount: "3", blockheight: 2, txId: "77", message: "hi" },
     ]);
   });
+
+  it("passes messageHex through to the engine", () => {
+    const scenario = {
+      version: 2 as const,
+      creator: "555",
+      accounts: [],
+      transactions: [{ block: 1, sender: "1001", amount: "1", messageHex: "0100000000000000" }],
+    };
+    expect(toEngineTxs(scenario, "999")[0].messageHex).toBe("0100000000000000");
+  });
 });

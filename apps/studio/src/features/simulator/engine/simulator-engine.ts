@@ -61,6 +61,7 @@ export class ScSimulatorEngine implements SimulatorEngine {
       blockheight: t.blockheight,
       ...(t.txId ? { txid: t.txId.replace(/_/g, "") } : {}),
       ...(t.message ? { messageText: t.message } : {}),
+      ...(t.messageHex ? { messageHex: t.messageHex } : {}),
     }));
     this.node.setScenario(JSON.stringify(txs));
     this.node.forgeBlock();

@@ -4,6 +4,7 @@ export interface ScenarioTx {
   amount: string; // NQT string; "_" separators allowed
   txId?: string; // optional self-defined tx id (bigint as string); random if omitted
   message?: string; // → messageText
+  messageHex?: string; // → messageHex; hex-encoded payload, as `asHexMessage` produces
 }
 
 export interface ScenarioAccount {

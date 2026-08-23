@@ -36,6 +36,8 @@ export function validateScenario(value: unknown): ValidationResult {
       if (!isNum(t?.sender) || !isNum(t?.amount)) errors.push(`transactions[${i}] needs numeric sender and amount`);
       if (t?.txId !== undefined && !isNum(t.txId)) errors.push(`transactions[${i}] txId must be numeric`);
       if (t?.message !== undefined && typeof t.message !== "string") errors.push(`transactions[${i}] message must be a string`);
+      if (t?.messageHex !== undefined && typeof t.messageHex !== "string")
+        errors.push(`transactions[${i}] messageHex must be a string`);
     });
   return errors.length ? { valid: false, errors } : { valid: true, scenario: value as ScenarioFile };
 }

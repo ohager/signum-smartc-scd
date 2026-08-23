@@ -7,6 +7,7 @@ export interface EngineTx {
   blockheight: number; // engine height = scenario block - 1
   txId?: string;
   message?: string;
+  messageHex?: string;
 }
 
 /**
@@ -23,6 +24,7 @@ export function toEngineTxs(scenario: ScenarioFile, contractId: string): EngineT
     };
     if (tx.txId !== undefined) t.txId = tx.txId;
     if (tx.message !== undefined) t.message = tx.message;
+    if (tx.messageHex !== undefined) t.messageHex = tx.messageHex;
     return t;
   });
 }
