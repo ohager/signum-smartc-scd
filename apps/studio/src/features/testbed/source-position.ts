@@ -33,7 +33,17 @@ export function firstFrameIn(stack: string, file: string): StackFrame | null {
  * lines off, which reads as "roughly right" and wastes an afternoon.
  */
 export function detectWrapperOffset(): number {
-  const probe = new Function("return new Error().stack;\n//# sourceURL=__wrapper_probe__");
+  // Mirrors the parameter list in module-registry.ts. The probe exists to
+  // measure the wrapper the registry actually produces, so its signature has to
+  // match — otherwise it measures a function nobody runs.
+  const probe = new Function(
+    "require",
+    "exports",
+    "module",
+    "__v",
+    "__ok",
+    "return new Error().stack;\n//# sourceURL=__wrapper_probe__",
+  );
   const frame = firstFrameIn(String(probe()), "__wrapper_probe__");
   // The probe's `return` is on body line 1, so the offset is whatever was added.
   return frame ? frame.line - 1 : 2;

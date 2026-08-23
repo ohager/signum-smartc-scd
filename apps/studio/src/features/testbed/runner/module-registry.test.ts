@@ -137,3 +137,52 @@ describe("module-registry", () => {
     );
   });
 });
+
+describe("value tracing", () => {
+  it("gives each module a __v bound to its own path", () => {
+    const seen: Array<[string, number, string, unknown]> = [];
+    const registry = createRegistry({
+      modules: { "/p/a.ts": { js: `module.exports.x = __v(3,"x", 7);` } },
+      rawFiles: {},
+      virtuals: {},
+      trace: {
+        value: (file, line, name, value) => {
+          seen.push([file, line, name, value]);
+          return value;
+        },
+        ok: () => {},
+        endTest: () => ({ trace: {}, truncated: false }),
+      },
+    });
+
+    expect((registry.require("/p/a.ts") as { x: number }).x).toBe(7);
+    expect(seen).toEqual([["/p/a.ts", 3, "x", 7]]);
+  });
+
+  it("gives each module an __ok bound to its own path", () => {
+    const seen: Array<[string, number]> = [];
+    const registry = createRegistry({
+      modules: { "/p/a.ts": { js: `__ok(9);` } },
+      rawFiles: {},
+      virtuals: {},
+      trace: {
+        value: (_f, _l, _n, v) => v,
+        ok: (file, line) => void seen.push([file, line]),
+        endTest: () => ({ trace: {}, truncated: false }),
+      },
+    });
+
+    registry.require("/p/a.ts");
+    expect(seen).toEqual([["/p/a.ts", 9]]);
+  });
+
+  it("still evaluates instrumented code when no sink is supplied", () => {
+    const registry = createRegistry({
+      modules: { "/p/a.ts": { js: `module.exports.x = __v(1,"x", 7); __ok(1);` } },
+      rawFiles: {},
+      virtuals: {},
+    });
+
+    expect((registry.require("/p/a.ts") as { x: number }).x).toBe(7);
+  });
+});

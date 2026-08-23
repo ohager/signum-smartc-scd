@@ -68,3 +68,21 @@ describe("detectWrapperOffset", () => {
     }
   });
 });
+
+describe("detectWrapperOffset with the registry's real signature", () => {
+  it("measures the same offset the registry's own wrapper produces", () => {
+    // The registry compiles modules with five named parameters. The probe must
+    // use the same signature, or it measures a wrapper nobody actually runs.
+    const real = new Function(
+      "require",
+      "exports",
+      "module",
+      "__v",
+      "__ok",
+      "return new Error().stack;\n//# sourceURL=__real_probe__",
+    );
+    const frame = firstFrameIn(String(real()), "__real_probe__");
+    expect(frame).not.toBeNull();
+    expect(frame!.line - 1).toBe(detectWrapperOffset());
+  });
+});

@@ -1,5 +1,6 @@
 import { dirnameOf, resolveFrom } from "./resolve-path";
 import type { CompiledModule } from "./types";
+import type { TraceSink } from "./trace";
 
 const RAW_SUFFIX = "?raw";
 
@@ -10,6 +11,8 @@ export interface RegistryOptions {
   rawFiles: Record<string, string>;
   /** Bare specifier → module exports. */
   virtuals: Record<string, unknown>;
+  /** Receives values from instrumented modules. Omit to evaluate without tracing. */
+  trace?: TraceSink;
 }
 
 export function createRegistry(opts: RegistryOptions) {
@@ -66,8 +69,22 @@ export function createRegistry(opts: RegistryOptions) {
     // Cache before evaluating, so a cycle sees partial exports instead of recursing forever.
     cache.set(path, module);
 
-    const fn = new Function("require", "exports", "module", compiled.js + "\n//# sourceURL=" + path);
-    fn((spec: string) => requireFrom(path, spec), module.exports, module);
+    const fn = new Function(
+      "require",
+      "exports",
+      "module",
+      "__v",
+      "__ok",
+      compiled.js + "\n//# sourceURL=" + path,
+    );
+
+    const sink = opts.trace;
+    const recordValue = sink
+      ? (line: number, name: string, value: unknown) => sink.value(path, line, name, value)
+      : (_line: number, _name: string, value: unknown) => value;
+    const recordOk = sink ? (line: number) => sink.ok(path, line) : () => {};
+
+    fn((spec: string) => requireFrom(path, spec), module.exports, module, recordValue, recordOk);
     return module.exports;
   }
 
