@@ -9,3 +9,22 @@
 .debug-current-line { background: rgba(80, 160, 255, 0.18); }
 .debug-current-glyph { background: #5aa0ff; }
 .debug-breakpoint { background: #e5484d; border-radius: 50%; width: 10px !important; height: 10px !important; margin: 5px 0 0 6px; }
+
+/* Test status markers in the editor gutter. */
+.test-glyph-pending::before,
+.test-glyph-running::before,
+.test-glyph-passed::before,
+.test-glyph-failed::before,
+.test-glyph-skipped::before {
+  content: "";
+  display: block;
+  width: 8px;
+  height: 8px;
+  margin: 6px 0 0 6px;
+  border-radius: 9999px;
+}
+.test-glyph-pending::before { background: rgb(113 113 122); }
+.test-glyph-running::before { background: rgb(59 130 246); }
+.test-glyph-passed::before  { background: rgb(34 197 94); }
+.test-glyph-failed::before  { background: rgb(239 68 68); }
+.test-glyph-skipped::before { background: rgb(82 82 91); }

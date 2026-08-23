@@ -12,6 +12,7 @@ import type { File } from "@/lib/file-system";
 import { configureTypeScriptForTests } from "../monaco-setup";
 import { useTestRun } from "../use-test-run";
 import { TestResultsPanel } from "./test-results-panel";
+import { useTestDecorations } from "./use-test-decorations";
 
 interface Props {
   file: File;
@@ -23,10 +24,12 @@ export function TestFileEditor({ file }: Props) {
   const fs = useFileSystem();
   const { theme } = useTheme();
   const monacoRef = useRef<typeof Monaco | null>(null);
+  const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
   const [code, setCode] = useState(file.content as string);
   const codeRef = useRef(code);
   codeRef.current = code;
   const { state, isRunning, run } = useTestRun();
+  useTestDecorations(editorRef.current, state.rows);
 
   // `h-full` does not resolve here: PageContent (src/components/ui/page.tsx)
   // is a plain block div, not a flex container, so a percentage height on its
@@ -50,7 +53,11 @@ export function TestFileEditor({ file }: Props) {
     return () => window.removeEventListener("resize", calculatePanelHeight);
   }, []);
 
-  const onMount: OnMount = (_editor, monaco) => {
+  const onMount: OnMount = (editor, monaco) => {
+    // @ts-ignore — @monaco-editor/react resolves its own nested monaco-editor
+    // version, which structurally diverges from the root one; see the same
+    // workaround in debug-view.tsx's onMount.
+    editorRef.current = editor;
     monacoRef.current = monaco;
     configureTypeScriptForTests(monaco);
   };
@@ -93,7 +100,7 @@ export function TestFileEditor({ file }: Props) {
             value={code}
             onChange={(value) => setCode(value ?? "")}
             onMount={onMount}
-            options={{ minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false }}
+            options={{ minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false, glyphMargin: true }}
           />
         </ResizablePanel>
         <ResizableHandle withHandle />
