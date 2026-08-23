@@ -7,6 +7,7 @@ import { Play } from "lucide-react";
 import { toast } from "sonner";
 import { useParams } from "react-router";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
@@ -20,7 +21,8 @@ import { TestResultsPanel } from "./test-results-panel";
 import { useTestDecorations } from "./use-test-decorations";
 import { useValueDecorations } from "./use-value-decorations";
 import { DevToolsHelp } from "./devtools-help";
-import { fileTraceAtom, activeTestIdAtom } from "../test-trace-store";
+import { ValuePanel } from "./value-panel";
+import { fileTraceAtom, activeTestIdAtom, inspectedLineAtom } from "../test-trace-store";
 
 interface Props {
   file: File;
@@ -42,7 +44,23 @@ export function TestFileEditor({ file }: Props) {
   const traceForFile = useAtomValue(fileTraceAtom);
   const setActiveTestId = useSetAtom(activeTestIdAtom);
   const activeTestId = useAtomValue(activeTestIdAtom);
-  useValueDecorations(editorRef.current, monacoRef.current, traceForFile(file.metadata.path));
+  const setInspectedLine = useSetAtom(inspectedLineAtom);
+  const [rightTab, setRightTab] = useState("results");
+
+  const inspectLine = useCallback(
+    (line: number) => {
+      setInspectedLine({ file: file.metadata.path, line });
+      setRightTab("value");
+    },
+    [file.metadata.path, setInspectedLine],
+  );
+
+  useValueDecorations(
+    editorRef.current,
+    monacoRef.current,
+    traceForFile(file.metadata.path),
+    inspectLine,
+  );
   const [debugging, setDebugging] = useState(false);
   const [debugRun, setDebugRun] = useState(false);
 
@@ -177,15 +195,28 @@ export function TestFileEditor({ file }: Props) {
                 — runs in the page so DevTools can break; a runaway contract will freeze the tab
               </span>
             </label>
-            <div className="min-h-0 flex-1">
-              <TestResultsPanel
-                state={state}
-                onRevealLine={revealLine}
-                onDebug={recording?.contractSource ? () => setDebugging(true) : undefined}
-                activeTestId={activeTestId}
-                onSelectTest={setActiveTestId}
-              />
-            </div>
+            <Tabs
+              value={rightTab}
+              onValueChange={setRightTab}
+              className="flex min-h-0 flex-1 flex-col gap-0"
+            >
+              <TabsList className="mx-3 mt-2 shrink-0 self-start">
+                <TabsTrigger value="results">Results</TabsTrigger>
+                <TabsTrigger value="value">Value</TabsTrigger>
+              </TabsList>
+              <TabsContent value="results" className="min-h-0 flex-1">
+                <TestResultsPanel
+                  state={state}
+                  onRevealLine={revealLine}
+                  onDebug={recording?.contractSource ? () => setDebugging(true) : undefined}
+                  activeTestId={activeTestId}
+                  onSelectTest={setActiveTestId}
+                />
+              </TabsContent>
+              <TabsContent value="value" className="min-h-0 flex-1">
+                <ValuePanel />
+              </TabsContent>
+            </Tabs>
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>

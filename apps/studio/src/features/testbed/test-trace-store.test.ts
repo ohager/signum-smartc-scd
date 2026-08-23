@@ -6,6 +6,8 @@ import {
   activeTraceAtom,
   fileTraceAtom,
   resetTracesAtom,
+  inspectedLineAtom,
+  inspectedValueAtom,
 } from "./test-trace-store";
 
 const TEST_FILE = "/p/a.test.ts";
@@ -64,5 +66,50 @@ describe("test trace store", () => {
     store.set(resetTracesAtom);
     expect(store.get(tracesAtom)).toEqual({});
     expect(store.get(activeTestIdAtom)).toBeNull();
+  });
+});
+
+describe("inspected line", () => {
+  it("has nothing inspected initially", () => {
+    const store = createStore();
+    expect(store.get(inspectedValueAtom)).toBeUndefined();
+  });
+
+  it("resolves the inspected line to its trace in the active test", () => {
+    const store = createStore();
+    store.set(tracesAtom, traces);
+    store.set(activeTestIdAtom, "a#1");
+    store.set(inspectedLineAtom, { file: HELPER, line: 4 });
+    expect(store.get(inspectedValueAtom)).toEqual({
+      file: HELPER,
+      line: 4,
+      trace: { values: ["7n"], count: 1, name: "inner" },
+    });
+  });
+
+  it("resolves to nothing when the active test never touched that line", () => {
+    const store = createStore();
+    store.set(tracesAtom, traces);
+    store.set(activeTestIdAtom, "a#0");
+    store.set(inspectedLineAtom, { file: HELPER, line: 4 });
+    expect(store.get(inspectedValueAtom)).toBeUndefined();
+  });
+
+  it("follows the active test, so switching tests re-resolves the same line", () => {
+    const store = createStore();
+    store.set(tracesAtom, traces);
+    store.set(activeTestIdAtom, "a#1");
+    store.set(inspectedLineAtom, { file: TEST_FILE, line: 9 });
+    expect(store.get(inspectedValueAtom)?.trace.name).toBe("y");
+
+    store.set(activeTestIdAtom, "a#0");
+    expect(store.get(inspectedValueAtom)).toBeUndefined();
+  });
+
+  it("is cleared when a new run starts", () => {
+    const store = createStore();
+    store.set(inspectedLineAtom, { file: TEST_FILE, line: 9 });
+    store.set(resetTracesAtom);
+    expect(store.get(inspectedLineAtom)).toBeNull();
   });
 });

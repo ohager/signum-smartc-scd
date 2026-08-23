@@ -9,6 +9,13 @@ export interface LineTrace {
   ok?: boolean;
   /** The bound name, when the line bound one. */
   name?: string;
+  /**
+   * The last value, rendered pretty and deep, for the Value tab.
+   *
+   * One per line rather than one per value: a loop running 30,000 times would
+   * otherwise hold 30,000 detail strings, and the tab only ever shows the last.
+   */
+  detail?: string;
 }
 
 /** line → what happened on it. */
@@ -22,6 +29,9 @@ export interface TraceLimits {
 }
 
 export const DEFAULT_LIMITS: TraceLimits = { valuesPerLine: 100, entriesPerTest: 20_000 };
+
+/** The detail view has a whole tab to fill, so it goes deeper and longer. */
+const DETAIL_OPTIONS = { pretty: true, maxDepth: 6, maxLength: 20_000 } as const;
 
 export interface TraceSink {
   /** Records a value and returns it unchanged, so it can wrap an expression. */
@@ -60,6 +70,9 @@ export function createTraceSink(limits: Partial<TraceLimits> = {}): TraceSink {
       const trace = lineOf(file, line);
       trace.name = name;
       trace.count++;
+      // Overwritten each time, so it always describes the value the inline text
+      // is showing.
+      trace.detail = serializeValue(value, DETAIL_OPTIONS);
 
       if (trace.values.length >= valuesPerLine) {
         // Ring buffer is full: replacing costs no extra memory, so it does not

@@ -5,15 +5,13 @@ import type { LineTrace } from "./runner/trace";
  *
  * Ghost text shares the line with the code it annotates, so a long value pushes
  * the annotation off the right edge and makes the file harder to read than it
- * was without it. Anything longer moves to the hover.
+ * was without it. The full value lives in the Value tab, one click away.
  */
 const INLINE_MAX = 60;
 
 export interface Annotation {
   /** Ghost text drawn at the end of the line. */
   text: string;
-  /** Markdown shown on hover. Absent when the text says everything. */
-  hover?: string;
 }
 
 /**
@@ -35,17 +33,5 @@ export function formatAnnotation(trace: LineTrace): Annotation | null {
   const label = name ? `${name} = ${last}` : last;
   const shortened = label.length > INLINE_MAX ? label.slice(0, INLINE_MAX - 1) + "…" : label;
 
-  // Anything the inline text could not say goes in the hover, in the order you
-  // would want to read it: the full value first, then how the repeats ran.
-  const hover: string[] = [];
-  if (shortened !== label) hover.push(label);
-
-  if (count > 1) {
-    const dropped = count - values.length;
-    if (dropped > 0) hover.push(`showing last ${values.length} of ${count}`);
-    hover.push(values.map((value, index) => `${dropped + index + 1}: ${value}`).join("\n\n"));
-  }
-
-  const text = count > 1 ? `${shortened}  ×${count}` : shortened;
-  return hover.length ? { text, hover: hover.join("\n\n") } : { text };
+  return { text: count > 1 ? `${shortened}  ×${count}` : shortened };
 }

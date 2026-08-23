@@ -34,4 +34,9 @@
   color: rgb(113 113 122);
   font-style: italic;
   opacity: 0.9;
+  cursor: pointer;
+}
+.test-inline-value:hover {
+  opacity: 1;
+  text-decoration: underline;
 }

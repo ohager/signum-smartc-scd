@@ -117,6 +117,7 @@ describe("value traces", () => {
       values: ["2n"],
       count: 1,
       name: "counter",
+      detail: "2n",
       ok: true,
     });
   });

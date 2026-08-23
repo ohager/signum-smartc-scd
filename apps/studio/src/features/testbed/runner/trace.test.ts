@@ -13,7 +13,12 @@ describe("createTraceSink", () => {
     const sink = createTraceSink();
     sink.value(FILE, 7, "counter", 2n);
     const { trace } = sink.endTest();
-    expect(trace[FILE][7]).toEqual({ values: ["2n"], count: 1, name: "counter" });
+    expect(trace[FILE][7]).toEqual({
+      values: ["2n"],
+      count: 1,
+      name: "counter",
+      detail: "2n",
+    });
   });
 
   it("counts repeats and keeps them in order", () => {
@@ -88,5 +93,44 @@ describe("createTraceSink", () => {
     sink.value(FILE, 2, "b", 2n);
     expect(sink.endTest().truncated).toBe(true);
     expect(sink.endTest().truncated).toBe(false);
+  });
+});
+
+describe("value detail", () => {
+  it("keeps a pretty-printed copy of the value for the detail view", () => {
+    const sink = createTraceSink();
+    sink.value(FILE, 7, "account", { id: 10n, balance: 5n });
+    const { trace } = sink.endTest();
+    expect(trace[FILE][7].detail).toBe("{\n  id: 10n,\n  balance: 5n\n}");
+  });
+
+  it("keeps the detail of the LAST value, matching what the inline text shows", () => {
+    const sink = createTraceSink();
+    sink.value(FILE, 7, "r", { n: 1n });
+    sink.value(FILE, 7, "r", { n: 2n });
+    const { trace } = sink.endTest();
+    expect(trace[FILE][7].detail).toBe("{\n  n: 2n\n}");
+  });
+
+  it("keeps one detail per line, not one per value", () => {
+    // A hot loop must not accumulate a detail string per iteration.
+    const sink = createTraceSink({ valuesPerLine: 2 });
+    for (let n = 1; n <= 50; n++) sink.value(FILE, 7, "r", BigInt(n));
+    const { trace } = sink.endTest();
+    expect(trace[FILE][7].detail).toBe("50n");
+  });
+
+  it("goes deeper in the detail than the inline text does", () => {
+    const sink = createTraceSink();
+    sink.value(FILE, 7, "deep", { a: { b: { c: { d: 1n } } } });
+    const { trace } = sink.endTest();
+    expect(trace[FILE][7].values[0]).toContain("[Object]");
+    expect(trace[FILE][7].detail).toContain("d: 1n");
+  });
+
+  it("has no detail for a line that only completed an assertion", () => {
+    const sink = createTraceSink();
+    sink.ok(FILE, 12);
+    expect(sink.endTest().trace[FILE][12].detail).toBeUndefined();
   });
 });
