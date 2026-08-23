@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useAtomValue } from "jotai";
 import Editor, { type OnMount } from "@monaco-editor/react";
 import type * as Monaco from "monaco-editor";
@@ -23,6 +23,11 @@ export function ValuePanel() {
   const { theme } = useTheme();
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
 
+  // Computed before the early return below, so the fold effect can depend on it
+  // without a conditional hook.
+  const sourceText =
+    inspected?.trace.detail !== undefined ? toSourceText(inspected.trace.detail) : "";
+
   const onMount: OnMount = (editor) => {
     // @ts-ignore — @monaco-editor/react resolves its own nested monaco-editor
     // version, which structurally diverges from the root one; see the same
@@ -39,6 +44,21 @@ export function ValuePanel() {
     editor.focus();
     editor.trigger("value-panel", action, null);
   }, []);
+
+  /**
+   * Opens on the shape of the value rather than all of it: the top level stays
+   * expanded and everything nested inside it starts folded.
+   *
+   * Deferred a tick because the folding ranges are computed from the model
+   * after it is set, so triggering during the same turn finds nothing to fold.
+   */
+  useEffect(() => {
+    if (!sourceText) return;
+    const timer = setTimeout(() => {
+      editorRef.current?.trigger("value-panel", "editor.foldLevel2", null);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [sourceText]);
 
   if (!inspected) {
     return (
@@ -100,7 +120,7 @@ export function ValuePanel() {
             // `200000000n` is a literal here rather than a quoted lie.
             language="javascript"
             theme={theme === "dark" ? "vs-dark" : "light"}
-            value={toSourceText(trace.detail)}
+            value={sourceText}
             onMount={onMount}
             options={{
               readOnly: true,
