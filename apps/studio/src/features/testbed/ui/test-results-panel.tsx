@@ -1,4 +1,4 @@
-import { CheckCircle2, XCircle, MinusCircle, Clock, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, MinusCircle, Clock, Loader2, Bug } from "lucide-react";
 import type { ReactNode } from "react";
 import type { RunState, TestRow } from "../test-run-model";
 
@@ -82,9 +82,11 @@ function TestRowView({ row, onRevealLine }: { row: TestRow; onRevealLine?: (line
 export function TestResultsPanel({
   state,
   onRevealLine,
+  onDebug,
 }: {
   state: RunState;
   onRevealLine?: (line: number) => void;
+  onDebug?: () => void;
 }) {
   const { counts } = state;
 
@@ -95,9 +97,16 @@ export function TestResultsPanel({
         <span className="text-red-500">{counts.failed} failed</span>
         {counts.skipped > 0 && <span className="text-muted-foreground">{counts.skipped} skipped</span>}
         {counts.timedout > 0 && <span className="text-amber-500">{counts.timedout} timed out</span>}
-        {state.durationMs !== undefined && (
-          <span className="ml-auto text-muted-foreground">{state.durationMs}ms</span>
-        )}
+        <div className="ml-auto flex items-center gap-3">
+          {state.durationMs !== undefined && (
+            <span className="text-muted-foreground">{state.durationMs}ms</span>
+          )}
+          {onDebug && state.recordings && Object.keys(state.recordings).length > 0 && (
+            <button type="button" onClick={onDebug} className="flex items-center gap-1 hover:underline">
+              <Bug className="h-3.5 w-3.5" /> Debug
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex-1 overflow-auto">

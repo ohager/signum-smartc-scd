@@ -1,4 +1,5 @@
 import type { ConsoleLevel, TestEvent, TestFailure, TestStatus } from "./runner/types";
+import type { TestRecording } from "./runner/recording";
 
 export interface LogLine {
   level: ConsoleLevel;
@@ -29,6 +30,8 @@ export interface RunState {
   hookErrors: { file: string; suite: string[]; phase: string; message: string }[];
   counts: Record<"passed" | "failed" | "skipped" | "todo" | "timedout", number>;
   durationMs?: number;
+  /** Present once a run finishes, keyed by test file — drives the Debug button. */
+  recordings?: Record<string, TestRecording>;
 }
 
 export function initialRunState(): RunState {
@@ -163,6 +166,6 @@ export function reduceEvent(state: RunState, event: TestEvent): RunState {
       };
 
     case "run:end":
-      return { ...state, status: "done", durationMs: event.durationMs };
+      return { ...state, status: "done", durationMs: event.durationMs, recordings: event.recordings };
   }
 }

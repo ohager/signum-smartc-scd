@@ -9,8 +9,11 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/componen
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import type { File } from "@/lib/file-system";
+import { DebugView } from "@/features/simulator/ui/debug-view";
+import { serializeScenario } from "@/features/simulator/scenario/scenario-io";
 import { configureTypeScriptForTests } from "../monaco-setup";
 import { useTestRun } from "../use-test-run";
+import { toDebugScenario } from "../to-debug-scenario";
 import { TestResultsPanel } from "./test-results-panel";
 import { useTestDecorations } from "./use-test-decorations";
 
@@ -30,6 +33,9 @@ export function TestFileEditor({ file }: Props) {
   codeRef.current = code;
   const { state, isRunning, run } = useTestRun();
   useTestDecorations(editorRef.current, state.rows);
+  const [debugging, setDebugging] = useState(false);
+
+  const recording = state.recordings?.[file.metadata.path];
 
   // `h-full` does not resolve here: PageContent (src/components/ui/page.tsx)
   // is a plain block div, not a flex container, so a percentage height on its
@@ -96,6 +102,24 @@ export function TestFileEditor({ file }: Props) {
     updateAction({ id: "run-tests", updates: { disabled: isRunning } });
   }, [isRunning, updateAction]);
 
+  if (debugging && recording?.contractSource) {
+    return (
+      <div className="flex flex-col" style={{ height: panelHeight }}>
+        <p className="shrink-0 border-b border-border px-3 py-1 text-xs text-muted-foreground">
+          Replays the recorded transaction stream — assertions do not re-evaluate while stepping. Only the
+          last-loaded contract is steppable.
+        </p>
+        <div className="min-h-0 flex-1">
+          <DebugView
+            source={recording.contractSource}
+            scenarios={[{ name: "from test run", json: serializeScenario(toDebugScenario(recording)) }]}
+            onClose={() => setDebugging(false)}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div ref={containerRef} style={{ height: panelHeight }}>
       <ResizablePanelGroup direction="horizontal" className="h-full">
@@ -113,7 +137,7 @@ export function TestFileEditor({ file }: Props) {
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={40} minSize={20}>
-          <TestResultsPanel state={state} onRevealLine={revealLine} />
+          <TestResultsPanel state={state} onRevealLine={revealLine} onDebug={() => setDebugging(true)} />
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>

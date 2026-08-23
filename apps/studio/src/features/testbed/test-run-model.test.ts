@@ -90,6 +90,24 @@ describe("test-run-model", () => {
     expect(s.durationMs).toBe(12);
   });
 
+  it("carries recordings from run:end into state", () => {
+    const s = fold([
+      started,
+      { type: "test:end", id: "a#0", status: "passed", durationMs: 1 },
+      {
+        type: "run:end",
+        durationMs: 12,
+        recordings: { "/a.test.ts": { allContractSources: ["int main(){}"], transactions: [] } },
+      },
+    ]);
+    expect(s.recordings).toEqual({ "/a.test.ts": { allContractSources: ["int main(){}"], transactions: [] } });
+  });
+
+  it("leaves recordings undefined when run:end carries none", () => {
+    const s = fold([started, { type: "test:end", id: "a#0", status: "passed", durationMs: 1 }, { type: "run:end", durationMs: 12 }]);
+    expect(s.recordings).toBeUndefined();
+  });
+
   it("counts a timeout as its own outcome", () => {
     const s = fold([started, { type: "test:end", id: "a#0", status: "timedout", durationMs: 5000 }]);
     expect(s.counts.timedout).toBe(1);
