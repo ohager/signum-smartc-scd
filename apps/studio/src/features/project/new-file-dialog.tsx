@@ -21,6 +21,7 @@ import { FileTypes } from "./filetype-icons";
 import { replaceWhitespace } from "@/lib/string";
 import { withExtension, uniqueName } from "./file-naming";
 import { smartcStarter } from "./smartc-starter";
+import { testStarter } from "@/features/testbed/test-starter";
 import {
   serializeScenario,
   defaultScenario,
@@ -29,6 +30,7 @@ import {
 const EXT: Record<string, string> = {
   [FileTypes.SmartC]: ".smart.c",
   [FileTypes.Scenario]: ".scenario.json",
+  [FileTypes.Test]: ".test.ts",
 };
 
 interface Props {
@@ -60,10 +62,15 @@ export function NewFileDialog({
     if (!canSubmit) return;
     const ext = EXT[type];
     const finalName = uniqueName(withExtension(base, ext), existingNames, ext);
+    // `existingNames` are this folder's files, so a contract is only found when the
+    // test is created beside it; otherwise the starter omits the import and says so.
+    const contract = existingNames.find((n) => n.endsWith(".smart.c")) ?? null;
     const content =
       type === FileTypes.Scenario
         ? serializeScenario(defaultScenario())
-        : smartcStarter(finalName.slice(0, -ext.length));
+        : type === FileTypes.Test
+          ? testStarter(finalName, contract)
+          : smartcStarter(finalName.slice(0, -ext.length));
     onCreate(finalName, type, content);
     onOpenChange(false);
   };
@@ -88,6 +95,7 @@ export function NewFileDialog({
                 <SelectItem value={FileTypes.Scenario}>
                   Scenario (.scenario.json)
                 </SelectItem>
+                <SelectItem value={FileTypes.Test}>Test (.test.ts)</SelectItem>
               </SelectContent>
             </Select>
             <Label htmlFor="new-file-name">Name</Label>

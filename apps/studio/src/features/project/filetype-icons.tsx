@@ -33,13 +33,17 @@ export function getFileTypeIcon(type: string) {
 
 /**
  * Maps an incoming file name to the UI-supported type, or `null` to reject it.
- * Used as the `resolveType` policy for uploads/imports. Only SmartC
- * (`.smart.c`), Scenario (`.scenario.json`) and ASM (`.asm`) are accepted.
+ * Used as the `resolveType` policy for uploads/imports. Accepted: SmartC
+ * (`.smart.c`), Scenario (`.scenario.json`), ASM (`.asm`), and Test
+ * (`.ts` — both `.test.ts` run entries and the plain `.ts` helpers they
+ * import, such as `context.ts` or `scenarios.ts`).
  */
 export function acceptedFileType(name: string): FileTypes | null {
   const lower = name.toLowerCase();
   if (lower.endsWith(".smart.c")) return FileTypes.SmartC;
   if (lower.endsWith(".scenario.json")) return FileTypes.Scenario;
   if (lower.endsWith(".asm")) return FileTypes.ASM;
+  // `.test.ts` files are run; plain `.ts` files are helpers they import.
+  if (lower.endsWith(".ts")) return FileTypes.Test;
   return null;
 }
