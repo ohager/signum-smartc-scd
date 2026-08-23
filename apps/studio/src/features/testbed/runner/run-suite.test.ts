@@ -18,8 +18,8 @@ describe("runSuite", () => {
     const events = await collectAndRun((api) => {
       api.it("passes", () => {});
     });
-    expect(events[0].type).toBe("test:start");
-    expect((events[1] as any).status).toBe("passed");
+    expect(events[1].type).toBe("test:start");
+    expect((events[2] as any).status).toBe("passed");
   });
 
   it("captures a failure with message, expected and actual", async () => {

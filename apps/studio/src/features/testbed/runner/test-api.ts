@@ -8,6 +8,8 @@ export interface TestCase {
   path: string[];
   mode: TestMode;
   fn: () => unknown;
+  /** Where `it()` was called, for mapping back to a source line. */
+  stack?: string;
 }
 
 export interface Suite {
@@ -62,6 +64,7 @@ export function createCollector(file: string) {
       path: [...current.path, name],
       mode,
       fn,
+      stack: new Error().stack,
     });
   }
 
@@ -103,12 +106,33 @@ function hasOnly(node: Suite | TestCase): boolean {
   return node.kind === "suite" && node.children.some(hasOnly);
 }
 
+function collectTests(node: Suite, into: TestCase[]): TestCase[] {
+  for (const child of node.children) {
+    if (child.kind === "suite") collectTests(child, into);
+    else into.push(child);
+  }
+  return into;
+}
+
 /** Runs a collected suite tree, emitting events as it goes. */
 export async function runSuite(
   root: Suite,
   file: string,
   emit: (event: TestEvent) => void,
 ): Promise<void> {
+  // Announce every collected test before running, so the UI can show them all
+  // as pending — including skipped and todo tests, which never emit test:start.
+  emit({
+    type: "run:plan",
+    file,
+    tests: collectTests(root, []).map((test) => ({
+      id: test.id,
+      name: test.name,
+      path: test.path,
+      stack: test.stack,
+    })),
+  });
+
   const onlyMode = hasOnly(root);
 
   /** A suite runs when nothing above skipped it and, in only-mode, it is or contains a focused test. */

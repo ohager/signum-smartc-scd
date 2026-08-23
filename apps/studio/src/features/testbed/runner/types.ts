@@ -29,6 +29,7 @@ export interface TestFailure {
 export type ConsoleLevel = "log" | "info" | "warn" | "error" | "debug";
 
 export type TestEvent =
+  | { type: "run:plan"; file: string; tests: { id: string; name: string; path: string[]; stack?: string; line?: number }[] }
   | { type: "test:start"; id: string; name: string; path: string[]; file: string }
   | { type: "test:end"; id: string; status: TestStatus; durationMs: number; failure?: TestFailure }
   | { type: "console"; testId: string | null; level: ConsoleLevel; text: string }
