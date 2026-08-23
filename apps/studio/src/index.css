@@ -11,6 +11,7 @@
 .debug-breakpoint { background: #e5484d; border-radius: 50%; width: 10px !important; height: 10px !important; margin: 5px 0 0 6px; }
 
 /* Test status markers in the editor gutter. */
+.test-glyph-idle::before,
 .test-glyph-pending::before,
 .test-glyph-running::before,
 .test-glyph-passed::before,
@@ -28,6 +29,22 @@
 .test-glyph-passed::before  { background: rgb(34 197 94); }
 .test-glyph-failed::before  { background: rgb(239 68 68); }
 .test-glyph-skipped::before { background: rgb(82 82 91); }
+.test-glyph-idle::before    { background: rgb(82 82 91); }
+
+/* A runnable marker turns into a play button under the pointer. */
+.test-glyph-runnable {
+  cursor: pointer;
+}
+.test-glyph-runnable:hover::before {
+  width: 0;
+  height: 0;
+  margin: 5px 0 0 6px;
+  border-radius: 0;
+  background: transparent;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid rgb(34 197 94);
+}
 
 /* Values captured during a test run, drawn after the line that produced them. */
 .test-inline-value {

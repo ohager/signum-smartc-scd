@@ -19,6 +19,8 @@ import { useTestRun } from "../use-test-run";
 import { toDebugScenario } from "../to-debug-scenario";
 import { TestResultsPanel } from "./test-results-panel";
 import { useTestDecorations } from "./use-test-decorations";
+import { findTests, type FoundTest } from "../instrument/find-tests";
+import { transpileAll } from "../transpile";
 import { useValueDecorations } from "./use-value-decorations";
 import { DevToolsHelp } from "./devtools-help";
 import { ValuePanel } from "./value-panel";
@@ -39,7 +41,7 @@ export function TestFileEditor({ file }: Props) {
   const codeRef = useRef(code);
   codeRef.current = code;
   const { state, isRunning, run } = useTestRun();
-  useTestDecorations(editorRef.current, state.rows);
+  const [foundTests, setFoundTests] = useState<FoundTest[]>([]);
 
   const traceForFile = useAtomValue(fileTraceAtom);
   const setActiveTestId = useSetAtom(activeTestIdAtom);
@@ -89,6 +91,31 @@ export function TestFileEditor({ file }: Props) {
     return () => window.removeEventListener("resize", calculatePanelHeight);
   }, []);
 
+  // acorn cannot parse TypeScript, so the scan runs on the emitted JavaScript —
+  // which is also the form the runner sees, so both agree about what a test is.
+  useEffect(() => {
+    const monaco = monacoRef.current;
+    if (!monaco) return;
+
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      transpileAll(monaco, { [file.metadata.path]: code })
+        .then((modules) => {
+          if (cancelled) return;
+          const compiled = modules[file.metadata.path];
+          if (!compiled) return;
+          setFoundTests(findTests(compiled.js, compiled.sourceMap));
+        })
+        // A half-typed file simply leaves the previous markers standing.
+        .catch(() => {});
+    }, 400);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [code, file.metadata.path]);
+
   const onMount: OnMount = (editor, monaco) => {
     // @ts-ignore — @monaco-editor/react resolves its own nested monaco-editor
     // version, which structurally diverges from the root one; see the same
@@ -116,6 +143,15 @@ export function TestFileEditor({ file }: Props) {
     },
     [fs, file.metadata.id, file.metadata.path, projectId, run, debugRun],
   );
+
+  const runSingleTest = useCallback(
+    (path: string[]) => {
+      runFile(path).catch((e) => toast.error("Could not run test: " + (e as Error).message));
+    },
+    [runFile],
+  );
+
+  useTestDecorations(editorRef.current, monacoRef.current, state.rows, foundTests, runSingleTest);
 
   useEffect(() => {
     addAction({
