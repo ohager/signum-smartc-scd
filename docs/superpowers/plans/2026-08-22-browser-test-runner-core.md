@@ -1896,7 +1896,13 @@ Run: `bun test src/features/testbed/`
 Expected: PASS, all tests
 
 Run: `bun run build`
-Expected: build completes with no errors, and the worker is emitted as its own chunk
+Expected: build completes with no errors.
+
+**Note:** Bun's bundler does NOT transform `new Worker(new URL("./worker.ts", import.meta.url))`
+— the call site ships verbatim and no worker chunk is emitted, so the worker would 404 in
+production while every unit test still passed (they use a fake transport). The worker must
+therefore be built as its own self-contained entrypoint to a fixed filename, served in dev by
+a `serve.ts` route, and referenced by a literal URL. See Task 12b.
 
 - [ ] **Step 7: Commit**
 
@@ -1906,6 +1912,24 @@ git commit -m "feat(studio): run tests in a worker with a main-thread watchdog"
 ```
 
 ---
+
+## Task 12b: Make the worker actually load (added during execution)
+
+Discovered when Task 12's build verification failed — the unit tests could not catch it because
+they drive a fake transport. Three changes:
+
+- `build.ts` — a second, separate `Bun.build` call emitting `dist/testbed-worker.js`
+  (`naming: "testbed-worker.js"`, `splitting: false`, minified, self-contained). It must be a
+  separate call, not another entrypoint in the HTML build, because a deep `.ts` entry there
+  shifts the computed common root and every other output path with it.
+- `serve.ts` — a `/testbed-worker.js` route building on demand with an mtime-keyed cache, so
+  editing the worker under `bun --hot` does not need a restart.
+- `runner-client.ts` — `createWorkerTransport` uses the literal `/testbed-worker.js`, with a
+  comment explaining why, so nobody "fixes" it back to the `import.meta.url` idiom.
+
+Verified by spawning the built artifact as a real Worker and asserting the event stream
+(`test:start → test:end passed → run:end`), and by curling the dev route (200, `text/javascript`,
+cache hit in 3.4ms).
 
 ## Done criteria
 
