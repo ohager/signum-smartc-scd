@@ -9,6 +9,7 @@ import { useParams } from "react-router";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import type { File } from "@/lib/file-system";
@@ -171,6 +172,20 @@ export function TestFileEditor({ file }: Props) {
 
   useCursorTest(editorRef.current, foundTests, selectTestAtCursor);
 
+  /**
+   * Re-runs the active test on its own, then opens the step debugger on it.
+   *
+   * Running first is what makes the recording per-test: the runner captures one
+   * recording per entry file, so a whole-file run yields every test's
+   * transactions concatenated — which is rarely what you want to step through.
+   */
+  const debugActiveTest = useCallback(async () => {
+    const row = state.rows.find((candidate) => candidate.id === activeTestId);
+    if (!row) return;
+    await runFile(row.path);
+    setDebugging(true);
+  }, [state.rows, activeTestId, runFile]);
+
   useEffect(() => {
     addAction({
       id: "run-tests",
@@ -188,6 +203,20 @@ export function TestFileEditor({ file }: Props) {
   useEffect(() => {
     updateAction({ id: "run-tests", updates: { disabled: isRunning } });
   }, [isRunning, updateAction]);
+
+  if (debugging && !recording?.contractSource) {
+    return (
+      <div className="flex flex-col items-start gap-2 p-4">
+        <p className="text-sm text-muted-foreground">
+          {activeRow ? `"${activeRow.name}" loaded no contract` : "No contract was loaded"}, so
+          there is nothing to step through.
+        </p>
+        <Button variant="outline" size="sm" onClick={() => setDebugging(false)}>
+          Back to the editor
+        </Button>
+      </div>
+    );
+  }
 
   if (debugging && recording?.contractSource) {
     return (
@@ -265,7 +294,15 @@ export function TestFileEditor({ file }: Props) {
                 <TestResultsPanel
                   state={state}
                   onRevealLine={revealLine}
-                  onDebug={recording?.contractSource ? () => setDebugging(true) : undefined}
+                  onDebug={
+                    activeTestId && !isRunning
+                      ? () => {
+                          debugActiveTest().catch((e) =>
+                            toast.error("Could not debug test: " + (e as Error).message),
+                          );
+                        }
+                      : undefined
+                  }
                   activeTestId={activeTestId}
                   onSelectTest={setActiveTestId}
                 />
