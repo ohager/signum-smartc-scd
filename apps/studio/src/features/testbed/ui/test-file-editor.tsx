@@ -20,6 +20,7 @@ import { toDebugScenario } from "../to-debug-scenario";
 import { TestResultsPanel } from "./test-results-panel";
 import { useTestDecorations } from "./use-test-decorations";
 import { findTests, type FoundTest } from "../instrument/find-tests";
+import { useCursorTest } from "./use-cursor-test";
 import { transpileAll } from "../transpile";
 import { useValueDecorations } from "./use-value-decorations";
 import { DevToolsHelp } from "./devtools-help";
@@ -152,6 +153,23 @@ export function TestFileEditor({ file }: Props) {
   );
 
   useTestDecorations(editorRef.current, monacoRef.current, state.rows, foundTests, runSingleTest);
+
+  // The cursor picks the active test, whose values the editor annotates. Rows
+  // are matched by name path rather than id: ids are collection-order counters
+  // that shift as tests are added, while the path is what the scan knows.
+  const selectTestAtCursor = useCallback(
+    (test: FoundTest) => {
+      const row = state.rows.find(
+        (candidate) =>
+          candidate.path.length === test.path.length &&
+          candidate.path.every((part, at) => part === test.path[at]),
+      );
+      if (row) setActiveTestId(row.id);
+    },
+    [state.rows, setActiveTestId],
+  );
+
+  useCursorTest(editorRef.current, foundTests, selectTestAtCursor);
 
   useEffect(() => {
     addAction({

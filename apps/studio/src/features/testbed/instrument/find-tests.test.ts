@@ -1,10 +1,10 @@
 import { describe, it, expect } from "bun:test";
-import { findTests } from "./find-tests";
+import { findTests, testAtLine } from "./find-tests";
 
 describe("findTests", () => {
   it("finds a top-level test", () => {
     expect(findTests(`it("counts up", () => {});`)).toEqual([
-      { name: "counts up", path: ["counts up"], line: 1, mode: "run" },
+      { name: "counts up", path: ["counts up"], line: 1, endLine: 1, mode: "run" },
     ]);
   });
 
@@ -15,7 +15,7 @@ describe("findTests", () => {
   it("records the enclosing describe in the path", () => {
     const found = findTests(`describe("Counter", () => {\n  it("counts up", () => {});\n});`);
     expect(found).toEqual([
-      { name: "counts up", path: ["Counter", "counts up"], line: 2, mode: "run" },
+      { name: "counts up", path: ["Counter", "counts up"], line: 2, endLine: 2, mode: "run" },
     ]);
   });
 
@@ -66,7 +66,7 @@ describe("findTests", () => {
     // What TypeScript actually emits for `import { it } from "vitest"`.
     const src = `(0, vitest_1.describe)("Counter", () => {\n  (0, vitest_1.it)("counts up", () => {});\n});`;
     expect(findTests(src)).toEqual([
-      { name: "counts up", path: ["Counter", "counts up"], line: 2, mode: "run" },
+      { name: "counts up", path: ["Counter", "counts up"], line: 2, endLine: 2, mode: "run" },
     ]);
   });
 
@@ -92,5 +92,56 @@ describe("findTests", () => {
 
   it("falls back to the generated line when the map is unusable", () => {
     expect(findTests(`it("t", () => {});`, "{not json")[0].line).toBe(1);
+  });
+});
+
+describe("test ranges", () => {
+  const src = [
+    `describe("s", () => {`,
+    `  it("one", () => {`,
+    `    const a = 1;`,
+    `  });`,
+    `  it("two", () => {`,
+    `    const b = 2;`,
+    `  });`,
+    `});`,
+  ].join("\n");
+
+  it("spans a test from its it() to its closing line", () => {
+    const [one, two] = findTests(src);
+    expect([one.line, one.endLine]).toEqual([2, 4]);
+    expect([two.line, two.endLine]).toEqual([5, 7]);
+  });
+
+  it("finds the test a line sits inside", () => {
+    const found = findTests(src);
+    expect(testAtLine(found, 3)?.name).toBe("one");
+    expect(testAtLine(found, 6)?.name).toBe("two");
+  });
+
+  it("includes the opening and closing lines", () => {
+    const found = findTests(src);
+    expect(testAtLine(found, 2)?.name).toBe("one");
+    expect(testAtLine(found, 4)?.name).toBe("one");
+  });
+
+  it("finds nothing between or outside tests", () => {
+    const found = findTests(src);
+    expect(testAtLine(found, 1)).toBeUndefined();
+    expect(testAtLine(found, 8)).toBeUndefined();
+  });
+
+  it("finds nothing when no tests were found", () => {
+    expect(testAtLine([], 3)).toBeUndefined();
+  });
+
+  it("prefers the tightest range when ranges overlap", () => {
+    // Cannot arise from real source, but a sourcemap could map two tests onto
+    // overlapping lines; picking the widest would be the wrong answer.
+    const overlapping = [
+      { name: "outer", path: ["outer"], line: 1, endLine: 10, mode: "run" as const },
+      { name: "inner", path: ["inner"], line: 4, endLine: 6, mode: "run" as const },
+    ];
+    expect(testAtLine(overlapping, 5)?.name).toBe("inner");
   });
 });

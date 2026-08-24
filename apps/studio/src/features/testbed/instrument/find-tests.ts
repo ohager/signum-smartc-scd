@@ -9,8 +9,10 @@ export interface FoundTest {
   name: string;
   /** Enclosing suite names plus the test's own — the runner's filter key. */
   path: string[];
-  /** 1-based line in the user's TypeScript. */
+  /** 1-based line of the `it()` in the user's TypeScript. */
   line: number;
+  /** 1-based line the test closes on, so a cursor position can resolve into it. */
+  endLine: number;
   mode: FoundTestMode;
 }
 
@@ -86,14 +88,10 @@ export function findTests(js: string, sourceMap?: string): FoundTest[] {
 
   const map = sourceMap ? safeTraceMap(sourceMap) : null;
 
-  function lineFor(node: Node): number {
-    const generated = node.loc.start.line as number;
-    if (!map) return generated;
-    const original = originalPositionFor(map, {
-      line: generated,
-      column: node.loc.start.column as number,
-    });
-    return original.line ?? generated;
+  function lineAt(position: { line: number; column: number }): number {
+    if (!map) return position.line;
+    const original = originalPositionFor(map, { line: position.line, column: position.column });
+    return original.line ?? position.line;
   }
 
   const found: FoundTest[] = [];
@@ -125,7 +123,8 @@ export function findTests(js: string, sourceMap?: string): FoundTest[] {
           found.push({
             name,
             path: [...path, name],
-            line: lineFor(record),
+            line: lineAt(record.loc.start),
+            endLine: Math.max(lineAt(record.loc.start), lineAt(record.loc.end)),
             mode: called.modifier ?? "run",
           });
           // A test inside a test is not a thing worth reporting.
@@ -142,4 +141,20 @@ export function findTests(js: string, sourceMap?: string): FoundTest[] {
 
   walk(ast, []);
   return found;
+}
+
+/**
+ * The test a line sits inside, or undefined between and outside tests.
+ *
+ * Picks the tightest containing range. Real source cannot nest tests, but a
+ * sourcemap can collapse two onto overlapping lines, and the widest match would
+ * be the wrong answer there.
+ */
+export function testAtLine(tests: FoundTest[], line: number): FoundTest | undefined {
+  let best: FoundTest | undefined;
+  for (const test of tests) {
+    if (line < test.line || line > test.endLine) continue;
+    if (!best || test.endLine - test.line < best.endLine - best.line) best = test;
+  }
+  return best;
 }
