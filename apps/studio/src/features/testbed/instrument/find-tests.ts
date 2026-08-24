@@ -5,13 +5,15 @@ import { unwrapSequence, type Node } from "./ast";
 export type FoundTestMode = "run" | "skip" | "only" | "todo";
 
 export interface FoundTest {
-  /** The test's own name. */
+  /** A `describe` is runnable as a group; only a test carries values. */
+  kind: "test" | "suite";
+  /** The test's or suite's own name. */
   name: string;
-  /** Enclosing suite names plus the test's own — the runner's filter key. */
+  /** Enclosing suite names plus its own — the runner's filter key. */
   path: string[];
-  /** 1-based line of the `it()` in the user's TypeScript. */
+  /** 1-based line of the `it()` or `describe()` in the user's TypeScript. */
   line: number;
-  /** 1-based line the test closes on, so a cursor position can resolve into it. */
+  /** 1-based line it closes on, so a cursor position can resolve into it. */
   endLine: number;
   mode: FoundTestMode;
 }
@@ -113,14 +115,24 @@ export function findTests(js: string, sourceMap?: string): FoundTest[] {
 
       if (called && name !== null) {
         if (SUITES.has(called.base)) {
+          const suitePath = [...path, name];
+          found.push({
+            kind: "suite",
+            name,
+            path: suitePath,
+            line: lineAt(record.loc.start),
+            endLine: Math.max(lineAt(record.loc.start), lineAt(record.loc.end)),
+            mode: called.modifier ?? "run",
+          });
           // Descend with the extended path and stop: falling through to the
           // generic walk below would find this suite's tests a second time.
-          if (args[1]) walk(args[1].body, [...path, name]);
+          if (args[1]) walk(args[1].body, suitePath);
           return;
         }
 
         if (TESTS.has(called.base)) {
           found.push({
+            kind: "test",
             name,
             path: [...path, name],
             line: lineAt(record.loc.start),
@@ -146,15 +158,19 @@ export function findTests(js: string, sourceMap?: string): FoundTest[] {
 /**
  * The test a line sits inside, or undefined between and outside tests.
  *
+ * Suites are ignored: this answers "whose values should the editor show", and a
+ * suite has none of its own.
+ *
  * Picks the tightest containing range. Real source cannot nest tests, but a
  * sourcemap can collapse two onto overlapping lines, and the widest match would
  * be the wrong answer there.
  */
-export function testAtLine(tests: FoundTest[], line: number): FoundTest | undefined {
+export function testAtLine(found: FoundTest[], line: number): FoundTest | undefined {
   let best: FoundTest | undefined;
-  for (const test of tests) {
-    if (line < test.line || line > test.endLine) continue;
-    if (!best || test.endLine - test.line < best.endLine - best.line) best = test;
+  for (const candidate of found) {
+    if (candidate.kind !== "test") continue;
+    if (line < candidate.line || line > candidate.endLine) continue;
+    if (!best || candidate.endLine - candidate.line < best.endLine - best.line) best = candidate;
   }
   return best;
 }

@@ -39,14 +39,21 @@ export function useValueDecorations(
       const annotation = formatAnnotation(lineTrace);
       if (!annotation) continue;
 
-      annotated.add(line);
+      // Only a captured value is clickable; a bare assertion tick has nothing
+      // behind it, so offering the Value tab for it would be a dead click.
+      if (annotation.kind === "value") annotated.add(line);
+
       const column = model.getLineMaxColumn(line);
       decorations.push({
         range: new monaco.Range(line, column, line, column),
         options: {
           // No leading spaces in the content: they would sit inside the styled
           // span and get underlined along with the text. The gap is a margin.
-          after: { content: annotation.text, inlineClassName: "test-inline-value" },
+          after: {
+            content: annotation.text,
+            inlineClassName:
+              annotation.kind === "value" ? "test-inline-value" : "test-inline-ok",
+          },
           showIfCollapsed: true,
         },
       });

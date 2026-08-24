@@ -44,6 +44,9 @@ export function TestFileEditor({ file }: Props) {
   codeRef.current = code;
   const { state, isRunning, run } = useTestRun();
   const [foundTests, setFoundTests] = useState<FoundTest[]>([]);
+  // Monaco and the editor arrive via onMount, after the first render. Without a
+  // state flag nothing re-runs, so the gutter stayed empty until a keystroke.
+  const [editorReady, setEditorReady] = useState(false);
 
   const traceForFile = useAtomValue(fileTraceAtom);
   const setActiveTestId = useSetAtom(activeTestIdAtom);
@@ -116,7 +119,7 @@ export function TestFileEditor({ file }: Props) {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [code, file.metadata.path]);
+  }, [code, file.metadata.path, editorReady]);
 
   const onMount: OnMount = (editor, monaco) => {
     // @ts-ignore — @monaco-editor/react resolves its own nested monaco-editor
@@ -125,6 +128,7 @@ export function TestFileEditor({ file }: Props) {
     editorRef.current = editor;
     monacoRef.current = monaco;
     configureTypeScriptForTests(monaco);
+    setEditorReady(true);
   };
 
   const revealLine = useCallback((line: number) => {
@@ -153,6 +157,9 @@ export function TestFileEditor({ file }: Props) {
     [runFile],
   );
 
+  // The hooks below read refs that onMount fills. Setting editorReady there
+  // re-renders, at which point those refs are non-null and the effects re-run
+  // on a genuine dependency change.
   useTestDecorations(editorRef.current, monacoRef.current, state.rows, foundTests, runSingleTest);
 
   // The cursor picks the active test, whose values the editor annotates. Rows

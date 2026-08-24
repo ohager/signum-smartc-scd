@@ -173,3 +173,67 @@ describe("filtered runs", () => {
     expect(ran).toHaveLength(2);
   });
 });
+
+describe("filtering a whole suite", () => {
+  it("runs every test under a suite path", async () => {
+    const order: string[] = [];
+    const { api, root } = createCollector("/p/a.test.ts");
+    api.describe("wanted", () => {
+      api.it("one", () => void order.push("one"));
+      api.it("two", () => void order.push("two"));
+    });
+    api.describe("other", () => {
+      api.it("three", () => void order.push("three"));
+    });
+    await runSuite(root, "/p/a.test.ts", () => {}, ["wanted"]);
+    expect(order).toEqual(["one", "two"]);
+  });
+
+  it("runs tests in nested suites beneath the filtered one", async () => {
+    const order: string[] = [];
+    const { api, root } = createCollector("/p/a.test.ts");
+    api.describe("outer", () => {
+      api.describe("inner", () => {
+        api.it("deep", () => void order.push("deep"));
+      });
+      api.it("shallow", () => void order.push("shallow"));
+    });
+    await runSuite(root, "/p/a.test.ts", () => {}, ["outer"]);
+    expect(order.sort()).toEqual(["deep", "shallow"]);
+  });
+
+  it("runs only the nested suite when the filter names it", async () => {
+    const order: string[] = [];
+    const { api, root } = createCollector("/p/a.test.ts");
+    api.describe("outer", () => {
+      api.describe("inner", () => {
+        api.it("deep", () => void order.push("deep"));
+      });
+      api.it("shallow", () => void order.push("shallow"));
+    });
+    await runSuite(root, "/p/a.test.ts", () => {}, ["outer", "inner"]);
+    expect(order).toEqual(["deep"]);
+  });
+
+  it("still runs the suite's hooks", async () => {
+    const order: string[] = [];
+    const { api, root } = createCollector("/p/a.test.ts");
+    api.describe("wanted", () => {
+      api.beforeAll(() => void order.push("beforeAll"));
+      api.it("one", () => void order.push("one"));
+    });
+    await runSuite(root, "/p/a.test.ts", () => {}, ["wanted"]);
+    expect(order).toEqual(["beforeAll", "one"]);
+  });
+
+  it("still targets a single test when the filter names one", async () => {
+    const order: string[] = [];
+    const { api, root } = createCollector("/p/a.test.ts");
+    api.describe("s", () => {
+      api.it("one", () => void order.push("one"));
+      api.it("two", () => void order.push("two"));
+    });
+    await runSuite(root, "/p/a.test.ts", () => {}, ["s", "two"]);
+    expect(order).toEqual(["two"]);
+  });
+});

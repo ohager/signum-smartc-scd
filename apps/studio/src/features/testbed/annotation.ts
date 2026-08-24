@@ -10,6 +10,11 @@ import type { LineTrace } from "./runner/trace";
 const INLINE_MAX = 60;
 
 export interface Annotation {
+  /**
+   * `ok` is a bare assertion tick with nothing behind it; `value` has a
+   * captured value the Value tab can show. Only `value` is worth a click.
+   */
+  kind: "value" | "ok";
   /** Ghost text drawn at the end of the line. */
   text: string;
 }
@@ -26,12 +31,12 @@ export function formatAnnotation(trace: LineTrace): Annotation | null {
   if (values.length === 0) {
     // A bare assertion marker is worth a tick; a binding whose value the budget
     // dropped is not worth an empty annotation.
-    return ok ? { text: "✓" } : null;
+    return ok ? { kind: "ok", text: "✓" } : null;
   }
 
   const last = values[values.length - 1];
   const label = name ? `${name} = ${last}` : last;
   const shortened = label.length > INLINE_MAX ? label.slice(0, INLINE_MAX - 1) + "…" : label;
 
-  return { text: count > 1 ? `${shortened}  ×${count}` : shortened };
+  return { kind: "value", text: count > 1 ? `${shortened}  ×${count}` : shortened };
 }

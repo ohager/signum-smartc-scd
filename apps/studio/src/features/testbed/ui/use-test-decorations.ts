@@ -17,9 +17,10 @@ const CLASS_FOR_STATUS: Record<string, string> = {
  * Marks each `it()` in the gutter with its status, and runs that test when the
  * marker is clicked.
  *
- * Two sources feed this. The statically found tests give every `it()` a marker
- * before anything has run, which is what makes a test runnable from a cold
- * file; a finished run then colours the markers it has results for.
+ * Two sources feed this. The static scan gives every `it()` and `describe()` a
+ * marker before anything has run, which is what makes them runnable from a cold
+ * file; a finished run then colours the markers it has results for. A suite's
+ * marker stays neutral — it has no single status of its own.
  *
  * `.skip` and `.todo` tests get no play affordance: an explicit annotation in
  * the source should not be overridden by a click that looks like any other.
@@ -44,27 +45,28 @@ export function useTestDecorations(
     const decorations: Monaco.editor.IModelDeltaDecoration[] = [];
     const seen = new Set<number>();
 
-    for (const test of found) {
-      seen.add(test.line);
-      const row = statusByLine.get(test.line);
-      const canRun = test.mode !== "skip" && test.mode !== "todo";
-      if (canRun) runnable.set(test.line, test.path);
+    for (const entry of found) {
+      seen.add(entry.line);
+      const row = entry.kind === "test" ? statusByLine.get(entry.line) : undefined;
+      const canRun = entry.mode !== "skip" && entry.mode !== "todo";
+      if (canRun) runnable.set(entry.line, entry.path);
 
       const statusClass = row
         ? (CLASS_FOR_STATUS[row.status] ?? "test-glyph-pending")
         : "test-glyph-idle";
-      const label = test.path.join(" › ");
+      const label = entry.path.join(" › ");
       const outcome = row
         ? ` — ${row.status}${row.durationMs !== undefined ? ` (${row.durationMs}ms)` : ""}`
         : "";
+      const what = entry.kind === "suite" ? "Run all in " : "Run ";
 
       decorations.push({
-        range: new monaco.Range(test.line, 1, test.line, 1),
+        range: new monaco.Range(entry.line, 1, entry.line, 1),
         options: {
           isWholeLine: false,
           glyphMarginClassName: `${statusClass}${canRun ? " test-glyph-runnable" : ""}`,
           glyphMarginHoverMessage: {
-            value: canRun ? `Run ${label}${outcome}` : `${label} — ${test.mode}`,
+            value: canRun ? `${what}${label}${outcome}` : `${label} — ${entry.mode}`,
           },
         },
       });

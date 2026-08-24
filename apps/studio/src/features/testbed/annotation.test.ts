@@ -4,6 +4,7 @@ import { formatAnnotation } from "./annotation";
 describe("formatAnnotation", () => {
   it("shows a binding as name = value", () => {
     expect(formatAnnotation({ values: ["2n"], count: 1, name: "counter" })).toEqual({
+      kind: "value",
       text: "counter = 2n",
     });
   });
@@ -23,7 +24,7 @@ describe("formatAnnotation", () => {
   });
 
   it("shows a tick for a completed assertion", () => {
-    expect(formatAnnotation({ values: [], count: 0, ok: true })).toEqual({ text: "✓" });
+    expect(formatAnnotation({ values: [], count: 0, ok: true })).toEqual({ kind: "ok", text: "✓" });
   });
 
   it("prefers the binding over the assertion marker when a line has both", () => {
@@ -51,6 +52,7 @@ describe("formatAnnotation length", () => {
 
   it("leaves a short value alone", () => {
     expect(formatAnnotation({ values: ["2n"], count: 1, name: "counter" })).toEqual({
+      kind: "value",
       text: "counter = 2n",
     });
   });
@@ -58,5 +60,19 @@ describe("formatAnnotation length", () => {
   it("keeps the repeat badge visible even when the value is shortened", () => {
     const result = formatAnnotation({ values: [long, long], count: 2, name: "testbed" })!;
     expect(result.text.endsWith("×2")).toBe(true);
+  });
+});
+
+describe("formatAnnotation kinds", () => {
+  it("marks a captured value as inspectable", () => {
+    expect(formatAnnotation({ values: ["2n"], count: 1, name: "a" })!.kind).toBe("value");
+  });
+
+  it("marks a bare assertion tick as having nothing behind it", () => {
+    expect(formatAnnotation({ values: [], count: 0, ok: true })!.kind).toBe("ok");
+  });
+
+  it("treats a line with both as a value, since that is what a click can show", () => {
+    expect(formatAnnotation({ values: ["1n"], count: 1, name: "a", ok: true })!.kind).toBe("value");
   });
 });

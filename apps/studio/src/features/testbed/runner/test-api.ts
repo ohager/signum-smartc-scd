@@ -138,16 +138,28 @@ export async function runSuite(
   // so it wins outright rather than intersecting.
   const onlyMode = filter === undefined && hasOnly(root);
 
-  /** Whether `path` is a prefix of, or equal to, the filter. */
+  const isPrefix = (prefix: string[], of: string[]) =>
+    prefix.length <= of.length && prefix.every((part, at) => part === of[at]);
+
+  /**
+   * A suite runs when it is on the same branch as the filter — either an
+   * ancestor of it, or inside it. The first keeps the path to a named test
+   * open; the second is what makes a whole `describe` runnable as a group.
+   */
   function leadsToFilter(path: string[]): boolean {
     if (!filter) return true;
-    return path.length <= filter.length && path.every((part, at) => part === filter[at]);
+    return isPrefix(path, filter) || isPrefix(filter, path);
   }
 
-  /** Whether `path` is the filtered test itself. */
+  /**
+   * A test runs when the filter names it or one of its enclosing suites.
+   *
+   * A filter as long as the test's path is an exact match, which is the
+   * single-test case; a shorter one selects everything beneath it.
+   */
   function isFilterTarget(path: string[]): boolean {
     if (!filter) return true;
-    return path.length === filter.length && leadsToFilter(path);
+    return isPrefix(filter, path);
   }
 
   /** A suite runs when nothing above skipped it and, in only-mode, it is or contains a focused test. */
