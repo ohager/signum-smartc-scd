@@ -44,7 +44,9 @@ export function useValueDecorations(
       decorations.push({
         range: new monaco.Range(line, column, line, column),
         options: {
-          after: { content: `    ${annotation.text}`, inlineClassName: "test-inline-value" },
+          // No leading spaces in the content: they would sit inside the styled
+          // span and get underlined along with the text. The gap is a margin.
+          after: { content: annotation.text, inlineClassName: "test-inline-value" },
           showIfCollapsed: true,
         },
       });

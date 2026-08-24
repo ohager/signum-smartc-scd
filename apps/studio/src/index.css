@@ -52,6 +52,8 @@
   font-style: italic;
   opacity: 0.9;
   cursor: pointer;
+  /* Margin, not leading spaces: padding and text would both be underlined. */
+  margin-left: 3ch;
 }
 .test-inline-value:hover {
   opacity: 1;
