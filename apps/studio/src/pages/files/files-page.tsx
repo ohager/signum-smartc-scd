@@ -1,11 +1,11 @@
 import { Badge } from "@/components/ui/badge";
 import { Page, PageContent, PageHeader } from "@/components/ui/page";
-import { Navigate, useParams } from "react-router";
+import { Navigate, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
 import { useEffect, useState } from "react";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
-import type {File} from "@/lib/file-system"
+import type { File, FileSystemEvent } from "@/lib/file-system"
 import { SmartCFileEditor } from "@/features/smartc-editor/smartc-file-editor.tsx";
 import { FileTypes } from "@/features/project/filetype-icons.tsx";
 import { AsmFileEditor } from "@/features/asm-editor/asm-file-editor.tsx";
@@ -22,24 +22,85 @@ export function FilesPage() {
   const {} = usePageHeaderActions();
   const { fileId = "", projectId = "" } = useParams<FilesPageParams>();
 
+  const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Switching files starts over: without this the previous file stayed on
+    // screen under the new URL whenever the new one failed to load, and two
+    // loads racing could settle on the one the user left.
+    let cancelled = false;
+    setIsLoading(true);
+    setError(null);
+    setFile(null);
+
     const loadFile = async () => {
       try {
-        const file = await fs.loadFile(fileId);
-        setFile(file);
+        const loaded = await fs.loadFile(fileId);
+        if (cancelled) return;
+        setFile(loaded);
         fs.recents.record(fileId, Date.now());
       } catch (err) {
-        setError(err as Error);
+        if (!cancelled) setError(err as Error);
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
     loadFile();
-  }, [projectId, fileId]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fileId]);
+
+  // The page read this file once. Renaming it in the sidebar left the old
+  // name in the header, and deleting it left an editor open over a file that
+  // no longer exists — whose next save fails with "File not found", taking
+  // the buffer with it.
+  useEffect(() => {
+    const concerns = (event: Event) =>
+      (event as CustomEvent<FileSystemEvent>).detail.id === fileId;
+
+    // Metadata only: the buffer belongs to the editor, and replacing the
+    // content here would undo whatever has been typed since.
+    const adoptMetadata = () => {
+      const metadata = fs.getFileMetadata(fileId);
+      if (!metadata) return;
+      setFile((current) => (current ? { ...current, metadata } : current));
+      // A move leaves the project in the URL behind, which is what the
+      // sidebar matches on to mark the row as open.
+      if (metadata.folderId !== projectId) {
+        navigate(`/projects/${metadata.folderId}/files/${fileId}`, { replace: true });
+      }
+    };
+
+    const onRenamedOrMoved = (event: Event) => {
+      if (concerns(event)) adoptMetadata();
+    };
+
+    const onDeleted = (event: Event) => {
+      if (concerns(event)) navigate("/", { replace: true });
+    };
+
+    const onWorkspaceReloaded = () => {
+      if (fs.exists(fileId)) adoptMetadata();
+      else navigate("/", { replace: true });
+    };
+
+    fs.addEventListener("file:renamed", onRenamedOrMoved);
+    fs.addEventListener("file:moved", onRenamedOrMoved);
+    fs.addEventListener("file:deleted", onDeleted);
+    fs.addEventListener("fs:reloaded", onWorkspaceReloaded);
+
+    return () => {
+      fs.removeEventListener("file:renamed", onRenamedOrMoved);
+      fs.removeEventListener("file:moved", onRenamedOrMoved);
+      fs.removeEventListener("file:deleted", onDeleted);
+      fs.removeEventListener("fs:reloaded", onWorkspaceReloaded);
+    };
+  }, [fileId, projectId, navigate]);
 
   if (!file && isLoading) {
     // to do loading screen
