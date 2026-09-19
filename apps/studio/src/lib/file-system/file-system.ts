@@ -1,4 +1,3 @@
-import { openDB, type IDBPDatabase } from "idb";
 import type {
   FileSystemEvent,
   FileMetadata,
@@ -7,16 +6,15 @@ import type {
   File
 } from "./file-system-types.ts";
 import { FileTransfer } from "./transfer.ts";
+import {
+  IdbContentStore,
+  type ContentStore,
+  type MetadataStorage,
+} from "./content-store.ts";
 import { RecentFiles, sanitizeRecents, type RecentEntry } from "./recent-files.ts";
 
 // Constants
 const LS_METADATA_KEY = "scd:fs-metadata";
-const DB_NAME = "signum-studio-scd";
-const DB_VERSION = 1;
-
-enum IdbStores {
-  FileContent = "fs-content",
-}
 
 // Type for the metadata structure stored in localStorage
 interface FileSystemMetadata {
@@ -54,14 +52,21 @@ export class FileSystem extends EventTarget {
     return FileSystem.instance;
   }
 
-  private db: IDBPDatabase | null = null;
   private readonly metadata: FileSystemMetadata;
   private _transfer?: FileTransfer;
   private _recents?: RecentFiles;
 
-  private constructor() {
+  /**
+   * The app uses `getInstance()`; the defaults below are that composition.
+   * Passing both collaborators gives an instance over its own storage, which
+   * is how the tests exercise the mutating operations.
+   */
+  constructor(
+    private readonly storage: MetadataStorage = localStorage,
+    private readonly content: ContentStore = new IdbContentStore(),
+  ) {
     super();
-    const storedMetadata = localStorage.getItem(LS_METADATA_KEY);
+    const storedMetadata = this.storage.getItem(LS_METADATA_KEY);
 
     if (storedMetadata) {
       this.metadata = JSON.parse(storedMetadata);
@@ -137,22 +142,8 @@ export class FileSystem extends EventTarget {
     }
   }
 
-  private async initDb(): Promise<IDBPDatabase> {
-    if (this.db) return this.db;
-
-    this.db = await openDB(DB_NAME, DB_VERSION, {
-      upgrade(db) {
-        if (!db.objectStoreNames.contains(IdbStores.FileContent)) {
-          db.createObjectStore(IdbStores.FileContent);
-        }
-      }
-    });
-
-    return this.db;
-  }
-
   private saveMetadata(): void {
-    localStorage.setItem(LS_METADATA_KEY, JSON.stringify(this.metadata));
+    this.storage.setItem(LS_METADATA_KEY, JSON.stringify(this.metadata));
   }
 
   private generateId(): string {
@@ -172,8 +163,7 @@ export class FileSystem extends EventTarget {
       throw new Error(`File not found: ${fileId}`);
     }
 
-    const db = await this.initDb();
-    const content = (await db.get(IdbStores.FileContent, fileId)) as T;
+    const content = (await this.content.get<T>(fileId)) as T;
 
     return {
       content,
@@ -249,8 +239,7 @@ export class FileSystem extends EventTarget {
     }
 
     // Update content in IndexedDB
-    const db = await this.initDb();
-    await db.put(IdbStores.FileContent, content, fileId);
+    await this.content.put(fileId, content);
 
     // Update metadata
     this.metadata.files[fileId].lastModified = Date.now();
@@ -317,8 +306,7 @@ export class FileSystem extends EventTarget {
     const metadata = { ...fileMetadata };
 
     // Delete from IndexedDB
-    const db = await this.initDb();
-    await db.delete(IdbStores.FileContent, fileId);
+    await this.content.delete(fileId);
 
     // Update metadata
     delete this.metadata.files[fileId];
@@ -377,8 +365,7 @@ export class FileSystem extends EventTarget {
     this.saveMetadata();
 
     // Save content to IndexedDB
-    const db = await this.initDb();
-    await db.put(IdbStores.FileContent, content, fileId);
+    await this.content.put(fileId, content);
 
     this.emitEvent({
       type: "file:added",
@@ -510,10 +497,9 @@ export class FileSystem extends EventTarget {
     const contents = this.metadata.folderContents[folderId];
 
     // Delete all files in this folder and emit events for each
-    const db = await this.initDb();
     for (const fileId of contents.files) {
       const metadata = { ...this.metadata.files[fileId] };
-      await db.delete(IdbStores.FileContent, fileId);
+      await this.content.delete(fileId);
       delete this.metadata.files[fileId];
       this.recents.forget(fileId);
 
