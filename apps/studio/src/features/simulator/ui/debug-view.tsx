@@ -24,6 +24,13 @@ export interface ScenarioEntry {
 interface Props {
   source: string;
   scenarios: ScenarioEntry[];
+  /**
+   * Where this session's input came from. There are two kinds — a scenario
+   * file, and a recording of a test run — and they look identical while
+   * behaving differently: the recording replays a transaction stream and does
+   * not re-evaluate assertions. So each says which it is.
+   */
+  sourceLabel?: string;
   onClose: () => void;
 }
 
@@ -31,7 +38,7 @@ interface Props {
  * Debug view with a scenario picker. Selecting a different scenario remounts the
  * inner session (via `key`) so it re-compiles/re-runs against the chosen one.
  */
-export function DebugView({ source, scenarios, onClose }: Props) {
+export function DebugView({ source, scenarios, sourceLabel, onClose }: Props) {
   const [selectedName, setSelectedName] = useState<string>(scenarios[0]?.name ?? "");
 
   const scenario: ScenarioFile = useMemo(() => {
@@ -48,6 +55,9 @@ export function DebugView({ source, scenarios, onClose }: Props) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-2 h-[30px] px-2 border-b bg-muted text-xs">
+        {sourceLabel && (
+          <span className="font-mono text-[10px] text-[var(--dim)]">{sourceLabel}</span>
+        )}
         <span className="opacity-70">Scenario:</span>
         <select
           className="bg-transparent border rounded px-1 py-0.5 max-w-[240px]"

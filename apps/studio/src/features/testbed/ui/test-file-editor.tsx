@@ -257,6 +257,7 @@ export function TestFileEditor({ file }: Props) {
           <DebugView
             source={recording.contractSource}
             scenarios={[{ name: "from test run", json: serializeScenario(toDebugScenario(recording)) }]}
+            sourceLabel={`recording · ${activeRow?.name ?? "test run"}`}
             onClose={() => setDebugging(false)}
           />
         </div>

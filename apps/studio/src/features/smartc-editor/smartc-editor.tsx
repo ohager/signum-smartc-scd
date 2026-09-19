@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Editor, { type OnMount } from "@monaco-editor/react";
-import { Code2, Bug, FilePlus2 } from "lucide-react";
+import { Code2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -24,12 +24,6 @@ import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import { type File, FileSystem } from "@/lib/file-system";
 import { FileTypes } from "@/features/project/filetype-icons.tsx";
-import { DebugView } from "@/features/simulator/ui/debug-view.tsx";
-import {
-  defaultScenario,
-  serializeScenario,
-} from "@/features/simulator/scenario/scenario-io";
-import { useNavigate } from "react-router";
 import { findProjectOfFolder } from "@/features/project/project-root";
 import { isContractFile } from "@/features/project/contract";
 import { analyzeWithCompiler } from "./language/compiler-symbols";
@@ -92,14 +86,11 @@ interface Props {
 
 enum ActionType {
   Compile = "compile",
-  Debug = "debug",
-  NewScenario = "new-scenario",
 }
 
 function SmartCEditor({ file }: Props) {
   const { addAction, removeAction, updateAction } = usePageHeaderActions();
   const fs = useFileSystem();
-  const navigate = useNavigate();
   const {
     text: code,
     isDirty,
@@ -130,10 +121,6 @@ function SmartCEditor({ file }: Props) {
   const [validationError, setValidationError] = useState("");
   const monacoTheme = useMonacoTheme();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [isDebugging, setIsDebugging] = useState(false);
-  const [scenarios, setScenarios] = useState<{ name: string; json: string }[]>(
-    [],
-  );
   const isValid = !validationError;
 
   useEffect(() => {
@@ -158,82 +145,11 @@ function SmartCEditor({ file }: Props) {
     });
   }, [isValid, updateAction]);
 
-  useEffect(() => {
-    addAction({
-      id: ActionType.Debug,
-      tooltip: "Debug in the SC-Simulator",
-      label: "Debug",
-      icon: <Bug className="h-4 w-4" />,
-      onClick: () => setIsDebugging(true),
-      variant: "default",
-    });
-
-    return () => {
-      removeAction(ActionType.Debug);
-    };
-  }, [addAction, removeAction]);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function loadScenarios() {
-      try {
-        const { files } = fs.listFolderContents(file.metadata.folderId);
-        const scenarioFiles = files.filter(({ metadata: { name } }) =>
-          name.endsWith(".scenario.json"),
-        );
-        const loaded = await Promise.all(
-          scenarioFiles.map(async (f) => ({
-            name: f.metadata.name,
-            json: (await fs.loadFile(f.id)).content as string,
-          })),
-        );
-        if (!cancelled) setScenarios(loaded);
-      } catch (e) {
-        console.error("Could not load scenario files:", e);
-        if (!cancelled) setScenarios([]);
-      }
-    }
-    loadScenarios();
-    return () => {
-      cancelled = true;
-    };
-  }, [file.metadata.folderId]);
-
   // TODO: candidate for being extracted to some FilePath lib
   const baseName = useMemo(() => {
     if (!file) return "";
     return file.metadata.name.split(".")[0];
   }, [file]);
-
-  useEffect(() => {
-    addAction({
-      id: ActionType.NewScenario,
-      tooltip: "Create a run scenario for this contract",
-      label: "New Scenario",
-      icon: <FilePlus2 className="h-4 w-4" />,
-      onClick: async () => {
-        const base = baseName.toLowerCase();
-        const existingNames = new Set(
-          fs
-            .listFolderContents(file.metadata.folderId)
-            .files.map((f) => f.metadata.name),
-        );
-        let fileName = `${base}.scenario.json`;
-        for (let n = 2; existingNames.has(fileName); n++) {
-          fileName = `${base}-${n}.scenario.json`;
-        }
-        const createdId = await fs.addFile(
-          file.metadata.folderId,
-          fileName,
-          FileTypes.Scenario,
-          serializeScenario(defaultScenario()),
-        );
-        navigate(`/projects/${file.metadata.folderId}/files/${createdId}`);
-      },
-      variant: "default",
-    });
-    return () => removeAction(ActionType.NewScenario);
-  }, [addAction, removeAction, baseName, file.metadata.folderId]);
 
   const compileSmartC = useCallback(async () => {
     const { files } = fs.listFolderContents(file.metadata.folderId);
@@ -280,16 +196,6 @@ function SmartCEditor({ file }: Props) {
     );
     setValidationError(firstError?.message ?? "");
   };
-
-  if (isDebugging) {
-    return (
-      <DebugView
-        source={code}
-        scenarios={scenarios}
-        onClose={() => setIsDebugging(false)}
-      />
-    );
-  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
