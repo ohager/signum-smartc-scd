@@ -34,7 +34,7 @@ export function ScenarioEditor({ file }: { file: File }) {
     text: content,
     isDirty,
     onChange: onBufferChange,
-    save,
+    saveNow,
     download,
   } = useEditorFile({ file });
   const [errors, setErrors] = useState<string[]>(() =>
@@ -111,7 +111,7 @@ export function ScenarioEditor({ file }: { file: File }) {
         </div>
         <EditorFileActions
           isDirty={isDirty}
-          onSave={save}
+          onSave={saveNow}
           onDownload={download}
           onFormat={formatDocument}
         />

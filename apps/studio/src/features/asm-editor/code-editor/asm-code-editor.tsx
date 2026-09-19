@@ -63,7 +63,7 @@ function AsmCodeEditor({ file, onSave }: Props) {
     text: code,
     isDirty,
     onChange: handleEditorChange,
-    save: saveAsmFile,
+    saveNow: saveAsmFile,
     download,
   } = useEditorFile({ file, onSaved: reportMachineCode });
 

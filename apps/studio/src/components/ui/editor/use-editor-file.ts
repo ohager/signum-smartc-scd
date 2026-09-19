@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import debounce from "lodash.debounce";
 import { toast } from "sonner";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import type { File } from "@/lib/file-system";
@@ -21,7 +22,15 @@ import { downloadBlob } from "@/lib/download.ts";
  *   of them on every keystroke; the others each used a plain effect.
  * - The test editor had none of it: no save, no dirty marker, and ⌘S fell
  *   through to the browser's own save dialog.
+ *
+ * Text is written back on its own a short pause after the last keystroke,
+ * and again if the editor closes with something pending. Nothing a user
+ * typed should depend on their having pressed a button: the workspace lives
+ * in this browser, and leaving a file was the way to lose an afternoon.
  */
+
+/** Quiet enough not to write mid-word, short enough to beat a closing tab. */
+const AUTOSAVE_PAUSE_MS = 800;
 
 /** Ctrl/⌘+S belongs to the editor, not to the browser's page-save dialog. */
 const preventBrowserSave = (e: KeyboardEvent) => {
@@ -46,6 +55,8 @@ export interface EditorFile {
   isDirty: boolean;
   /** `silent` writes without the confirmation toast, for saves the user did not ask for. */
   save: (options?: { silent?: boolean }) => Promise<void>;
+  /** What the save button and ⌘S call: drops a pending autosave, then writes. */
+  saveNow: () => Promise<void>;
   download: () => void;
 }
 
@@ -59,12 +70,6 @@ export function useEditorFile({ file, onSaved }: Options): EditorFile {
   const textRef = useRef(text);
   textRef.current = text;
   const [isDirty, setIsDirty] = useState(false);
-
-  const onChange = useCallback((value: string | undefined) => {
-    if (value === undefined) return;
-    setText(value);
-    setIsDirty(true);
-  }, []);
 
   const save = useCallback(
     async ({ silent = false }: { silent?: boolean } = {}) => {
@@ -83,6 +88,34 @@ export function useEditorFile({ file, onSaved }: Options): EditorFile {
     [fs, file.metadata.id, onSaved],
   );
 
+  // Autosave reaches for the save of the moment rather than closing over one:
+  // the debounced wrapper is built once, so a captured save would go stale.
+  const saveRef = useRef(save);
+  saveRef.current = save;
+
+  const autosave = useMemo(
+    () => debounce(() => void saveRef.current({ silent: true }), AUTOSAVE_PAUSE_MS),
+    [],
+  );
+
+  const onChange = useCallback(
+    (value: string | undefined) => {
+      if (value === undefined) return;
+      setText(value);
+      setIsDirty(true);
+      autosave();
+    },
+    [autosave],
+  );
+
+  const saveNow = useCallback(async () => {
+    autosave.cancel();
+    await save();
+  }, [autosave, save]);
+
+  // Closing the file is not a reason to drop what is pending.
+  useEffect(() => () => autosave.flush(), [autosave]);
+
   const download = useCallback(
     () =>
       downloadBlob(
@@ -98,15 +131,15 @@ export function useEditorFile({ file, onSaved }: Options): EditorFile {
   useEffect(() => {
     // Wrapped: the listener would otherwise hand the DOM event to save() as
     // its options argument.
-    const onSaveRequested = () => void save();
+    const onSaveRequested = () => void saveNow();
     document.addEventListener("editor:save", onSaveRequested);
     return () => document.removeEventListener("editor:save", onSaveRequested);
-  }, [save]);
+  }, [saveNow]);
 
   useEffect(() => {
     window.addEventListener("keydown", preventBrowserSave);
     return () => window.removeEventListener("keydown", preventBrowserSave);
   }, []);
 
-  return { text, textRef, onChange, isDirty, save, download };
+  return { text, textRef, onChange, isDirty, save, saveNow, download };
 }

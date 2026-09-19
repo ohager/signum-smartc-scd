@@ -97,7 +97,7 @@ function SmartCEditor({ file }: Props) {
     text: code,
     isDirty,
     onChange: handleEditorChange,
-    save: saveSmartCFile,
+    saveNow: saveSmartCFile,
     download,
   } = useEditorFile({ file });
   const [validationError, setValidationError] = useState("");

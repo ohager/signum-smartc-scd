@@ -55,11 +55,21 @@ export function LeftSidebar() {
       setProjects([...fs.listFolderContents().folders]);
     }
 
-    fs.addEventListener("file:*", updateFolders);
-    fs.addEventListener("folder:*", updateFolders);
+    // Deliberately not "file:*": that includes file:updated, which autosave
+    // now fires while you type, and rebuilding the tree on every keystroke
+    // pause would collapse nothing but waste a render each time. Only the
+    // events that change the shape of the tree are worth listening to.
+    const structural = [
+      "file:added",
+      "file:deleted",
+      "file:renamed",
+      "file:moved",
+      "folder:*",
+    ] as const;
+
+    for (const event of structural) fs.addEventListener(event, updateFolders);
     return () => {
-      fs.removeEventListener("folder:*", updateFolders);
-      fs.removeEventListener("file:*", updateFolders);
+      for (const event of structural) fs.removeEventListener(event, updateFolders);
     };
   }, []);
 

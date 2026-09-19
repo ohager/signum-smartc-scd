@@ -47,6 +47,7 @@ export function TestFileEditor({ file }: Props) {
     isDirty,
     onChange: onCodeChange,
     save,
+    saveNow,
     download,
   } = useEditorFile({ file });
   const { state, isRunning, run } = useTestRun();
@@ -260,7 +261,7 @@ export function TestFileEditor({ file }: Props) {
             <section className="flex h-[30px] w-full shrink-0 items-center justify-end border-b bg-muted px-2 pt-1">
               <EditorFileActions
                 isDirty={isDirty}
-                onSave={save}
+                onSave={saveNow}
                 onDownload={download}
               />
             </section>
