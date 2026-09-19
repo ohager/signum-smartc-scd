@@ -12,6 +12,7 @@ import {
   EditorFileActions,
   registerEditorFileActions,
 } from "@/components/ui/editor/file-actions.tsx";
+import { useEditorFile } from "@/components/ui/editor/use-editor-file.ts";
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
 import { toast } from "sonner";
 import { SmartC } from "smartc-signum-compiler";
@@ -25,7 +26,6 @@ import {
   serializeScenario,
 } from "@/features/simulator/scenario/scenario-io";
 import { useNavigate } from "react-router";
-import { downloadBlob } from "@/lib/download.ts";
 
 async function createAssemblyFile(
   folderId: string,
@@ -79,28 +79,6 @@ async function updateAssemblyFile(fileId: string, code: string) {
   }
 }
 
-const saveEventHandlers = new Set<Function>();
-
-function addSaveEventListener(handler: Function) {
-  // @ts-ignore
-  document.addEventListener("editor:save", handler);
-  saveEventHandlers.add(handler);
-}
-
-function removeAllSaveHandlers() {
-  saveEventHandlers.forEach((handler) => {
-    // @ts-ignore
-    document.removeEventListener("editor:save", handler);
-  });
-  saveEventHandlers.clear();
-}
-
-const preventDefaultSave = (e: KeyboardEvent) => {
-  if ((e.ctrlKey || e.metaKey) && e.key === "s") {
-    e.preventDefault();
-  }
-};
-
 interface Props {
   file: File;
 }
@@ -115,10 +93,13 @@ function SmartCEditor({ file }: Props) {
   const { addAction, removeAction, updateAction } = usePageHeaderActions();
   const fs = useFileSystem();
   const navigate = useNavigate();
-  const [code, setCode] = useState(file.content as string);
-  const codeRef = useRef(code);
-  codeRef.current = code;
-  const [isDirty, setIsDirty] = useState(false);
+  const {
+    text: code,
+    isDirty,
+    onChange: handleEditorChange,
+    save: saveSmartCFile,
+    download,
+  } = useEditorFile({ file });
   const [validationError, setValidationError] = useState("");
   const { theme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -141,12 +122,8 @@ function SmartCEditor({ file }: Props) {
 
     calculateEditorHeight();
     window.addEventListener("resize", calculateEditorHeight);
-    window.addEventListener("keydown", preventDefaultSave);
 
-    return () => {
-      window.removeEventListener("resize", calculateEditorHeight);
-      window.removeEventListener("keydown", preventDefaultSave);
-    };
+    return () => window.removeEventListener("resize", calculateEditorHeight);
   }, []);
 
   useEffect(() => {
@@ -185,15 +162,6 @@ function SmartCEditor({ file }: Props) {
       removeAction(ActionType.Debug);
     };
   }, [addAction, removeAction]);
-
-  const download = useCallback(
-    () =>
-      downloadBlob(
-        file.metadata.name,
-        new Blob([codeRef.current], { type: "text/plain;charset=utf-8" }),
-      ),
-    [file.metadata.name],
-  );
 
   useEffect(() => {
     let cancelled = false;
@@ -281,34 +249,6 @@ function SmartCEditor({ file }: Props) {
     return updateAssemblyFile(existingFile.id, code);
   }, [code, baseName]);
 
-  const handleEditorChange = (value: string | undefined) => {
-    if (value !== undefined) {
-      setCode(value);
-      setIsDirty(true);
-    }
-  };
-
-  const saveSmartCFile = useCallback(async () => {
-    try {
-      if (!isValid) {
-        toast.warning("Cannot save file! Please fix the errors first");
-        return;
-      }
-      setIsDirty(false);
-      await fs.saveFile(file.metadata.id, code);
-      toast.success("File saved successfully!");
-    } catch (e) {
-      toast.error("Could not save file: " + e.message);
-    }
-  }, [code, isValid, file]);
-
-  useEffect(() => {
-    removeAllSaveHandlers();
-    addSaveEventListener(saveSmartCFile);
-
-    return removeAllSaveHandlers;
-  }, [saveSmartCFile]);
-
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editor.addAction({
       id: ActionType.Compile,
@@ -363,7 +303,6 @@ function SmartCEditor({ file }: Props) {
         </div>
         <EditorFileActions
           isDirty={isDirty}
-          canSave={isValid}
           onSave={saveSmartCFile}
           onDownload={download}
         />

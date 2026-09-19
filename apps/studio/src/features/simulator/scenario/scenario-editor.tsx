@@ -2,11 +2,9 @@ import Editor, { type OnMount } from "@monaco-editor/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
-import { useFileSystem } from "@/hooks/use-file-system.ts";
 import type { File } from "@/lib/file-system";
 import JSON5 from "json5";
 import { validateScenario } from "./scenario-io";
-import { downloadBlob } from "@/lib/download.ts";
 import { FileWarning } from "lucide-react";
 import {
   Tooltip,
@@ -17,14 +15,7 @@ import {
   EditorFileActions,
   registerEditorFileActions,
 } from "@/components/ui/editor/file-actions.tsx";
-
-const TOOLBAR_HEIGHT = 30;
-
-const preventDefaultSave = (e: KeyboardEvent) => {
-  if ((e.ctrlKey || e.metaKey) && e.key === "s") {
-    e.preventDefault();
-  }
-};
+import { useEditorFile } from "@/components/ui/editor/use-editor-file.ts";
 
 function validationErrors(text: string): string[] {
   let parsed: unknown;
@@ -38,15 +29,17 @@ function validationErrors(text: string): string[] {
 }
 
 export function ScenarioEditor({ file }: { file: File }) {
-  const fs = useFileSystem();
   const { theme } = useTheme();
-  const [content, setContent] = useState(file.content as string);
-  const contentRef = useRef(content);
-  contentRef.current = content;
+  const {
+    text: content,
+    isDirty,
+    onChange: onBufferChange,
+    save,
+    download,
+  } = useEditorFile({ file });
   const [errors, setErrors] = useState<string[]>(() =>
-    validationErrors(file.content as string),
+    validationErrors(typeof file.content === "string" ? file.content : ""),
   );
-  const [isDirty, setIsDirty] = useState(false);
   const isValid = errors.length === 0;
   // Typed off OnMount rather than the `monaco-editor` package: the app resolves
   // two copies of it, and their editor types are not mutually assignable.
@@ -65,22 +58,9 @@ export function ScenarioEditor({ file }: { file: File }) {
 
     calculateEditorHeight();
     window.addEventListener("resize", calculateEditorHeight);
-    window.addEventListener("keydown", preventDefaultSave);
 
-    return () => {
-      window.removeEventListener("resize", calculateEditorHeight);
-      window.removeEventListener("keydown", preventDefaultSave);
-    };
+    return () => window.removeEventListener("resize", calculateEditorHeight);
   }, []);
-
-  const download = useCallback(
-    () =>
-      downloadBlob(
-        file.metadata.name,
-        new Blob([contentRef.current], { type: "text/plain;charset=utf-8" }),
-      ),
-    [file.metadata.name],
-  );
 
   // Monaco's bundled JSON language service provides the formatter; running its
   // action keeps the button, the context menu and Shift+Alt+F on one code path.
@@ -98,30 +78,9 @@ export function ScenarioEditor({ file }: { file: File }) {
   }, []);
 
   const onChange = (value: string | undefined) => {
-    const text = value ?? "";
-    setContent(text);
-    setIsDirty(true);
-    setErrors(validationErrors(text));
+    onBufferChange(value ?? "");
+    setErrors(validationErrors(value ?? ""));
   };
-
-  const save = useCallback(async () => {
-    if (errors.length > 0) {
-      toast.warning("Fix scenario errors before saving");
-      return;
-    }
-    try {
-      await fs.saveFile(file.metadata.id, content);
-      setIsDirty(false);
-      toast.success("Scenario saved");
-    } catch (e: any) {
-      toast.error("Could not save: " + e.message);
-    }
-  }, [content, errors, file.metadata.id]);
-
-  useEffect(() => {
-    document.addEventListener("editor:save", save);
-    return () => document.removeEventListener("editor:save", save);
-  }, [save]);
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
@@ -152,7 +111,6 @@ export function ScenarioEditor({ file }: { file: File }) {
         </div>
         <EditorFileActions
           isDirty={isDirty}
-          canSave={isValid}
           onSave={save}
           onDownload={download}
           onFormat={formatDocument}

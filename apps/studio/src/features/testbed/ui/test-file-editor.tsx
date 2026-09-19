@@ -11,7 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
-import { useFileSystem } from "@/hooks/use-file-system.ts";
+import {
+  EditorFileActions,
+  registerEditorFileActions,
+} from "@/components/ui/editor/file-actions.tsx";
+import { useEditorFile } from "@/components/ui/editor/use-editor-file.ts";
 import type { File } from "@/lib/file-system";
 import { DebugView } from "@/features/simulator/ui/debug-view";
 import { serializeScenario } from "@/features/simulator/scenario/scenario-io";
@@ -35,13 +39,16 @@ interface Props {
 export function TestFileEditor({ file }: Props) {
   const { projectId = "" } = useParams<{ projectId: string }>();
   const { addAction, removeAction, updateAction } = usePageHeaderActions();
-  const fs = useFileSystem();
   const { theme } = useTheme();
   const monacoRef = useRef<typeof Monaco | null>(null);
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
-  const [code, setCode] = useState(file.content as string);
-  const codeRef = useRef(code);
-  codeRef.current = code;
+  const {
+    text: code,
+    isDirty,
+    onChange: onCodeChange,
+    save,
+    download,
+  } = useEditorFile({ file });
   const { state, isRunning, run } = useTestRun();
   const [foundTests, setFoundTests] = useState<FoundTest[]>([]);
   // Monaco and the editor arrive via onMount, after the first render. Without a
@@ -128,6 +135,7 @@ export function TestFileEditor({ file }: Props) {
     editorRef.current = editor;
     monacoRef.current = monaco;
     configureTypeScriptForTests(monaco);
+    registerEditorFileActions(editor, monaco, { onDownload: download });
     setEditorReady(true);
   };
 
@@ -143,11 +151,12 @@ export function TestFileEditor({ file }: Props) {
     async (filter?: string[]) => {
       const monaco = monacoRef.current;
       if (!monaco) return;
-      // Save first: the runner reads the project from the file system, not the editor buffer.
-      await fs.saveFile(file.metadata.id, codeRef.current);
+      // Save first: the runner reads the project from the file system, not
+      // the editor buffer. Quietly — the user asked for a run, not a save.
+      await save({ silent: true });
       await run(monaco, projectId, { entryPath: file.metadata.path, debug: debugRun, filter });
     },
-    [fs, file.metadata.id, file.metadata.path, projectId, run, debugRun],
+    [save, file.metadata.path, projectId, run, debugRun],
   );
 
   const runSingleTest = useCallback(
@@ -248,6 +257,13 @@ export function TestFileEditor({ file }: Props) {
       <ResizablePanelGroup direction="horizontal" className="h-full">
         <ResizablePanel defaultSize={60} minSize={30}>
           <div className="flex h-full flex-col">
+            <section className="flex h-[30px] w-full shrink-0 items-center justify-end border-b bg-muted px-2 pt-1">
+              <EditorFileActions
+                isDirty={isDirty}
+                onSave={save}
+                onDownload={download}
+              />
+            </section>
             {activeRow && (
               <div className="shrink-0 border-b border-border px-3 py-1 text-xs text-muted-foreground">
                 showing values from:{" "}
@@ -262,7 +278,7 @@ export function TestFileEditor({ file }: Props) {
                 path={"file://" + file.metadata.path}
                 theme={theme === "dark" ? "vs-dark" : "light"}
                 value={code}
-                onChange={(value) => setCode(value ?? "")}
+                onChange={onCodeChange}
                 onMount={onMount}
                 options={{
                   minimap: { enabled: false },

@@ -32,8 +32,10 @@ export const EDITOR_HOTKEYS = {
 
 interface Props {
   isDirty: boolean;
-  /** Disables the save button (e.g. while the file has validation errors). */
-  canSave?: boolean;
+  /**
+   * Always offered, even while the file has diagnostics: work in progress
+   * rarely compiles, and refusing to store it is how it gets lost.
+   */
   onSave: () => void;
   onDownload: () => void;
   /** Omit to hide the button for file types that have no formatter yet. */
@@ -42,7 +44,6 @@ interface Props {
 
 export function EditorFileActions({
   isDirty,
-  canSave = true,
   onSave,
   onDownload,
   onFormat,
@@ -67,8 +68,7 @@ export function EditorFileActions({
         tooltip={
           isDirty ? `Unsaved changes (${EDITOR_HOTKEYS.save})` : "All Saved"
         }
-        disabled={!canSave}
-        onClick={onSave}
+        onClick={() => onSave()}
       >
         <SaveIcon className={isDirty ? "text-red-600" : "text-green-600"} />
       </EditorActionButton>

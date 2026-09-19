@@ -11,20 +11,12 @@ import {
   EditorFileActions,
   registerEditorFileActions,
 } from "@/components/ui/editor/file-actions.tsx";
-import { toast } from "sonner";
+import { useEditorFile } from "@/components/ui/editor/use-editor-file.ts";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
 import { registerAsmLanguage } from "./language-definitions/asm-language-definitions.ts";
 import { type File } from "@/lib/file-system";
-import { useFileSystem } from "@/hooks/use-file-system.ts";
 import type { MachineData } from "@/features/asm-editor/machine-data.ts";
 import { tryAssemble } from "../lib/try-assemble.ts";
-import { downloadBlob } from "@/lib/download.ts";
-
-const preventDefaultSave = (e: KeyboardEvent) => {
-  if ((e.ctrlKey || e.metaKey) && e.key === "s") {
-    e.preventDefault();
-  }
-};
 
 interface Props {
   file: File;
@@ -32,11 +24,6 @@ interface Props {
 }
 
 function AsmCodeEditor({ file, onSave }: Props) {
-  const fs = useFileSystem();
-  const [code, setCode] = useState(file.content as string);
-  const codeRef = useRef(code);
-  codeRef.current = code;
-  const [isDirty, setIsDirty] = useState(false);
   const [validationError, setValidationError] = useState("");
   const { theme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -55,67 +42,36 @@ function AsmCodeEditor({ file, onSave }: Props) {
 
     calculateEditorHeight();
     window.addEventListener("resize", calculateEditorHeight);
-    window.addEventListener("keydown", preventDefaultSave);
 
-    return () => {
-      window.removeEventListener("resize", calculateEditorHeight);
-      window.removeEventListener("keydown", preventDefaultSave);
-    };
+    return () => window.removeEventListener("resize", calculateEditorHeight);
   }, []);
 
-  const download = useCallback(
-    () =>
-      downloadBlob(
-        file.metadata.name,
-        new Blob([codeRef.current], { type: "text/plain;charset=utf-8" }),
-      ),
-    [file.metadata.name],
+  // Assembling is how the machine-data panel gets its numbers; unassemblable
+  // text still saves, it just leaves the panel without data.
+  const reportMachineCode = useCallback(
+    (written: string) => {
+      try {
+        onSave(true, tryAssemble(written));
+      } catch {
+        onSave(false);
+      }
+    },
+    [onSave],
   );
 
-  const handleEditorChange = (value: string | undefined) => {
-    if (value !== undefined) {
-      setCode(value);
-      setIsDirty(true);
-    }
-  };
-
-  const saveAsmFile = useCallback(async () => {
-    try {
-      if (!code) {
-        toast.warning("Nothing to save!");
-        return;
-      }
-
-      if (!!validationError) {
-        toast.warning("Cannot save file! Please fix the errors first");
-        return;
-      }
-      const machineCode = tryAssemble(code);
-      await fs.saveFile(file.metadata.id, code);
-      setIsDirty(false);
-      onSave(true, machineCode);
-      toast.success("File saved successfully!");
-    } catch (e) {
-      toast.error("Could not save file: " + e.message);
-      onSave(false);
-    }
-  }, [code, validationError]);
-
-  // Must match the dispatch target below: "editor:save" does not bubble, so a
-  // listener on window would never see an event dispatched on document.
-  useEffect(() => {
-    document.addEventListener("editor:save", saveAsmFile);
-    return () => {
-      document.removeEventListener("editor:save", saveAsmFile);
-    };
-  }, [saveAsmFile]);
+  const {
+    text: code,
+    isDirty,
+    onChange: handleEditorChange,
+    save: saveAsmFile,
+    download,
+  } = useEditorFile({ file, onSaved: reportMachineCode });
 
   const handleEditorBeforeMount: BeforeMount = (monaco) => {
     registerAsmLanguage(monaco);
   };
 
   const handleValidate = (markers: any[]) => {
-    console.log("ASM Validation:", markers);
     const error = markers.length > 0 ? markers[0].message : undefined;
     setValidationError(error ?? "");
   };
@@ -151,7 +107,6 @@ function AsmCodeEditor({ file, onSave }: Props) {
         </div>
         <EditorFileActions
           isDirty={isDirty}
-          canSave={isValid}
           onSave={saveAsmFile}
           onDownload={download}
         />
