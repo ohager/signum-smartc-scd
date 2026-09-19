@@ -1,6 +1,8 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { useMatch } from "react-router";
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
+import { WorkflowRail } from "@/features/workflow/rail";
 import { Button } from "@/components/ui/button.tsx";
 import {
   Tooltip,
@@ -42,18 +44,20 @@ Page.displayName = "Page";
 const PageHeader = React.forwardRef<HTMLElement, PageHeaderProps>(
   ({ className, children, ...props }, ref) => {
     const { actions } = usePageHeaderActions();
+    // The home page has no contract to report on and keeps its own strip.
+    const inProject = !!useMatch("/projects/:projectId/*");
+
     return (
       <header
         ref={ref}
         className={cn(
-          "p-4 border-b w-full flex justify-between items-center h-[60px]",
+          "flex h-[60px] w-full shrink-0 items-center justify-between gap-4 border-b p-4",
           className,
         )}
         {...props}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">{children}</div>
-        </div>
+        <div className="flex min-w-0 items-center gap-2">{children}</div>
+        {inProject && <WorkflowRail />}
         {actions && actions.length > 0 && (
           <div className="flex items-center gap-2">
             {actions.map((action) => (

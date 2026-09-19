@@ -30,6 +30,9 @@ import {
   serializeScenario,
 } from "@/features/simulator/scenario/scenario-io";
 import { useNavigate } from "react-router";
+import { findProjectOfFolder } from "@/features/project/project-root";
+import { isContractFile } from "@/features/project/contract";
+import { analyzeWithCompiler } from "./language/compiler-symbols";
 
 async function createAssemblyFile(
   folderId: string,
@@ -103,7 +106,27 @@ function SmartCEditor({ file }: Props) {
     onChange: handleEditorChange,
     saveNow: saveSmartCFile,
     download,
-  } = useEditorFile({ file });
+  } = useEditorFile({
+    file,
+    // The rail's Write cell reports this, and `handleValidate` is the wrong
+    // place for it: Monaco validates the *buffer*, while `lastModified`
+    // describes the *save*. Filing a buffer verdict under a save timestamp
+    // would report a fault in code that is not on disk. Both halves have to
+    // describe the same bytes, so the verdict goes where the bytes land.
+    onSaved: (written) => {
+      const projectId = findProjectOfFolder(fs, file.metadata.folderId);
+      const saved = fs.getFileMetadata(file.metadata.id);
+      if (!projectId || !saved || !isContractFile(saved.name)) return;
+
+      // Never throws, and is the same call the language service makes for its
+      // markers — one implementation of "does this compile", not two.
+      const { error } = analyzeWithCompiler(written);
+      fs.status.recordCompile(projectId, {
+        sourceModified: saved.lastModified,
+        errorCount: error ? 1 : 0,
+      });
+    },
+  });
   const [validationError, setValidationError] = useState("");
   const monacoTheme = useMonacoTheme();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);

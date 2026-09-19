@@ -8,6 +8,9 @@ import { registerClimateThemes } from "@/theme/monaco-themes";
 import { Play } from "lucide-react";
 import { toast } from "sonner";
 import { useParams } from "react-router";
+import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { findProjectOfFolder } from "@/features/project/project-root";
+import { contractOfProject } from "@/features/project/contract";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -40,6 +43,7 @@ interface Props {
 
 export function TestFileEditor({ file }: Props) {
   const { projectId = "" } = useParams<{ projectId: string }>();
+  const fs = useFileSystem();
   const { addAction, removeAction, updateAction } = usePageHeaderActions();
   const monacoTheme = useMonacoTheme();
   const monacoRef = useRef<typeof Monaco | null>(null);
@@ -129,10 +133,16 @@ export function TestFileEditor({ file }: Props) {
     editor.focus();
   }, []);
 
+  // A single-test run reaches "done" through this same path, and its counts
+  // describe one test. Filing those as the file's verdict would report
+  // "1 green" for a file of twelve, so only an unfiltered run may speak for it.
+  const lastRunWasFiltered = useRef(false);
+
   const runFile = useCallback(
     async (filter?: string[]) => {
       const monaco = monacoRef.current;
       if (!monaco) return;
+      lastRunWasFiltered.current = !!filter?.length;
       // Save first: the runner reads the project from the file system, not
       // the editor buffer. Quietly — the user asked for a run, not a save.
       await save({ silent: true });
@@ -140,6 +150,26 @@ export function TestFileEditor({ file }: Props) {
     },
     [save, file.metadata.path, projectId, run, debugRun],
   );
+
+  // The rail reports the last run, so the last run has to outlive this editor.
+  useEffect(() => {
+    if (state.status !== "done") return;
+    if (lastRunWasFiltered.current) return;
+
+    const projectRoot = findProjectOfFolder(fs, projectId);
+    if (!projectRoot) return;
+
+    const contract = contractOfProject(fs.listFilesRecursive(projectRoot))?.contract;
+    fs.status.recordTests(projectRoot, file.metadata.id, {
+      sourceModified: file.metadata.lastModified,
+      contractModified: contract?.lastModified ?? 0,
+      // `counts` is already kept by the reducer; re-deriving it from `rows`
+      // would be a second definition of the same number. A timeout is a
+      // failure the user needs to see as one.
+      passed: state.counts.passed,
+      failed: state.counts.failed + state.counts.timedout,
+    });
+  }, [state.status, state.counts, fs, projectId, file.metadata.id, file.metadata.lastModified]);
 
   const runSingleTest = useCallback(
     (path: string[]) => {
