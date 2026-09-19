@@ -51,13 +51,13 @@ export function DebugToolbar({
       </button>
       <span className="mx-1 inline-flex rounded border overflow-hidden">
         <button
-          className={"px-2 py-0.5 " + (viewMode === "source" ? "bg-blue-500/30" : "")}
+          className={"px-2 py-0.5 " + (viewMode === "source" ? "bg-[color-mix(in_srgb,var(--accent-1)_28%,transparent)]" : "")}
           onClick={() => onViewMode("source")}
         >
           source
         </button>
         <button
-          className={"px-2 py-0.5 border-l " + (viewMode === "asm" ? "bg-blue-500/30" : "")}
+          className={"px-2 py-0.5 border-l " + (viewMode === "asm" ? "bg-[color-mix(in_srgb,var(--accent-1)_28%,transparent)]" : "")}
           onClick={() => onViewMode("asm")}
         >
           asm

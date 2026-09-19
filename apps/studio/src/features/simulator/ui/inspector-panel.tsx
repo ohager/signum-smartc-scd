@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { DebugState } from "../engine/engine.types";
 import { isInternalVar } from "./vars";
+import { useChangedValues } from "@/motion/use-changed-values";
 
 type Tab = "variables" | "registers" | "watch" | "breakpoints" | "emitted";
+
+/** At most this many rows may announce themselves at once. */
+const ARRIVAL_CEILING = 8;
 
 interface Props {
   state: DebugState | null;
@@ -16,6 +20,18 @@ export function InspectorPanel({ state, onRemoveBreakpoint }: Props) {
   const [watchInput, setWatchInput] = useState("");
 
   const memory = state?.memory ?? {};
+  // Stepping is the event. A value that moved says so once; a panel merely
+  // opening says nothing.
+  const changed = useChangedValues(memory);
+  // Emitted transactions are the one list here that genuinely grows, so they
+  // are the one list that gets an arrival. Capped, because a contract that
+  // sends in a loop would otherwise light up the whole panel.
+  const emitted = state?.emittedTx ?? [];
+  const seenEmitted = useRef(0);
+  const arrivedFrom = Math.max(seenEmitted.current, emitted.length - ARRIVAL_CEILING);
+  useEffect(() => {
+    seenEmitted.current = emitted.length;
+  }, [emitted.length]);
   const tabs: Tab[] = ["variables", "registers", "watch", "breakpoints", "emitted"];
 
   return (
@@ -25,7 +41,7 @@ export function InspectorPanel({ state, onRemoveBreakpoint }: Props) {
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={"flex-1 px-2 py-1 capitalize " + (tab === t ? "bg-blue-500/20 font-medium" : "opacity-70")}
+            className={"flex-1 px-2 py-1 capitalize " + (tab === t ? "bg-[color-mix(in_srgb,var(--accent-1)_20%,transparent)] font-medium" : "opacity-70")}
           >
             {t}
           </button>
@@ -37,7 +53,7 @@ export function InspectorPanel({ state, onRemoveBreakpoint }: Props) {
             {Object.entries(memory)
               .filter(([name]) => !isInternalVar(name))
               .map(([name, value]) => (
-                <Row key={name} name={name} value={value} />
+                <Row key={name} name={name} value={value} flash={changed.has(name)} />
               ))}
             <label className="mt-2 flex items-center gap-1 opacity-70 font-sans">
               <input type="checkbox" checked={showInternals} onChange={(e) => setShowInternals(e.target.checked)} />
@@ -46,7 +62,9 @@ export function InspectorPanel({ state, onRemoveBreakpoint }: Props) {
             {showInternals &&
               Object.entries(memory)
                 .filter(([name]) => isInternalVar(name))
-                .map(([name, value]) => <Row key={name} name={name} value={value} muted />)}
+                .map(([name, value]) => (
+                  <Row key={name} name={name} value={value} muted flash={changed.has(name)} />
+                ))}
           </>
         )}
 
@@ -108,14 +126,19 @@ export function InspectorPanel({ state, onRemoveBreakpoint }: Props) {
 
         {tab === "emitted" && (
           <>
-            {(state?.emittedTx ?? []).length === 0 && <div className="opacity-50 font-sans">— none —</div>}
-            {(state?.emittedTx ?? []).map((tx, i) => (
-              <div key={i} className="flex justify-between gap-4">
-                <span>
-                  → {tx.recipient}
-                  {tx.message ? ` · "${tx.message}"` : ""}
-                </span>
-                <span className="opacity-80">{tx.amount}</span>
+            {emitted.length === 0 && <div className="opacity-50 font-sans">— none —</div>}
+            {emitted.map((tx, i) => (
+              <div
+                key={i}
+                className={i >= arrivedFrom && i >= seenEmitted.current ? "motion-arrive" : ""}
+              >
+                <div className="flex justify-between gap-4">
+                  <span>
+                    → {tx.recipient}
+                    {tx.message ? ` · "${tx.message}"` : ""}
+                  </span>
+                  <span className="opacity-80">{tx.amount}</span>
+                </div>
               </div>
             ))}
           </>
@@ -125,11 +148,21 @@ export function InspectorPanel({ state, onRemoveBreakpoint }: Props) {
   );
 }
 
-function Row({ name, value, muted }: { name: string; value: string; muted?: boolean }) {
+function Row({
+  name,
+  value,
+  muted,
+  flash,
+}: {
+  name: string;
+  value: string;
+  muted?: boolean;
+  flash?: boolean;
+}) {
   return (
     <div className={"flex justify-between gap-4 " + (muted ? "opacity-50" : "")}>
       <span>{name}</span>
-      <span className="opacity-80">{value}</span>
+      <span className={"opacity-80 " + (flash ? "motion-flash" : "")}>{value}</span>
     </div>
   );
 }

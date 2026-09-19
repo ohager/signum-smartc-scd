@@ -61,7 +61,7 @@ export function WalletStatusCard() {
               <span className="text-xs text-muted-foreground">Balance</span>
               <span className="font-medium text-sm">
                 {accountBalance.isLoading ? (
-                  <Loader2 className="h-6 w-6 animate-spin text-blue-500 mb-2" />
+                  <Loader2 className="h-6 w-6 animate-spin text-[var(--accent-2)] mb-2" />
                 ) : (
                   <Amount
                     amount={accountBalance.balance?.guaranteedBalanceNQT ?? 0}

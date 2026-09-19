@@ -1,4 +1,5 @@
 @import "../styles/globals.css";
+@import "./motion/motion.css";
 
 .debug-current-line { background: color-mix(in srgb, var(--accent-2) 12%, transparent); }
 .debug-current-glyph { background: var(--accent-2); }

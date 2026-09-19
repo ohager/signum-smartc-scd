@@ -63,7 +63,7 @@ export function SidebarResizer({ onCommit, min = 180, max = 520 }: Props) {
       aria-orientation="vertical"
       onMouseDown={onMouseDown}
       style={{ left: "var(--sidebar-width)" }}
-      className="fixed inset-y-0 z-20 w-1.5 -translate-x-1/2 cursor-col-resize bg-transparent transition-colors hover:bg-blue-500/40"
+      className="fixed inset-y-0 z-20 w-1.5 -translate-x-1/2 cursor-col-resize bg-transparent transition-colors hover:bg-[color-mix(in_srgb,var(--accent-2)_40%,transparent)]"
       title="Drag to resize sidebar"
     />
   );

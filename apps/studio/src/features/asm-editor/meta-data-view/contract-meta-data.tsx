@@ -49,7 +49,7 @@ export function ContractMetadata({ data }: { data: MachineData }) {
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center">
-          <InfoIcon className="h-4 w-4 mr-2 text-blue-500" />
+          <InfoIcon className="h-4 w-4 mr-2 text-[var(--accent-2)]" />
           Contract Information
         </CardTitle>
         <CardDescription>Metadata and resource requirements</CardDescription>

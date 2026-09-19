@@ -57,12 +57,12 @@ function TestRowView({
       </div>
 
       {row.failure && (
-        <div className="mt-2 rounded bg-red-500/10 p-2 font-mono text-xs">
+        <div className="mt-2 rounded bg-[color-mix(in_srgb,var(--mag)_10%,transparent)] p-2 font-mono text-xs">
           <div
             className={
               row.failure.line !== undefined && onRevealLine
-                ? "cursor-pointer text-red-400 hover:underline"
-                : "text-red-400"
+                ? "cursor-pointer text-[var(--mag)] hover:underline"
+                : "text-[var(--mag)]"
             }
             onClick={() => row.failure?.line !== undefined && onRevealLine?.(row.failure.line)}
           >
@@ -132,15 +132,15 @@ export function TestResultsPanel({
         )}
 
         {state.collectErrors.map((error, i) => (
-          <div key={i} className="border-b border-border/50 bg-red-500/10 px-3 py-2 text-sm">
-            <div className="font-medium text-red-400">Could not load {error.file}</div>
+          <div key={i} className="border-b border-border/50 bg-[color-mix(in_srgb,var(--mag)_10%,transparent)] px-3 py-2 text-sm">
+            <div className="font-medium text-[var(--mag)]">Could not load {error.file}</div>
             <div className="mt-1 font-mono text-xs text-muted-foreground">{error.message}</div>
           </div>
         ))}
 
         {state.hookErrors.map((error, i) => (
-          <div key={i} className="border-b border-border/50 bg-amber-500/10 px-3 py-2 text-sm">
-            <div className="font-medium text-amber-400">
+          <div key={i} className="border-b border-border/50 bg-[color-mix(in_srgb,var(--amber)_10%,transparent)] px-3 py-2 text-sm">
+            <div className="font-medium text-[var(--amber)]">
               {error.phase} failed{error.suite.length ? ` in ${error.suite.join(" › ")}` : ""}
             </div>
             <div className="mt-1 font-mono text-xs text-muted-foreground">{error.message}</div>

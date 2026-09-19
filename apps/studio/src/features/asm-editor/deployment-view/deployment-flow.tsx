@@ -340,7 +340,7 @@ function DeploymentSteps({
     if (status === "completed")
       return <CheckCircle className="h-4 w-4 text-green-500" />;
     if (status === "active")
-      return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />;
+      return <Loader2 className="h-4 w-4 animate-spin text-[var(--accent-2)]" />;
     if (status === "error")
       return <AlertCircle className="h-4 w-4 text-red-500" />;
     return <div className="h-4 w-4 rounded-full border-2 border-gray-300" />;

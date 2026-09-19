@@ -269,7 +269,11 @@ export function TestFileEditor({ file }: Props) {
                   onDownload={download}
                 />
               }
-            />
+            >
+              {isRunning && (
+                <span className="motion-pulse text-[var(--accent-3)]">running…</span>
+              )}
+            </EditorToolbar>
             {activeRow && (
               <div className="shrink-0 border-b border-border px-3 py-1 text-xs text-muted-foreground">
                 showing values from:{" "}

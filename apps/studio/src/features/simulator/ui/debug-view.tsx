@@ -270,7 +270,7 @@ function DebugSession({
           role="separator"
           aria-orientation="vertical"
           title="Drag to resize"
-          className="w-1.5 shrink-0 cursor-col-resize hover:bg-blue-500/40"
+          className="w-1.5 shrink-0 cursor-col-resize hover:bg-[color-mix(in_srgb,var(--accent-2)_40%,transparent)]"
         />
         <div ref={panelRef} style={{ width: panelWidth }} className="shrink-0 border-l overflow-hidden">
           <DebugSidePanel

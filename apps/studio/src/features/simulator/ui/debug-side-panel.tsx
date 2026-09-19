@@ -22,7 +22,7 @@ export function DebugSidePanel({
           <button
             key={v}
             onClick={() => setView(v)}
-            className={"flex-1 px-2 py-1 " + (view === v ? "bg-blue-500/20 font-medium" : "opacity-70")}
+            className={"flex-1 px-2 py-1 " + (view === v ? "bg-[color-mix(in_srgb,var(--accent-1)_20%,transparent)] font-medium" : "opacity-70")}
           >
             {v === "contract" ? "Contract Status" : "Ledger Status"}
           </button>

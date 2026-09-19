@@ -7,7 +7,10 @@ import { ThemeProvider } from "next-themes";
 import { FilesPage } from "./pages/files/files-page";
 import { DebugDashboardPage } from "./pages/debug/debug-dashboard-page";
 import { HomePage } from "./pages/home/home-page";
+import { useMotion } from "./motion/use-motion";
 export function App() {
+  useMotion();
+
   return (
     <JotaiProvider store={jotaiStore}>
       <ThemeProvider

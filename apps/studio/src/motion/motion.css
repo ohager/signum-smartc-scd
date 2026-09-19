@@ -1,0 +1,109 @@
+/*
+ * Every animation here is bound to an event. Nothing runs on its own, and no
+ * information lives only in the movement — turning motion off costs motion
+ * and nothing else.
+ */
+
+[data-motion="off"] *,
+[data-motion="off"] *::before,
+[data-motion="off"] *::after {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
+}
+
+/* A value changed. Never on first render — the caller decides that. */
+@keyframes motion-flash {
+  from {
+    color: var(--green);
+  }
+  to {
+    color: inherit;
+  }
+}
+.motion-flash {
+  animation: motion-flash var(--motion-quick) var(--ease-out);
+}
+
+/*
+ * A row arrived: it unfolds, and its tint decays.
+ *
+ * `height: auto` does not interpolate, so the row is a one-cell grid and the
+ * track animates from 0fr to 1fr instead — the trick signum-sandbox uses.
+ */
+@keyframes motion-arrive {
+  from {
+    grid-template-rows: 0fr;
+    background: color-mix(in srgb, var(--green) 18%, transparent);
+  }
+  to {
+    grid-template-rows: 1fr;
+    background: transparent;
+  }
+}
+.motion-arrive {
+  display: grid;
+  grid-template-rows: 1fr;
+  animation: motion-arrive var(--motion-calm) var(--ease-out);
+}
+.motion-arrive > * {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Something long-running is under way, and will stop on its own. */
+@keyframes motion-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+.motion-pulse {
+  animation: motion-pulse 1.5s var(--ease-in-out) infinite;
+}
+
+/* An error. Two pixels, once. Not a tantrum. */
+@keyframes motion-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  33% {
+    transform: translateX(-2px);
+  }
+  66% {
+    transform: translateX(2px);
+  }
+}
+.motion-nudge {
+  animation: motion-nudge var(--motion-quick) var(--ease-in-out);
+}
+
+/* A panel, dialog or dropdown settling into place. */
+@keyframes motion-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.motion-enter {
+  animation: motion-enter var(--motion-base) var(--spring-panel);
+}
+
+/* Controls answer, but quietly: the border moves, not the fill. */
+.motion-control {
+  transition:
+    border-color var(--motion-quick) var(--ease-out),
+    color var(--motion-quick) var(--ease-out);
+}
+.motion-control:active {
+  transform: scale(0.97);
+  transition: transform var(--motion-instant) var(--spring-snap);
+}

@@ -163,7 +163,7 @@ export function FolderNode({ folder }: { folder: FolderMetadata }) {
     <>
       <SidebarMenuItem>
         <div
-          className={"relative flex items-center rounded-sm " + (dropActive ? "bg-blue-500/20" : "")}
+          className={"relative flex items-center rounded-sm " + (dropActive ? "bg-[color-mix(in_srgb,var(--accent-1)_20%,transparent)]" : "")}
           onDragOver={(e) => {
             if (e.dataTransfer.types.includes(FILE_DND_MIME)) {
               e.preventDefault();
