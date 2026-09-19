@@ -242,24 +242,6 @@ export class FileSystem extends EventTarget {
     return !!this.metadata.files[fileId];
   }
 
-  /**
-   * Checks if the given path exists in the folderContents metadata.
-   *
-   * @param {string} path - The file path to check for existence.
-   * @return {boolean} Returns true if the path exists, otherwise false.
-   */
-  existPath(path: string): boolean {
-    for (const contents of Object.values(
-      this.metadata.folderContents
-    )) {
-      console.log("existPath", path, contents.files,);
-      if (contents.files.includes(path)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   /** The id of the workspace root, whose children are the projects. */
   get rootFolderId(): string {
     return this.metadata.rootFolder;
