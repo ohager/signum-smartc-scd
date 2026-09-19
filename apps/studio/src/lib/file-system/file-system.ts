@@ -8,6 +8,7 @@ import type {
 import { FileTransfer } from "./transfer.ts";
 import {
   IdbContentStore,
+  LocalMetadataStorage,
   type ContentStore,
   type MetadataStorage,
 } from "./content-store.ts";
@@ -54,7 +55,7 @@ export class FileSystem extends EventTarget {
     return FileSystem.instance;
   }
 
-  private readonly metadata: FileSystemMetadata;
+  private metadata: FileSystemMetadata;
   private _transfer?: FileTransfer;
   private _recents?: RecentFiles;
 
@@ -64,7 +65,7 @@ export class FileSystem extends EventTarget {
    * is how the tests exercise the mutating operations.
    */
   constructor(
-    private readonly storage: MetadataStorage = localStorage,
+    private readonly storage: MetadataStorage = new LocalMetadataStorage(),
     private readonly content: ContentStore = new IdbContentStore(),
   ) {
     super();
@@ -103,6 +104,35 @@ export class FileSystem extends EventTarget {
 
       this.saveMetadata();
     }
+
+    this.storage.watch?.(LS_METADATA_KEY, (raw) => this.adoptExternalWrite(raw));
+  }
+
+  /**
+   * Takes on a workspace another tab wrote.
+   *
+   * Every tab holds the whole blob in memory and writes all of it back, so a
+   * tab that ignores its siblings deletes their work at its next save — and
+   * the orphaned contents stay in IndexedDB, invisible. Re-reading keeps the
+   * tabs on one workspace; the open editor keeps its buffer and writes it
+   * back as usual.
+   */
+  private adoptExternalWrite(raw: string): void {
+    let incoming: FileSystemMetadata;
+
+    try {
+      incoming = JSON.parse(raw) as FileSystemMetadata;
+    } catch (e) {
+      // Nothing to adopt, and dropping what we have would be worse.
+      console.error("Ignoring an unreadable workspace from another tab", e);
+      return;
+    }
+
+    this.metadata = incoming;
+    this.metadata.recentFiles = sanitizeRecents(this.metadata.recentFiles);
+    this.repairFolderOwnership();
+
+    this.emitEvent({ type: "fs:reloaded", id: this.metadata.rootFolder });
   }
 
   /**

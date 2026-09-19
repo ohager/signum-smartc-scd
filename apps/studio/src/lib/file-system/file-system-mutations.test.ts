@@ -12,11 +12,29 @@ import type { ContentStore, MetadataStorage } from "./content-store";
 
 class MemoryStorage implements MetadataStorage {
   private readonly entries = new Map<string, string>();
+  private readonly watchers = new Map<string, ((raw: string) => void)[]>();
+
   getItem(key: string) {
     return this.entries.get(key) ?? null;
   }
   setItem(key: string, value: string) {
     this.entries.set(key, value);
+  }
+  watch(key: string, onChange: (raw: string) => void) {
+    const forKey = this.watchers.get(key) ?? [];
+    forKey.push(onChange);
+    this.watchers.set(key, forKey);
+    return () => {
+      this.watchers.set(
+        key,
+        (this.watchers.get(key) ?? []).filter((w) => w !== onChange),
+      );
+    };
+  }
+  /** What another tab writing this key looks like from here. */
+  writeFromAnotherTab(key: string, value: string) {
+    this.entries.set(key, value);
+    for (const w of this.watchers.get(key) ?? []) w(value);
   }
 }
 
@@ -45,6 +63,17 @@ beforeEach(() => {
 
 /** The workspace as it would be found after a reload. */
 const persisted = () => JSON.parse(storage.getItem("scd:fs-metadata")!);
+
+/** Runs a case whose whole point is that the file system logs and carries on. */
+function quietly<T>(fn: () => T): T {
+  const real = console.error;
+  console.error = () => {};
+  try {
+    return fn();
+  } finally {
+    console.error = real;
+  }
+}
 
 describe("moveFile", () => {
   it("updates the file's folderId, not only the folder listings", async () => {
@@ -121,6 +150,49 @@ describe("consistency between metadata and content", () => {
     await fs.deleteFolder(folder);
 
     expect(storedWhenAnnounced).toEqual({});
+  });
+});
+
+describe("another tab writing the workspace", () => {
+  it("adopts the projects that tab created", async () => {
+    // Both tabs hold the whole blob in memory and write all of it back, so
+    // ignoring the other one means overwriting its work at the next save.
+    const theirs = JSON.parse(storage.getItem("scd:fs-metadata")!);
+    const root = fs.rootFolderId;
+    theirs.folders.other = {
+      id: "other",
+      name: "made-elsewhere",
+      path: "/made-elsewhere",
+      createdAt: 0,
+      lastModified: 0,
+    };
+    theirs.folderContents.other = { files: [], folders: [] };
+    theirs.folderContents[root].folders.push("other");
+
+    storage.writeFromAnotherTab("scd:fs-metadata", JSON.stringify(theirs));
+
+    expect(fs.listFolderContents().folders.map((f) => f.metadata.name)).toEqual([
+      "made-elsewhere",
+    ]);
+  });
+
+  it("tells the app to redraw", async () => {
+    let announced = 0;
+    fs.addEventListener("fs:reloaded", () => {
+      announced++;
+    });
+
+    storage.writeFromAnotherTab("scd:fs-metadata", storage.getItem("scd:fs-metadata")!);
+
+    expect(announced).toBe(1);
+  });
+
+  it("ignores a blob it cannot read rather than dropping the workspace", async () => {
+    const folder = await fs.createFolder(fs.rootFolderId, "mine");
+
+    quietly(() => storage.writeFromAnotherTab("scd:fs-metadata", "{ not json"));
+
+    expect(fs.getFolder(folder).name).toBe("mine");
   });
 });
 
@@ -236,7 +308,7 @@ describe("hydration", () => {
     const storage = new MemoryStorage();
     storage.setItem("scd:fs-metadata", "{ this is not json");
 
-    const loaded = new FileSystem(storage, new MemoryContent());
+    const loaded = quietly(() => new FileSystem(storage, new MemoryContent()));
 
     expect(loaded.rootFolderId).not.toBe("");
     expect(loaded.listFolderContents().folders).toEqual([]);
@@ -246,7 +318,7 @@ describe("hydration", () => {
     const storage = new MemoryStorage();
     storage.setItem("scd:fs-metadata", "{ this is not json");
 
-    new FileSystem(storage, new MemoryContent());
+    quietly(() => new FileSystem(storage, new MemoryContent()));
 
     expect(storage.getItem("scd:fs-metadata-unreadable")).toBe("{ this is not json");
   });

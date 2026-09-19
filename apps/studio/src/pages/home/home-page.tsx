@@ -23,9 +23,11 @@ export function HomePage() {
     const refresh = () => setProjects(summarizeProjects(fs));
     fs.addEventListener("file:*", refresh);
     fs.addEventListener("folder:*", refresh);
+    fs.addEventListener("fs:reloaded", refresh);
     return () => {
       fs.removeEventListener("file:*", refresh);
       fs.removeEventListener("folder:*", refresh);
+      fs.removeEventListener("fs:reloaded", refresh);
     };
   }, []);
 

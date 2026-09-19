@@ -29,7 +29,9 @@ export type FileSystemEventType =
   | "folder:*"
   | "folder:created"
   | "folder:deleted"
-  | "folder:renamed";
+  | "folder:renamed"
+  /** The whole workspace was replaced by one another tab wrote. */
+  | "fs:reloaded";
 
 export interface FileSystemEvent {
   type: FileSystemEventType;

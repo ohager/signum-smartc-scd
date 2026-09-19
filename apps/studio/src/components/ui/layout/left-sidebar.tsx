@@ -65,6 +65,7 @@ export function LeftSidebar() {
       "file:renamed",
       "file:moved",
       "folder:*",
+      "fs:reloaded",
     ] as const;
 
     for (const event of structural) fs.addEventListener(event, updateFolders);
