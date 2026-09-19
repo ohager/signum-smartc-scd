@@ -3,11 +3,12 @@ import type { ReactNode } from "react";
 export function Pill({ children, tone = "default" }: { children: ReactNode; tone?: "default" | "accent" | "error" }) {
   const cls =
     tone === "accent"
-      ? "bg-primary text-primary-foreground border-transparent"
+      ? "border-[var(--accent-2)] text-[var(--accent-3)]"
       : tone === "error"
-        ? "bg-red-600 text-white border-transparent"
-        : "text-muted-foreground";
-  return <span className={"text-[10px] px-2 py-0.5 rounded-full border " + cls}>{children}</span>;
+        ? "border-[var(--mag)] text-[var(--mag)]"
+        : "border-[var(--border-1)] text-muted-foreground";
+  // No rounded-full: a pill is a box here, like everything else.
+  return <span className={"text-[10px] px-2 py-0.5 border " + cls}>{children}</span>;
 }
 
 export function Section({ label, count, children }: { label: string; count?: number; children: ReactNode }) {
@@ -16,7 +17,7 @@ export function Section({ label, count, children }: { label: string; count?: num
       <div className="flex items-center justify-between mb-1.5">
         <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</span>
         {count !== undefined && (
-          <span className="text-[10px] px-1.5 rounded bg-muted text-foreground font-semibold">{count}</span>
+          <span className="text-[10px] px-1.5 bg-muted text-foreground font-semibold">{count}</span>
         )}
       </div>
       {children}

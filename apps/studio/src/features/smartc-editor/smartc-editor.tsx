@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Editor, { type OnMount } from "@monaco-editor/react";
-import { FileWarning, Code2, Bug, FilePlus2 } from "lucide-react";
+import { Code2, Bug, FilePlus2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -13,6 +13,10 @@ import {
   registerEditorFileActions,
 } from "@/components/ui/editor/file-actions.tsx";
 import { useEditorFile } from "@/components/ui/editor/use-editor-file.ts";
+import {
+  EditorToolbar,
+  EditorDiagnostic,
+} from "@/components/ui/editor/editor-toolbar.tsx";
 import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
 import { toast } from "sonner";
 import { SmartC } from "smartc-signum-compiler";
@@ -283,30 +287,26 @@ function SmartCEditor({ file }: Props) {
 
   return (
     <div className="flex flex-col" ref={containerRef}>
-      <section className="w-full flex justify-between items-center pt-1 px-2 h-[30px] bg-muted border-b-1">
-        <div>
-          {!isValid && (
-            <span>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-1">
-                    <FileWarning className="h-4 w-4 text-red-600" />
-                    <small className="text-xs text-red-600 ">
-                      {validationError}
-                    </small>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="right">Invalid code</TooltipContent>
-              </Tooltip>
-            </span>
-          )}
-        </div>
-        <EditorFileActions
-          isDirty={isDirty}
-          onSave={saveSmartCFile}
-          onDownload={download}
-        />
-      </section>
+      <EditorToolbar
+        actions={
+          <EditorFileActions
+            isDirty={isDirty}
+            onSave={saveSmartCFile}
+            onDownload={download}
+          />
+        }
+      >
+        {!isValid && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <EditorDiagnostic tone="error">{validationError}</EditorDiagnostic>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="right">Invalid code</TooltipContent>
+          </Tooltip>
+        )}
+      </EditorToolbar>
       <div className="flex-1 rounded h-full">
         <Editor
           height={editorHeight}

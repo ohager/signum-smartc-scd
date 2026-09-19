@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import Editor, { type OnMount } from "@monaco-editor/react";
 import type * as Monaco from "monaco-editor";
+import { EditorToolbar } from "@/components/ui/editor/editor-toolbar.tsx";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import { registerClimateThemes } from "@/theme/monaco-themes";
 import { Play } from "lucide-react";
@@ -260,13 +261,15 @@ export function TestFileEditor({ file }: Props) {
       <ResizablePanelGroup direction="horizontal" className="h-full">
         <ResizablePanel defaultSize={60} minSize={30}>
           <div className="flex h-full flex-col">
-            <section className="flex h-[30px] w-full shrink-0 items-center justify-end border-b bg-muted px-2 pt-1">
-              <EditorFileActions
-                isDirty={isDirty}
-                onSave={saveNow}
-                onDownload={download}
-              />
-            </section>
+            <EditorToolbar
+              actions={
+                <EditorFileActions
+                  isDirty={isDirty}
+                  onSave={saveNow}
+                  onDownload={download}
+                />
+              }
+            />
             {activeRow && (
               <div className="shrink-0 border-b border-border px-3 py-1 text-xs text-muted-foreground">
                 showing values from:{" "}

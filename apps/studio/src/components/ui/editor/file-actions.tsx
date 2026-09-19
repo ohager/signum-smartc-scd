@@ -70,7 +70,7 @@ export function EditorFileActions({
         }
         onClick={() => onSave()}
       >
-        <SaveIcon className={isDirty ? "text-red-600" : "text-green-600"} />
+        <SaveIcon className={isDirty ? "text-[var(--mag)]" : "text-[var(--green)]"} />
       </EditorActionButton>
     </div>
   );

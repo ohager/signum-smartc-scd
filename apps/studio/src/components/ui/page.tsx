@@ -102,7 +102,7 @@ const PageFooter = React.forwardRef<HTMLElement, PageFooterProps>(
     return (
       <footer
         ref={ref}
-        className={cn("p-4 bg-white border-t border-gray-200", className)}
+        className={cn("p-4 bg-[var(--bg2)] border-t border-[var(--border-1)]", className)}
         {...props}
       >
         {children}

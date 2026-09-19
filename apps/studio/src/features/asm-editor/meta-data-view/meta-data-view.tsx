@@ -17,7 +17,7 @@ export function MetaDataView({machineData}:Props) {
           <h3 className="text-lg font-medium mb-4 flex items-center">
             <CodeIcon className="h-5 w-5 mr-2 text-green-500" />
             Assembly Results
-            <Badge className="ml-2 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+            <Badge className="ml-2 bg-[color-mix(in_srgb,var(--green)_15%,transparent)] text-[var(--green)]">
               Success
             </Badge>
           </h3>

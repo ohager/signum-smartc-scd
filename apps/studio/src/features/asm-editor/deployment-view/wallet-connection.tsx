@@ -36,8 +36,8 @@ export function WalletConnection() {
           </div>
         ) : (
           <div className="space-y-4">
-            <Alert className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-900">
-              <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <Alert className="border-[var(--green)] bg-[color-mix(in_srgb,var(--green)_10%,transparent)]">
+              <Check className="h-4 w-4 text-[var(--green)]" />
               <AlertTitle className="flex justify-between items-center">
                 Wallet Connected
                 <Badge variant="outline">

@@ -1,12 +1,15 @@
 import Editor, { type OnMount } from "@monaco-editor/react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  EditorToolbar,
+  EditorDiagnostic,
+} from "@/components/ui/editor/editor-toolbar.tsx";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import { registerClimateThemes } from "@/theme/monaco-themes";
 import { toast } from "sonner";
 import type { File } from "@/lib/file-system";
 import JSON5 from "json5";
 import { validateScenario } from "./scenario-io";
-import { FileWarning } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -90,33 +93,31 @@ export function ScenarioEditor({ file }: { file: File }) {
 
   return (
     <div className="flex flex-col" ref={containerRef}>
-      <section className="w-full flex justify-between items-center pt-1 px-2 h-[30px] bg-muted border-b-1">
-        <div>
-          {!isValid && (
-            <span>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-1">
-                    <FileWarning className="h-4 w-4 text-red-600" />
-                    <small className="text-xs text-red-600 ">
-                      {errors.length > 1
-                        ? `${errors.length} errors: ${errors[0]}`
-                        : errors[0]}
-                    </small>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="right">Invalid scenario</TooltipContent>
-              </Tooltip>
-            </span>
-          )}
-        </div>
-        <EditorFileActions
-          isDirty={isDirty}
-          onSave={saveNow}
-          onDownload={download}
-          onFormat={formatDocument}
-        />
-      </section>
+      <EditorToolbar
+        actions={
+          <EditorFileActions
+            isDirty={isDirty}
+            onSave={saveNow}
+            onDownload={download}
+            onFormat={formatDocument}
+          />
+        }
+      >
+        {!isValid && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <EditorDiagnostic tone="error">
+                  {errors.length > 1
+                    ? `${errors.length} errors: ${errors[0]}`
+                    : errors[0]}
+                </EditorDiagnostic>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="right">Invalid scenario</TooltipContent>
+          </Tooltip>
+        )}
+      </EditorToolbar>
       <div className="flex-1 rounded h-full">
         <Editor
           height={editorHeight}

@@ -41,7 +41,7 @@ export function WalletStatusCard() {
                 <Wallet className="h-4 w-4" />
                 XT Wallet
               </div>
-              <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+              <Badge className="bg-[color-mix(in_srgb,var(--green)_15%,transparent)] text-[var(--green)]">
                 {status.network === "TestNet" ? "Testnet" : "Mainnet"}
               </Badge>
             </CardTitle>

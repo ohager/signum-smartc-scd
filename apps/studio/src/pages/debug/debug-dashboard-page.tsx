@@ -17,7 +17,7 @@ export function DebugDashboardPage() {
         {s && <Pill>block {s.currentBlock}</Pill>}
         {s && <Pill>step {s.steps}</Pill>}
         {s?.error && <Pill tone="error">{s.error}</Pill>}
-        <span className={"ml-auto text-xs font-semibold " + (snap ? "text-green-600" : "opacity-50")}>
+        <span className={"ml-auto text-xs font-semibold " + (snap ? "text-[var(--green)]" : "opacity-50")}>
           {snap ? "● live" : "waiting for a debug session…"}
         </span>
       </div>

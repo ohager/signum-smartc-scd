@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Editor, { type BeforeMount, type OnMount } from "@monaco-editor/react";
-import { FileWarning } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  EditorToolbar,
+  EditorDiagnostic,
+} from "@/components/ui/editor/editor-toolbar.tsx";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import {
   EditorFileActions,
@@ -81,36 +84,30 @@ function AsmCodeEditor({ file, onSave }: Props) {
   };
   return (
     <div className="flex flex-col" ref={containerRef}>
-      <section className="w-full flex justify-between items-center pt-1 px-2 h-[30px] bg-muted border-b-1">
-        <div>
-          {!isValid && (
-            <span>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-1">
-                    <FileWarning className="h-4 w-4 text-red-600" />
-                    <small className="text-xs text-red-600 ">
-                      {validationError}
-                    </small>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="right">Invalid assembly</TooltipContent>
-              </Tooltip>
-            </span>
-          )}
-        </div>
-        <div>
-          <small className="font-medium opacity-70">
-            Change this file only if you know what you are doing! (Each smart.c
-            compilation will overwrite your manual changes)
-          </small>
-        </div>
-        <EditorFileActions
-          isDirty={isDirty}
-          onSave={saveAsmFile}
-          onDownload={download}
-        />
-      </section>
+      <EditorToolbar
+        actions={
+          <EditorFileActions
+            isDirty={isDirty}
+            onSave={saveAsmFile}
+            onDownload={download}
+          />
+        }
+      >
+        {!isValid && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <EditorDiagnostic tone="error">{validationError}</EditorDiagnostic>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="right">Invalid assembly</TooltipContent>
+          </Tooltip>
+        )}
+        <small className="truncate opacity-70">
+          Change this file only if you know what you are doing! (Each smart.c
+          compilation will overwrite your manual changes)
+        </small>
+      </EditorToolbar>
       <div className="flex-1 rounded h-full">
         <Editor
           height={editorHeight}

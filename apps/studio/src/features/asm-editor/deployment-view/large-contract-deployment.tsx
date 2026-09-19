@@ -168,7 +168,7 @@ export function LargeContractDeployment({
       {/* Error if contract exceeds maximum size */}
       {contractTooLarge && (
         <Alert className="border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950">
-          <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+          <AlertCircle className="h-4 w-4 text-[var(--mag)]" />
           <AlertTitle className="text-red-800 dark:text-red-200">
             Contract Exceeds Maximum Size
           </AlertTitle>
@@ -291,7 +291,7 @@ export function LargeContractDeployment({
           {/* Error */}
           {deploymentStep === "error" && (
             <Alert className="border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950 mb-6">
-              <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+              <AlertCircle className="h-4 w-4 text-[var(--mag)]" />
               <AlertTitle className="text-red-800 dark:text-red-200">
                 Deployment Failed
               </AlertTitle>
@@ -303,8 +303,8 @@ export function LargeContractDeployment({
 
           {/* Success */}
           {deploymentStep === "success" && (
-            <Alert className="border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950 mb-6">
-              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <Alert className="border-[var(--green)] bg-[color-mix(in_srgb,var(--green)_10%,transparent)] mb-6">
+              <CheckCircle className="h-4 w-4 text-[var(--green)]" />
               <AlertTitle className="text-green-800 dark:text-green-200">
                 Deployment Successful!
               </AlertTitle>
