@@ -116,9 +116,20 @@ Test destination would open — the most recently opened one — so the fact and
 the click always agree. It never aggregates across test files: "14 green" from
 three files, one of which is stale, would be a number with no meaning.
 
-**When the contract has never been opened** there is no compile verdict, and
-the Write cell reads `—`. The verdict is a record of something that happened,
-not a promise that Studio compiles in the background.
+**The stored verdict is also the cache.** If the rail finds no verdict, or one
+whose `sourceModified` no longer matches the file, it compiles the contract
+once itself and stores the result. Navigation after that is free, and an edit
+invalidates it exactly as it invalidates the displayed fact. The SmartC editor
+keeps writing the verdict while it validates, which costs nothing because it
+compiles anyway — so in practice the rail rarely has to.
+
+This is gated on cost, and the gate is measured, not assumed: the
+implementation plan first times a compile of a realistic contract. The
+simulator already compiles inline at every debug start, which suggests
+milliseconds. **If a compile stays under ~50 ms the rail does it; if it does
+not, the rail reports only what is stored** and reads `—` until the editor has
+validated once. While a compile is in flight the cell carries the running
+pulse from the motion vocabulary rather than a number.
 
 **Simulate needs no prior compile.** The simulator compiles the contract source
 itself — this is why the debugger works today without an `.asm`. Only Deploy
@@ -126,6 +137,23 @@ needs machine code, and it produces it on entry.
 
 **Tone.** The arc and the separator are drawn in `--border-2`, not in an
 accent. The rail is furniture, not a notification.
+
+**When the header runs out of room.** Below a threshold the facts drop away and
+the four labels remain. Navigation never breaks; only the reporting does, and
+the facts are all reachable one click further in.
+
+## Two debuggers, named
+
+There will be two ways into a stepping session, and they look identical:
+the Simulate destination, fed by a `.scenario.json`, and the test editor's
+per-test handoff, fed by a recording of a run. Confusing the two would be easy
+and expensive — the recording replays a transaction stream and does not
+re-evaluate assertions, which the scenario-driven session has no equivalent of.
+
+So both name their source in their own header: `scenario · run.scenario.json`
+against `recording · increments by one`. The test editor keeps its handoff
+in place rather than navigating away, because there the recording belongs to
+the test that produced it.
 
 ## The four destinations
 
@@ -206,8 +234,18 @@ On entering Deploy, and on demand from the rail, never on navigation:
 5. The answer is cached per code hash for the session, and the cell notes which
    network answered — the same code has different answers on testnet and
    mainnet.
-6. With no node, no network or no wallet, the cell reads `—`. It never guesses,
-   and a failed lookup is not an error state.
+6. **The node comes from the connected wallet, and from nowhere else.**
+   `status.ledger.service.settings.nodeHost` (as `deployment-flow.tsx:117`
+   already uses) is the only chain endpoint in the app; Studio ships no default
+   node of its own and makes no network call a disconnected user did not ask
+   for. Without a wallet the cell reads `—`, and its tooltip says that
+   connecting one lets it ask. A failed or refused lookup is not an error
+   state.
+
+   The consequence is worth stating plainly: for anyone who has not connected a
+   wallet, the fourth cell is empty. That was chosen over a bundled read-only
+   node, deliberately — a local-first tool should not quietly talk to a
+   third-party server about the code you are writing.
 
 Nothing about deployment is persisted. That is the whole advantage: there is no
 record to go stale, and the truth travels with the code rather than with the
