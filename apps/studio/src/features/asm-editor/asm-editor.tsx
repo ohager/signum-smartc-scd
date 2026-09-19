@@ -1,84 +1,64 @@
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs.tsx";
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 import { type File } from "@/lib/file-system";
 import { useEffect, useState } from "react";
 import AsmCodeEditor from "./code-editor/asm-code-editor.tsx";
 import type { MachineData } from "./machine-data.ts";
 import { tryAssemble } from "@/features/asm-editor/lib/try-assemble.ts";
 import { MetaDataView } from "./meta-data-view";
-import { DeploymentView } from "./deployment-view";
-import { useSearchParams } from "react-router";
-
-type ViewType = "editor" | "metadata" | "deployment";
 
 interface Props {
   file: File;
 }
 
+/**
+ * The assembly file, with its numbers beside it.
+ *
+ * The `.asm` is the one context in which the assembly itself is the subject,
+ * so it keeps its technical detail — contract size, registers, pages. What it
+ * loses is the tab bar: deployment is its own destination now, and "Assembled
+ * Output" is a side panel rather than a view behind the code, so the numbers
+ * are readable *while* the assembly is.
+ */
 export function AsmEditor({ file }: Props) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [isValid, setIsValid] = useState(true);
   const [machineData, setMachineData] = useState<MachineData | undefined>(
     undefined,
   );
-  const handleOnSave = (isValid: boolean, machineCode?: MachineData) => {
-    setIsValid(isValid);
+  const handleOnSave = (_isValid: boolean, machineCode?: MachineData) => {
     setMachineData(machineCode);
-  };
-
-  const handleViewChange = (view: ViewType) => {
-    setSearchParams((s) => {
-      s.set("v", view);
-      return s;
-    });
   };
 
   useEffect(() => {
     try {
       setMachineData(undefined);
       setMachineData(tryAssemble(file.content as string));
-      setIsValid(true);
     } catch (e) {
-      setIsValid(false);
+      setMachineData(undefined);
     }
   }, [file]);
 
   return (
-      <Tabs
-        value={searchParams.get("v") || "editor"}
-        onValueChange={(v) => handleViewChange(v as ViewType)}
-        className="h-full flex flex-col"
-      >
-          <TabsList>
-            <TabsTrigger value="editor">ASM Editor</TabsTrigger>
-            <TabsTrigger value="metadata" disabled={!isValid}>
-              Assembled Output
-            </TabsTrigger>
-            <TabsTrigger value="deploy" disabled={!isValid}>
-              Deployment
-            </TabsTrigger>
-          </TabsList>
-
-        <TabsContent value="editor" className="flex-1 p-0 m-0 overflow-hidden">
-          <AsmCodeEditor file={file} onSave={handleOnSave} />
-        </TabsContent>
-
-        <TabsContent
-          value="metadata"
-          className="flex-1 p-0 m-0 overflow-hidden"
-        >
-          {machineData && <MetaDataView machineData={machineData} />}
-        </TabsContent>
-
-        <TabsContent value="deploy" className="flex-1 p-4 m-0 overflow-auto">
-          {machineData && <DeploymentView data={machineData} />}
-        </TabsContent>
-      </Tabs>
-  )
+    <ResizablePanelGroup direction="horizontal" className="min-h-0 flex-1">
+      <ResizablePanel defaultSize={62} minSize={30}>
+        <AsmCodeEditor file={file} onSave={handleOnSave} />
+      </ResizablePanel>
+      <ResizableHandle withHandle />
+      <ResizablePanel defaultSize={38} minSize={20}>
+        <div className="h-full overflow-auto">
+          {machineData ? (
+            <MetaDataView machineData={machineData} />
+          ) : (
+            <p className="p-3 text-xs text-muted-foreground">
+              Assemble the file to see its size, registers and pages.
+            </p>
+          )}
+        </div>
+      </ResizablePanel>
+    </ResizablePanelGroup>
+  );
 }
 
 export default AsmEditor;

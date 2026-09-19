@@ -11,6 +11,11 @@ import type { DebugState, LedgerState } from "../engine/engine.types";
 import type { ScenarioFile } from "../scenario/scenario.types";
 import { DebugToolbar } from "./debug-toolbar";
 import { DebugSidePanel } from "./debug-side-panel";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 import { createDebugHost, type DebugHost } from "../debug-broadcast";
 import { useDebugDecorations } from "./use-debug-decorations";
 import { AsmView } from "./asm-view";
@@ -100,44 +105,7 @@ function DebugSession({
   const [ledger, setLedger] = useState<LedgerState | null>(null);
   const [viewMode, setViewMode] = useState<"source" | "asm">("source");
   const [assembly, setAssembly] = useState("");
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [editorHeight, setEditorHeight] = useState("calc(100vh)"); // Initial height
   const monacoTheme = useMonacoTheme();
-
-  // Resizable right inspector panel (drag handle mutates width live, commits on release).
-  const panelRef = useRef<HTMLDivElement>(null);
-  const [panelWidth, setPanelWidth] = useState<string>(
-    () => (typeof window !== "undefined" && localStorage.getItem("debug-panel-width")) || "320px",
-  );
-  useEffect(() => {
-    localStorage.setItem("debug-panel-width", panelWidth);
-  }, [panelWidth]);
-  const onPanelResize = (e: React.MouseEvent) => {
-    e.preventDefault();
-    let latest = panelWidth;
-    let frame = 0;
-    const onMove = (ev: MouseEvent) => {
-      const w = Math.min(Math.max(window.innerWidth - ev.clientX, 220), 680);
-      latest = `${w}px`;
-      if (frame) return;
-      frame = requestAnimationFrame(() => {
-        frame = 0;
-        if (panelRef.current) panelRef.current.style.width = latest;
-      });
-    };
-    const onUp = () => {
-      document.removeEventListener("mousemove", onMove);
-      document.removeEventListener("mouseup", onUp);
-      if (frame) cancelAnimationFrame(frame);
-      document.body.style.userSelect = "";
-      document.body.style.cursor = "";
-      setPanelWidth(latest);
-    };
-    document.body.style.userSelect = "none";
-    document.body.style.cursor = "col-resize";
-    document.addEventListener("mousemove", onMove);
-    document.addEventListener("mouseup", onUp);
-  };
 
   // Publish live memory for the hover provider; clear on unmount.
   useEffect(() => {
@@ -162,24 +130,6 @@ function DebugSession({
 
   const canPopOut = typeof BroadcastChannel !== "undefined";
   const onPopOut = () => window.open("/debug/dashboard", "smartc-debug");
-
-  useEffect(() => {
-    const calculateEditorHeight = () => {
-      if (containerRef.current) {
-        const containerTop = containerRef.current.getBoundingClientRect().top;
-        // subtract the 30px toolbar so nothing overflows
-        const newHeight = `calc(100vh - ${containerTop + 30}px)`;
-        setEditorHeight(newHeight);
-      }
-    };
-
-    calculateEditorHeight();
-    window.addEventListener("resize", calculateEditorHeight);
-
-    return () => {
-      window.removeEventListener("resize", calculateEditorHeight);
-    };
-  }, []);
 
   const onMount: OnMount = (editor, monaco) => {
     registerSmartC(monaco);
@@ -235,7 +185,7 @@ function DebugSession({
   };
 
   return (
-    <div className="flex flex-col h-full" ref={containerRef}>
+    <div className="flex h-full min-h-0 flex-col">
       <DebugToolbar
         state={state}
         onStep={run(() => controllerRef.current!.step())}
@@ -248,11 +198,11 @@ function DebugSession({
         onViewMode={setViewMode}
         onClose={onClose}
       />
-      <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1 min-w-0">
-          <div className={viewMode === "asm" ? "hidden" : ""}>
+      <ResizablePanelGroup direction="horizontal" className="min-h-0 flex-1">
+        <ResizablePanel defaultSize={66} minSize={30}>
+          <div className={viewMode === "asm" ? "hidden" : "h-full"}>
             <Editor
-              height={editorHeight}
+              height="100%"
               defaultLanguage={SMARTC_LANGUAGE_ID}
               value={source}
               theme={monacoTheme}
@@ -271,27 +221,22 @@ function DebugSession({
             <AsmView
               assembly={assembly}
               currentAsmLine={state?.instructionPointer ?? 0}
-              height={editorHeight}
             />
           )}
-        </div>
-        <div
-          onMouseDown={onPanelResize}
-          role="separator"
-          aria-orientation="vertical"
-          title="Drag to resize"
-          className="w-1.5 shrink-0 cursor-col-resize hover:bg-[color-mix(in_srgb,var(--accent-2)_40%,transparent)]"
-        />
-        <div ref={panelRef} style={{ width: panelWidth }} className="shrink-0 border-l overflow-hidden">
-          <DebugSidePanel
-            state={state}
-            ledger={ledger}
-            onRemoveBreakpoint={(line) => {
-              if (controllerRef.current) setState(controllerRef.current.toggleBreakpoint(line));
-            }}
-          />
-        </div>
-      </div>
+        </ResizablePanel>
+        <ResizableHandle withHandle />
+        <ResizablePanel defaultSize={34} minSize={20}>
+          <div className="h-full overflow-hidden border-l">
+            <DebugSidePanel
+              state={state}
+              ledger={ledger}
+              onRemoveBreakpoint={(line) => {
+                if (controllerRef.current) setState(controllerRef.current.toggleBreakpoint(line));
+              }}
+            />
+          </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
   );
 }
