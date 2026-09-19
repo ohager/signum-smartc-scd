@@ -1,0 +1,293 @@
+# SmartC Studio — The Workflow Rail
+
+Status: approved 2026-09-19
+Phase: 2A — layout and UX of the working surfaces. Keyboard control is 2B and
+follows this, deliberately, so that it maps onto the finished shape.
+
+## Goal
+
+Studio's four workflow surfaces are inconsistent in a way that has nothing to
+do with how they look. Two of them — the test file and the assembler — are file
+types you open. The other two — debugging and deployment — are hidden states
+you enter and must find your way out of. Debugging swaps the entire editor for
+itself; deployment hides in the third tab of the assembler, attached to a
+generated file that the next compile overwrites.
+
+This spec turns all four into **equal destinations belonging to the contract**,
+announced by one rail that also reports how the contract stands. The rail is
+the only place where the tool says, of its own accord, that there is more to do
+after writing.
+
+It does not introduce editor tabs or split views: one thing at a time stays.
+
+## Verified ground truth
+
+Read out of the current code, not assumed:
+
+- **Three panel idioms for one job.** `asm-editor.tsx:50` uses shadcn `Tabs`
+  with a `?v=` URL parameter; `test-file-editor.tsx` uses
+  `ResizablePanelGroup`; `debug-view.tsx:241-275` hand-rolls a flex row with
+  the panel width in React state and its own drag handle.
+- **Four copies of the same height workaround.** `smartc-editor.tsx`,
+  `asm-code-editor.tsx`, `scenario-editor.tsx` and `test-file-editor.tsx` each
+  measure `getBoundingClientRect().top` and size themselves with
+  `calc(100vh - …)`, because `PageContent` (`components/ui/page.tsx:92`) is a
+  plain block `div` in which `h-full` cannot resolve.
+- **Debugging is a boolean.** `smartc-editor.tsx` holds `isDebugging`; when
+  true it returns `<DebugView>` instead of the editor, so the page header, the
+  file actions and the save path all disappear. The debug *dashboard*, however,
+  is already a route (`/debug/dashboard`).
+- **Deployment hangs off the assembly file.** `deployment-view/` renders inside
+  the ASM editor's third tab, disabled until the assembly is valid.
+- **The code hash is already computed locally.** `tryAssemble` yields
+  `MachineData.MachineCodeHashId`, displayed today at
+  `asm-editor/meta-data-view/contract-meta-data.tsx:90`.
+- **The chain can be asked about it.** `@signumjs/core@3.2.0` exposes
+  `getAllContractsByCodeHash({ machineCodeHash, includeDetails?, firstIndex?,
+  lastIndex? })`, returning `ContractList { ats: Contract[] }` — with **no
+  total count**. `Contract` (`@signumjs/contracts@3.3.4`) carries `creator`,
+  `creatorRS`, `at`, `atRS`, `machineCodeHashId`, `creationBlock` and the
+  liveness flags `running`, `stopped`, `frozen`, `finished`, `dead`.
+- **A persisted-service pattern already exists.** `RecentFiles`
+  (`lib/file-system/recent-files.ts`) is a small record inside the file
+  system's metadata blob, composed into `FileSystem` as `fs.recents`,
+  synchronous to read, and — since 2026-09-18 — synchronised across tabs.
+- **A main-contract rule already exists**, `pickMainFile` in
+  `features/home/project-summary.ts`, written for the home page.
+- **Two dead components**, `components/ui/layout/main-area.tsx` and
+  `right-sidebar.tsx`, are imported nowhere.
+- `NewProjectDialog` offers a second project type, `inspect`, which today only
+  creates an empty folder. The inspector is a separate, outstanding
+  sub-project.
+
+## Decisions
+
+1. **One contract per project.** One `.smart.c`, therefore one `.asm`, and any
+   number of tests and scenarios. The rail asks the project for its contract
+   rather than deriving one from file-name families or asking the user.
+2. **The rail reports state, not position.** Four cells, each carrying a fact
+   about the contract — not a step number. This is what stops it reading as a
+   pipeline, which the process is not.
+3. **A loop arc under the first three.** Write, Test and Simulate repeat;
+   Deploy happens once and costs money. A 1px arc drawn back from Simulate to
+   Write says so; a gap and an arrow separate Deploy.
+4. **Four destinations, two of them new routes.** Simulate and Deploy stop
+   being states.
+5. **Deployment status is derived from the chain, never stored.** The code hash
+   is a pure function of the compiled code, so the question is answerable from
+   source plus node — surviving a reload, another browser, and a fresh import
+   on another machine.
+6. **Only two facts are persisted**, the last compile verdict and the last test
+   result, and both carry the `lastModified` of the source they came from. A
+   green badge from before the last edit is worse than no badge.
+7. **One panel idiom**, `ResizablePanelGroup`, everywhere.
+8. **Nothing nags.** Cells that cannot answer say so quietly. No blinking, no
+   warning colour for "not yet".
+
+## The rail
+
+It sits in the page header, to the right of the file name, 52px tall. Four
+cells, each two lines: a label and a fact.
+
+It appears on the project routes only — the file, Simulate and Deploy
+destinations. The home page has no contract to report on and keeps its own
+`how-it-works` strip, which is where this narrative came from.
+
+| Cell | Fact | Source |
+|---|---|---|
+| **Write** | `compiles` / `1 error` / `—` | persisted compile verdict |
+| **Test** | `12 green` / `2 failed` / `no tests` / `—` | persisted test result, of the file the Test cell would open |
+| **Simulate** | `3 scenarios` / `no scenario` | counted live from the tree |
+| **Deploy** | `not deployed` / `3 · 1 yours` / `9+` / `—` | asked of the chain |
+
+**States.** The cell of the destination you are on is marked with the accent
+border and ground. A cell whose fact is good reads in `--green`; a cell whose
+fact is bad reads in `--mag`; an unanswerable cell reads `—` in `--dim`. Only
+one thing is ever dimmed to 40%: a destination that genuinely cannot be
+entered, which happens for Deploy alone, and only while the source does not
+compile. Its tooltip says why.
+
+**Staleness.** Write and Test compare the stored verdict's source timestamp
+against the file's current `lastModified`. If the file moved on, the cell shows
+`—`, never the old answer.
+
+**Which test, when there are several.** The cell reports the same file the
+Test destination would open — the most recently opened one — so the fact and
+the click always agree. It never aggregates across test files: "14 green" from
+three files, one of which is stale, would be a number with no meaning.
+
+**When the contract has never been opened** there is no compile verdict, and
+the Write cell reads `—`. The verdict is a record of something that happened,
+not a promise that Studio compiles in the background.
+
+**Simulate needs no prior compile.** The simulator compiles the contract source
+itself — this is why the debugger works today without an `.asm`. Only Deploy
+needs machine code, and it produces it on entry.
+
+**Tone.** The arc and the separator are drawn in `--border-2`, not in an
+accent. The rail is furniture, not a notification.
+
+## The four destinations
+
+| Destination | Route | What it is | What changes |
+|---|---|---|---|
+| **Write** | `/projects/:projectId/files/:fileId` | the contract's editor, as today | loses the `Debug` and `New Scenario` header actions |
+| **Test** | the same file route | the project's test file | with several, the most recently opened one — `fs.recents` already knows; with none, the cell offers to create one, the way `New Scenario` does today |
+| **Simulate** | `/projects/:projectId/simulate` | today's `DebugView` | becomes a real destination: back button works, and it joins `/debug/dashboard`, which was already a route. The scenario picker and a `New Scenario` action live here |
+| **Deploy** | `/projects/:projectId/deploy` | wallet, cost, fields, publish | leaves the assembler's tabs. Compiles the contract source on entry, so it can never publish a hand-edited assembly |
+
+The `.asm` file stays openable from the tree and keeps its technical detail —
+contract size, registers, pages — because that is the one context in which the
+assembly itself is the subject. But it loses its tab bar: the deployment tab is
+gone to its own route, and "Assembled Output" becomes a **side panel next to
+the code** rather than a view behind it, so the numbers are visible while the
+assembly is being read.
+
+`isDebugging` disappears from `smartc-editor.tsx`, and with it the branch that
+returns `DebugView` in place of the editor. The test editor keeps its own
+in-place debug handoff — there the recording belongs to the test that produced
+it, so leaving the file would be wrong.
+
+## Project status
+
+A new service beside `RecentFiles`, composed into `FileSystem` the same way:
+
+```ts
+export interface CompileVerdict {
+  /** The contract file's lastModified when this verdict was produced. */
+  sourceModified: number;
+  errorCount: number;
+}
+
+export interface TestVerdict {
+  /** The test file's lastModified when the run happened. */
+  sourceModified: number;
+  /** The contract's lastModified then, too: a test result depends on both. */
+  contractModified: number;
+  passed: number;
+  failed: number;
+}
+
+export interface ProjectStatusRecord {
+  compile?: CompileVerdict;
+  /** Keyed by test file id: several test files, several results. */
+  tests: Record<string, TestVerdict>;
+}
+```
+
+Stored per project folder id, in the file system's metadata blob, hydrated
+through a `sanitize…` guard like the recents buffer, and pruned when a project
+or test file is deleted — the file system owns it, so an entry can never
+dangle.
+
+Written from two places only: the SmartC editor when Monaco finishes validating
+(it already computes exactly this in `handleValidate`), and the test runner when
+a run completes. Read by the rail and, as a bonus the owner did not ask for but
+will want, by the home page's project cards, which today show only a file count.
+
+**The staleness rule is the point of the timestamps.** A test verdict depends
+on two files, the test and the contract; if either moved on, the verdict is not
+shown. This is the one place where a status rail can actively mislead, and the
+rule exists to make that impossible rather than unlikely.
+
+## Deployment status from the chain
+
+On entering Deploy, and on demand from the rail, never on navigation:
+
+1. Compile the contract source; take `MachineData.MachineCodeHashId`.
+2. `getAllContractsByCodeHash({ machineCodeHash, includeDetails: false,
+   firstIndex: 0, lastIndex: 9 })`.
+3. `ContractList` carries no total, so ten results mean "at least ten": show
+   **`9+`**. Fewer than ten is the exact count. The count itself is the useful
+   part — a developer wants to know that their code is running twenty times.
+4. If any returned `Contract.creator` matches the connected wallet account,
+   the cell says how many are yours: `3 · 1 yours`. No local record needed for
+   that either.
+5. The answer is cached per code hash for the session, and the cell notes which
+   network answered — the same code has different answers on testnet and
+   mainnet.
+6. With no node, no network or no wallet, the cell reads `—`. It never guesses,
+   and a failed lookup is not an error state.
+
+Nothing about deployment is persisted. That is the whole advantage: there is no
+record to go stale, and the truth travels with the code rather than with the
+browser profile.
+
+## One contract per project, enforced
+
+- `NewFileDialog` stops offering the SmartC type when the project already has a
+  contract.
+- `FileTransfer.importEntries` skips a second contract and counts it as
+  skipped, which the import report already surfaces with a reason.
+- Workspaces that already break the rule must not break: the contract is
+  resolved deterministically by the `pickMainFile` rule, moved out of
+  `features/home/project-summary.ts` into the project domain so both callers
+  share it. The Write cell's tooltip then names the contract it chose and says
+  a second one is being ignored — silently dropping it would be worse, and the
+  tooltip is the one place that can say so without shouting.
+- An `inspect` project has no contract; the rail's four cells all read `—`.
+  Making that destination useful is the inspector sub-project, not this one.
+
+## The plumbing
+
+`ResizablePanelGroup` replaces the other two idioms. The debugger gives up its
+hand-rolled flex, its width state and its drag handle; the assembler gives up
+its tabs. Panel sizes are persisted in one place rather than three different
+ways.
+
+`PageContent` becomes a real flex container, so the four editors say `h-full`
+again instead of measuring their own offset in the viewport. The four
+`calc(100vh - containerTop)` blocks and their resize listeners go.
+
+`main-area.tsx` and `right-sidebar.tsx` are deleted.
+
+This section is independent of the rail and should be its own cut in the
+implementation plan: it can land first, on its own, and makes every surface
+after it simpler to touch.
+
+## File structure
+
+```
+apps/studio/src/
+  features/project/
+    contract.ts                    CREATE  the project's one contract: resolve, and the pickMainFile rule
+    contract.test.ts               CREATE
+  lib/file-system/
+    project-status.ts              CREATE  CompileVerdict/TestVerdict + the service, beside recent-files.ts
+    project-status.test.ts         CREATE
+    file-system.ts                 MODIFY  compose fs.status; prune on delete
+  features/workflow/
+    rail.tsx                       CREATE  the four cells and the loop arc
+    rail-cells.ts                  CREATE  pure: verdict + staleness → what a cell shows
+    rail-cells.test.ts             CREATE
+    use-deployment-count.ts        CREATE  the chain lookup, cached per hash
+  pages/
+    simulate/simulate-page.tsx     CREATE  the Simulate destination
+    deploy/deploy-page.tsx         CREATE  the Deploy destination
+  components/ui/page.tsx           MODIFY  PageContent becomes a flex container; the rail slot
+  App.tsx                          MODIFY  two new routes
+  features/smartc-editor/smartc-editor.tsx        MODIFY  isDebugging and two header actions go
+  features/asm-editor/asm-editor.tsx              MODIFY  tabs → editor plus detail panel
+  features/simulator/ui/debug-view.tsx            MODIFY  onto ResizablePanelGroup
+  components/ui/layout/{main-area,right-sidebar}.tsx   DELETE
+```
+
+## Testing
+
+Pure logic gets `bun test`: resolving a project's contract (including the
+two-contract fallback), the project-status service and its hydration guard,
+and `rail-cells` — which is where the staleness rule lives and therefore the
+most important test in this spec. The chain lookup is tested against a fake
+`ContractApi`, covering the ten-result cap and the creator match.
+
+There is no DOM test environment, so the rail, the two new pages and the panel
+work are verified in the browser, as in the previous phase.
+
+## Out of scope
+
+Keyboard control — the MRU switcher, the command palette, shortcuts — is phase
+2B, and it comes after this one so that it has a finished shape to map onto.
+Editor tabs and split views are not coming at all. Multiple contracts
+interacting is the inspector/sandbox topic. And the status record holds no
+history, no timings and no trends: four cells, and exactly the data those four
+cells need.
