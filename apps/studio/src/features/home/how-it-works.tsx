@@ -6,7 +6,6 @@ interface Step {
   title: string;
   blurb: string;
   icon: typeof CodeIcon;
-  /** The testbed does not exist yet — `src/features/testbed/` is empty. */
   soon?: boolean;
 }
 
@@ -18,9 +17,8 @@ const STEPS: Step[] = [
   },
   {
     title: "Test",
-    blurb: "Automated contract tests will run against your code as you change it.",
+    blurb: "Write tests beside your contract and run them in the browser, with values inline.",
     icon: FlaskConicalIcon,
-    soon: true,
   },
   {
     title: "Simulate",

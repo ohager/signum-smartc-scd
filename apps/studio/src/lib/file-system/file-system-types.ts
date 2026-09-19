@@ -4,8 +4,6 @@ export interface FolderMetadata {
   path: string;
   createdAt: number;
   lastModified: number;
-
-  [key: string]: any;
 }
 
 export interface FileMetadata {
@@ -15,8 +13,6 @@ export interface FileMetadata {
   path: string;
   lastModified: number;
   type: string;
-
-  [key: string]: any;
 }
 
 export type FileSystemEventType =
