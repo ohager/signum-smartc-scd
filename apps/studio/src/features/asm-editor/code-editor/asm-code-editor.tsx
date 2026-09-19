@@ -6,7 +6,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useTheme } from "next-themes";
+import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import {
   EditorFileActions,
   registerEditorFileActions,
@@ -25,7 +25,7 @@ interface Props {
 
 function AsmCodeEditor({ file, onSave }: Props) {
   const [validationError, setValidationError] = useState("");
-  const { theme } = useTheme();
+  const monacoTheme = useMonacoTheme("asm");
   const containerRef = useRef<HTMLDivElement>(null);
   const [editorHeight, setEditorHeight] = useState("calc(100vh)"); // Initial height
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -116,7 +116,7 @@ function AsmCodeEditor({ file, onSave }: Props) {
           height={editorHeight}
           defaultLanguage="asm"
           value={code}
-          theme={theme === "dark" ? "asm-dark" : "asm-light"}
+          theme={monacoTheme}
           onChange={handleEditorChange}
           beforeMount={handleEditorBeforeMount}
           onMount={handleEditorDidMount}

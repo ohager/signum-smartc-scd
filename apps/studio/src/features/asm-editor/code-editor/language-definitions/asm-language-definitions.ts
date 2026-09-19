@@ -7,10 +7,16 @@ import {
 } from "./functions.ts";
 import { AsmDirectives, createDirectiveCompletionItems } from "./directives.ts";
 import { createAsmHoverProvider } from "../language/hover-provider.ts";
+import { registerClimateThemes } from "@/theme/monaco-themes";
 
 export const ASM_LANGUAGE_ID = "asm";
 
 export function registerAsmLanguage(monaco: Monaco) {
+  // Before the guard below: the themes are generated from the climates and
+  // must exist even when the language itself was registered by an earlier
+  // mount.
+  registerClimateThemes(monaco);
+
   // Monaco is a global singleton - registering twice would duplicate the
   // completion provider (and its suggestions), so bail out if already done.
   if (monaco.languages.getLanguages().some(({ id }) => id === ASM_LANGUAGE_ID)) {
@@ -264,140 +270,6 @@ export function registerAsmLanguage(monaco: Monaco) {
     },
   });
 
-  // Register Themes:
-  // Define a theme for the language (light theme)
-  monaco.editor.defineTheme("asm-light", {
-    base: "vs", // 'vs' is the light base theme
-    inherit: true,
-    rules: [
-      // Control flow instructions (including FIN, BEQ, etc.)
-      { token: "keyword.control", foreground: "#0000FF", fontStyle: "bold" },
-
-      // Stack Operations
-      { token: "keyword.stack", foreground: "#008800", fontStyle: "bold" },
-
-      // Arithmetic Operations
-      { token: "keyword.operator", foreground: "#AA6600", fontStyle: "bold" },
-
-      // API Calls
-      { token: "keyword.api", foreground: "#8800BB", fontStyle: "bold" },
-
-      // Memory Operations
-      { token: "keyword.memory", foreground: "#006699", fontStyle: "bold" },
-
-      // Directives (like __loop1_continue:)
-      { token: "directive", foreground: "#CC9900", fontStyle: "italic" },
-
-      // Preprocessor directives (^program, ^declare, etc.)
-      { token: "preprocessor", foreground: "#c585d8", fontStyle: "bold" },
-      { token: "preprocessor.param", foreground: "#BB5500" },
-      {
-        token: "preprocessor.value",
-        foreground: "#666666",
-        fontStyle: "italic",
-      },
-
-      // Comments
-      { token: "comment", foreground: "#008800", fontStyle: "italic" },
-
-      // Labels
-      { token: "label", foreground: "#BB0000", fontStyle: "bold" },
-
-      // Numbers
-      { token: "number", foreground: "#0077AA" },
-      { token: "number.hex", foreground: "#0066CC" },
-
-      // API function names
-      { token: "api", foreground: "#AA00AA", fontStyle: "bold" },
-
-      // Data Types
-      { token: "type", foreground: "#008899" },
-
-      // Variables
-      { token: "variable.register", foreground: "#DD6600" }, // @variables
-      { token: "variable", foreground: "#0077AA" }, // $variables
-      { token: "variable.declaration", foreground: "#9900AA" }, // Declared variables
-
-      // Constants
-      { token: "constant", foreground: "#b5cea8" },
-
-      // Regular identifiers
-      { token: "identifier", foreground: "#333333" },
-    ],
-    colors: {
-      "editor.foreground": "#000000",
-      "editor.background": "#FFFFFF",
-      "editor.selectionBackground": "#CCDDFF",
-      "editor.lineHighlightBackground": "#F0F0F0",
-    },
-  });
-
-  // Define a dark theme for the language
-  monaco.editor.defineTheme("asm-dark", {
-    base: "vs-dark", // 'vs-dark' is the dark base theme
-    inherit: true,
-    rules: [
-      // Control flow instructions
-      { token: "keyword.control", foreground: "#569CD6", fontStyle: "bold" },
-
-      // Stack Operations
-      { token: "keyword.stack", foreground: "#6AA84F", fontStyle: "bold" },
-
-      // Arithmetic Operations
-      { token: "keyword.operator", foreground: "#D7BA7D", fontStyle: "bold" },
-
-      // API Calls
-      { token: "keyword.api", foreground: "#C586C0", fontStyle: "bold" },
-
-      // Memory Operations
-      { token: "keyword.memory", foreground: "#4EC9B0", fontStyle: "bold" },
-
-      // Directives
-      { token: "directive", foreground: "#DCDCAA", fontStyle: "italic" },
-
-      // Preprocessor directives
-      { token: "preprocessor", foreground: "#997da5", fontStyle: "bold" },
-      { token: "preprocessor.param", foreground: "#FFB07A" },
-      {
-        token: "preprocessor.value",
-        foreground: "#AAAAAA",
-        fontStyle: "italic",
-      },
-
-      // Comments
-      { token: "comment", foreground: "#6A9955", fontStyle: "italic" },
-
-      // Labels
-      { token: "label", foreground: "#FF8C8C", fontStyle: "bold" },
-
-      // Numbers
-      { token: "number", foreground: "#B5CEA8" },
-      { token: "number.hex", foreground: "#9CDCFE" },
-
-      // API function names
-      { token: "api", foreground: "#D7BA7D", fontStyle: "bold" },
-
-      // Data Types
-      { token: "type", foreground: "#4EC9B0" },
-
-      // Variables
-      { token: "variable.register", foreground: "#ce9178" },
-      { token: "variable", foreground: "#9CDCFE" },
-      { token: "variable.declaration", foreground: "#ce9178" },
-
-      // Constants
-      { token: "constant", foreground: "#C586C0" },
-
-      // Regular identifiers
-      { token: "identifier", foreground: "#BBBBBB" },
-    ],
-    colors: {
-      "editor.foreground": "#DDDDDD",
-      "editor.background": "#1E1E1E",
-      "editor.selectionBackground": "#264F78",
-      "editor.lineHighlightBackground": "#2D2D2D",
-    },
-  });
 }
 
 // Helper function to create completion items (unchanged)

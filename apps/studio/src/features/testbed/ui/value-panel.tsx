@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef } from "react";
 import { useAtomValue } from "jotai";
 import Editor, { type OnMount } from "@monaco-editor/react";
 import type * as Monaco from "monaco-editor";
-import { useTheme } from "next-themes";
+import { useMonacoTheme } from "@/theme/use-monaco-theme";
+import { registerClimateThemes } from "@/theme/monaco-themes";
 import { ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import { inspectedValueAtom } from "../test-trace-store";
 import { toSourceText } from "../value-node";
@@ -20,7 +21,7 @@ import { toSourceText } from "../value-node";
  */
 export function ValuePanel() {
   const inspected = useAtomValue(inspectedValueAtom);
-  const { theme } = useTheme();
+  const monacoTheme = useMonacoTheme();
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
 
   // Computed before the early return below, so the fold effect can depend on it
@@ -28,7 +29,8 @@ export function ValuePanel() {
   const sourceText =
     inspected?.trace.detail !== undefined ? toSourceText(inspected.trace.detail) : "";
 
-  const onMount: OnMount = (editor) => {
+  const onMount: OnMount = (editor, monaco) => {
+    registerClimateThemes(monaco);
     // @ts-ignore — @monaco-editor/react resolves its own nested monaco-editor
     // version, which structurally diverges from the root one; see the same
     // workaround in debug-view.tsx's onMount.
@@ -121,7 +123,7 @@ export function ValuePanel() {
             // JavaScript, not JSON: captured values are full of bigints, and
             // `200000000n` is a literal here rather than a quoted lie.
             language="javascript"
-            theme={theme === "dark" ? "vs-dark" : "light"}
+            theme={monacoTheme}
             value={sourceText}
             onMount={onMount}
             options={{

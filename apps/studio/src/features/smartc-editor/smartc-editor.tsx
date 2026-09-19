@@ -6,7 +6,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useTheme } from "next-themes";
+import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import { registerSmartC, SMARTC_LANGUAGE_ID } from "./language/register.ts";
 import {
   EditorFileActions,
@@ -101,7 +101,7 @@ function SmartCEditor({ file }: Props) {
     download,
   } = useEditorFile({ file });
   const [validationError, setValidationError] = useState("");
-  const { theme } = useTheme();
+  const monacoTheme = useMonacoTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const [editorHeight, setEditorHeight] = useState("calc(100vh)"); // Initial height
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -312,7 +312,7 @@ function SmartCEditor({ file }: Props) {
           height={editorHeight}
           defaultLanguage={SMARTC_LANGUAGE_ID}
           value={code}
-          theme={theme === "dark" ? "vs-dark" : "light"}
+          theme={monacoTheme}
           onChange={handleEditorChange}
           beforeMount={(monaco) => registerSmartC(monaco)}
           onMount={handleEditorDidMount}

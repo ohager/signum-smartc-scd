@@ -2,7 +2,7 @@ import Editor, { type OnMount } from "@monaco-editor/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type * as Monaco from "monaco-editor";
 import { toast } from "sonner";
-import { useTheme } from "next-themes";
+import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import { SMARTC_LANGUAGE_ID, registerSmartC } from "@/features/smartc-editor/language/register.ts";
 import { DebugController } from "../debug-controller";
 import { ScSimulatorEngine } from "../engine/simulator-engine";
@@ -92,7 +92,7 @@ function DebugSession({
   const [assembly, setAssembly] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const [editorHeight, setEditorHeight] = useState("calc(100vh)"); // Initial height
-  const { theme } = useTheme();
+  const monacoTheme = useMonacoTheme();
 
   // Resizable right inspector panel (drag handle mutates width live, commits on release).
   const panelRef = useRef<HTMLDivElement>(null);
@@ -245,7 +245,7 @@ function DebugSession({
               height={editorHeight}
               defaultLanguage={SMARTC_LANGUAGE_ID}
               value={source}
-              theme={theme === "dark" ? "vs-dark" : "light"}
+              theme={monacoTheme}
               options={{
                 readOnly: true,
                 minimap: { enabled: false },

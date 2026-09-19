@@ -1,6 +1,7 @@
 import Editor, { type OnMount } from "@monaco-editor/react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useTheme } from "next-themes";
+import { useMonacoTheme } from "@/theme/use-monaco-theme";
+import { registerClimateThemes } from "@/theme/monaco-themes";
 import { toast } from "sonner";
 import type { File } from "@/lib/file-system";
 import JSON5 from "json5";
@@ -29,7 +30,7 @@ function validationErrors(text: string): string[] {
 }
 
 export function ScenarioEditor({ file }: { file: File }) {
-  const { theme } = useTheme();
+  const monacoTheme = useMonacoTheme();
   const {
     text: content,
     isDirty,
@@ -121,13 +122,14 @@ export function ScenarioEditor({ file }: { file: File }) {
           height={editorHeight}
           defaultLanguage="json"
           value={content}
-          theme={theme === "dark" ? "vs-dark" : "light"}
+          theme={monacoTheme}
           onChange={onChange}
-          beforeMount={(monaco) =>
+          beforeMount={(monaco) => {
+            registerClimateThemes(monaco);
             monaco.languages.json?.jsonDefaults.setDiagnosticsOptions({
               validate: false,
-            })
-          }
+            });
+          }}
           onMount={handleEditorDidMount}
           options={{
             minimap: { enabled: false },

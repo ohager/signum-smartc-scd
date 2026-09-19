@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import Editor, { type OnMount } from "@monaco-editor/react";
 import type * as Monaco from "monaco-editor";
-import { useTheme } from "next-themes";
+import { useMonacoTheme } from "@/theme/use-monaco-theme";
+import { registerClimateThemes } from "@/theme/monaco-themes";
 import { Play } from "lucide-react";
 import { toast } from "sonner";
 import { useParams } from "react-router";
@@ -39,7 +40,7 @@ interface Props {
 export function TestFileEditor({ file }: Props) {
   const { projectId = "" } = useParams<{ projectId: string }>();
   const { addAction, removeAction, updateAction } = usePageHeaderActions();
-  const { theme } = useTheme();
+  const monacoTheme = useMonacoTheme();
   const monacoRef = useRef<typeof Monaco | null>(null);
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
   const {
@@ -135,6 +136,7 @@ export function TestFileEditor({ file }: Props) {
     // workaround in debug-view.tsx's onMount.
     editorRef.current = editor;
     monacoRef.current = monaco;
+    registerClimateThemes(monaco);
     configureTypeScriptForTests(monaco);
     registerEditorFileActions(editor, monaco, { onDownload: download });
     setEditorReady(true);
@@ -277,7 +279,7 @@ export function TestFileEditor({ file }: Props) {
                 height="100%"
                 language="typescript"
                 path={"file://" + file.metadata.path}
-                theme={theme === "dark" ? "vs-dark" : "light"}
+                theme={monacoTheme}
                 value={code}
                 onChange={onCodeChange}
                 onMount={onMount}

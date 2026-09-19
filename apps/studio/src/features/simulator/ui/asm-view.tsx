@@ -1,7 +1,7 @@
 import Editor, { type BeforeMount, type OnMount } from "@monaco-editor/react";
 import { useEffect, useRef, useState } from "react";
 import type * as Monaco from "monaco-editor";
-import { useTheme } from "next-themes";
+import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import {
   ASM_LANGUAGE_ID,
   registerAsmLanguage,
@@ -20,7 +20,7 @@ export function AsmView({
   currentAsmLine: number;
   height?: string;
 }) {
-  const { theme } = useTheme();
+  const monacoTheme = useMonacoTheme("asm");
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof Monaco | null>(null);
   const decoRef = useRef<Monaco.editor.IEditorDecorationsCollection | null>(null);
@@ -60,7 +60,7 @@ export function AsmView({
       height={height}
       defaultLanguage={ASM_LANGUAGE_ID}
       value={assembly}
-      theme={theme === "dark" ? "asm-dark" : "asm-light"}
+      theme={monacoTheme}
       options={{
         readOnly: true,
         minimap: { enabled: false },

@@ -5,6 +5,7 @@ import { createCompletionProvider } from "./completion-provider";
 import { createHoverProvider } from "./hover-provider";
 import { createSignatureHelpProvider } from "./signature-help-provider";
 import { updateModel, clearModel } from "./symbol-cache";
+import { registerClimateThemes } from "@/theme/monaco-themes";
 
 export const SMARTC_LANGUAGE_ID = "smartc";
 
@@ -12,6 +13,10 @@ let registered = false;
 const wired = new WeakSet<Monaco.editor.ITextModel>();
 
 export function registerSmartC(monaco: typeof Monaco): void {
+  // Before the guard: themes are cheap, idempotent, and must exist even when
+  // the language was already registered by an earlier mount.
+  registerClimateThemes(monaco);
+
   if (registered) return;
   registered = true;
 
