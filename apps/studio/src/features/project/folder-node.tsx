@@ -37,6 +37,8 @@ import { useNavigate } from "react-router";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { NameInputDialog } from "./name-input-dialog";
 import { NewFileDialog } from "./new-file-dialog";
+import { isContractFile } from "./contract";
+import { findProjectOfFolder } from "./project-root";
 import { FileSidebarItem, FILE_DND_MIME } from "./file-sidebar-item";
 import { uniqueName } from "./file-naming";
 import { revealFileRequestAtom } from "@/stores/project-tree-atoms";
@@ -270,6 +272,15 @@ export function FolderNode({ folder }: { folder: FolderMetadata }) {
         open={showNewFile}
         onOpenChange={setShowNewFile}
         existingNames={fileNames}
+        hasContract={(() => {
+          // `FolderNode` renders for every folder, not just projects, so its
+          // own id is a subfolder as often as not — and a subtree listing
+          // would miss the contract sitting in the project root, then
+          // cheerfully offer to create a second one.
+          const projectId = findProjectOfFolder(fs, folder.id);
+          if (!projectId) return false;
+          return fs.listFilesRecursive(projectId).some((f) => isContractFile(f.name));
+        })()}
         onCreate={async (name, type, content) => {
           try {
             const id = await fs.addFile(folder.id, name, type, content);

@@ -165,11 +165,26 @@ export class FileTransfer {
     const accepted = entries.filter(
       (e) => e.content !== null && resolveType(baseName(e.path)) !== null,
     ) as { path: string; content: string }[];
-    const skipped = entries.length - accepted.length;
+
+    // And a third: a project holds exactly one contract. A second one in the
+    // archive is skipped rather than merged, and the caller already reports
+    // skipped files with a reason.
+    const isContract = (path: string) => baseName(path).endsWith(".smart.c");
+    let contractTaken = this.fs
+      .listFolderContents(targetFolderId)
+      .files.some((file) => isContract(file.metadata.name));
+
+    const admitted = accepted.filter((entry) => {
+      if (!isContract(entry.path)) return true;
+      if (contractTaken) return false;
+      contractTaken = true;
+      return true;
+    });
+    const skipped = entries.length - admitted.length;
 
     // Resolve every needed directory path to a folder id (parent-first).
     const dirIds = new Map<string, string>([["", targetFolderId]]);
-    for (const dir of dirsForEntries(accepted.map((e) => e.path))) {
+    for (const dir of dirsForEntries(admitted.map((e) => e.path))) {
       const parent = parentDir(dir);
       const name = baseName(dir);
       const parentId = dirIds.get(parent)!;
@@ -183,7 +198,7 @@ export class FileTransfer {
     }
 
     let imported = 0;
-    for (const e of accepted) {
+    for (const e of admitted) {
       const name = baseName(e.path);
       const type = resolveType(name)!;
       const folderId = dirIds.get(parentDir(e.path))!;

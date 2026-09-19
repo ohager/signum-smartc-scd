@@ -37,6 +37,8 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   existingNames: string[];
+  /** A project holds exactly one contract, so SmartC is off the menu once it has one. */
+  hasContract?: boolean;
   onCreate: (name: string, type: FileTypes, content: string) => void;
 }
 
@@ -44,16 +46,18 @@ export function NewFileDialog({
   open,
   onOpenChange,
   existingNames,
+  hasContract = false,
   onCreate,
 }: Props) {
+  const initialType = hasContract ? FileTypes.Scenario : FileTypes.SmartC;
   const [name, setName] = useState("");
-  const [type, setType] = useState<FileTypes>(FileTypes.SmartC);
+  const [type, setType] = useState<FileTypes>(initialType);
   useEffect(() => {
     if (open) {
       setName("");
-      setType(FileTypes.SmartC);
+      setType(initialType);
     }
-  }, [open]);
+  }, [open, initialType]);
 
   const base = replaceWhitespace(name.trim());
   const canSubmit = base.length > 0;
@@ -89,9 +93,11 @@ export function NewFileDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={FileTypes.SmartC}>
-                  SmartC contract (.smart.c)
-                </SelectItem>
+                {!hasContract && (
+                  <SelectItem value={FileTypes.SmartC}>
+                    SmartC contract (.smart.c)
+                  </SelectItem>
+                )}
                 <SelectItem value={FileTypes.Scenario}>
                   Scenario (.scenario.json)
                 </SelectItem>
