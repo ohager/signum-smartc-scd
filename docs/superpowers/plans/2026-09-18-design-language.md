@@ -63,7 +63,7 @@ Each of the ten tasks below leaves the app building and the suite green.
 
 This module holds **only** what CSS cannot reach: the colours Monaco needs and the metadata the picker needs. The chrome's palette lives in `globals.css` and is not duplicated here.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // apps/studio/src/theme/climates.test.ts
@@ -103,12 +103,12 @@ describe("climates", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 Run: `cd apps/studio && bun test src/theme/climates.test.ts`
 Expected: FAIL — `Cannot find module './climates'`
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```ts
 // apps/studio/src/theme/climates.ts
@@ -229,12 +229,12 @@ export function climateById(id: string): Climate | undefined {
 }
 ```
 
-- [ ] **Step 4: Run the test and watch it pass**
+- [x] **Step 4: Run the test and watch it pass**
 
 Run: `cd apps/studio && bun test src/theme/climates.test.ts`
 Expected: PASS, 5 tests
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/studio/src/theme/climates.ts apps/studio/src/theme/climates.test.ts
@@ -252,7 +252,7 @@ git commit -m "feat(studio): the four climates as data"
 
 No test: this is a stylesheet. It is verified by the build and, at the end, in the browser.
 
-- [ ] **Step 1: Rewrite the head of `styles/globals.css`**
+- [x] **Step 1: Rewrite the head of `styles/globals.css`**
 
 Replace everything from line 1 up to and including the closing brace of the `.dark` block (line 78) with:
 
@@ -416,7 +416,7 @@ Replace everything from line 1 up to and including the closing brace of the `.da
 
 Leave the `@theme inline` block (lines 80–137 of the original) and the `@layer base` block untouched: they already map these variables into Tailwind's colour scale.
 
-- [ ] **Step 2: Add the typefaces and the body font to `@layer base`**
+- [x] **Step 2: Add the typefaces and the body font to `@layer base`**
 
 At the top of `styles/globals.css`, immediately after `@import "tailwindcss";`, add:
 
@@ -441,7 +441,7 @@ And extend the existing `@layer base` block at the end of the file:
 }
 ```
 
-- [ ] **Step 3: Reconfigure the provider**
+- [x] **Step 3: Reconfigure the provider**
 
 In `apps/studio/src/App.tsx`, replace line 13:
 
@@ -462,7 +462,7 @@ with:
 
 `enableSystem` stays off: four climates do not map onto a binary OS preference.
 
-- [ ] **Step 4: Strip the loose Signum colours from `src/index.css`**
+- [x] **Step 4: Strip the loose Signum colours from `src/index.css`**
 
 Replace lines 3–7 of `apps/studio/src/index.css`:
 
@@ -503,7 +503,7 @@ with nothing. Then replace the hard-coded literals further down the same file:
 
 Keep the existing `::before` triangle geometry block for the test glyphs exactly as it is — only the colour rules change.
 
-- [ ] **Step 5: Replace the utilities that used the deleted colours**
+- [x] **Step 5: Replace the utilities that used the deleted colours**
 
 `src/features/home/project-grid.tsx` styles its cards with them:
 
@@ -529,12 +529,12 @@ Then confirm nothing else refers to them:
 Run: `cd apps/studio && grep -rn "signum-blue\|signum-lightblue\|signum-green" src styles`
 Expected: no output.
 
-- [ ] **Step 6: Verify build and suite**
+- [x] **Step 6: Verify build and suite**
 
 Run: `cd apps/studio && bun run build && bun test`
 Expected: `✅ Build completed`, and the suite green at its current count.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add apps/studio/styles/globals.css apps/studio/src/index.css apps/studio/src/App.tsx
@@ -550,7 +550,7 @@ git commit -m "feat(studio): one token layer, four climates"
 
 `ThemeSwitch` is a sun/moon toggle over two themes. It becomes four dots.
 
-- [ ] **Step 1: Replace the component**
+- [x] **Step 1: Replace the component**
 
 ```tsx
 // apps/studio/src/components/ui/theme-switch.tsx
@@ -599,12 +599,12 @@ export function ThemeSwitch() {
 }
 ```
 
-- [ ] **Step 2: Check it still type-checks and builds**
+- [x] **Step 2: Check it still type-checks and builds**
 
 Run: `cd apps/studio && bun run build`
 Expected: `✅ Build completed`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add apps/studio/src/components/ui/theme-switch.tsx
@@ -621,7 +621,7 @@ git commit -m "feat(studio): pick a climate, not a brightness"
 
 The return type is declared structurally rather than imported from `monaco-editor`: the app resolves two copies of that package whose types are not mutually assignable (see the comment in `components/ui/editor/file-actions.tsx:13`).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // apps/studio/src/theme/monaco-themes.test.ts
@@ -693,12 +693,12 @@ describe("buildAsmTheme", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 Run: `cd apps/studio && bun test src/theme/monaco-themes.test.ts`
 Expected: FAIL — `Cannot find module './monaco-themes'`
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```ts
 // apps/studio/src/theme/monaco-themes.ts
@@ -829,12 +829,12 @@ export function registerClimateThemes(monaco: MonacoLike): void {
 }
 ```
 
-- [ ] **Step 4: Run the test and watch it pass**
+- [x] **Step 4: Run the test and watch it pass**
 
 Run: `cd apps/studio && bun test src/theme/monaco-themes.test.ts`
 Expected: PASS, 7 tests
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/studio/src/theme/monaco-themes.ts apps/studio/src/theme/monaco-themes.test.ts
@@ -856,7 +856,7 @@ git commit -m "feat(studio): monaco themes derived from the climates"
 - Modify: `apps/studio/src/features/simulator/ui/asm-view.tsx:63`
 - Modify: `apps/studio/src/features/asm-editor/code-editor/language-definitions/asm-language-definitions.ts` (delete the two hand-written themes)
 
-- [ ] **Step 1: Write the hook**
+- [x] **Step 1: Write the hook**
 
 ```ts
 // apps/studio/src/theme/use-monaco-theme.ts
@@ -879,7 +879,7 @@ export function useMonacoTheme(grammar: "smartc" | "asm" = "smartc"): string {
 }
 ```
 
-- [ ] **Step 2: Register the themes where Monaco is first configured**
+- [x] **Step 2: Register the themes where Monaco is first configured**
 
 In `apps/studio/src/features/smartc-editor/language/register.ts`, add to the top-level export used by `beforeMount`:
 
@@ -900,7 +900,7 @@ For the editors that register no language of their own (`scenario-editor.tsx`,
 `registerClimateThemes(monaco)` in their existing `beforeMount`/`onMount`.
 `defineTheme` is idempotent, so registering more than once is harmless.
 
-- [ ] **Step 3: Replace the seven hard-coded strings**
+- [x] **Step 3: Replace the seven hard-coded strings**
 
 In each of these files, delete the `useTheme` import and the `const { theme } = useTheme();` line **if `theme` is used for nothing else**, add `import { useMonacoTheme } from "@/theme/use-monaco-theme";`, and replace the prop:
 
@@ -926,17 +926,17 @@ and in the last two:
 const monacoTheme = useMonacoTheme("asm");
 ```
 
-- [ ] **Step 4: Verify nothing still asks Monaco for a built-in theme**
+- [x] **Step 4: Verify nothing still asks Monaco for a built-in theme**
 
 Run: `cd apps/studio && grep -rn '"vs-dark"\|"asm-dark"\|"asm-light"' src --include='*.tsx' --include='*.ts'`
 Expected: matches only inside `src/theme/climates.ts` (the `base` fields) and `src/theme/monaco-themes.ts`.
 
-- [ ] **Step 5: Verify build and suite**
+- [x] **Step 5: Verify build and suite**
 
 Run: `cd apps/studio && bun run build && bun test`
 Expected: `✅ Build completed`; suite green.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add apps/studio/src
@@ -951,7 +951,7 @@ git commit -m "feat(studio): the editor takes its colours from the climate"
 - Modify: `apps/studio/src/components/ui/button.tsx:11-24`
 - Create: `apps/studio/src/components/ui/panel.tsx`
 
-- [ ] **Step 1: Add the two console variants**
+- [x] **Step 1: Add the two console variants**
 
 In `apps/studio/src/components/ui/button.tsx`, add to the `variant` map (after `accent`):
 
@@ -969,7 +969,7 @@ In `apps/studio/src/components/ui/button.tsx`, add to the `variant` map (after `
 
 and in the same file remove `rounded-md` from the base string on line 8 and from the `sm`/`lg` size entries (lines 27–28) — `--radius: 0rem` already flattens `rounded-md`, but leaving the class in invites it back the moment someone raises the radius.
 
-- [ ] **Step 2: Write the panel primitive**
+- [x] **Step 2: Write the panel primitive**
 
 ```tsx
 // apps/studio/src/components/ui/panel.tsx
@@ -1014,12 +1014,12 @@ export function Panel({
 }
 ```
 
-- [ ] **Step 3: Verify build**
+- [x] **Step 3: Verify build**
 
 Run: `cd apps/studio && bun run build`
 Expected: `✅ Build completed`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add apps/studio/src/components/ui/button.tsx apps/studio/src/components/ui/panel.tsx
@@ -1039,7 +1039,7 @@ git commit -m "feat(studio): console buttons and a bracketed panel"
 - Modify: `apps/studio/src/features/simulator/ui/debug-primitives.tsx`
 - Modify: `apps/studio/src/components/ui/page.tsx:105`
 
-- [ ] **Step 1: Extract the toolbar the four editors each hard-code**
+- [x] **Step 1: Extract the toolbar the four editors each hard-code**
 
 All four write `w-full flex justify-between items-center pt-1 px-2 h-[30px] bg-muted border-b-1`.
 
@@ -1076,7 +1076,7 @@ export function EditorToolbar({
 }
 ```
 
-- [ ] **Step 2: Use it in all four editors**
+- [x] **Step 2: Use it in all four editors**
 
 In each editor, replace the opening `<section className="w-full flex …">` …
 `</section>` wrapper with `<EditorToolbar>`, keeping the diagnostics content as
@@ -1094,7 +1094,7 @@ already destructures from `useEditorFile`:
 `asm-code-editor.tsx` keeps its "Change this file only if you know what you are
 doing" note as a second child.
 
-- [ ] **Step 3: Move the warning and error indicators onto tokens plus a glyph**
+- [x] **Step 3: Move the warning and error indicators onto tokens plus a glyph**
 
 In the three editors that show diagnostics, replace `text-red-600` on the
 `FileWarning` icon and the message with:
@@ -1109,7 +1109,7 @@ In the three editors that show diagnostics, replace `text-red-600` on the
 and where a warning rather than an error is shown, `var(--amber)` with `▲`.
 Colour alone never carries the state.
 
-- [ ] **Step 4: Retone the debugger primitives**
+- [x] **Step 4: Retone the debugger primitives**
 
 In `apps/studio/src/features/simulator/ui/debug-primitives.tsx`, replace the
 `Pill` class computation (lines 4–9) with:
@@ -1126,13 +1126,13 @@ In `apps/studio/src/features/simulator/ui/debug-primitives.tsx`, replace the
 
 Note the dropped `rounded-full`: pills are boxes now, like everything else.
 
-- [ ] **Step 5: Fix the footer that never worked in the dark**
+- [x] **Step 5: Fix the footer that never worked in the dark**
 
 In `apps/studio/src/components/ui/page.tsx:105`, replace
 `"p-4 bg-white border-t border-gray-200"` with
 `"p-4 bg-[var(--bg2)] border-t border-[var(--border-1)]"`.
 
-- [ ] **Step 6: Sweep the remaining status literals**
+- [x] **Step 6: Sweep the remaining status literals**
 
 Run: `cd apps/studio && grep -rn "text-red-600\|text-green-600\|bg-red-600\|text-yellow-\|bg-green-" src --include='*.tsx'`
 
@@ -1142,12 +1142,12 @@ yellow/amber → `var(--amber)`. Re-run the grep until it returns nothing.
 Leave neutral greys (`text-zinc-*`, `text-slate-*`) alone for now — they read as
 muted text and are the layout phase's problem, not the language's.
 
-- [ ] **Step 7: Verify build and suite**
+- [x] **Step 7: Verify build and suite**
 
 Run: `cd apps/studio && bun run build && bun test`
 Expected: `✅ Build completed`; suite green.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add apps/studio/src
@@ -1166,7 +1166,7 @@ git commit -m "feat(studio): one toolbar, and status by token and glyph"
 - Modify: `apps/studio/src/index.css` (import `motion.css`)
 - Modify: `apps/studio/src/App.tsx` (publish the tokens once)
 
-- [ ] **Step 1: Write the failing test for the tokens**
+- [x] **Step 1: Write the failing test for the tokens**
 
 ```ts
 // apps/studio/src/motion/tokens.test.ts
@@ -1198,12 +1198,12 @@ describe("motionCssVariables", () => {
 });
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `cd apps/studio && bun test src/motion/tokens.test.ts`
 Expected: FAIL — `Cannot find module './tokens'`
 
-- [ ] **Step 3: Write the tokens**
+- [x] **Step 3: Write the tokens**
 
 ```ts
 // apps/studio/src/motion/tokens.ts
@@ -1265,12 +1265,12 @@ export function publishMotionTokens(root: HTMLElement): void {
 }
 ```
 
-- [ ] **Step 4: Run it and watch it pass**
+- [x] **Step 4: Run it and watch it pass**
 
 Run: `cd apps/studio && bun test src/motion/tokens.test.ts`
 Expected: PASS, 3 tests
 
-- [ ] **Step 5: Write the failing test for the preference**
+- [x] **Step 5: Write the failing test for the preference**
 
 ```ts
 // apps/studio/src/motion/resolve.test.ts
@@ -1290,12 +1290,12 @@ describe("resolveMotion", () => {
 });
 ```
 
-- [ ] **Step 6: Run it and watch it fail**
+- [x] **Step 6: Run it and watch it fail**
 
 Run: `cd apps/studio && bun test src/motion/resolve.test.ts`
 Expected: FAIL — `Cannot find module './resolve'`
 
-- [ ] **Step 7: Write it**
+- [x] **Step 7: Write it**
 
 ```ts
 // apps/studio/src/motion/resolve.ts
@@ -1313,12 +1313,12 @@ export function resolveMotion(chosen: MotionChoice, prefersReduced: boolean): "o
 }
 ```
 
-- [ ] **Step 8: Run it and watch it pass**
+- [x] **Step 8: Run it and watch it pass**
 
 Run: `cd apps/studio && bun test src/motion/resolve.test.ts`
 Expected: PASS, 2 tests
 
-- [ ] **Step 9: Write the switch**
+- [x] **Step 9: Write the switch**
 
 ```ts
 // apps/studio/src/motion/use-motion.ts
@@ -1363,7 +1363,7 @@ export function useMotion() {
 
 Call `useMotion();` once in `App.tsx`, inside the `App` component body.
 
-- [ ] **Step 10: Write the keyframes**
+- [x] **Step 10: Write the keyframes**
 
 ```css
 /* apps/studio/src/motion/motion.css */
@@ -1460,7 +1460,7 @@ Call `useMotion();` once in `App.tsx`, inside the `App` component body.
 Add `@import "./motion/motion.css";` to the top of `apps/studio/src/index.css`,
 directly after the existing `@import "../styles/globals.css";`.
 
-- [ ] **Step 11: Wire the catalogue to the three places that already know when something happened**
+- [x] **Step 11: Wire the catalogue to the three places that already know when something happened**
 
 1. `src/features/simulator/ui/inspector-panel.tsx` — when a variable's rendered
    string differs from the previous render, add `motion-flash` to that row for
@@ -1471,12 +1471,12 @@ directly after the existing `@import "../styles/globals.css";`.
 3. `src/components/ui/editor/editor-toolbar.tsx` — the running indicator gets
    `motion-pulse` while a compile or test run is in flight.
 
-- [ ] **Step 12: Verify build and suite**
+- [x] **Step 12: Verify build and suite**
 
 Run: `cd apps/studio && bun run build && bun test`
 Expected: `✅ Build completed`; suite green, with 5 new tests.
 
-- [ ] **Step 13: Commit**
+- [x] **Step 13: Commit**
 
 ```bash
 git add apps/studio/src/motion apps/studio/src/index.css apps/studio/src/App.tsx apps/studio/src/features apps/studio/src/components
@@ -1497,7 +1497,7 @@ git commit -m "feat(studio): a motion vocabulary bound to events"
 The dosage the spec sets: these are the surfaces people arrive at rather than
 work in, and they get the gestures the working surface is denied.
 
-- [ ] **Step 1: Write the backdrop**
+- [x] **Step 1: Write the backdrop**
 
 ```tsx
 // apps/studio/src/components/ui/grid-backdrop.tsx
@@ -1524,7 +1524,7 @@ export function GridBackdrop() {
 }
 ```
 
-- [ ] **Step 2: Put the wordmark in the sidebar**
+- [x] **Step 2: Put the wordmark in the sidebar**
 
 In `left-sidebar.tsx`, immediately inside `<SidebarContent>` and before the
 first `<SidebarGroup>`, add:
@@ -1547,13 +1547,13 @@ first `<SidebarGroup>`, add:
 This is the **only** place Orbitron is used. Keeping it to one element is what
 makes it a wordmark rather than a costume.
 
-- [ ] **Step 3: Give the hero its backdrop**
+- [x] **Step 3: Give the hero its backdrop**
 
 `hero.tsx:87` already opens `<section className="relative isolate overflow-hidden px-6 py-16 sm:py-24">`,
 which is exactly the positioning context needed. Add `<GridBackdrop />` as its
 first child.
 
-- [ ] **Step 4: Bracket the cards that sit on those surfaces**
+- [x] **Step 4: Bracket the cards that sit on those surfaces**
 
 In `project-grid.tsx` and `how-it-works.tsx`, replace shadcn's `<Card>`/`<CardContent>`
 with the bracketed panel:
@@ -1569,12 +1569,12 @@ with the bracketed panel:
 Remove the now-unused `Card`/`CardContent` imports from both files. Leave the
 `Card` component itself in place — dialogs and the learn rail still use it.
 
-- [ ] **Step 5: Verify build and suite**
+- [x] **Step 5: Verify build and suite**
 
 Run: `cd apps/studio && bun run build && bun test`
 Expected: `✅ Build completed`; suite green.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add apps/studio/src
@@ -1582,6 +1582,28 @@ git commit -m "feat(studio): grid, brackets and a wordmark where people arrive"
 ```
 
 ---
+
+
+---
+
+## Deviations from the plan, as built
+
+- **`src/components/theme-switch.tsx`**, not `components/ui/theme-switch.tsx`.
+- **The font `@import` must precede `@import "tailwindcss"`.** Tailwind expands
+  in place, so a font import after it lands thousands of rules deep and CSS
+  rejects it.
+- **Sonner needed a translation.** It knows only `light` and `dark`; it now
+  reads the climate's Monaco base. Without this it received `"nexus"`.
+- **Arrivals went to the emitted-transaction list, not the test rows.** Test
+  rows are planned up front and change status rather than appear, so there is
+  no arrival to announce. Emitted transactions genuinely grow.
+- **No `GridBackdrop` component.** The hero already drew a grid; it was
+  normalised to 40px and `--grid-line` instead. A second implementation would
+  have had no caller.
+- **The literal sweep was wider than Task 7 assumed** — `signum-*` utilities in
+  five home files, `blue-500` accents across nine files, and greys that vanish
+  in three of the four climates.
+
 
 ## Task 10: Verification in the browser
 
