@@ -36,14 +36,14 @@ interface FileSystemMetadata {
  * Class representing a browser-based file system.
  */
 export class FileSystem extends EventTarget {
-  static instance = new FileSystem();
+  private static instance?: FileSystem;
 
   /**
-   * Retrieves the singleton instance of the FileSystem class.
-   * Ensures that only one instance of the FileSystem class is created and reused.
+   * The workspace-wide instance, created on first use.
    *
-   * @template T The type parameter for the FileSystem instance.
-   * @return {FileSystem<T>} The singleton instance of the FileSystem class.
+   * Constructing it eagerly, at module evaluation, made merely *importing*
+   * this module throw wherever `localStorage` is absent — a worker, a test
+   * file, any non-DOM context — long before anyone asked for a file system.
    */
   static getInstance(): FileSystem {
     if (!FileSystem.instance) {
@@ -73,6 +73,7 @@ export class FileSystem extends EventTarget {
       // Blobs written before recents existed have no such field, and a corrupt
       // one must not break startup.
       this.metadata.recentFiles = sanitizeRecents(this.metadata.recentFiles);
+      this.repairFolderOwnership();
     } else {
       // Create initial structure with root folder
       const rootFolderId = this.generateId();
@@ -100,6 +101,33 @@ export class FileSystem extends EventTarget {
 
       this.saveMetadata();
     }
+  }
+
+  /**
+   * Realigns every file's `folderId` with the folder that actually lists it.
+   *
+   * Moves used to update the listings alone, so blobs written by earlier
+   * versions claim a file still lives in the folder it was dragged out of —
+   * and the SmartC editor believes that claim when it decides where to put a
+   * compiled `.asm`. The listings are the authority; this makes the field
+   * agree with them once, at load.
+   */
+  private repairFolderOwnership(): void {
+    let repaired = false;
+
+    for (const [folderId, contents] of Object.entries(
+      this.metadata.folderContents
+    )) {
+      for (const fileId of contents.files) {
+        const file = this.metadata.files[fileId];
+        if (file && file.folderId !== folderId) {
+          file.folderId = folderId;
+          repaired = true;
+        }
+      }
+    }
+
+    if (repaired) this.saveMetadata();
   }
 
   // Event handling methods
@@ -621,9 +649,10 @@ export class FileSystem extends EventTarget {
       return; // Already in the target folder
     }
 
-    // Update file path
+    // Update the file's owner and path
     const fileName = this.metadata.files[fileId].name;
     const targetFolderPath = this.metadata.folders[targetFolderId].path;
+    this.metadata.files[fileId].folderId = targetFolderId;
     this.metadata.files[fileId].path =
       `${targetFolderPath === "/" ? "" : targetFolderPath}/${fileName}`;
     this.metadata.files[fileId].lastModified = Date.now();
