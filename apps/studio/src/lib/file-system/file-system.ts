@@ -179,6 +179,39 @@ export class FileSystem extends EventTarget {
   }
 
   /**
+   * Guards the one invariant paths depend on: within a folder, a name is
+   * unique. Two files sharing a path make `getFileIdByPath` — and with it the
+   * test runner's module resolution — pick one of them arbitrarily.
+   *
+   * Callers that would rather adapt than fail (imports, generated names) ask
+   * for the sibling names first and pick a free one; see `uniqueNameIn` in
+   * `transfer.ts` and `uniqueName` in `features/project/file-naming.ts`.
+   */
+  private assertFileNameFree(
+    folderId: string,
+    name: string,
+    exceptFileId?: string
+  ): void {
+    const taken = this.metadata.folderContents[folderId].files.some(
+      (id) => id !== exceptFileId && this.metadata.files[id]?.name === name
+    );
+
+    if (taken) {
+      throw new Error(`A file named ${name} already exists in this folder`);
+    }
+  }
+
+  private assertFolderNameFree(parentFolderId: string, name: string): void {
+    const taken = this.metadata.folderContents[parentFolderId].folders.some(
+      (id) => this.metadata.folders[id]?.name === name
+    );
+
+    if (taken) {
+      throw new Error(`A folder named ${name} already exists here`);
+    }
+  }
+
+  /**
    * Loads a file based on the provided file ID and retrieves its content and metadata.
    *
    * @param {string} fileId - The unique identifier of the file to load.
@@ -302,6 +335,10 @@ export class FileSystem extends EventTarget {
     const folderId = this.getFolderIdOfFile(fileId);
     const folderPath = folderId ? this.metadata.folders[folderId].path : "";
 
+    if (folderId) {
+      this.assertFileNameFree(folderId, newName, fileId);
+    }
+
     meta.name = newName;
     meta.path = `${folderPath === "/" ? "" : folderPath}/${newName}`;
     meta.lastModified = Date.now();
@@ -378,6 +415,8 @@ export class FileSystem extends EventTarget {
       throw new Error(`Folder not found: ${folderId}`);
     }
 
+    this.assertFileNameFree(folderId, name);
+
     // Generate a new file ID
     const fileId = this.generateId();
     const folderPath = this.metadata.folders[folderId].path;
@@ -429,6 +468,8 @@ export class FileSystem extends EventTarget {
     if (!parent) {
       throw new Error(`Parent folder not found: ${parentFolderId}`);
     }
+
+    this.assertFolderNameFree(parentFolderId, name);
 
     // Generate a new folder ID
     const folderId = this.generateId();
@@ -643,6 +684,8 @@ export class FileSystem extends EventTarget {
     if (sourceFolderId === targetFolderId) {
       return; // Already in the target folder
     }
+
+    this.assertFileNameFree(targetFolderId, this.metadata.files[fileId].name);
 
     // Update the file's owner and path
     const fileName = this.metadata.files[fileId].name;

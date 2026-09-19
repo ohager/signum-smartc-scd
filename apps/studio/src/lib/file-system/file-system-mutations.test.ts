@@ -77,17 +77,98 @@ describe("renameFile", () => {
   });
 });
 
+describe("name collisions", () => {
+  it("refuses to add a second file with the same name to a folder", async () => {
+    const folder = await fs.createFolder(fs.rootFolderId, "project");
+    await fs.addFile(folder, "counter.smart.c", "smartc", "first");
+
+    expect(fs.addFile(folder, "counter.smart.c", "smartc", "second")).rejects.toThrow(
+      "A file named counter.smart.c already exists in this folder",
+    );
+  });
+
+  it("refuses to rename a file onto a sibling's name", async () => {
+    const folder = await fs.createFolder(fs.rootFolderId, "project");
+    await fs.addFile(folder, "taken.smart.c", "smartc", "first");
+    const fileId = await fs.addFile(folder, "mine.smart.c", "smartc", "second");
+
+    expect(fs.renameFile(fileId, "taken.smart.c")).rejects.toThrow(
+      "A file named taken.smart.c already exists in this folder",
+    );
+  });
+
+  it("allows renaming a file to the name it already has", async () => {
+    const folder = await fs.createFolder(fs.rootFolderId, "project");
+    const fileId = await fs.addFile(folder, "same.smart.c", "smartc", "code");
+
+    await fs.renameFile(fileId, "same.smart.c");
+
+    expect(fs.getFileMetadata(fileId)!.name).toBe("same.smart.c");
+  });
+
+  it("refuses to move a file into a folder that already has that name", async () => {
+    const from = await fs.createFolder(fs.rootFolderId, "from");
+    const to = await fs.createFolder(fs.rootFolderId, "to");
+    await fs.addFile(to, "counter.smart.c", "smartc", "theirs");
+    const fileId = await fs.addFile(from, "counter.smart.c", "smartc", "mine");
+
+    expect(fs.moveFile(fileId, to)).rejects.toThrow(
+      "A file named counter.smart.c already exists in this folder",
+    );
+  });
+
+  it("leaves a rejected move entirely untouched", async () => {
+    const from = await fs.createFolder(fs.rootFolderId, "from");
+    const to = await fs.createFolder(fs.rootFolderId, "to");
+    await fs.addFile(to, "counter.smart.c", "smartc", "theirs");
+    const fileId = await fs.addFile(from, "counter.smart.c", "smartc", "mine");
+
+    await fs.moveFile(fileId, to).catch(() => {});
+
+    expect(fs.getFolderIdOfFile(fileId)).toBe(from);
+    expect(fs.getFileMetadata(fileId)!.path).toBe("/from/counter.smart.c");
+  });
+
+  it("refuses to create a second folder with the same name in one parent", async () => {
+    const parent = await fs.createFolder(fs.rootFolderId, "project");
+    await fs.createFolder(parent, "tests");
+
+    expect(fs.createFolder(parent, "tests")).rejects.toThrow(
+      "A folder named tests already exists here",
+    );
+  });
+});
+
 describe("createFolder", () => {
   it("creates the folder inside the folder it is given, not the first one sharing its path", async () => {
-    // Nothing stops two projects being called the same, and then their paths
-    // are identical — so a path can never identify a parent.
-    const first = await fs.createFolder(fs.rootFolderId, "demo");
-    const second = await fs.createFolder(fs.rootFolderId, "demo");
+    // Sibling names are unique now, but workspaces written before that guard
+    // can still hold two projects called the same — and then their paths are
+    // identical, so a path cannot identify a parent.
+    const storage = new MemoryStorage();
+    storage.setItem(
+      "scd:fs-metadata",
+      JSON.stringify({
+        files: {},
+        folders: {
+          root: { id: "root", name: "@@Root", path: "/", createdAt: 0, lastModified: 0 },
+          a: { id: "a", name: "demo", path: "/demo", createdAt: 0, lastModified: 0 },
+          b: { id: "b", name: "demo", path: "/demo", createdAt: 0, lastModified: 0 },
+        },
+        folderContents: {
+          root: { files: [], folders: ["a", "b"] },
+          a: { files: [], folders: [] },
+          b: { files: [], folders: [] },
+        },
+        rootFolder: "root",
+        recentFiles: [],
+      }),
+    );
+    const loaded = new FileSystem(storage, new MemoryContent());
 
-    const child = await fs.createFolder(second, "tests");
+    const child = await loaded.createFolder("b", "tests");
 
-    expect(fs.listFolderContents(second).folders.map((f) => f.id)).toEqual([child]);
-    expect(fs.listFolderContents(first).folders).toEqual([]);
+    expect(loaded.listFolderContents("b").folders.map((f) => f.id)).toEqual([child]);
+    expect(loaded.listFolderContents("a").folders).toEqual([]);
   });
 
   it("builds the child path from the parent it was given", async () => {

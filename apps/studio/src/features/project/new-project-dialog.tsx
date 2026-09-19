@@ -21,6 +21,7 @@ import {
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import { FileTypes } from "@/features/project/filetype-icons.tsx";
 import { smartcStarter } from "./smartc-starter";
+import { uniqueName } from "./file-naming";
 
 type ProjectType = "create" | "inspect";
 
@@ -40,7 +41,16 @@ export function NewProjectDialog({ close }: Props) {
   const handleCreateClicked = async () => {
     if (!canSubmit) return;
 
-    const folderId = await fs.createFolder(fs.rootFolderId, name);
+    // Sibling names are unique, and the file system rejects a clash rather
+    // than silently merging projects. Every other creating path in the app
+    // (New Folder, ZIP import) settles this the same way.
+    const takenNames = fs
+      .listFolderContents()
+      .folders.map((f) => f.metadata.name);
+    const folderId = await fs.createFolder(
+      fs.rootFolderId,
+      uniqueName(name, takenNames),
+    );
     const fileName = replaceWhitespace(name);
 
     if (projectType === "create") {
