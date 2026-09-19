@@ -88,7 +88,14 @@ PageHeader.displayName = "PageHeader";
 const PageContent = React.forwardRef<HTMLDivElement, PageContentProps>(
   ({ className, children, ...props }, ref) => {
     return (
-      <div ref={ref} className={cn("flex-1", className)} {...props}>
+      // `min-h-0` is the whole point: without it a flex child refuses to
+      // shrink below its content, and every editor inside scrolls the page
+      // instead of itself.
+      <div
+        ref={ref}
+        className={cn("flex min-h-0 flex-1 flex-col", className)}
+        {...props}
+      >
         {children}
       </div>
     );

@@ -84,28 +84,6 @@ export function TestFileEditor({ file }: Props) {
   const recording = state.recordings?.[file.metadata.path];
   const activeRow = state.rows.find((row) => row.id === activeTestId);
 
-  // `h-full` does not resolve here: PageContent (src/components/ui/page.tsx)
-  // is a plain block div, not a flex container, so a percentage height on its
-  // child has no definite containing block to resolve against. The sibling
-  // editors (smartc-editor.tsx, scenario-editor.tsx) hit the same constraint
-  // and work around it by measuring the container's viewport offset and
-  // sizing with `calc(100vh - top)`; this follows the same convention.
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [panelHeight, setPanelHeight] = useState("calc(100vh)");
-
-  useEffect(() => {
-    const calculatePanelHeight = () => {
-      if (containerRef.current) {
-        const containerTop = containerRef.current.getBoundingClientRect().top;
-        setPanelHeight(`calc(100vh - ${containerTop}px)`);
-      }
-    };
-
-    calculatePanelHeight();
-    window.addEventListener("resize", calculatePanelHeight);
-    return () => window.removeEventListener("resize", calculatePanelHeight);
-  }, []);
-
   // acorn cannot parse TypeScript, so the scan runs on the emitted JavaScript —
   // which is also the form the runner sees, so both agree about what a test is.
   useEffect(() => {
@@ -240,7 +218,7 @@ export function TestFileEditor({ file }: Props) {
 
   if (debugging && recording?.contractSource) {
     return (
-      <div className="flex flex-col" style={{ height: panelHeight }}>
+      <div className="flex min-h-0 flex-1 flex-col">
         <p className="shrink-0 border-b border-border px-3 py-1 text-xs text-muted-foreground">
           Replays the recorded transaction stream — assertions do not re-evaluate while stepping. Only the
           last-loaded contract is steppable.
@@ -257,7 +235,7 @@ export function TestFileEditor({ file }: Props) {
   }
 
   return (
-    <div ref={containerRef} style={{ height: panelHeight }}>
+    <div className="min-h-0 flex-1">
       <ResizablePanelGroup direction="horizontal" className="h-full">
         <ResizablePanel defaultSize={60} minSize={30}>
           <div className="flex h-full flex-col">

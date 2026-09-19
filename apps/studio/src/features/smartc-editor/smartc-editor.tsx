@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Editor, { type OnMount } from "@monaco-editor/react";
 import { Code2, Bug, FilePlus2 } from "lucide-react";
 import {
@@ -106,29 +106,12 @@ function SmartCEditor({ file }: Props) {
   } = useEditorFile({ file });
   const [validationError, setValidationError] = useState("");
   const monacoTheme = useMonacoTheme();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [editorHeight, setEditorHeight] = useState("calc(100vh)"); // Initial height
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isDebugging, setIsDebugging] = useState(false);
   const [scenarios, setScenarios] = useState<{ name: string; json: string }[]>(
     [],
   );
   const isValid = !validationError;
-
-  useEffect(() => {
-    const calculateEditorHeight = () => {
-      if (containerRef.current) {
-        const containerTop = containerRef.current.getBoundingClientRect().top;
-        const newHeight = `calc(100vh - ${containerTop + 30}px)`;
-        setEditorHeight(newHeight);
-      }
-    };
-
-    calculateEditorHeight();
-    window.addEventListener("resize", calculateEditorHeight);
-
-    return () => window.removeEventListener("resize", calculateEditorHeight);
-  }, []);
 
   useEffect(() => {
     addAction({
@@ -286,7 +269,7 @@ function SmartCEditor({ file }: Props) {
   }
 
   return (
-    <div className="flex flex-col" ref={containerRef}>
+    <div className="flex min-h-0 flex-1 flex-col">
       <EditorToolbar
         actions={
           <EditorFileActions
@@ -307,9 +290,9 @@ function SmartCEditor({ file }: Props) {
           </Tooltip>
         )}
       </EditorToolbar>
-      <div className="flex-1 rounded h-full">
+      <div className="min-h-0 flex-1 rounded">
         <Editor
-          height={editorHeight}
+          height="100%"
           defaultLanguage={SMARTC_LANGUAGE_ID}
           value={code}
           theme={monacoTheme}

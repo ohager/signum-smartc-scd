@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import Editor, { type BeforeMount, type OnMount } from "@monaco-editor/react";
 import {
   Tooltip,
@@ -29,25 +29,8 @@ interface Props {
 function AsmCodeEditor({ file, onSave }: Props) {
   const [validationError, setValidationError] = useState("");
   const monacoTheme = useMonacoTheme("asm");
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [editorHeight, setEditorHeight] = useState("calc(100vh)"); // Initial height
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const isValid = !validationError;
-
-  useEffect(() => {
-    const calculateEditorHeight = () => {
-      if (containerRef.current) {
-        const containerTop = containerRef.current.getBoundingClientRect().top;
-        const newHeight = `calc(100vh - ${containerTop + 30}px)`;
-        setEditorHeight(newHeight);
-      }
-    };
-
-    calculateEditorHeight();
-    window.addEventListener("resize", calculateEditorHeight);
-
-    return () => window.removeEventListener("resize", calculateEditorHeight);
-  }, []);
 
   // Assembling is how the machine-data panel gets its numbers; unassemblable
   // text still saves, it just leaves the panel without data.
@@ -83,7 +66,7 @@ function AsmCodeEditor({ file, onSave }: Props) {
     registerEditorFileActions(editor, monaco, { onDownload: download });
   };
   return (
-    <div className="flex flex-col" ref={containerRef}>
+    <div className="flex min-h-0 flex-1 flex-col">
       <EditorToolbar
         actions={
           <EditorFileActions
@@ -108,9 +91,9 @@ function AsmCodeEditor({ file, onSave }: Props) {
           compilation will overwrite your manual changes)
         </small>
       </EditorToolbar>
-      <div className="flex-1 rounded h-full">
+      <div className="min-h-0 flex-1 rounded">
         <Editor
-          height={editorHeight}
+          height="100%"
           defaultLanguage="asm"
           value={code}
           theme={monacoTheme}

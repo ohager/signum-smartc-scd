@@ -1,5 +1,5 @@
 import Editor, { type OnMount } from "@monaco-editor/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   EditorToolbar,
   EditorDiagnostic,
@@ -49,23 +49,6 @@ export function ScenarioEditor({ file }: { file: File }) {
   // two copies of it, and their editor types are not mutually assignable.
   const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [editorHeight, setEditorHeight] = useState("calc(100vh)");
-  useEffect(() => {
-    const calculateEditorHeight = () => {
-      if (containerRef.current) {
-        const containerTop = containerRef.current.getBoundingClientRect().top;
-        const newHeight = `calc(100vh - ${containerTop + 30}px)`;
-        setEditorHeight(newHeight);
-      }
-    };
-
-    calculateEditorHeight();
-    window.addEventListener("resize", calculateEditorHeight);
-
-    return () => window.removeEventListener("resize", calculateEditorHeight);
-  }, []);
-
   // Monaco's bundled JSON language service provides the formatter; running its
   // action keeps the button, the context menu and Shift+Alt+F on one code path.
   const formatDocument = useCallback(async () => {
@@ -92,7 +75,7 @@ export function ScenarioEditor({ file }: { file: File }) {
   };
 
   return (
-    <div className="flex flex-col" ref={containerRef}>
+    <div className="flex min-h-0 flex-1 flex-col">
       <EditorToolbar
         actions={
           <EditorFileActions
@@ -118,9 +101,9 @@ export function ScenarioEditor({ file }: { file: File }) {
           </Tooltip>
         )}
       </EditorToolbar>
-      <div className="flex-1 rounded h-full">
+      <div className="min-h-0 flex-1 rounded">
         <Editor
-          height={editorHeight}
+          height="100%"
           defaultLanguage="json"
           value={content}
           theme={monacoTheme}
