@@ -15,6 +15,8 @@ import { RecentFiles, sanitizeRecents, type RecentEntry } from "./recent-files.t
 
 // Constants
 const LS_METADATA_KEY = "scd:fs-metadata";
+/** Where a blob that could not be parsed is kept, rather than overwritten. */
+const LS_UNREADABLE_KEY = "scd:fs-metadata-unreadable";
 
 // Type for the metadata structure stored in localStorage
 interface FileSystemMetadata {
@@ -66,10 +68,10 @@ export class FileSystem extends EventTarget {
     private readonly content: ContentStore = new IdbContentStore(),
   ) {
     super();
-    const storedMetadata = this.storage.getItem(LS_METADATA_KEY);
+    const restored = this.readStoredMetadata();
 
-    if (storedMetadata) {
-      this.metadata = JSON.parse(storedMetadata);
+    if (restored) {
+      this.metadata = restored;
       // Blobs written before recents existed have no such field, and a corrupt
       // one must not break startup.
       this.metadata.recentFiles = sanitizeRecents(this.metadata.recentFiles);
@@ -167,6 +169,29 @@ export class FileSystem extends EventTarget {
     if (event.type !== "folder:*" && event.type.startsWith("folder:")) {
       const wildcardEvent = new CustomEvent<FileSystemEvent>("folder:*", payload);
       super.dispatchEvent(wildcardEvent);
+    }
+  }
+
+  /**
+   * The stored workspace, or null if there is none to read.
+   *
+   * A blob that will not parse used to throw straight out of the
+   * constructor, which — since the module built its instance on import —
+   * meant a blank page with no way back. It is moved aside instead, so the
+   * app comes up on an empty workspace and the old bytes can still be
+   * recovered by hand; the file contents themselves are in IndexedDB and
+   * untouched either way.
+   */
+  private readStoredMetadata(): FileSystemMetadata | null {
+    const stored = this.storage.getItem(LS_METADATA_KEY);
+    if (!stored) return null;
+
+    try {
+      return JSON.parse(stored) as FileSystemMetadata;
+    } catch (e) {
+      console.error("Workspace metadata could not be read; starting fresh", e);
+      this.storage.setItem(LS_UNREADABLE_KEY, stored);
+      return null;
     }
   }
 
@@ -368,13 +393,13 @@ export class FileSystem extends EventTarget {
         (id) => id !== fileId
       );
 
+    this.saveMetadata();
+
     this.emitEvent({
       type: "file:deleted",
       id: fileId,
       metadata
     });
-
-    this.saveMetadata();
   }
 
   /**
@@ -404,6 +429,10 @@ export class FileSystem extends EventTarget {
     const folderPath = this.metadata.folders[folderId].path;
     const filePath = `${folderPath === "/" ? "" : folderPath}/${name}`;
 
+    // Content first: a listed file whose content never landed reads back as
+    // undefined, and every editor hands that straight to Monaco.
+    await this.content.put(fileId, content);
+
     // Add file metadata
     this.metadata.files[fileId] = {
       id: fileId,
@@ -417,9 +446,6 @@ export class FileSystem extends EventTarget {
     // Add to folder contents
     this.metadata.folderContents[folderId].files.push(fileId);
     this.saveMetadata();
-
-    // Save content to IndexedDB
-    await this.content.put(fileId, content);
 
     this.emitEvent({
       type: "file:added",
@@ -519,7 +545,7 @@ export class FileSystem extends EventTarget {
     }
 
     // Recursively delete folder contents
-    await this.recursiveDeleteFolder(folderId);
+    const removedFiles = await this.recursiveDeleteFolder(folderId);
 
     if (parentFolderId) {
       // Remove from parent folder contents
@@ -531,6 +557,17 @@ export class FileSystem extends EventTarget {
 
     this.saveMetadata();
 
+    // Announced only now: a listener reacting to a deletion that is not yet
+    // written would read a workspace that no reload would reproduce.
+    for (const removed of removedFiles) {
+      this.emitEvent({
+        type: "file:deleted",
+        id: removed.metadata.id,
+        metadata: removed.metadata,
+        relatedId: removed.folderId
+      });
+    }
+
     this.emitEvent({
       type: "folder:deleted",
       id: folderId,
@@ -539,32 +576,32 @@ export class FileSystem extends EventTarget {
     });
   }
 
-  private async recursiveDeleteFolder(folderId: string): Promise<void> {
+  /** Removes a subtree and reports the files it took with it, for the caller to announce. */
+  private async recursiveDeleteFolder(
+    folderId: string
+  ): Promise<{ metadata: FileMetadata; folderId: string }[]> {
     const contents = this.metadata.folderContents[folderId];
+    const removed: { metadata: FileMetadata; folderId: string }[] = [];
 
-    // Delete all files in this folder and emit events for each
+    // Delete all files in this folder
     for (const fileId of contents.files) {
       const metadata = { ...this.metadata.files[fileId] };
       await this.content.delete(fileId);
       delete this.metadata.files[fileId];
       this.recents.forget(fileId);
-
-      this.emitEvent({
-        type: "file:deleted",
-        id: fileId,
-        metadata,
-        relatedId: folderId
-      });
+      removed.push({ metadata, folderId });
     }
 
     // Recursively delete all subfolders
     for (const subFolderId of contents.folders) {
-      await this.recursiveDeleteFolder(subFolderId);
+      removed.push(...(await this.recursiveDeleteFolder(subFolderId)));
     }
 
     // Delete folder metadata
     delete this.metadata.folders[folderId];
     delete this.metadata.folderContents[folderId];
+
+    return removed;
   }
 
   /**

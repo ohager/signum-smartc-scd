@@ -35,11 +35,16 @@ class MemoryContent implements ContentStore {
 
 let fs: FileSystem;
 let content: MemoryContent;
+let storage: MemoryStorage;
 
 beforeEach(() => {
   content = new MemoryContent();
-  fs = new FileSystem(new MemoryStorage(), content);
+  storage = new MemoryStorage();
+  fs = new FileSystem(storage, content);
 });
+
+/** The workspace as it would be found after a reload. */
+const persisted = () => JSON.parse(storage.getItem("scd:fs-metadata")!);
 
 describe("moveFile", () => {
   it("updates the file's folderId, not only the folder listings", async () => {
@@ -74,6 +79,48 @@ describe("renameFile", () => {
     const meta = fs.getFileMetadata(fileId)!;
     expect(meta.folderId).toBe(folder);
     expect(meta.path).toBe("/project/new.smart.c");
+  });
+});
+
+describe("consistency between metadata and content", () => {
+  it("does not register a file whose content could not be stored", async () => {
+    const folder = await fs.createFolder(fs.rootFolderId, "project");
+    content.put = async () => {
+      throw new Error("QuotaExceededError");
+    };
+
+    await fs.addFile(folder, "counter.smart.c", "smartc", "code").catch(() => {});
+
+    // A listed file with no content reads back as undefined, which every
+    // editor then hands to Monaco as its value.
+    expect(fs.listFolderContents(folder).files).toEqual([]);
+  });
+
+  it("has already persisted the deletion when it announces one", async () => {
+    const folder = await fs.createFolder(fs.rootFolderId, "project");
+    const fileId = await fs.addFile(folder, "counter.smart.c", "smartc", "code");
+
+    let storedWhenAnnounced: string[] = [];
+    fs.addEventListener("file:deleted", () => {
+      storedWhenAnnounced = persisted().folderContents[folder].files;
+    });
+
+    await fs.deleteFile(fileId);
+
+    expect(storedWhenAnnounced).toEqual([]);
+  });
+  it("announces a folder's files as deleted only once the workspace is written", async () => {
+    const folder = await fs.createFolder(fs.rootFolderId, "project");
+    await fs.addFile(folder, "counter.smart.c", "smartc", "code");
+
+    let storedWhenAnnounced: Record<string, unknown> = {};
+    fs.addEventListener("file:deleted", () => {
+      storedWhenAnnounced = persisted().files;
+    });
+
+    await fs.deleteFolder(folder);
+
+    expect(storedWhenAnnounced).toEqual({});
   });
 });
 
@@ -185,6 +232,25 @@ describe("createFolder", () => {
 });
 
 describe("hydration", () => {
+  it("starts a usable workspace when the stored metadata is not readable", () => {
+    const storage = new MemoryStorage();
+    storage.setItem("scd:fs-metadata", "{ this is not json");
+
+    const loaded = new FileSystem(storage, new MemoryContent());
+
+    expect(loaded.rootFolderId).not.toBe("");
+    expect(loaded.listFolderContents().folders).toEqual([]);
+  });
+
+  it("keeps the unreadable blob aside instead of overwriting it", () => {
+    const storage = new MemoryStorage();
+    storage.setItem("scd:fs-metadata", "{ this is not json");
+
+    new FileSystem(storage, new MemoryContent());
+
+    expect(storage.getItem("scd:fs-metadata-unreadable")).toBe("{ this is not json");
+  });
+
   it("repairs a folderId that an earlier move left pointing at the old folder", () => {
     // Exactly what shipped moves wrote: the listings moved, the file's own
     // folderId did not. Reading such a blob must not carry the lie forward.
