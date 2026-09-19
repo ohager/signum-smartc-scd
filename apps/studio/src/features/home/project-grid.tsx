@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Panel } from "@/components/ui/panel";
 import type { ProjectSummary } from "@/features/home/project-summary";
 import { findFolderChainToFile } from "@/features/project/tree-reveal";
 import { useFileSystem } from "@/hooks/use-file-system";
@@ -36,8 +36,11 @@ export function ProjectGrid({ projects }: Props) {
       <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {projects.map((project) => (
           <li key={project.id}>
-            <Card className="group h-full transition-colors hover:border-[var(--accent-2)]">
-              <CardContent className="flex h-full flex-col gap-3 p-4">
+            <Panel
+              variant="bracketed"
+              className="motion-control group h-full hover:border-[var(--accent-2)]"
+            >
+              <div className="flex h-full flex-col gap-3 p-4">
                 <div className="flex items-center gap-2">
                   <FolderIcon className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-[var(--accent-2)]" />
                   <span className="truncate text-sm font-medium">{project.name}</span>
@@ -57,8 +60,8 @@ export function ProjectGrid({ projects }: Props) {
                 >
                   Open
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </Panel>
           </li>
         ))}
       </ul>

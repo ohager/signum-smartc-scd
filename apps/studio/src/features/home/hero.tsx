@@ -88,7 +88,7 @@ export function Hero({ variant, onImportClick }: Props) {
       {/* Atmosphere: an accent glow over a hairline grid that fades out downward. */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute left-1/2 top-[-6rem] h-72 w-[42rem] max-w-[120%] -translate-x-1/2 rounded-full bg-[color-mix(in_srgb,var(--accent-1)_22%,transparent)] blur-[110px]" />
-        <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] [background-size:56px_56px] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_0%,black,transparent)]" />
+        <div className="absolute inset-0 [background-image:linear-gradient(to_right,var(--grid-line)_1px,transparent_1px),linear-gradient(to_bottom,var(--grid-line)_1px,transparent_1px)] [background-size:40px_40px] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_0%,black,transparent)]" />
       </div>
 
       <div className="mx-auto flex max-w-2xl flex-col items-center text-center">

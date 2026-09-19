@@ -113,6 +113,20 @@ export function LeftSidebar() {
   return (
     <Sidebar>
       <SidebarContent>
+        {/* The only Orbitron in the app. Keeping it to one element is what
+            makes it a wordmark rather than a costume. */}
+        <div className="flex items-center gap-2 border-b border-[var(--border-1)] px-3 py-3">
+          <span
+            aria-hidden
+            className="h-3 w-3 rotate-45 border-[1.5px] border-[var(--accent-2)]"
+          />
+          <span
+            className="text-[12px] font-black tracking-[3px] text-[var(--text)]"
+            style={{ fontFamily: "Orbitron, sans-serif" }}
+          >
+            STUDIO
+          </span>
+        </div>
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>

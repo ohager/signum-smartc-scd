@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Panel } from "@/components/ui/panel";
 import { CodeIcon, FlaskConicalIcon, BugIcon, RocketIcon } from "lucide-react";
 
 interface Step {
@@ -43,15 +43,16 @@ export function HowItWorks() {
       <ol className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {STEPS.map((step, index) => (
           <li key={step.title}>
-            <Card
+            <Panel
+              variant="bracketed"
               className={
-                "group h-full transition-colors " +
+                "motion-control group h-full " +
                 (step.soon
                   ? "border-dashed bg-transparent"
                   : "hover:border-[var(--accent-2)]")
               }
             >
-              <CardContent className="flex h-full flex-col gap-2.5 p-4">
+              <div className="flex h-full flex-col gap-2.5 p-4">
                 <div className="flex items-center gap-2.5">
                   <span
                     className={
@@ -90,8 +91,8 @@ export function HowItWorks() {
                     soon
                   </Badge>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </Panel>
           </li>
         ))}
       </ol>
