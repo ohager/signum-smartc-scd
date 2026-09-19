@@ -12,6 +12,35 @@
 
 ---
 
+## Revisions, 2026-09-19
+
+Read back against the code before execution. Seven corrections, each one a
+place where the plan as first written would have compiled but misbehaved:
+
+1. **`:projectId` in the route is not the project.** `files-page.tsx:75`
+   rewrites the URL to `metadata.folderId` — the file's *immediate* parent. For
+   a contract in `src/` the rail's subject, the status key and the navigation
+   target all drift apart. Task 2 gains a root resolver; every consumer goes
+   through it. `use-recent-files.ts:32-35` hit this trap first and documents it.
+2. **The home page's rule is not the rail's rule.** `pickMainFile` takes the
+   *newest* contract and falls back to the newest file of any type; `pickContract`
+   takes the shallowest and returns null without one. Swapping them would blank
+   `mainFileId` for every project without a `.smart.c` and break two existing
+   tests. Only the suffix predicate is shared now.
+3. **Reading the file system in `useMemo` is not reading it.** The rail needs
+   the event subscription `use-recent-files.ts` already models, or its facts go
+   stale until the next navigation — which is exactly the failure the staleness
+   rule exists to prevent.
+4. **`listFilesRecursive` throws** on an unknown folder (`file-system.ts:818`),
+   and the rail renders in the page header on every `/projects/*` route.
+5. **A single-test run sets `status: "done"` too** (`test-file-editor.tsx:166`),
+   so the naive effect would store "1 green" for a twelve-test file.
+6. **Monaco validates the unsaved buffer**, `lastModified` is the saved state.
+   The verdict moves to `onSaved`, where both halves describe the same bytes.
+7. **`onClose` had nowhere to go:** `/projects/:projectId` is not a route.
+
+---
+
 ## Ordering note
 
 The deployment surface must stay reachable at every commit. So the Deploy
@@ -25,6 +54,8 @@ apps/studio/src/
   features/project/
     contract.ts                     CREATE  resolve the project's one contract
     contract.test.ts                CREATE
+    project-root.ts                 CREATE  the root project a route's folder id sits under
+    project-root.test.ts            CREATE
   lib/file-system/
     project-status.ts               CREATE  CompileVerdict/TestVerdict + service, beside recent-files.ts
     project-status.test.ts          CREATE
@@ -33,6 +64,7 @@ apps/studio/src/
     rail-cells.ts                   CREATE  pure: verdicts + staleness → what each cell shows
     rail-cells.test.ts              CREATE
     rail.tsx                        CREATE  the four cells, the loop arc, navigation
+    use-project-facts.ts            CREATE  files + verdicts, re-read on file-system events
     use-compile-verdict.ts          CREATE  read-through cache: verdict, or compile once and store
     use-deployment-count.ts         CREATE  the chain lookup, capped at 9+, cached per hash
     use-deployment-count.test.ts    CREATE
@@ -55,6 +87,13 @@ apps/studio/src/
 
 Four editors measure their own offset in the viewport because `PageContent` is
 a plain block `div`. Make it a flex container and they can say `h-full` again.
+
+There are two more copies of the same block in the tree. `DebugSession`
+(`debug-view.tsx:94,159`) sits two panels deep and only becomes fixable after
+Task 8 gives it a bounded parent, so it is handled there.
+`components/ui/adaptive-scroll-area.tsx:25` is left alone on purpose: it is a
+scroll container used inside Cards rather than an editor filling a page, and
+reworking its three call sites is not this phase's job.
 
 **Files:**
 - Modify: `apps/studio/src/components/ui/page.tsx:89-98`
@@ -152,15 +191,29 @@ git commit -m "refactor(studio): one height contract instead of four measurement
 
 ---
 
-## Task 2: The project's one contract
+## Task 2: The project, and its one contract
 
 **Files:**
 - Create: `apps/studio/src/features/project/contract.ts`
 - Test: `apps/studio/src/features/project/contract.test.ts`
+- Create: `apps/studio/src/features/project/project-root.ts`
+- Test: `apps/studio/src/features/project/project-root.test.ts`
+- Modify: `apps/studio/src/features/home/project-summary.ts`
 
-`pickMainFile` lives in `features/home/project-summary.ts` and was written for
-the home page. The rail needs the same answer, so the rule moves into the
-project domain and both call it.
+Two questions the rail asks that nothing answers yet: *which folder is the
+project*, and *which file in it is the contract*.
+
+The spec expected the second one to already exist as `pickMainFile`
+(`features/home/project-summary.ts:86`). It does not. That function takes the
+**newest** contract and, finding none, **falls back to the newest file of any
+type** — because the home card has to open *something*. `pickContract` takes
+the shallowest and returns null without a contract, because a rail must not
+invent a subject. Both rules are right for their caller, so both stay; what
+they share is the suffix predicate, and that is all that moves.
+
+The first question has no answer at all today, and needs one: `files-page.tsx:75`
+rewrites the URL to the file's immediate parent folder, so `:projectId` is only
+the project when the contract happens to sit at the top level.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -200,6 +253,13 @@ describe("pickContract", () => {
     expect(picked!.contract).toEqual(a);
     expect(picked!.ignored).toEqual([b]);
   });
+
+  it("matches the suffix regardless of case, as the home page always has", () => {
+    // `pickMainFile` lowercased before comparing; the shared predicate keeps
+    // that, or adopting it would silently narrow the home page's rule.
+    const shouty = file("s", "Counter.SMART.C", "/proj/Counter.SMART.C");
+    expect(pickContract([shouty])!.contract).toEqual(shouty);
+  });
 });
 ```
 
@@ -230,8 +290,10 @@ export interface ContractChoice<T extends ContractCandidate = ContractCandidate>
   ignored: T[];
 }
 
+/** Lowercased first: this predicate is shared with the home page, whose rule
+ *  has always been case-insensitive. */
 export function isContractFile(name: string): boolean {
-  return name.endsWith(CONTRACT_EXTENSION);
+  return name.toLowerCase().endsWith(CONTRACT_EXTENSION);
 }
 
 function depthOf(path: string): number {
@@ -270,34 +332,134 @@ export function contractOfProject(
 - [ ] **Step 4: Run it and watch it pass**
 
 Run: `cd apps/studio && bun test src/features/project/contract.test.ts`
-Expected: PASS, 4 tests
+Expected: PASS, 5 tests
 
-- [ ] **Step 5: Point the home page at the shared rule**
+- [ ] **Step 5: Share the predicate with the home page, and nothing else**
 
-In `features/home/project-summary.ts`, delete its local `SMARTC_EXTENSION`
-constant and its `pickMainFile` function, import from the new module, and
-replace the call:
+In `features/home/project-summary.ts`, delete the local `SMARTC_EXTENSION`
+constant and import the predicate instead:
 
 ```ts
-import { isContractFile, pickContract } from "@/features/project/contract";
-…
-const choice = pickContract(candidates);
-const mainFileId = choice ? choice.contract.id : null;
+import { isContractFile } from "@/features/project/contract";
 ```
 
-Keep the existing comment about matching on the file-name suffix — it explains
-why `FileTypes` is not imported here, which is still true.
+In `pickMainFile`, replace the filter body:
+
+```ts
+  const contracts = candidates.filter((candidate) => isContractFile(candidate.name));
+```
+
+**Leave the rest of `pickMainFile` alone** — the newest-wins choice and the
+fallback to a file of any type are what the project card needs, and
+`Candidate` has no `path` for `pickContract` to sort on anyway. Keep the
+existing comment about matching on the suffix: it explains why `FileTypes` is
+not imported here, which is still true.
 
 - [ ] **Step 6: Verify the home page's own tests still pass**
 
 Run: `cd apps/studio && bun test src/features/home/`
-Expected: PASS, unchanged count.
+Expected: PASS, unchanged count. In particular `picks the newest .smart.c as
+the main file` and `falls back to the newest file of any type` still pass —
+they are the two this task must not break.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 7: Write the failing test for the project root**
+
+```ts
+// apps/studio/src/features/project/project-root.test.ts
+import { describe, it, expect } from "bun:test";
+import { findProjectOfFolder, type FolderTree } from "./project-root";
+
+/** projects: vault → src → lib; and a second project, empty. */
+const tree: FolderTree = {
+  listFolderContents: (id?: string) =>
+    ({
+      undefined: { folders: [{ id: "vault" }, { id: "spare" }], files: [] },
+      vault: { folders: [{ id: "src" }], files: [] },
+      src: { folders: [{ id: "lib" }], files: [] },
+      lib: { folders: [], files: [] },
+      spare: { folders: [], files: [] },
+    })[id ?? "undefined"]!,
+};
+
+describe("findProjectOfFolder", () => {
+  it("answers with the folder itself when it is already a project", () => {
+    expect(findProjectOfFolder(tree, "vault")).toBe("vault");
+  });
+
+  it("climbs to the project from a subfolder", () => {
+    expect(findProjectOfFolder(tree, "src")).toBe("vault");
+  });
+
+  it("climbs from any depth", () => {
+    expect(findProjectOfFolder(tree, "lib")).toBe("vault");
+  });
+
+  it("finds nothing for a folder that is not in the tree", () => {
+    // A stale URL, or a project another tab deleted. Never throws.
+    expect(findProjectOfFolder(tree, "ghost")).toBeNull();
+  });
+});
+```
+
+- [ ] **Step 8: Run it and watch it fail**
+
+Run: `cd apps/studio && bun test src/features/project/project-root.test.ts`
+Expected: FAIL — `Cannot find module './project-root'`
+
+- [ ] **Step 9: Write it**
+
+```ts
+// apps/studio/src/features/project/project-root.ts
+
+/**
+ * Which project a folder belongs to.
+ *
+ * The route's `:projectId` is not reliably a project. `files-page.tsx:75`
+ * rewrites the URL to the file's *immediate* parent folder, so a contract in
+ * `src/` puts `src` in the URL — and everything keyed on that id (the status
+ * record, the recursive file listing, the cells' navigation targets) would
+ * then describe a subfolder while claiming to describe a project.
+ *
+ * `findFolderChainToFile` in `tree-reveal.ts` solves the same problem for a
+ * file id, and `use-recent-files.ts` documents the trap. This is the folder
+ * version, on the same structural interface so it tests against the same fake.
+ */
+
+/** The bit of the file system the walk needs — keeps this testable. */
+export interface FolderTree {
+  listFolderContents(folderId?: string): {
+    folders: { id: string }[];
+    files: { id: string }[];
+  };
+}
+
+/** The top-level project `folderId` sits in or under, or null if it is in none. */
+export function findProjectOfFolder(
+  tree: FolderTree,
+  folderId: string,
+): string | null {
+  const contains = (candidate: string): boolean =>
+    candidate === folderId ||
+    tree.listFolderContents(candidate).folders.some((sub) => contains(sub.id));
+
+  for (const project of tree.listFolderContents().folders) {
+    if (contains(project.id)) return project.id;
+  }
+
+  return null;
+}
+```
+
+- [ ] **Step 10: Run it and watch it pass**
+
+Run: `cd apps/studio && bun test src/features/project/`
+Expected: PASS, 9 new tests, plus the file-naming/tree-reveal suites already there.
+
+- [ ] **Step 11: Commit**
 
 ```bash
-git add apps/studio/src/features/project/contract.ts apps/studio/src/features/project/contract.test.ts apps/studio/src/features/home/project-summary.ts
-git commit -m "feat(studio): one rule for which file is the project's contract"
+git add apps/studio/src/features/project apps/studio/src/features/home/project-summary.ts
+git commit -m "feat(studio): name the project, and the one contract in it"
 ```
 
 ---
@@ -308,10 +470,12 @@ git commit -m "feat(studio): one rule for which file is the project's contract"
 - Create: `apps/studio/src/lib/file-system/project-status.ts`
 - Test: `apps/studio/src/lib/file-system/project-status.test.ts`
 - Modify: `apps/studio/src/lib/file-system/file-system.ts`
+- Modify: `apps/studio/src/lib/file-system/file-system-types.ts`
 - Modify: `apps/studio/src/lib/file-system/index.ts`
 
 Built exactly like `recent-files.ts`: pure functions plus a service bound to a
-host, composed into `FileSystem` as a lazy getter.
+host, composed into `FileSystem` as a lazy getter — and, unlike `recents`,
+announcing its writes, because the rail has to repaint when a test run lands.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -568,7 +732,7 @@ export class ProjectStatus {
 - [ ] **Step 4: Run it and watch it pass**
 
 Run: `cd apps/studio && bun test src/lib/file-system/project-status.test.ts`
-Expected: PASS, 9 tests
+Expected: PASS, 8 tests
 
 - [ ] **Step 5: Compose it into the file system**
 
@@ -619,10 +783,25 @@ Then the lazy getter, beside `get recents()`:
       setStatuses: (statuses) => {
         this.metadata.projectStatus = statuses;
         this.saveMetadata();
+        // Recents can stay silent because only the recents list reads them.
+        // A verdict is read by the rail, on a different surface from the one
+        // that wrote it, so a write nobody hears would show as a cell that
+        // never updates after a test run.
+        this.emitEvent({ type: "status:updated", id: this.metadata.rootFolder });
       },
     }));
   }
 ```
+
+And add the event to the union in `file-system-types.ts`, beside `fs:reloaded`:
+
+```ts
+  /** A compile or test verdict was written. See `project-status.ts`. */
+  | "status:updated"
+```
+
+No wildcard handling needed: `emitEvent` only fans out `file:` and `folder:`
+prefixes, and this event has neither.
 
 - [ ] **Step 6: Prune on deletion, so nothing dangles**
 
@@ -748,6 +927,17 @@ describe("deployCell", () => {
     expect(deployCell({ state: "asking" })).toEqual({ fact: "…", tone: "neutral" });
   });
 
+  it("says nothing when there is no code to ask about", () => {
+    // No machine code hash without a compile, so there is no question to put
+    // to the chain — and the previous answer, about different code, must not
+    // stay on screen.
+    expect(deployCell({ state: "no-code" })).toEqual({
+      fact: "—",
+      tone: "neutral",
+      hint: "The contract does not compile yet",
+    });
+  });
+
   it("reports that this code is nowhere on chain", () => {
     expect(deployCell({ state: "answered", total: 0, mine: 0, capped: false })).toEqual({
       fact: "not deployed",
@@ -789,6 +979,12 @@ import type { CompileVerdict, TestVerdict } from "@/lib/file-system";
  * have not moved on. A green badge from before the last edit is the one way a
  * rail like this can actively mislead, so it is a rule with tests rather than
  * an intention.
+ *
+ * `errorCount` is 0 or 1 in practice — the SmartC compiler throws on the first
+ * error rather than collecting, so `symbol-cache.ts` raises at most one marker
+ * and `analyzeWithCompiler` returns at most one error. The plural branch is
+ * kept anyway: it costs one ternary and it is the only thing that would need
+ * writing if the compiler ever learns to recover.
  */
 
 export type CellTone = "good" | "bad" | "neutral";
@@ -840,12 +1036,17 @@ export function simulateCell(scenarioCount: number): CellContent {
 
 export type DeploymentAnswer =
   | { state: "no-wallet" }
+  /** The source does not compile, so there is no code hash to ask about. */
+  | { state: "no-code" }
   | { state: "asking" }
   | { state: "answered"; total: number; mine: number; capped: boolean };
 
 export function deployCell(answer: DeploymentAnswer): CellContent {
   if (answer.state === "no-wallet") {
     return { ...UNKNOWN, hint: "Connect a wallet to ask the chain" };
+  }
+  if (answer.state === "no-code") {
+    return { ...UNKNOWN, hint: "The contract does not compile yet" };
   }
   if (answer.state === "asking") return { fact: "…", tone: "neutral" };
   if (answer.total === 0) return { fact: "not deployed", tone: "neutral" };
@@ -874,11 +1075,12 @@ git commit -m "feat(studio): what each rail cell says, and when it refuses to"
 ## Task 5: The rail
 
 **Files:**
+- Create: `apps/studio/src/features/workflow/use-project-facts.ts`
 - Create: `apps/studio/src/features/workflow/use-compile-verdict.ts`
 - Create: `apps/studio/src/features/workflow/rail.tsx`
 - Modify: `apps/studio/src/components/ui/page.tsx` (PageHeader renders the rail)
 - Modify: `apps/studio/src/features/smartc-editor/smartc-editor.tsx` (record the verdict)
-- Modify: `apps/studio/src/features/testbed/use-test-run.ts` (record the verdict)
+- Modify: `apps/studio/src/features/testbed/ui/test-file-editor.tsx` (record the verdict)
 
 - [ ] **Step 1: Measure a compile before deciding to do one**
 
@@ -901,17 +1103,110 @@ bun run /tmp/compile-timing.ts
 ```
 
 Record the number in the commit message. **If the mean is under 50 ms**,
-continue with Step 2 as written. **If it is over**, skip Step 2 entirely: the
-hook becomes a plain read of `fs.status.of(projectId).compile` with no
-compiling, and the Write cell reads `—` until the editor has validated once.
+continue with Step 3 as written. **If it is over**, drop the compiling half of
+it: the hook becomes a plain read of `facts.status.compile`, and the Write cell
+reads `—` until the contract has been saved once.
 
-- [ ] **Step 2: Write the read-through verdict hook**
+- [ ] **Step 2: Everything the rail reports on, and when it changes**
+
+Three separate mistakes live in reading `FileSystem` straight out of render,
+and one hook fixes all three.
+
+```ts
+// apps/studio/src/features/workflow/use-project-facts.ts
+import { useCallback, useEffect, useState } from "react";
+import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { findProjectOfFolder } from "@/features/project/project-root";
+import { contractOfProject, type ContractChoice } from "@/features/project/contract";
+import type { FileMetadata, ProjectStatusRecord } from "@/lib/file-system";
+
+/**
+ * The project the route is in, and the facts the rail reports about it.
+ *
+ * 1. **The route's `:projectId` is not the project.** `files-page.tsx:75`
+ *    rewrites the URL to the file's *immediate* parent folder, so it names a
+ *    subfolder whenever the contract is nested — and the status key, the file
+ *    listing and the cells’ navigation targets would then all describe `src`
+ *    while claiming to describe the project. Resolved once, here.
+ * 2. **`FileSystem` is not reactive.** A `useMemo` over it never re-runs, so
+ *    the scenario count, the timestamps and the verdicts would freeze until
+ *    the next navigation — and the staleness rule, which exists precisely to
+ *    compare those timestamps, would never fire. `use-recent-files.ts:44-52`
+ *    is the subscription this copies.
+ * 3. **`listFilesRecursive` throws** on a folder it cannot find
+ *    (`file-system.ts:818`), and the rail renders in the page header of every
+ *    `/projects/*` route. A stale URL, or a project another tab deleted, would
+ *    otherwise take the header down with it.
+ */
+
+export interface ProjectFacts {
+  /** The real project, not what the URL said. Empty string when there is none. */
+  projectId: string;
+  files: FileMetadata[];
+  contract: ContractChoice<FileMetadata> | null;
+  status: ProjectStatusRecord;
+}
+
+const NOTHING: ProjectFacts = {
+  projectId: "",
+  files: [],
+  contract: null,
+  status: { tests: {} },
+};
+
+export function useProjectFacts(routeFolderId: string): ProjectFacts {
+  const fs = useFileSystem();
+
+  const read = useCallback((): ProjectFacts => {
+    if (!routeFolderId) return NOTHING;
+
+    const projectId = findProjectOfFolder(fs, routeFolderId);
+    if (!projectId) return NOTHING;
+
+    try {
+      const files = fs.listFilesRecursive(projectId);
+      return {
+        projectId,
+        files,
+        contract: contractOfProject(files),
+        status: fs.status.of(projectId),
+      };
+    } catch {
+      // The project went away between resolving it and listing it.
+      return NOTHING;
+    }
+  }, [fs, routeFolderId]);
+
+  const [facts, setFacts] = useState(read);
+
+  useEffect(() => {
+    const refresh = () => setFacts(read());
+
+    refresh();
+    fs.addEventListener("file:*", refresh);
+    fs.addEventListener("folder:*", refresh);
+    fs.addEventListener("fs:reloaded", refresh);
+    // The one the verdicts arrive on — a test run writes no file.
+    fs.addEventListener("status:updated", refresh);
+    return () => {
+      fs.removeEventListener("file:*", refresh);
+      fs.removeEventListener("folder:*", refresh);
+      fs.removeEventListener("fs:reloaded", refresh);
+      fs.removeEventListener("status:updated", refresh);
+    };
+  }, [fs, read]);
+
+  return facts;
+}
+```
+
+- [ ] **Step 3: Write the read-through verdict hook**
 
 ```ts
 // apps/studio/src/features/workflow/use-compile-verdict.ts
 import { useEffect, useState } from "react";
-import { SmartC } from "smartc-signum-compiler";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { analyzeWithCompiler } from "@/features/smartc-editor/language/compiler-symbols";
 import type { CompileVerdict, FileMetadata } from "@/lib/file-system";
 
 /**
@@ -921,19 +1216,21 @@ import type { CompileVerdict, FileMetadata } from "@/lib/file-system";
  * The persisted record doubles as the cache: a hit costs nothing, a miss costs
  * one compile and is then a hit for every later navigation, and an edit
  * invalidates it by moving the file's `lastModified`. The SmartC editor writes
- * the same record while it validates — free, because it compiles anyway — so
- * in practice this rarely has to do the work itself.
+ * the same record when it saves, so in practice this rarely does the work.
+ *
+ * `analyzeWithCompiler` rather than `new SmartC(...)` directly: the language
+ * service already wraps the compiler in exactly this try/catch, and it never
+ * throws. One implementation of "does this compile", not two that can drift.
  */
 export function useCompileVerdict(
   projectId: string,
   contract: FileMetadata | null,
+  stored: CompileVerdict | undefined,
 ): { verdict: CompileVerdict | undefined; compiling: boolean } {
   const fs = useFileSystem();
   const [compiling, setCompiling] = useState(false);
-  const [, bump] = useState(0);
 
-  const stored = projectId ? fs.status.of(projectId).compile : undefined;
-  const fresh = contract && stored?.sourceModified === contract.lastModified;
+  const fresh = !!contract && stored?.sourceModified === contract.lastModified;
 
   useEffect(() => {
     if (!contract || !projectId || fresh) return;
@@ -947,24 +1244,17 @@ export function useCompileVerdict(
         const { content } = await fs.loadFile<string>(contract.id);
         if (cancelled) return;
 
-        let errorCount = 0;
-        try {
-          new SmartC({ language: "C", sourceCode: content ?? "" }).compile();
-        } catch {
-          // The compiler throws on the first error rather than collecting, so
-          // one is all this can honestly claim.
-          errorCount = 1;
-        }
-
+        const { error } = analyzeWithCompiler(content ?? "");
+        // The compiler throws on the first error rather than collecting, so
+        // one is all this can honestly claim.
         fs.status.recordCompile(projectId, {
           sourceModified: contract.lastModified,
-          errorCount,
+          errorCount: error ? 1 : 0,
         });
+        // No local re-render needed: `recordCompile` emits `status:updated`
+        // and `useProjectFacts` hands the new verdict back down.
       } finally {
-        if (!cancelled) {
-          setCompiling(false);
-          bump((n) => n + 1);
-        }
+        if (!cancelled) setCompiling(false);
       }
     });
 
@@ -977,15 +1267,13 @@ export function useCompileVerdict(
 }
 ```
 
-- [ ] **Step 3: Write the rail**
+- [ ] **Step 4: Write the rail**
 
 ```tsx
 // apps/studio/src/features/workflow/rail.tsx
-import { useMemo } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
-import { contractOfProject } from "@/features/project/contract";
 import {
   compileCell,
   deployCell,
@@ -993,6 +1281,7 @@ import {
   testCell,
   type CellContent,
 } from "./rail-cells";
+import { useProjectFacts } from "./use-project-facts";
 import { useCompileVerdict } from "./use-compile-verdict";
 import { useDeploymentCount } from "./use-deployment-count";
 
@@ -1021,16 +1310,15 @@ interface Cell {
 export function WorkflowRail() {
   const fs = useFileSystem();
   const navigate = useNavigate();
-  const { projectId = "", fileId = "" } = useParams<{
+  const { pathname } = useLocation();
+  const { projectId: routeFolderId = "", fileId = "" } = useParams<{
     projectId: string;
     fileId: string;
   }>();
 
-  const files = useMemo(
-    () => (projectId ? fs.listFilesRecursive(projectId) : []),
-    [fs, projectId],
-  );
-  const choice = contractOfProject(files);
+  // `projectId` here is the resolved project, which is not always what the
+  // URL called one. Everything below keys off this and never off the param.
+  const { projectId, files, contract: choice, status } = useProjectFacts(routeFolderId);
   const contract = choice?.contract ?? null;
 
   const scenarios = files.filter((file) => file.name.endsWith(".scenario.json"));
@@ -1041,8 +1329,7 @@ export function WorkflowRail() {
   const activeTest =
     tests.find((file) => recentIds.includes(file.id)) ?? tests[0] ?? null;
 
-  const { verdict, compiling } = useCompileVerdict(projectId, contract);
-  const status = projectId ? fs.status.of(projectId) : { tests: {} };
+  const { verdict, compiling } = useCompileVerdict(projectId, contract, status.compile);
   const deployment = useDeploymentCount(contract);
 
   const cells: Cell[] = [
@@ -1090,7 +1377,7 @@ export function WorkflowRail() {
   const here = (id: Cell["id"]) => {
     if (id === "write") return contract ? fileId === contract.id : false;
     if (id === "test") return activeTest ? fileId === activeTest.id : false;
-    return location.pathname.endsWith(`/${id}`);
+    return pathname.endsWith(`/${id}`);
   };
 
   const ignoredNote = choice?.ignored.length
@@ -1191,7 +1478,11 @@ function RailCell({
 }
 ```
 
-- [ ] **Step 4: Give the page header a slot for it**
+`useLocation().pathname` rather than the global `location`: the global one is
+not reactive, so `here("simulate")` would keep its answer from the previous
+route until something else re-rendered the header.
+
+- [ ] **Step 5: Give the page header a slot for it**
 
 In `components/ui/page.tsx`, import the rail and render it between the title
 area and the actions, on project routes only:
@@ -1226,59 +1517,108 @@ const PageHeader = React.forwardRef<HTMLElement, PageHeaderProps>(
 );
 ```
 
-- [ ] **Step 5: Record the compile verdict where it is free**
+- [ ] **Step 6: Record the compile verdict when the file is written**
 
-In `smartc-editor.tsx`, `handleValidate` already counts error markers. Store
-the result there:
+The obvious place is `handleValidate`, and it is wrong. Monaco validates the
+**buffer**; `lastModified` is the **saved** state. Type an error without
+saving and the editor would file "1 error" under the timestamp of the
+error-free bytes on disk — the rail then reports a fault in code that is not
+there. The two halves have to describe the same bytes, so the verdict goes
+where the bytes land.
+
+`useEditorFile` already offers the seam (`use-editor-file.ts:44`):
 
 ```tsx
-  const handleValidate = (markers: any[]) => {
-    // Only compile errors block save/compile; warnings are informational.
-    const MARKER_SEVERITY_ERROR = 8; // monaco.MarkerSeverity.Error
-    const errors = markers.filter((m) => m.severity === MARKER_SEVERITY_ERROR);
-    setValidationError(errors[0]?.message ?? "");
+  const {
+    text: code,
+    isDirty,
+    onChange: handleEditorChange,
+    saveNow: saveSmartCFile,
+    download,
+  } = useEditorFile({
+    file,
+    // Runs after a successful write, with the text that was written — so the
+    // verdict and the `lastModified` it is filed under describe the same
+    // bytes. `analyzeWithCompiler` never throws and is the same call the
+    // language service makes for its markers.
+    onSaved: (written) => {
+      const projectId = findProjectOfFolder(fs, file.metadata.folderId);
+      const saved = fs.getFileMetadata(file.metadata.id);
+      if (!projectId || !saved || !isContractFile(saved.name)) return;
 
-    // Free: Monaco has just compiled to produce these markers, and the rail
-    // would otherwise pay for the same answer.
-    fs.status.recordCompile(file.metadata.folderId, {
-      sourceModified: file.metadata.lastModified,
-      errorCount: errors.length,
-    });
-  };
+      const { error } = analyzeWithCompiler(written);
+      fs.status.recordCompile(projectId, {
+        sourceModified: saved.lastModified,
+        errorCount: error ? 1 : 0,
+      });
+    },
+  });
 ```
 
-- [ ] **Step 6: Record the test verdict when a run finishes**
+Note `findProjectOfFolder`, not `file.metadata.folderId`: the rail reads the
+verdict under the **project**, and a contract in `src/` would otherwise file it
+under `src` where nothing looks.
 
-In `features/testbed/ui/test-file-editor.tsx`, after a run completes, store the
-counts. `state.status` becomes `"done"` and `state.rows` carry the outcome:
+Leave `handleValidate` exactly as it is — it drives the inline diagnostic,
+which is about the buffer and should stay that way.
+
+Imports: `findProjectOfFolder` from `@/features/project/project-root`,
+`isContractFile` from `@/features/project/contract`, `analyzeWithCompiler`
+from `./language/compiler-symbols`.
+
+- [ ] **Step 7: Record the test verdict when a full run finishes**
+
+In `features/testbed/ui/test-file-editor.tsx`:
 
 ```tsx
   // The rail reports the last run, so the last run has to outlive this editor.
   useEffect(() => {
     if (state.status !== "done") return;
+    // A single-test run reaches "done" through the same reducer
+    // (`runSingleTest` → `runFile(path)`), and its counts describe one test.
+    // Filing those as the file’s verdict would report "1 green" for a file of
+    // twelve, so only an unfiltered run may speak for the file.
+    if (lastRunWasFiltered.current) return;
 
-    const contract = contractOfProject(fs.listFilesRecursive(projectId))?.contract;
-    fs.status.recordTests(projectId, file.metadata.id, {
+    const projectRoot = findProjectOfFolder(fs, projectId);
+    if (!projectRoot) return;
+
+    const contract = contractOfProject(fs.listFilesRecursive(projectRoot))?.contract;
+    fs.status.recordTests(projectRoot, file.metadata.id, {
       sourceModified: file.metadata.lastModified,
       contractModified: contract?.lastModified ?? 0,
-      passed: state.rows.filter((row) => row.status === "passed").length,
-      failed: state.rows.filter(
-        (row) => row.status === "failed" || row.status === "timedout",
-      ).length,
+      // `counts` is already kept by the reducer (`test-run-model.ts:36`);
+      // re-deriving it from `rows` would be a second definition of the same
+      // number. `timedout` is a failure the user needs to see as one.
+      passed: state.counts.passed,
+      failed: state.counts.failed + state.counts.timedout,
     });
-  }, [state.status, state.rows, fs, projectId, file.metadata.id, file.metadata.lastModified]);
+  }, [state.status, state.counts, fs, projectId, file.metadata.id, file.metadata.lastModified]);
 ```
 
-Add `import { contractOfProject } from "@/features/project/contract";` and
-re-add `const fs = useFileSystem();` — Task 8 of the previous phase removed it
-when the direct save went away.
+`lastRunWasFiltered` is a ref set in `runFile`, which already receives the
+filter:
 
-- [ ] **Step 7: Verify**
+```tsx
+  const lastRunWasFiltered = useRef(false);
+
+  const runFile = useCallback(
+    async (filter?: string[]) => {
+      lastRunWasFiltered.current = !!filter?.length;
+      … unchanged …
+```
+
+Add `import { findProjectOfFolder } from "@/features/project/project-root";`
+and `import { contractOfProject } from "@/features/project/contract";`, and
+re-add `const fs = useFileSystem();` — a previous phase removed it when the
+direct save went away.
+
+- [ ] **Step 8: Verify**
 
 Run: `cd apps/studio && bun test && bun run build`
 Expected: suite green; `✅ Build completed`
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
 git add apps/studio/src
@@ -1305,7 +1645,7 @@ import { Navigate, useNavigate, useParams } from "react-router";
 import { Badge } from "@/components/ui/badge";
 import { Page, PageContent, PageHeader } from "@/components/ui/page";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
-import { contractOfProject } from "@/features/project/contract";
+import { useProjectFacts } from "@/features/workflow/use-project-facts";
 import { DebugView } from "@/features/simulator/ui/debug-view";
 
 /**
@@ -1317,24 +1657,24 @@ import { DebugView } from "@/features/simulator/ui/debug-view";
 export function SimulatePage() {
   const fs = useFileSystem();
   const navigate = useNavigate();
-  const { projectId = "" } = useParams<{ projectId: string }>();
+  const { projectId: routeFolderId = "" } = useParams<{ projectId: string }>();
+
+  // Same resolution the rail uses, so the page and the cell that opened it
+  // always agree on which project this is.
+  const { projectId, files, contract: choice } = useProjectFacts(routeFolderId);
+  const contract = choice?.contract ?? null;
 
   const [source, setSource] = useState<string | null>(null);
   const [scenarios, setScenarios] = useState<{ name: string; json: string }[]>([]);
   const [missing, setMissing] = useState(false);
 
   useEffect(() => {
+    if (!contract) return;
+
     let cancelled = false;
 
     async function load() {
-      const files = fs.listFilesRecursive(projectId);
-      const contract = contractOfProject(files)?.contract;
-      if (!contract) {
-        setMissing(true);
-        return;
-      }
-
-      const loaded = await fs.loadFile<string>(contract.id);
+      const loaded = await fs.loadFile<string>(contract!.id);
       const scenarioFiles = files.filter((file) => file.name.endsWith(".scenario.json"));
       const withContent = await Promise.all(
         scenarioFiles.map(async (file) => ({
@@ -1352,9 +1692,11 @@ export function SimulatePage() {
     return () => {
       cancelled = true;
     };
-  }, [fs, projectId]);
+  }, [fs, files, contract?.id, contract?.lastModified]);
 
-  if (missing) return <Navigate to="/" replace />;
+  // A project without a contract has nothing to step through. `useProjectFacts`
+  // settles synchronously on first render, so this is not a race with loading.
+  if (!contract || missing) return <Navigate to="/" replace />;
   if (source === null) return <div className="p-4 text-sm">Loading…</div>;
 
   return (
@@ -1370,7 +1712,10 @@ export function SimulatePage() {
           sourceLabel={
             scenarios.length ? `scenario · ${scenarios[0]!.name}` : "no scenario"
           }
-          onClose={() => navigate(`/projects/${projectId}`)}
+          // `/projects/:projectId` is not a route — App.tsx has only the file
+          // route and the two this phase adds. Closing goes back to the thing
+          // being simulated.
+          onClose={() => navigate(`/projects/${projectId}/files/${contract.id}`)}
         />
       </PageContent>
     </Page>
@@ -1433,12 +1778,20 @@ with `import { SimulatePage } from "./pages/simulate/simulate-page";`
 
 In `smartc-editor.tsx`, delete: the `isDebugging` state, the `ActionType.Debug`
 effect that registers the Debug action, the `if (isDebugging) return <DebugView …>`
-branch, the `scenarios` state and its loading effect, and the now-unused
-`DebugView` and scenario-io imports. The rail's Simulate cell replaces all of
-it.
+branch, and the `scenarios` state with its loading effect. The rail's Simulate
+cell replaces all of it.
 
-Also delete the `ActionType.NewScenario` effect: that action moves to the
-Simulate destination in Task 9.
+Also delete the `ActionType.NewScenario` effect — that action moves to the
+Simulate destination in Task 9 — and both entries from the `ActionType` enum,
+leaving only `Compile`.
+
+`noUnusedLocals` is off (`tsconfig.json`), so nothing below will fail the
+build; sweep it by hand instead. Now unused: the `DebugView` import, `Bug` and
+`FilePlus2` from lucide, `defaultScenario`/`serializeScenario` from
+scenario-io, and `useNavigate` with its `navigate` binding — line 225 was its
+only caller.
+
+Keep `baseName` and `FileTypes`: the `.asm` compile path still uses both.
 
 - [ ] **Step 6: Verify**
 
@@ -1472,7 +1825,7 @@ import { Navigate, useParams } from "react-router";
 import { Badge } from "@/components/ui/badge";
 import { Page, PageContent, PageHeader } from "@/components/ui/page";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
-import { contractOfProject } from "@/features/project/contract";
+import { useProjectFacts } from "@/features/workflow/use-project-facts";
 import { DeploymentView } from "@/features/asm-editor/deployment-view/deployment-view";
 import type { MachineData } from "@/features/asm-editor/machine-data";
 import { SmartC } from "smartc-signum-compiler";
@@ -1486,28 +1839,26 @@ import { SmartC } from "smartc-signum-compiler";
  */
 export function DeployPage() {
   const fs = useFileSystem();
-  const { projectId = "" } = useParams<{ projectId: string }>();
+  const { projectId: routeFolderId = "" } = useParams<{ projectId: string }>();
+  const { contract: choice } = useProjectFacts(routeFolderId);
+  const contract = choice?.contract ?? null;
 
   const [machineData, setMachineData] = useState<MachineData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [missing, setMissing] = useState(false);
 
   useEffect(() => {
+    if (!contract) return;
+
     let cancelled = false;
 
     async function compile() {
-      const contract = contractOfProject(fs.listFilesRecursive(projectId))?.contract;
-      if (!contract) {
-        setMissing(true);
-        return;
-      }
-
-      const { content } = await fs.loadFile<string>(contract.id);
+      const { content } = await fs.loadFile<string>(contract!.id);
       if (cancelled) return;
 
       try {
         const compiler = new SmartC({ language: "C", sourceCode: content ?? "" });
         setMachineData(compiler.compile().getMachineCode());
+        setError(null);
       } catch (e: any) {
         setError(e.message);
       }
@@ -1517,9 +1868,9 @@ export function DeployPage() {
     return () => {
       cancelled = true;
     };
-  }, [fs, projectId]);
+  }, [fs, contract?.id, contract?.lastModified]);
 
-  if (missing) return <Navigate to="/" replace />;
+  if (!contract) return <Navigate to="/" replace />;
 
   return (
     <Page>
@@ -1527,7 +1878,9 @@ export function DeployPage() {
         <h1 className="text-sm font-semibold">Deploy</h1>
         <Badge variant="secondary">Signum</Badge>
       </PageHeader>
-      <PageContent className="overflow-auto p-4">
+      {/* No `overflow-auto` here: `DeploymentView` wraps itself in an
+          `AdaptiveScrollArea`, and two scroll containers give two scrollbars. */}
+      <PageContent className="p-4">
         {error && (
           <p className="text-sm" style={{ color: "var(--mag)" }}>
             <span aria-hidden>● </span>
@@ -1541,6 +1894,9 @@ export function DeployPage() {
   );
 }
 ```
+
+`SmartC` directly rather than `analyzeWithCompiler` here, because this needs
+the machine code and not just the verdict.
 
 - [ ] **Step 2: Add the route**
 
@@ -1625,12 +1981,36 @@ with:
 Delete the width state, its persistence and the pointer handlers: panel sizes
 are the panel group's business now.
 
-- [ ] **Step 3: Verify**
+- [ ] **Step 3: And the fifth height measurement, which Task 1 could not reach**
+
+`DebugSession` carries its own copy of the `calc(100vh - containerTop)` block
+(`debug-view.tsx:94,159`). Task 1 fixed the four editors that sit directly in
+a `PageContent`; this one sits two panels deep and only becomes fixable once
+Step 2 has given it a bounded parent. Now it is.
+
+Delete `editorHeight`, `calculateEditorHeight`, its resize listener and the
+`containerRef` that served it, then:
+
+```tsx
+// before
+<Editor height={editorHeight} …
+<AsmView assembly={assembly} currentAsmLine={…} height={editorHeight} />
+// after
+<Editor height="100%" …
+<AsmView assembly={assembly} currentAsmLine={…} />
+```
+
+`AsmView` already defaults `height` to `"100%"` (`asm-view.tsx:17`), so the
+prop simply goes. The `viewMode === "asm" ? "hidden" : ""` wrapper around the
+editor needs a definite box for Monaco: `className="h-full"` on the visible
+one.
+
+- [ ] **Step 4: Verify**
 
 Run: `cd apps/studio && bun test && bun run build`
 Expected: suite green; `✅ Build completed`
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
 git add apps/studio/src
@@ -1758,8 +2138,11 @@ export function useDeploymentCount(contract: FileMetadata | null): DeploymentAns
         const compiler = new SmartC({ language: "C", sourceCode: content ?? "" });
         hash = compiler.compile().getMachineCode().MachineCodeHashId;
       } catch {
-        // No hash without a compile, which is the same condition that bars the
-        // destination — so there is nothing to report and nothing to explain.
+        // No hash without a compile, so there is no question to ask. Returning
+        // here would leave the previous answer on screen — a count that
+        // describes code the user has since changed, which is the same stale
+        // fact the staleness rule forbids everywhere else.
+        if (!cancelled) setAnswer({ state: "no-code" });
         return;
       }
 
@@ -1803,12 +2186,16 @@ Expected: PASS, 6 tests
 
 - [ ] **Step 5: Move New Scenario to where scenarios are used**
 
-In `simulate-page.tsx`, register the action the SmartC editor used to own:
+In `simulate-page.tsx`, register the action the SmartC editor used to own. It
+needs no state of its own: `projectId` and `contract` are already resolved on
+the page.
 
 ```tsx
   const { addAction, removeAction } = usePageHeaderActions();
 
   useEffect(() => {
+    if (!projectId || !contract) return;
+
     addAction({
       id: "new-scenario",
       tooltip: "Create a run scenario for this contract",
@@ -1818,22 +2205,26 @@ In `simulate-page.tsx`, register the action the SmartC editor used to own:
         const existing = new Set(
           fs.listFolderContents(projectId).files.map((f) => f.metadata.name),
         );
-        const base = (contractName ?? "contract").split(".")[0]!.toLowerCase();
+        const base = contract.name.split(".")[0]!.toLowerCase();
         let name = `${base}.scenario.json`;
         for (let n = 2; existing.has(name); n++) name = `${base}-${n}.scenario.json`;
 
         await fs.addFile(projectId, name, FileTypes.Scenario, serializeScenario(defaultScenario()));
+        // No navigation: the new scenario appears in this page’s own picker,
+        // and `useProjectFacts` hears the `file:added` event.
       },
       variant: "console",
     });
     return () => removeAction("new-scenario");
-  }, [addAction, removeAction, fs, projectId, contractName]);
+  }, [addAction, removeAction, fs, projectId, contract?.id, contract?.name]);
 ```
 
-Keep `contractName` in state alongside `source`, set from the contract's
-`name` in the existing load effect. Imports: `usePageHeaderActions`,
-`FilePlus2`, `FileTypes`, and `defaultScenario`/`serializeScenario` from
+Imports: `usePageHeaderActions`, `FilePlus2`, `FileTypes`, and
+`defaultScenario`/`serializeScenario` from
 `@/features/simulator/scenario/scenario-io`.
+
+This effect sits above the `if (!contract)` early return, like every other
+hook on the page — hence the guard inside it rather than around it.
 
 - [ ] **Step 6: Verify**
 
@@ -1937,15 +2328,20 @@ const offered = hasContract
 ```tsx
 <NewFileDialog
   …
-  hasContract={fs
-    .listFilesRecursive(projectId)
-    .some((file) => isContractFile(file.name))}
+  hasContract={(() => {
+    // `FolderNode` renders for every folder, not just projects, so its own
+    // `folder.id` is a subfolder as often as not — and a subtree listing
+    // would miss the contract sitting in the project root, then cheerfully
+    // offer to create a second one.
+    const projectId = findProjectOfFolder(fs, folder.id);
+    if (!projectId) return false;
+    return fs.listFilesRecursive(projectId).some((file) => isContractFile(file.name));
+  })()}
 />
 ```
 
-`FolderNode` knows its own folder id; for a nested folder the project is the
-root ancestor, so pass the id `FolderNode` already uses for its sibling
-lookups. Import `isContractFile` from `@/features/project/contract`.
+Imports: `isContractFile` from `@/features/project/contract`,
+`findProjectOfFolder` from `@/features/project/project-root`.
 
 - [ ] **Step 6: Verify**
 
@@ -2018,7 +2414,23 @@ navigation still works.
 In a project that has a contract, the New File dialog does not offer SmartC.
 Import a ZIP holding two contracts: one arrives, one is reported skipped.
 
-- [ ] **Step 10: Commit any fixes**
+- [ ] **Step 10: A contract in a subfolder**
+
+The case the plan was rewritten for. Move the contract into `src/` and open it
+from the sidebar, so the URL names `src` rather than the project. The rail must
+still report the project: the Simulate cell counts scenarios that live outside
+`src`, the Test cell finds a test file in a sibling folder, and a save updates
+the Write cell rather than leaving it at `—`. Then open the project from the
+home card, which uses the root id, and confirm the rail says the same things.
+
+- [ ] **Step 11: Live updates**
+
+Without navigating: create a scenario — the Simulate cell’s count rises. Run a
+test file — the Test cell fills in. Run a *single* test from the gutter — the
+cell does **not** change to "1 green". Delete the project in another tab — the
+header does not throw.
+
+- [ ] **Step 12: Commit any fixes**
 
 ```bash
 git add apps/studio/src
@@ -2029,12 +2441,18 @@ git commit -m "fix(studio): browser pass on the workflow rail"
 
 ## Done criteria
 
-- Four cells, each reporting a fact, never a stale one
+- Four cells, each reporting a fact, never a stale one — and repainting when
+  the fact changes, without a navigation
+- The rail’s subject is the project, whatever folder the URL happens to name
 - Simulate and Deploy are routes; `isDebugging` is gone
 - The two stepping sessions name their source
 - Deployment count comes from the chain, capped at `9+`, never stored
-- One panel idiom; no `calc(100vh − containerTop)` left in the tree
+- One panel idiom; the five editor height measurements are gone
+  (`components/ui/adaptive-scroll-area.tsx` keeps its own — it is a scroll
+  container used inside Cards, not an editor, and converting it is not this
+  phase’s job)
 - A project admits one contract, in the dialog and on import
+- The home page still opens what it always opened
 - `bun test` green, `bun run build` succeeds, browser pass done
 
 ## What comes next

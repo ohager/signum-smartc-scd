@@ -52,8 +52,20 @@ Read out of the current code, not assumed:
   (`lib/file-system/recent-files.ts`) is a small record inside the file
   system's metadata blob, composed into `FileSystem` as `fs.recents`,
   synchronous to read, and — since 2026-09-18 — synchronised across tabs.
-- **A main-contract rule already exists**, `pickMainFile` in
-  `features/home/project-summary.ts`, written for the home page.
+- **A main-contract rule exists but is not the one the rail needs.**
+  `pickMainFile` (`features/home/project-summary.ts:86`) takes the *newest*
+  contract and, finding none, falls back to the newest file of any type,
+  because the project card must open something. A rail must not invent a
+  subject, and its answer must not flicker between renders. Two rules, one
+  shared suffix predicate.
+- **The route's `:projectId` is not reliably a project.** `files-page.tsx:75`
+  rewrites the URL to the opened file's *immediate* parent folder, so a
+  contract in `src/` puts `src` there. `use-recent-files.ts:32-35` documents
+  the same trap and resolves it through `findFolderChainToFile`.
+- **`FileSystem` is not reactive and `listFilesRecursive` throws.** Readers
+  subscribe to `file:*` / `folder:*` / `fs:reloaded` (as `use-recent-files.ts`
+  does) or they see a frozen snapshot; and an unknown folder id raises
+  (`file-system.ts:818`) rather than answering empty.
 - **Two dead components**, `components/ui/layout/main-area.tsx` and
   `right-sidebar.tsx`, are imported nowhere.
 - `NewProjectDialog` offers a second project type, `inspect`, which today only
@@ -258,9 +270,11 @@ browser profile.
 - `FileTransfer.importEntries` skips a second contract and counts it as
   skipped, which the import report already surfaces with a reason.
 - Workspaces that already break the rule must not break: the contract is
-  resolved deterministically by the `pickMainFile` rule, moved out of
-  `features/home/project-summary.ts` into the project domain so both callers
-  share it. The Write cell's tooltip then names the contract it chose and says
+  resolved deterministically by a new `pickContract` in the project domain —
+  shallowest path first, then alphabetical. The home page keeps its own
+  newest-wins rule and its fallback, which the project card depends on; only
+  the `.smart.c` suffix predicate is shared. The Write cell's tooltip then
+  names the contract it chose and says
   a second one is being ignored — silently dropping it would be worse, and the
   tooltip is the one place that can say so without shouting.
 - An `inspect` project has no contract; the rail's four cells all read `—`.
@@ -288,8 +302,10 @@ after it simpler to touch.
 ```
 apps/studio/src/
   features/project/
-    contract.ts                    CREATE  the project's one contract: resolve, and the pickMainFile rule
+    contract.ts                    CREATE  the project's one contract, and the shared suffix predicate
     contract.test.ts               CREATE
+    project-root.ts                CREATE  the project a route's folder id sits under
+    project-root.test.ts           CREATE
   lib/file-system/
     project-status.ts              CREATE  CompileVerdict/TestVerdict + the service, beside recent-files.ts
     project-status.test.ts         CREATE
@@ -298,6 +314,7 @@ apps/studio/src/
     rail.tsx                       CREATE  the four cells and the loop arc
     rail-cells.ts                  CREATE  pure: verdict + staleness → what a cell shows
     rail-cells.test.ts             CREATE
+    use-project-facts.ts           CREATE  the resolved project, its files and verdicts, live
     use-deployment-count.ts        CREATE  the chain lookup, cached per hash
   pages/
     simulate/simulate-page.tsx     CREATE  the Simulate destination
@@ -310,10 +327,21 @@ apps/studio/src/
   components/ui/layout/{main-area,right-sidebar}.tsx   DELETE
 ```
 
+## The project a surface is on
+
+Every surface in this spec — the rail, Simulate, Deploy — is *about a project*,
+and none of them can take the route parameter at face value. They resolve the
+root project from whatever folder id the URL carries, once, and key everything
+after that on the result: the status record, the recursive file listing, and
+the cells' navigation targets. A status verdict filed under `src` and read
+under the project is a cell that never updates, which is the same failure as a
+stale one and harder to see.
+
 ## Testing
 
-Pure logic gets `bun test`: resolving a project's contract (including the
-two-contract fallback), the project-status service and its hydration guard,
+Pure logic gets `bun test`: resolving a project from a nested folder id,
+resolving a project's contract (including the two-contract fallback), the
+project-status service and its hydration guard,
 and `rail-cells` — which is where the staleness rule lives and therefore the
 most important test in this spec. The chain lookup is tested against a fake
 `ContractApi`, covering the ten-result cap and the creator match.
