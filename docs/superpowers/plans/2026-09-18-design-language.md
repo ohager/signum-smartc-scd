@@ -1607,6 +1607,10 @@ git commit -m "feat(studio): grid, brackets and a wordmark where people arrive"
 
 ## Task 10: Verification in the browser
 
+**Done — the owner ran this pass on 2026-09-18 and approved the result.** The
+steps below stayed as written rather than being ticked one by one; they remain
+the checklist for the next time the language is touched.
+
 There is no DOM test environment in this repo, so this task is manual and
 mandatory. Run `cd apps/studio && bun dev` and check each line, reporting what
 actually happened:
