@@ -37,7 +37,7 @@ export function HomePage() {
       if (file) {
         const rootNames = fs.listFolderContents().folders.map((f) => f.metadata.name);
         const base = file.name.replace(/\.zip$/i, "");
-        const folderId = await fs.createFolder("/", uniqueName(base, rootNames));
+        const folderId = await fs.createFolder(fs.rootFolderId, uniqueName(base, rootNames));
         const bytes = new Uint8Array(await file.arrayBuffer());
         const res = await fs.transfer.importZip(folderId, bytes, acceptedFileType);
         toast.success(

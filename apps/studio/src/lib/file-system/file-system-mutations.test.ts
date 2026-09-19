@@ -41,13 +41,10 @@ beforeEach(() => {
   fs = new FileSystem(new MemoryStorage(), content);
 });
 
-/** The root folder id of a freshly created workspace. */
-const rootId = () => fs.listFolderContents().folders[0]?.id ?? "";
-
 describe("moveFile", () => {
   it("updates the file's folderId, not only the folder listings", async () => {
-    const from = await fs.createFolder("/", "from");
-    const to = await fs.createFolder("/", "to");
+    const from = await fs.createFolder(fs.rootFolderId, "from");
+    const to = await fs.createFolder(fs.rootFolderId, "to");
     const fileId = await fs.addFile(from, "counter.smart.c", "smartc", "code");
 
     await fs.moveFile(fileId, to);
@@ -57,8 +54,8 @@ describe("moveFile", () => {
   });
 
   it("rewrites the path to sit under the target folder", async () => {
-    const from = await fs.createFolder("/", "from");
-    const to = await fs.createFolder("/", "to");
+    const from = await fs.createFolder(fs.rootFolderId, "from");
+    const to = await fs.createFolder(fs.rootFolderId, "to");
     const fileId = await fs.addFile(from, "counter.smart.c", "smartc", "code");
 
     await fs.moveFile(fileId, to);
@@ -69,7 +66,7 @@ describe("moveFile", () => {
 
 describe("renameFile", () => {
   it("keeps folderId pointing at the owning folder", async () => {
-    const folder = await fs.createFolder("/", "project");
+    const folder = await fs.createFolder(fs.rootFolderId, "project");
     const fileId = await fs.addFile(folder, "old.smart.c", "smartc", "code");
 
     await fs.renameFile(fileId, "new.smart.c");
@@ -77,6 +74,32 @@ describe("renameFile", () => {
     const meta = fs.getFileMetadata(fileId)!;
     expect(meta.folderId).toBe(folder);
     expect(meta.path).toBe("/project/new.smart.c");
+  });
+});
+
+describe("createFolder", () => {
+  it("creates the folder inside the folder it is given, not the first one sharing its path", async () => {
+    // Nothing stops two projects being called the same, and then their paths
+    // are identical — so a path can never identify a parent.
+    const first = await fs.createFolder(fs.rootFolderId, "demo");
+    const second = await fs.createFolder(fs.rootFolderId, "demo");
+
+    const child = await fs.createFolder(second, "tests");
+
+    expect(fs.listFolderContents(second).folders.map((f) => f.id)).toEqual([child]);
+    expect(fs.listFolderContents(first).folders).toEqual([]);
+  });
+
+  it("builds the child path from the parent it was given", async () => {
+    const parent = await fs.createFolder(fs.rootFolderId, "demo");
+
+    const child = await fs.createFolder(parent, "tests");
+
+    expect(fs.getFolder(child).path).toBe("/demo/tests");
+  });
+
+  it("rejects an unknown parent", async () => {
+    expect(fs.createFolder("nope", "tests")).rejects.toThrow("Parent folder not found: nope");
   });
 });
 
@@ -118,6 +141,3 @@ describe("hydration", () => {
     expect(loaded.getFileMetadata("f1")!.folderId).toBe("to");
   });
 });
-
-// Root is unused for now but keeps the helper honest if a test needs it.
-void rootId;

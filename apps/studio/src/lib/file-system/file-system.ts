@@ -227,6 +227,11 @@ export class FileSystem extends EventTarget {
     return false;
   }
 
+  /** The id of the workspace root, whose children are the projects. */
+  get rootFolderId(): string {
+    return this.metadata.rootFolder;
+  }
+
   getFileMetadata(fileId: string): FileMetadata | null {
     return this.metadata.files[fileId] || null;
   }
@@ -407,35 +412,27 @@ export class FileSystem extends EventTarget {
 
   // Folder operations
   /**
-   * Creates a new folder within the specified parent path.
+   * Creates a new folder inside the given parent.
    *
-   * @param {string} parentPath - The path of the parent folder where the new folder will be created. Use '/' for the root folder.
+   * Takes the parent's **id**, not its path: two projects may carry the same
+   * name, and then their paths are identical, so a path cannot identify a
+   * folder. Use `rootFolderId` for a top-level folder.
+   *
+   * @param {string} parentFolderId - The id of the folder to create in.
    * @param {string} name - The name of the new folder to be created.
    * @return {Promise<string>} - A promise that resolves with the unique ID of the newly created folder.
-   * @throws {Error} - Throws an error if the parent folder specified by `parentPath` is not found.
+   * @throws {Error} - Throws an error if the parent folder is not found.
    */
-  async createFolder(parentPath: string, name: string): Promise<string> {
-    // Find parent folder ID from path
-    let parentFolderId: string | null = null;
+  async createFolder(parentFolderId: string, name: string): Promise<string> {
+    const parent = this.metadata.folders[parentFolderId];
 
-    for (const [folderId, metadata] of Object.entries(this.metadata.folders)) {
-      if (metadata.path === parentPath) {
-        parentFolderId = folderId;
-        break;
-      }
-    }
-
-    if (!parentFolderId && parentPath !== "/") {
-      throw new Error(`Parent folder not found: ${parentPath}`);
-    }
-
-    if (parentPath === "/") {
-      parentFolderId = this.metadata.rootFolder;
+    if (!parent) {
+      throw new Error(`Parent folder not found: ${parentFolderId}`);
     }
 
     // Generate a new folder ID
     const folderId = this.generateId();
-    const folderPath = `${parentPath === "/" ? "" : parentPath}/${name}`;
+    const folderPath = `${parent.path === "/" ? "" : parent.path}/${name}`;
 
     // Add folder metadata
     this.metadata.folders[folderId] = {
@@ -453,9 +450,7 @@ export class FileSystem extends EventTarget {
     };
 
     // Add to parent folder contents
-    if (parentFolderId) {
-      this.metadata.folderContents[parentFolderId].folders.push(folderId);
-    }
+    this.metadata.folderContents[parentFolderId].folders.push(folderId);
 
     this.saveMetadata();
 
@@ -463,7 +458,7 @@ export class FileSystem extends EventTarget {
       type: "folder:created",
       id: folderId,
       metadata: this.metadata.folders[folderId],
-      relatedId: parentFolderId || undefined
+      relatedId: parentFolderId
     });
 
     return folderId;

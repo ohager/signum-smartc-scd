@@ -289,7 +289,7 @@ export function FolderNode({ folder }: { folder: FolderMetadata }) {
         submitLabel="Create"
         onSubmit={async (n) => {
           try {
-            await fs.createFolder(folder.path, uniqueName(n, folderNames));
+            await fs.createFolder(folder.id, uniqueName(n, folderNames));
             setExpanded(true);
           } catch (e: any) {
             toast.error(e.message);

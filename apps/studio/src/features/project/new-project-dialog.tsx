@@ -40,7 +40,7 @@ export function NewProjectDialog({ close }: Props) {
   const handleCreateClicked = async () => {
     if (!canSubmit) return;
 
-    const folderId = await fs.createFolder("/", name);
+    const folderId = await fs.createFolder(fs.rootFolderId, name);
     const fileName = replaceWhitespace(name);
 
     if (projectType === "create") {

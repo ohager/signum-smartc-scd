@@ -82,14 +82,8 @@ class FakeFs implements TransferFs {
     return { content: f.content as unknown as T, metadata: f as FileMetadata };
   }
 
-  getFolder(folderId: string) {
-    return this.folders.get(folderId)!;
-  }
-
-  async createFolder(parentPath: string, name: string) {
-    const parent =
-      [...this.folders.values()].find((f) => f.path === parentPath) ??
-      this.folders.get("root")!;
+  async createFolder(parentFolderId: string, name: string) {
+    const parent = this.folders.get(parentFolderId)!;
     const id = `f${++this.seq}`;
     const path = `${parent.path === "/" ? "" : parent.path}/${name}`;
     this.folders.set(id, { id, name, path, createdAt: 0, lastModified: 0 });
@@ -128,7 +122,7 @@ const testResolve: ResolveType = (name) =>
 describe("FileTransfer.importEntries", () => {
   it("filters rejected entries, nests folders, and counts results", async () => {
     const fs = new FakeFs();
-    const target = await fs.createFolder("/", "proj");
+    const target = await fs.createFolder("root", "proj");
     const t = new FileTransfer(fs);
 
     const res = await t.importEntries(
@@ -160,7 +154,7 @@ describe("FileTransfer.importEntries", () => {
 
   it("dedupes names within a folder (never overwrites)", async () => {
     const fs = new FakeFs();
-    const target = await fs.createFolder("/", "proj");
+    const target = await fs.createFolder("root", "proj");
     const t = new FileTransfer(fs);
 
     await t.importEntries(target, [{ path: "a.smart.c", content: "1" }], testResolve);
@@ -172,7 +166,7 @@ describe("FileTransfer.importEntries", () => {
 
   it("reuses an existing subfolder of the same name", async () => {
     const fs = new FakeFs();
-    const target = await fs.createFolder("/", "proj");
+    const target = await fs.createFolder("root", "proj");
     const t = new FileTransfer(fs);
 
     await t.importEntries(
@@ -193,9 +187,9 @@ describe("FileTransfer.importEntries", () => {
 describe("FileTransfer collect/export round-trip", () => {
   it("collectFolderEntries → buildZip → importZip restores the subtree", async () => {
     const fs = new FakeFs();
-    const proj = await fs.createFolder("/", "proj");
+    const proj = await fs.createFolder("root", "proj");
     await fs.addFile(proj, "main.smart.c", "smartc", "long a;");
-    const scen = await fs.createFolder("/proj", "scenarios");
+    const scen = await fs.createFolder(proj, "scenarios");
     await fs.addFile(scen, "s1.scenario.json", "scenario", '{"v":2}');
     const t = new FileTransfer(fs);
 
@@ -206,7 +200,7 @@ describe("FileTransfer collect/export round-trip", () => {
     ]);
 
     const zip = await t.exportFolderZip(proj);
-    const target = await fs.createFolder("/", "restored");
+    const target = await fs.createFolder("root", "restored");
     const res = await t.importZip(target, zip, testResolve);
 
     expect(res.imported).toBe(2);

@@ -31,8 +31,7 @@ export interface TransferFs {
     files: { id: string; metadata: FileMetadata }[];
   };
   loadFile<T>(fileId: string): Promise<{ content: T; metadata: FileMetadata }>;
-  getFolder(folderId: string): FolderMetadata;
-  createFolder(parentPath: string, name: string): Promise<string>;
+  createFolder(parentFolderId: string, name: string): Promise<string>;
   addFile<T>(folderId: string, name: string, type: string, content: T): Promise<string>;
 }
 
@@ -179,7 +178,7 @@ export class FileTransfer {
         .folders.find((f) => f.metadata.name === name);
       const id = existing
         ? existing.id
-        : await this.fs.createFolder(this.fs.getFolder(parentId).path, name);
+        : await this.fs.createFolder(parentId, name);
       dirIds.set(dir, id);
     }
 
