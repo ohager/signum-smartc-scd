@@ -48,7 +48,7 @@ export function HowItWorks() {
                 "group h-full transition-colors " +
                 (step.soon
                   ? "border-dashed bg-transparent"
-                  : "hover:border-signum-blue/40 dark:hover:border-signum-lightblue/40")
+                  : "hover:border-[var(--accent-2)]")
               }
             >
               <CardContent className="flex h-full flex-col gap-2.5 p-4">
@@ -58,7 +58,7 @@ export function HowItWorks() {
                       "flex h-6 w-6 shrink-0 items-center justify-center rounded-[4px] font-mono text-[11px] tabular-nums " +
                       (step.soon
                         ? "bg-muted text-muted-foreground"
-                        : "bg-signum-blue/10 text-signum-blue dark:bg-signum-lightblue/15 dark:text-signum-lightblue")
+                        : "bg-[color-mix(in_srgb,var(--accent-1)_12%,transparent)] text-[var(--accent-2)]")
                     }
                   >
                     {index + 1}
@@ -75,7 +75,7 @@ export function HowItWorks() {
                       "ml-auto h-4 w-4 shrink-0 " +
                       (step.soon
                         ? "text-muted-foreground/60"
-                        : "text-muted-foreground transition-colors group-hover:text-signum-blue dark:group-hover:text-signum-lightblue")
+                        : "text-muted-foreground transition-colors group-hover:text-[var(--accent-2)]")
                     }
                   />
                 </div>

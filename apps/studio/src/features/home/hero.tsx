@@ -22,8 +22,8 @@ function SignumMark({ className }: { className?: string }) {
     <svg viewBox="0 0 32 32" aria-hidden className={className}>
       <defs>
         <linearGradient id="signum-mark" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="var(--color-signum-blue)" />
-          <stop offset="100%" stopColor="var(--color-signum-lightblue)" />
+          <stop offset="0%" stopColor="var(--accent-1)" />
+          <stop offset="100%" stopColor="var(--accent-2)" />
         </linearGradient>
       </defs>
       <path d="M16 1.5 30.5 16 16 30.5 1.5 16Z" fill="url(#signum-mark)" opacity="0.18" />
@@ -73,7 +73,7 @@ export function Hero({ variant, onImportClick }: Props) {
           <SignumMark className="h-5 w-5" />
           <h1 className="text-sm font-semibold tracking-tight">
             SmartC{" "}
-            <span className="bg-gradient-to-r from-signum-blue to-signum-lightblue bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[var(--accent-1)] to-[var(--accent-2)] bg-clip-text text-transparent">
               Studio
             </span>
           </h1>
@@ -87,7 +87,7 @@ export function Hero({ variant, onImportClick }: Props) {
     <section className="relative isolate overflow-hidden px-6 py-16 sm:py-24">
       {/* Atmosphere: an accent glow over a hairline grid that fades out downward. */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute left-1/2 top-[-6rem] h-72 w-[42rem] max-w-[120%] -translate-x-1/2 rounded-full bg-signum-blue/25 blur-[110px] dark:bg-signum-lightblue/20" />
+        <div className="absolute left-1/2 top-[-6rem] h-72 w-[42rem] max-w-[120%] -translate-x-1/2 rounded-full bg-[color-mix(in_srgb,var(--accent-1)_22%,transparent)] blur-[110px]" />
         <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] [background-size:56px_56px] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_0%,black,transparent)]" />
       </div>
 
@@ -102,7 +102,7 @@ export function Hero({ variant, onImportClick }: Props) {
 
         <h1 className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both delay-150 duration-700 mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
           SmartC{" "}
-          <span className="bg-gradient-to-r from-signum-blue to-signum-lightblue bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-[var(--accent-1)] to-[var(--accent-2)] bg-clip-text text-transparent">
             Studio
           </span>
         </h1>

@@ -1,80 +1,155 @@
+@import url("https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&family=Orbitron:wght@400;700;900&display=swap");
 @import "tailwindcss";
 
 @plugin "tailwindcss-animate";
 
-@custom-variant dark (&:is(.dark *));
+/*
+ * `dark:` utilities are used 101 times across 20 files. The class they keyed
+ * off is gone, so the variant now matches the three dark climates instead.
+ * Dawn is the light one and deliberately absent.
+ */
+@custom-variant dark (&:is([data-theme="nexus"] *, [data-theme="solaris"] *, [data-theme="terminal"] *));
 
-:root {
-  --background: hsl(0 0% 100%);
-  --foreground: hsl(240 10% 3.9%);
-  --card: hsl(0 0% 100%);
-  --card-foreground: hsl(240 10% 3.9%);
-  --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(240 10% 3.9%);
-  --primary: hsl(240 5.9% 10%);
-  --primary-foreground: hsl(0 0% 98%);
-  --secondary: hsl(240 4.8% 95.9%);
-  --secondary-foreground: hsl(240 5.9% 10%);
-  --muted: hsl(240 4.8% 95.9%);
-  --muted-foreground: hsl(240 3.8% 46.1%);
-  --accent: #0066ff;
-  --accent-foreground: hsl(0 0% 98%);
-  --destructive: hsl(0 84.2% 60.2%);
-  --destructive-foreground: hsl(0 0% 98%);
-  --border: hsl(240 5.9% 90%);
-  --input: hsl(240 5.9% 90%);
-  --ring: hsl(240 10% 3.9%);
-  --chart-1: hsl(12 76% 61%);
-  --chart-2: hsl(173 58% 39%);
-  --chart-3: hsl(197 37% 24%);
-  --chart-4: hsl(43 74% 66%);
-  --chart-5: hsl(27 87% 67%);
-  --radius: 0.6rem;
-  --sidebar-background: hsl(0 0% 98%);
-  --sidebar-foreground: hsl(240 5.3% 26.1%);
-  --sidebar-primary: hsl(240 5.9% 10%);
-  --sidebar-primary-foreground: hsl(0 0% 98%);
-  --sidebar-accent: hsl(240 4.8% 95.9%);
-  --sidebar-accent-foreground: hsl(240 5.9% 10%);
-  --sidebar-border: hsl(220 13% 91%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
-  --sidebar: hsl(0 0% 98%);
+/*
+ * Four climates, one token layer.
+ *
+ * Each block declares the Signum slots and then points shadcn's semantic
+ * variables at them, so all 35 shadcn components inherit the climate without
+ * being touched. Note `--dim` rather than `--muted`: shadcn's `--muted` is a
+ * surface, not a text colour.
+ */
+
+:root,
+[data-theme="nexus"] {
+  --bg: #050810;
+  --bg2: #080d1a;
+  --panel: rgba(8, 16, 40, 0.85);
+  --border-1: rgba(0, 102, 255, 0.18);
+  --border-2: rgba(0, 170, 255, 0.3);
+  --accent-1: #0066ff;
+  --accent-2: #00aaff;
+  --accent-3: #60c8ff;
+  --green: #00ffaa;
+  --mag: #ff0055;
+  --amber: #ff9500;
+  --gold: #ffd700;
+  --text: #d0e4ff;
+  --dim: #5a7090;
+  --code: #0a0f1c;
+  --gutter: #2e3c55;
+  --grid-line: rgba(0, 102, 255, 0.04);
+  --card-hover: 0 8px 32px rgba(0, 102, 255, 0.18);
+  --glow: 0 0 20px rgba(0, 102, 255, 0.35);
 }
 
-.dark {
-  --background: hsl(240 10% 3.9%);
-  --foreground: hsl(0 0% 98%);
-  --card: hsl(240 10% 3.9%);
-  --card-foreground: hsl(0 0% 98%);
-  --popover: hsl(240 10% 3.9%);
-  --popover-foreground: hsl(0 0% 98%);
-  --primary: hsl(240 5.9% 10%);
-  --primary-foreground: hsl(240 5.9% 90%);
-  --secondary: hsl(240 3.7% 15.9%);
-  --secondary-foreground: hsl(0 0% 98%);
-  --muted: #1e1e1e;
-  --muted-foreground: hsl(240 5% 64.9%);
-  --accent: #0099ff;
-  --accent-foreground: hsl(0 0% 98%);
-  --destructive: hsl(0 62.8% 30.6%);
-  --destructive-foreground: hsl(0 0% 98%);
-  --border: hsl(240 3.7% 15.9%);
-  --input: hsl(240 3.7% 15.9%);
-  --ring: hsl(240 4.9% 83.9%);
-  --chart-1: hsl(220 70% 50%);
-  --chart-2: hsl(160 60% 45%);
-  --chart-3: hsl(30 80% 55%);
-  --chart-4: hsl(280 65% 60%);
-  --chart-5: hsl(340 75% 55%);
-  --sidebar-background: hsl(240 5.9% 10%);
-  --sidebar-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-primary: hsl(224.3 76.3% 48%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(240 3.7% 15.9%);
-  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-border: hsl(240 3.7% 15.9%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
-  --sidebar: hsl(240 5.9% 10%);
+[data-theme="dawn"] {
+  --bg: #eef2fb;
+  --bg2: #e2e8f8;
+  --panel: rgba(255, 255, 255, 0.94);
+  --border-1: rgba(0, 102, 255, 0.14);
+  --border-2: rgba(0, 102, 255, 0.26);
+  --accent-1: #0055cc;
+  --accent-2: #0066ff;
+  --accent-3: #3388ff;
+  --green: #00956b;
+  --mag: #cc0044;
+  --amber: #c06000;
+  --gold: #b87000;
+  --text: #1a2540;
+  --dim: #6678a0;
+  --code: #f7f9ff;
+  --gutter: #a8b6d4;
+  --grid-line: rgba(0, 102, 255, 0.06);
+  --card-hover: 0 6px 24px rgba(0, 102, 255, 0.12);
+  /* In daylight a glow reads as dirt. It becomes a drop shadow instead. */
+  --glow: 0 2px 12px rgba(0, 102, 255, 0.18);
+}
+
+[data-theme="solaris"] {
+  --bg: #0d0906;
+  --bg2: #1a1204;
+  --panel: rgba(36, 20, 4, 0.88);
+  --border-1: rgba(255, 149, 0, 0.2);
+  --border-2: rgba(255, 200, 0, 0.32);
+  --accent-1: #ff9500;
+  --accent-2: #ffd700;
+  --accent-3: #ffe566;
+  --green: #39d353;
+  --mag: #ff3d6b;
+  /* Not the sandbox's #ff9500: there it is the accent colour as well, and a
+     compiler warning cannot look like a primary button. */
+  --amber: #ff7a00;
+  --gold: #ffd700;
+  --text: #ffe8c0;
+  --dim: #9a7040;
+  --code: #120c05;
+  --gutter: #5c4520;
+  --grid-line: rgba(255, 149, 0, 0.05);
+  --card-hover: 0 8px 32px rgba(255, 149, 0, 0.18);
+  --glow: 0 0 20px rgba(255, 149, 0, 0.35);
+}
+
+[data-theme="terminal"] {
+  --bg: #000a00;
+  --bg2: #001400;
+  --panel: rgba(0, 20, 0, 0.9);
+  --border-1: rgba(0, 255, 0, 0.16);
+  --border-2: rgba(0, 255, 0, 0.32);
+  --accent-1: #00cc00;
+  --accent-2: #00ff00;
+  --accent-3: #66ff66;
+  --green: #00ff00;
+  --mag: #ff3300;
+  --amber: #ff8800;
+  --gold: #ffcc00;
+  --text: #90ee90;
+  --dim: #3a7a3a;
+  --code: #001200;
+  --gutter: #2a5a2a;
+  --grid-line: rgba(0, 255, 0, 0.05);
+  --card-hover: 0 0 20px rgba(0, 255, 0, 0.16);
+  --glow: 0 0 16px rgba(0, 255, 0, 0.4);
+  /* Terminal is the mono climate: the whole surface, not just the code. */
+  --font-body: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* shadcn keeps speaking its own language; it just points at ours. */
+:root,
+[data-theme] {
+  --background: var(--bg);
+  --foreground: var(--text);
+  --card: var(--panel);
+  --card-foreground: var(--text);
+  --popover: var(--bg2);
+  --popover-foreground: var(--text);
+  --primary: var(--accent-1);
+  --primary-foreground: var(--bg);
+  --secondary: var(--bg2);
+  --secondary-foreground: var(--text);
+  --muted: var(--bg2);
+  --muted-foreground: var(--dim);
+  --accent: var(--accent-2);
+  --accent-foreground: var(--bg);
+  --destructive: var(--mag);
+  --destructive-foreground: var(--bg);
+  --border: var(--border-1);
+  --input: var(--border-2);
+  --ring: var(--accent-2);
+  --radius: 0rem;
+  --chart-1: var(--accent-1);
+  --chart-2: var(--green);
+  --chart-3: var(--amber);
+  --chart-4: var(--accent-3);
+  --chart-5: var(--mag);
+  --sidebar: var(--bg2);
+  --sidebar-background: var(--bg2);
+  --sidebar-foreground: var(--text);
+  --sidebar-primary: var(--accent-1);
+  --sidebar-primary-foreground: var(--bg);
+  --sidebar-accent: var(--border-1);
+  --sidebar-accent-foreground: var(--text);
+  --sidebar-border: var(--border-1);
+  --sidebar-ring: var(--accent-2);
 }
 
 @theme inline {
@@ -142,5 +217,9 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-body, "Exo 2", ui-sans-serif, system-ui, sans-serif);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
   }
 }

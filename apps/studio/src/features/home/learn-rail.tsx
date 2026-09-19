@@ -15,7 +15,7 @@ function VideoCard({ youtubeId, title }: { youtubeId: string; title: string }) {
       href={youtubeWatchUrl(youtubeId)}
       target="_blank"
       rel="noreferrer"
-      className="group block overflow-hidden rounded-md border transition-colors hover:border-signum-blue/40 dark:hover:border-signum-lightblue/40"
+      className="group block overflow-hidden rounded-md border transition-colors hover:border-[var(--accent-2)]"
     >
       <div className="relative flex aspect-video items-center justify-center bg-muted">
         {thumbnailFailed ? (
@@ -69,7 +69,7 @@ export function LearnRail() {
             >
               <span className="flex items-center gap-1.5 text-xs font-medium">
                 {link.title}
-                <ArrowUpRightIcon className="h-3 w-3 shrink-0 text-muted-foreground transition-all group-hover:-translate-y-px group-hover:translate-x-px group-hover:text-signum-blue dark:group-hover:text-signum-lightblue" />
+                <ArrowUpRightIcon className="h-3 w-3 shrink-0 text-muted-foreground transition-all group-hover:-translate-y-px group-hover:translate-x-px group-hover:text-[var(--accent-2)]" />
               </span>
               {link.blurb && (
                 <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">

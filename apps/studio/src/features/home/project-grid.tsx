@@ -36,10 +36,10 @@ export function ProjectGrid({ projects }: Props) {
       <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {projects.map((project) => (
           <li key={project.id}>
-            <Card className="group h-full transition-colors hover:border-signum-blue/40 dark:hover:border-signum-lightblue/40">
+            <Card className="group h-full transition-colors hover:border-[var(--accent-2)]">
               <CardContent className="flex h-full flex-col gap-3 p-4">
                 <div className="flex items-center gap-2">
-                  <FolderIcon className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-signum-blue dark:group-hover:text-signum-lightblue" />
+                  <FolderIcon className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-[var(--accent-2)]" />
                   <span className="truncate text-sm font-medium">{project.name}</span>
                 </div>
 

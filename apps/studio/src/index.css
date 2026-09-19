@@ -1,14 +1,8 @@
 @import "../styles/globals.css";
 
-@theme {
-  --color-signum-blue: #0066ff;
-  --color-signum-lightblue: #0099ff;
-  --color-signum-green: #00ff88;
-}
-
-.debug-current-line { background: rgba(80, 160, 255, 0.18); }
-.debug-current-glyph { background: #5aa0ff; }
-.debug-breakpoint { background: #e5484d; border-radius: 50%; width: 10px !important; height: 10px !important; margin: 5px 0 0 6px; }
+.debug-current-line { background: color-mix(in srgb, var(--accent-2) 12%, transparent); }
+.debug-current-glyph { background: var(--accent-2); }
+.debug-breakpoint { background: var(--mag); border-radius: 50%; width: 10px !important; height: 10px !important; margin: 5px 0 0 6px; }
 
 /* Test markers in the editor gutter: a play triangle, coloured by status. */
 .test-glyph-idle::before,
@@ -26,30 +20,30 @@
   border-bottom: 5px solid transparent;
   border-left: 8px solid currentColor;
 }
-.test-glyph-idle    { color: rgb(113 113 122); }
-.test-glyph-pending { color: rgb(113 113 122); }
-.test-glyph-running { color: rgb(59 130 246); }
-.test-glyph-passed  { color: rgb(34 197 94); }
-.test-glyph-failed  { color: rgb(239 68 68); }
+.test-glyph-idle    { color: var(--dim); }
+.test-glyph-pending { color: var(--dim); }
+.test-glyph-running { color: var(--accent-2); }
+.test-glyph-passed  { color: var(--green); }
+.test-glyph-failed  { color: var(--mag); }
 /* Deliberately annotated out of the run: dimmed, and not clickable. */
-.test-glyph-skipped { color: rgb(82 82 91); opacity: 0.6; }
+.test-glyph-skipped { color: var(--dim); opacity: 0.6; }
 
 .test-glyph-runnable {
   cursor: pointer;
 }
 .test-glyph-runnable:hover {
-  color: rgb(34 197 94);
+  color: var(--green);
 }
 
 /* Values captured during a test run, drawn after the line that produced them. */
 /* A completed assertion. Green, and not clickable: there is nothing behind it. */
 .test-inline-ok {
-  color: rgb(34 197 94);
+  color: var(--green);
   margin-left: 3ch;
 }
 
 .test-inline-value {
-  color: rgb(113 113 122);
+  color: var(--dim);
   font-style: italic;
   opacity: 0.9;
   cursor: pointer;

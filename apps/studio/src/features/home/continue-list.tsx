@@ -57,8 +57,8 @@ export function ContinueList({ recents }: Props) {
                 className="group relative flex w-full items-center gap-2.5 overflow-hidden rounded-md border border-transparent px-3 py-2 text-left text-sm transition-colors hover:border-border hover:bg-muted/60"
               >
                 {/* Accent edge, revealed on hover — the row's only colour. */}
-                <span className="absolute inset-y-0 left-0 w-0.5 scale-y-0 bg-signum-blue transition-transform duration-200 group-hover:scale-y-100 dark:bg-signum-lightblue" />
-                <FileIcon className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-signum-blue dark:group-hover:text-signum-lightblue" />
+                <span className="absolute inset-y-0 left-0 w-0.5 scale-y-0 bg-[var(--accent-2)] transition-transform duration-200 group-hover:scale-y-100" />
+                <FileIcon className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-[var(--accent-2)]" />
                 <span className="truncate font-medium">{recent.name}</span>
                 <span className="truncate text-xs text-muted-foreground">· {projectName}</span>
                 <span className="ml-auto shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground">

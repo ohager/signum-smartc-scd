@@ -10,7 +10,12 @@ import { HomePage } from "./pages/home/home-page";
 export function App() {
   return (
     <JotaiProvider store={jotaiStore}>
-      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+      <ThemeProvider
+          attribute="data-theme"
+          themes={["nexus", "dawn", "solaris", "terminal"]}
+          defaultTheme="nexus"
+          enableSystem={false}
+        >
         <BrowserRouter>
           <Routes>
             <Route element={<AppLayout />}>
