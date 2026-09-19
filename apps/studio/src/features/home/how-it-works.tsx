@@ -56,7 +56,7 @@ export function HowItWorks() {
                 <div className="flex items-center gap-2.5">
                   <span
                     className={
-                      "flex h-6 w-6 shrink-0 items-center justify-center rounded-[4px] font-mono text-[11px] tabular-nums " +
+                      "flex h-6 w-6 shrink-0 items-center justify-center font-mono text-[11px] tabular-nums " +
                       (step.soon
                         ? "bg-muted text-muted-foreground"
                         : "bg-[color-mix(in_srgb,var(--accent-1)_12%,transparent)] text-[var(--accent-2)]")

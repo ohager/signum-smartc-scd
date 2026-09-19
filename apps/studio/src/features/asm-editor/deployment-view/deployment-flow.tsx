@@ -234,7 +234,7 @@ export function DeploymentFlow({
 
           <div className="flex gap-3 mt-6">
             {status === null ? (
-              <div className="flex items-center gap-2 w-full justify-center text-gray-400">
+              <div className="flex items-center gap-2 w-full justify-center text-muted-foreground">
                 Connect Wallet First
               </div>
             ) : (
@@ -343,7 +343,7 @@ function DeploymentSteps({
       return <Loader2 className="h-4 w-4 animate-spin text-[var(--accent-2)]" />;
     if (status === "error")
       return <AlertCircle className="h-4 w-4 text-red-500" />;
-    return <div className="h-4 w-4 rounded-full border-2 border-gray-300" />;
+    return <div className="h-4 w-4 rounded-full border-2 border-[var(--border-2)]" />;
   };
 
   return (
@@ -408,7 +408,7 @@ function DeploymentSteps({
                           ? "text-blue-700 dark:text-blue-300"
                           : status === "error"
                             ? "text-red-700 dark:text-red-300"
-                            : "text-gray-500"
+                            : "text-muted-foreground"
                     }`}
                   >
                     {step.title}
@@ -427,7 +427,7 @@ function DeploymentSteps({
                 {step.id === "preparing" &&
                   status === "completed" &&
                   unsignedBytes && (
-                    <div className="mt-2 p-2 bg-slate-100 dark:bg-slate-900 rounded text-xs font-mono">
+                    <div className="mt-2 p-2 bg-[var(--bg2)] text-xs font-mono">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-muted-foreground">
                           Unsigned Bytes:

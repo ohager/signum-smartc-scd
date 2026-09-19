@@ -21,7 +21,7 @@ export function FieldLabel({ tooltip, text, htmlFor }: FieldLegendProps) {
             <InfoIcon
               height={20}
               width={20}
-              className="ml-1 text-gray-300 cursor-help"
+              className="ml-1 text-muted-foreground cursor-help"
             />
           </TooltipTrigger>
           <TooltipContent>{tooltip}</TooltipContent>

@@ -8,7 +8,7 @@ export const LoadingSpinner = ({ className, ...props }: Props) => {
       className={cn("flex items-center justify-center", className)}
       {...props}
     >
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-2)]"></div>
     </div>
   );
 };

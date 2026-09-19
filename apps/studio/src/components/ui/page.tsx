@@ -66,7 +66,6 @@ const PageHeader = React.forwardRef<HTMLElement, PageHeaderProps>(
                       onClick={action.onClick}
                       disabled={action.disabled}
                       size={action.icon && !action.label ? "icon" : "sm"}
-                      className="rounded-[2px]"
                     >
                       {action.icon}
                       {action.label ?? ""}
