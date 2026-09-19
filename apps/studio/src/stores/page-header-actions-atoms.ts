@@ -8,7 +8,17 @@ export type PageHeaderActionType = {
   icon?: ReactNode;
   disabled?: boolean;
   onClick: () => void;
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'accent' | 'link';
+  /** Kept in step with `buttonVariants` — the value goes straight to <Button>. */
+  variant?:
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost'
+    | 'accent'
+    | 'link'
+    | 'console'
+    | 'console-primary';
 };
 
 export const pageHeaderActionsAtom = atom<PageHeaderActionType[]>([]);
