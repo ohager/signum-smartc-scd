@@ -8,6 +8,7 @@ import { FilesPage } from "./pages/files/files-page";
 import { DebugDashboardPage } from "./pages/debug/debug-dashboard-page";
 import { HomePage } from "./pages/home/home-page";
 import { SimulatePage } from "./pages/simulate/simulate-page";
+import { DeployPage } from "./pages/deploy/deploy-page";
 import { useMotion } from "./motion/use-motion";
 export function App() {
   useMotion();
@@ -26,6 +27,7 @@ export function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/projects/:projectId/files/:fileId" element={<FilesPage />} />
               <Route path="/projects/:projectId/simulate" element={<SimulatePage />} />
+              <Route path="/projects/:projectId/deploy" element={<DeployPage />} />
             </Route>
             <Route path="/debug/dashboard" element={<DebugDashboardPage />} />
           </Routes>
