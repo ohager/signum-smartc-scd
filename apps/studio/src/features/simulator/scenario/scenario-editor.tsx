@@ -1,20 +1,15 @@
 import Editor, { type OnMount } from "@monaco-editor/react";
 import { useCallback, useRef, useState } from "react";
 import {
-  EditorToolbar,
-  EditorDiagnostic,
-} from "@/components/ui/editor/editor-toolbar.tsx";
+  SurfaceToolbar,
+  ToolbarDiagnostic,
+} from "@/components/ui/surface-toolbar.tsx";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import { registerClimateThemes } from "@/theme/monaco-themes";
 import { toast } from "sonner";
 import type { File } from "@/lib/file-system";
 import JSON5 from "json5";
 import { validateScenario } from "./scenario-io";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import {
   EditorFileActions,
   registerEditorFileActions,
@@ -76,8 +71,19 @@ export function ScenarioEditor({ file }: { file: File }) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <EditorToolbar
-        actions={
+      {/* No verbs: a scenario is data, and there is nothing to do to it that
+          is not file housekeeping. The slot stays empty rather than absent. */}
+      <SurfaceToolbar
+        context={
+          !isValid ? (
+            <ToolbarDiagnostic tone="error">
+              {errors.length > 1
+                ? `${errors.length} errors: ${errors[0]}`
+                : errors[0]}
+            </ToolbarDiagnostic>
+          ) : null
+        }
+        readout={
           <EditorFileActions
             isDirty={isDirty}
             onSave={saveNow}
@@ -85,22 +91,7 @@ export function ScenarioEditor({ file }: { file: File }) {
             onFormat={formatDocument}
           />
         }
-      >
-        {!isValid && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span>
-                <EditorDiagnostic tone="error">
-                  {errors.length > 1
-                    ? `${errors.length} errors: ${errors[0]}`
-                    : errors[0]}
-                </EditorDiagnostic>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent side="right">Invalid scenario</TooltipContent>
-          </Tooltip>
-        )}
-      </EditorToolbar>
+      />
       <div className="min-h-0 flex-1 rounded">
         <Editor
           height="100%"
