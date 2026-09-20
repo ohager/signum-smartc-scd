@@ -47,9 +47,11 @@ const PageHeader = React.forwardRef<HTMLElement, PageHeaderProps>(
       <header
         ref={ref}
         className={cn(
-          // `py-0.5` rather than `p-4`: the rail is a 52px drawing, and 16px
-          // of vertical padding leaves it nowhere to stand.
-          "flex h-[60px] w-full shrink-0 items-center gap-4 border-b px-4 py-0.5",
+          // 72px, and `py-1` rather than `p-4`: the rail is a 64px drawing,
+          // and 16px of vertical padding left it nowhere to stand. The twelve
+          // pixels this costs every page buy the one place where the tool
+          // says, of its own accord, how the contract stands.
+          "flex h-[72px] w-full shrink-0 items-center gap-4 border-b px-4 py-1",
           className,
         )}
         {...props}
@@ -87,7 +89,10 @@ const PageFooter = React.forwardRef<HTMLElement, PageFooterProps>(
     return (
       <footer
         ref={ref}
-        className={cn("p-4 bg-[var(--bg2)] border-t border-[var(--border-1)]", className)}
+        className={cn(
+          "p-4 bg-[var(--bg2)] border-t border-[var(--border-1)]",
+          className,
+        )}
         {...props}
       >
         {children}

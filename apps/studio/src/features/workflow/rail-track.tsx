@@ -19,9 +19,23 @@ export interface Stop {
   go?: () => void;
 }
 
-const X = [50, 150, 250, 370];
-const WIDTH = 420;
-const TRACK_Y = 9;
+/*
+ * The drawing is 1:1 with its CSS box, so the viewBox units below are pixels
+ * and the type is set in real sizes rather than scaled ones.
+ *
+ * The vertical rhythm is the whole point of these numbers: diamond to name is
+ * 8, name to fact is 16, fact to bracket is 8. The first version packed four
+ * levels into 48px at a line height of 1.04, which is what made the rail look
+ * squeezed into the header rather than placed in it.
+ */
+const X = [58, 172, 286, 410];
+const WIDTH = 468;
+const HEIGHT = 64;
+const TRACK_Y = 11;
+/** One stop's share of the width — the buttons are cut from this, not guessed. */
+const STOP_WIDTH = 114;
+const NAME_Y = 33;
+const FACT_Y = 49;
 
 const FACT_COLOR: Record<CellTone, string> = {
   good: "var(--green)",
@@ -44,10 +58,10 @@ const FACT_COLOR: Record<CellTone, string> = {
  */
 export function RailTrack({ stops }: { stops: Stop[] }) {
   return (
-    <div className="relative h-[52px] w-[420px] shrink-0">
+    <div className="relative h-[64px] w-[468px] shrink-0">
       <svg
         aria-hidden
-        viewBox={`0 0 ${WIDTH} 52`}
+        viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         className="absolute inset-0 h-full w-full"
       >
         <line
@@ -61,9 +75,9 @@ export function RailTrack({ stops }: { stops: Stop[] }) {
         />
         {/* The break before Deploy: outside the loop, and only reachable. */}
         <line
-          x1={268}
+          x1={306}
           y1={TRACK_Y}
-          x2={326}
+          x2={368}
           y2={TRACK_Y}
           stroke="var(--accent-2)"
           strokeOpacity={0.28}
@@ -71,32 +85,32 @@ export function RailTrack({ stops }: { stops: Stop[] }) {
           strokeDasharray="2 6"
         />
         <path
-          d={`M338 ${TRACK_Y} l-10 -6 v12 z`}
+          d={`M382 ${TRACK_Y} l-10 -6 v12 z`}
           fill="var(--accent-2)"
           fillOpacity={0.55}
         />
 
         {/* The loop: these three repeat. A drawing, not a control. */}
         <path
-          d="M10 43 V48 H134"
+          d="M12 56 V60 H155"
           fill="none"
           stroke="var(--accent-2)"
           strokeOpacity={0.85}
           strokeWidth={2}
         />
         <path
-          d="M166 48 H290 V43"
+          d="M187 60 H330 V56"
           fill="none"
           stroke="var(--accent-2)"
           strokeOpacity={0.85}
           strokeWidth={2}
         />
         <text
-          x={150}
-          y={48}
+          x={171}
+          y={60}
           textAnchor="middle"
           dominantBaseline="middle"
-          fontSize={11}
+          fontSize={12}
           fill="var(--accent-2)"
           fillOpacity={0.85}
         >
@@ -129,9 +143,10 @@ export function RailTrack({ stops }: { stops: Stop[] }) {
               />
               <text
                 x={cx}
-                y={27}
+                y={NAME_Y}
                 textAnchor="middle"
-                fontSize={11.5}
+                fontSize={10.5}
+                letterSpacing={0.3}
                 fill={stop.here ? "var(--text)" : "var(--dim)"}
               >
                 {stop.label}
@@ -140,9 +155,9 @@ export function RailTrack({ stops }: { stops: Stop[] }) {
                   reporting. */}
               <text
                 x={cx}
-                y={39}
+                y={FACT_Y}
                 textAnchor="middle"
-                fontSize={11}
+                fontSize={12.5}
                 fontFamily="JetBrains Mono, ui-monospace, monospace"
                 fill={
                   stop.here && stop.tone === "neutral"
@@ -169,8 +184,8 @@ export function RailTrack({ stops }: { stops: Stop[] }) {
               disabled={!stop.go}
               aria-current={stop.here ? "page" : undefined}
               style={{
-                left: `${((X[index]! - 50) / WIDTH) * 100}%`,
-                width: `${(100 / WIDTH) * 100}%`,
+                left: `${((X[index]! - STOP_WIDTH / 2) / WIDTH) * 100}%`,
+                width: `${(STOP_WIDTH / WIDTH) * 100}%`,
               }}
               className="motion-control absolute top-0 h-full cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ring)] disabled:cursor-default"
             >
