@@ -45,10 +45,14 @@ export function summariseContracts(
 /** Answers per code hash, for the session. */
 const cache = new Map<string, DeploymentAnswer>();
 
-export function useDeploymentCount(contract: FileMetadata | null): DeploymentAnswer {
+export function useDeploymentCount(
+  contract: FileMetadata | null,
+): DeploymentAnswer {
   const fs = useFileSystem();
   const wallet = useWalletStatus();
-  const [answer, setAnswer] = useState<DeploymentAnswer>({ state: "no-wallet" });
+  const [answer, setAnswer] = useState<DeploymentAnswer>({
+    state: "no-wallet",
+  });
 
   useEffect(() => {
     if (!contract || !wallet) {
@@ -62,7 +66,10 @@ export function useDeploymentCount(contract: FileMetadata | null): DeploymentAns
       const { content } = await fs.loadFile<string>(contract!.id);
       let hash: string;
       try {
-        const compiler = new SmartC({ language: "C", sourceCode: content ?? "" });
+        const compiler = new SmartC({
+          language: "C",
+          sourceCode: content ?? "",
+        });
         hash = compiler.compile().getMachineCode().MachineCodeHashId;
       } catch {
         // No hash without a compile, so there is no question to ask. Returning

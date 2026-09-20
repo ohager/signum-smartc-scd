@@ -49,7 +49,8 @@ export function testCell(
   if (!verdict) return UNKNOWN;
   if (verdict.sourceModified !== testFile.modified) return UNKNOWN;
   if (verdict.contractModified !== contractModified) return UNKNOWN;
-  if (verdict.failed > 0) return { fact: `${verdict.failed} failed`, tone: "bad" };
+  if (verdict.failed > 0)
+    return { fact: `${verdict.failed} failed`, tone: "bad" };
 
   return { fact: `${verdict.passed} green`, tone: "good" };
 }
@@ -81,7 +82,8 @@ export function deployCell(answer: DeploymentAnswer): CellContent {
   if (answer.total === 0) return { fact: "not deployed", tone: "neutral" };
 
   const count = answer.capped ? "9+" : String(answer.total);
-  if (answer.mine > 0) return { fact: `${count} · ${answer.mine} yours`, tone: "good" };
+  if (answer.mine > 0)
+    return { fact: `${count} · ${answer.mine} yours`, tone: "good" };
 
   return { fact: `${count} deployed`, tone: "neutral" };
 }

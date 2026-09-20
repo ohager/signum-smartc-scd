@@ -18,7 +18,9 @@ describe("compileCell", () => {
       fact: "1 error",
       tone: "bad",
     });
-    expect(compileCell({ sourceModified: 500, errorCount: 3 }, 500).fact).toBe("3 errors");
+    expect(compileCell({ sourceModified: 500, errorCount: 3 }, 500).fact).toBe(
+      "3 errors",
+    );
   });
 
   it("refuses a verdict from before the last edit", () => {
@@ -31,22 +33,38 @@ describe("compileCell", () => {
 });
 
 describe("testCell", () => {
-  const fresh = { sourceModified: 10, contractModified: 5, passed: 12, failed: 0 };
+  const fresh = {
+    sourceModified: 10,
+    contractModified: 5,
+    passed: 12,
+    failed: 0,
+  };
 
   it("says so when the project has no test file at all", () => {
-    expect(testCell(null, undefined, 5)).toEqual({ fact: "no tests", tone: "neutral" });
+    expect(testCell(null, undefined, 5)).toEqual({
+      fact: "no tests",
+      tone: "neutral",
+    });
   });
 
   it("says nothing when a test file exists but has never run", () => {
-    expect(testCell({ modified: 10 }, undefined, 5)).toEqual({ fact: "—", tone: "neutral" });
+    expect(testCell({ modified: 10 }, undefined, 5)).toEqual({
+      fact: "—",
+      tone: "neutral",
+    });
   });
 
   it("reports a green run", () => {
-    expect(testCell({ modified: 10 }, fresh, 5)).toEqual({ fact: "12 green", tone: "good" });
+    expect(testCell({ modified: 10 }, fresh, 5)).toEqual({
+      fact: "12 green",
+      tone: "good",
+    });
   });
 
   it("reports failures, which are what you want to see first", () => {
-    expect(testCell({ modified: 10 }, { ...fresh, passed: 10, failed: 2 }, 5)).toEqual({
+    expect(
+      testCell({ modified: 10 }, { ...fresh, passed: 10, failed: 2 }, 5),
+    ).toEqual({
       fact: "2 failed",
       tone: "bad",
     });
@@ -80,7 +98,10 @@ describe("deployCell", () => {
   });
 
   it("says nothing while asking", () => {
-    expect(deployCell({ state: "asking" })).toEqual({ fact: "…", tone: "neutral" });
+    expect(deployCell({ state: "asking" })).toEqual({
+      fact: "…",
+      tone: "neutral",
+    });
   });
 
   it("says nothing when there is no code to ask about", () => {
@@ -95,22 +116,30 @@ describe("deployCell", () => {
   });
 
   it("reports that this code is nowhere on chain", () => {
-    expect(deployCell({ state: "answered", total: 0, mine: 0, capped: false })).toEqual({
+    expect(
+      deployCell({ state: "answered", total: 0, mine: 0, capped: false }),
+    ).toEqual({
       fact: "not deployed",
       tone: "neutral",
     });
   });
 
   it("reports the count, which is the useful part", () => {
-    expect(deployCell({ state: "answered", total: 3, mine: 0, capped: false }).fact).toBe("3 deployed");
+    expect(
+      deployCell({ state: "answered", total: 3, mine: 0, capped: false }).fact,
+    ).toBe("3 deployed");
   });
 
   it("names how many are yours when the wallet created some", () => {
-    expect(deployCell({ state: "answered", total: 3, mine: 1, capped: false }).fact).toBe("3 · 1 yours");
+    expect(
+      deployCell({ state: "answered", total: 3, mine: 1, capped: false }).fact,
+    ).toBe("3 · 1 yours");
   });
 
   it("caps a large answer rather than lying about the total", () => {
     // The node API returns no total, so ten results mean "at least ten".
-    expect(deployCell({ state: "answered", total: 10, mine: 0, capped: true }).fact).toBe("9+ deployed");
+    expect(
+      deployCell({ state: "answered", total: 10, mine: 0, capped: true }).fact,
+    ).toBe("9+ deployed");
   });
 });

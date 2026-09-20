@@ -1,5 +1,8 @@
 import { describe, it, expect } from "bun:test";
-import { summariseContracts, DEPLOYMENT_PAGE_SIZE } from "./use-deployment-count";
+import {
+  summariseContracts,
+  DEPLOYMENT_PAGE_SIZE,
+} from "./use-deployment-count";
 
 const at = (creator: string) => ({ creator, at: "1", atRS: "S-1" }) as any;
 

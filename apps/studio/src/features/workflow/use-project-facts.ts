@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import { findProjectOfFolder } from "@/features/project/project-root";
-import { contractOfProject, type ContractChoice } from "@/features/project/contract";
+import {
+  contractOfProject,
+  type ContractChoice,
+} from "@/features/project/contract";
 import type { FileMetadata, ProjectStatusRecord } from "@/lib/file-system";
 
 /**
