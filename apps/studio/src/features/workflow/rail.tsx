@@ -112,7 +112,7 @@ export function WorkflowRail() {
     : "";
 
   return (
-    <div className="flex items-center" role="group" aria-label="Workflow">
+    <div className="flex shrink-0 items-center" role="group" aria-label="Workflow">
       <div className="relative pb-[11px]">
         <div className="flex">
           {cells.slice(0, 3).map((cell) => (
