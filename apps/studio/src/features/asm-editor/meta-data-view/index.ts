@@ -1,1 +1,1 @@
-export {MetaDataView} from "./meta-data-view.tsx"
+export { MetaDataView } from "./meta-data-view.tsx";

@@ -42,17 +42,17 @@ export function AsmEditor({ file }: Props) {
 
   return (
     <ResizablePanelGroup direction="horizontal" className="min-h-0 flex-1">
-      <ResizablePanel defaultSize={62} minSize={30}>
+      <ResizablePanel defaultSize={60} minSize={30}>
         <AsmCodeEditor file={file} onSave={handleOnSave} />
       </ResizablePanel>
       <ResizableHandle withHandle />
-      <ResizablePanel defaultSize={38} minSize={20}>
-        <div className="h-full overflow-auto">
+      <ResizablePanel defaultSize={40} minSize={24}>
+        <div className="h-full min-h-0 border-l border-[var(--border-1)]">
           {machineData ? (
             <MetaDataView machineData={machineData} />
           ) : (
-            <p className="p-3 text-xs text-muted-foreground">
-              Assemble the file to see its size, registers and pages.
+            <p className="p-3 text-xs text-[var(--dim)]">
+              Assemble the file to see its pages, memory and bytes.
             </p>
           )}
         </div>
