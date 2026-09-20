@@ -1,11 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Editor, { type OnMount } from "@monaco-editor/react";
 import { Code2 } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import { registerSmartC, SMARTC_LANGUAGE_ID } from "./language/register.ts";
 import {
@@ -14,10 +9,10 @@ import {
 } from "@/components/ui/editor/file-actions.tsx";
 import { useEditorFile } from "@/components/ui/editor/use-editor-file.ts";
 import {
-  EditorToolbar,
-  EditorDiagnostic,
-} from "@/components/ui/editor/editor-toolbar.tsx";
-import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
+  SurfaceToolbar,
+  ToolbarButton,
+  ToolbarDiagnostic,
+} from "@/components/ui/surface-toolbar.tsx";
 import { toast } from "sonner";
 import { SmartC } from "smartc-signum-compiler";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
@@ -80,6 +75,11 @@ async function updateAssemblyFile(fileId: string, code: string) {
   }
 }
 
+const COMPILE_HOTKEY =
+  typeof navigator !== "undefined" && /Mac|iP(hone|ad|od)/i.test(navigator.userAgent)
+    ? "\u21e7\u2318C"
+    : "Ctrl+Shift+C";
+
 interface Props {
   file: File;
 }
@@ -89,7 +89,6 @@ enum ActionType {
 }
 
 function SmartCEditor({ file }: Props) {
-  const { addAction, removeAction, updateAction } = usePageHeaderActions();
   const fs = useFileSystem();
   const {
     text: code,
@@ -122,28 +121,6 @@ function SmartCEditor({ file }: Props) {
   const monacoTheme = useMonacoTheme();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const isValid = !validationError;
-
-  useEffect(() => {
-    addAction({
-      id: ActionType.Compile,
-      tooltip: "Compiles SmartC Code",
-      label: "Compile",
-      icon: <Code2 className="h-4 w-4" />,
-      onClick: compileSmartC,
-      variant: "accent",
-    });
-
-    return () => {
-      removeAction(ActionType.Compile);
-    };
-  }, [addAction, removeAction]);
-
-  useEffect(() => {
-    updateAction({
-      id: ActionType.Compile,
-      updates: { disabled: !isValid },
-    });
-  }, [isValid, updateAction]);
 
   // TODO: candidate for being extracted to some FilePath lib
   const baseName = useMemo(() => {
@@ -199,26 +176,35 @@ function SmartCEditor({ file }: Props) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <EditorToolbar
-        actions={
+      <SurfaceToolbar
+        verbs={
+          <ToolbarButton
+            weight="primary"
+            onClick={compileSmartC}
+            disabled={!isValid}
+            title={
+              isValid
+                ? `Compile this contract (${COMPILE_HOTKEY})`
+                : "Fix the error before compiling"
+            }
+          >
+            <Code2 className="h-4 w-4" />
+            Compile
+          </ToolbarButton>
+        }
+        context={
+          !isValid ? (
+            <ToolbarDiagnostic tone="error">{validationError}</ToolbarDiagnostic>
+          ) : null
+        }
+        readout={
           <EditorFileActions
             isDirty={isDirty}
             onSave={saveSmartCFile}
             onDownload={download}
           />
         }
-      >
-        {!isValid && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span>
-                <EditorDiagnostic tone="error">{validationError}</EditorDiagnostic>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent side="right">Invalid code</TooltipContent>
-          </Tooltip>
-        )}
-      </EditorToolbar>
+      />
       <div className="min-h-0 flex-1 rounded">
         <Editor
           height="100%"
