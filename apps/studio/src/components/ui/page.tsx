@@ -1,14 +1,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { useMatch } from "react-router";
-import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
 import { WorkflowRail } from "@/features/workflow/rail";
-import { Button } from "@/components/ui/button.tsx";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip.tsx"; // Assuming you have the cn utility
 
 interface PageProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -43,46 +36,28 @@ Page.displayName = "Page";
 
 const PageHeader = React.forwardRef<HTMLElement, PageHeaderProps>(
   ({ className, children, ...props }, ref) => {
-    const { actions } = usePageHeaderActions();
     // The home page has no contract to report on and keeps its own strip.
     const inProject = !!useMatch("/projects/:projectId/*");
 
+    // The header carries identity and the rail, and nothing else. Features
+    // used to push their buttons in here through a global atom, which is why
+    // its contents depended on which one mounted last; each verb now belongs
+    // to the surface it acts on.
     return (
       <header
         ref={ref}
         className={cn(
-          "flex h-[60px] w-full shrink-0 items-center justify-between gap-4 border-b p-4",
+          // `py-0.5` rather than `p-4`: the rail is a 52px drawing, and 16px
+          // of vertical padding leaves it nowhere to stand.
+          "flex h-[60px] w-full shrink-0 items-center gap-4 border-b px-4 py-0.5",
           className,
         )}
         {...props}
       >
-        <div className="flex min-w-0 items-center gap-2">{children}</div>
+        <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+          {children}
+        </div>
         {inProject && <WorkflowRail />}
-        {actions && actions.length > 0 && (
-          <div className="flex items-center gap-2">
-            {actions.map((action) => (
-              <React.Fragment key={action.id}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      key={action.id}
-                      variant={action.variant}
-                      onClick={action.onClick}
-                      disabled={action.disabled}
-                      size={action.icon && !action.label ? "icon" : "sm"}
-                    >
-                      {action.icon}
-                      {action.label ?? ""}
-                    </Button>
-                  </TooltipTrigger>
-                  {action.tooltip && (
-                    <TooltipContent>{action.tooltip}</TooltipContent>
-                  )}
-                </Tooltip>
-              </React.Fragment>
-            ))}
-          </div>
-        )}
       </header>
     );
   },

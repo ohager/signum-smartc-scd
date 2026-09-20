@@ -2,7 +2,6 @@ import { Badge } from "@/components/ui/badge";
 import { Page, PageContent, PageHeader } from "@/components/ui/page";
 import { Navigate, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
 import { useEffect, useState } from "react";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import type { File, FileSystemEvent } from "@/lib/file-system"
@@ -19,7 +18,6 @@ type FilesPageParams = {
 
 export function FilesPage() {
   const fs = useFileSystem();
-  const {} = usePageHeaderActions();
   const { fileId = "", projectId = "" } = useParams<FilesPageParams>();
 
   const navigate = useNavigate();
