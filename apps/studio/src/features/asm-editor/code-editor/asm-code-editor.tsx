@@ -1,14 +1,14 @@
 import { useCallback, useState } from "react";
 import Editor, { type BeforeMount, type OnMount } from "@monaco-editor/react";
+import { useNavigate } from "react-router";
+import { Rocket } from "lucide-react";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  EditorToolbar,
-  EditorDiagnostic,
-} from "@/components/ui/editor/editor-toolbar.tsx";
+  SurfaceToolbar,
+  ToolbarButton,
+  ToolbarDiagnostic,
+} from "@/components/ui/surface-toolbar.tsx";
+import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { findProjectOfFolder } from "@/features/project/project-root";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import {
   EditorFileActions,
@@ -27,6 +27,11 @@ interface Props {
 }
 
 function AsmCodeEditor({ file, onSave }: Props) {
+  const navigate = useNavigate();
+  const fs = useFileSystem();
+  // The folder an `.asm` sits in is not always the project itself — the same
+  // resolution the rail uses keeps the two in step.
+  const projectId = findProjectOfFolder(fs, file.metadata.folderId);
   const [validationError, setValidationError] = useState("");
   const monacoTheme = useMonacoTheme("asm");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -66,31 +71,48 @@ function AsmCodeEditor({ file, onSave }: Props) {
     registerEditorFileActions(editor, monaco, { onDownload: download });
   };
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <EditorToolbar
-        actions={
+    // `h-full`, not `flex-1`: this editor's parent is a ResizablePanel, which
+    // is a plain block box with a definite height, not a flex container. A
+    // `flex-1` root there sizes to its content instead of the panel, and
+    // Monaco — which has no intrinsic height — collapses to nothing.
+    <div className="flex h-full min-h-0 flex-col">
+      <SurfaceToolbar
+        verbs={
+          <ToolbarButton
+            weight="primary"
+            onClick={() =>
+              projectId && navigate(`/projects/${projectId}/deploy`)
+            }
+            disabled={!projectId}
+            title="Publish this contract to the chain"
+          >
+            <Rocket className="h-4 w-4" />
+            Deploy
+          </ToolbarButton>
+        }
+        context={
+          <>
+            {!isValid && (
+              <ToolbarDiagnostic tone="error">
+                {validationError}
+              </ToolbarDiagnostic>
+            )}
+            {/* The file is a build product: the next compile overwrites it.
+                One line in the interface's voice, where the old prose was a
+                shouted parenthesis. */}
+            <ToolbarDiagnostic tone="warning">
+              Hand edits are overwritten by the next compile
+            </ToolbarDiagnostic>
+          </>
+        }
+        readout={
           <EditorFileActions
             isDirty={isDirty}
             onSave={saveAsmFile}
             onDownload={download}
           />
         }
-      >
-        {!isValid && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span>
-                <EditorDiagnostic tone="error">{validationError}</EditorDiagnostic>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent side="right">Invalid assembly</TooltipContent>
-          </Tooltip>
-        )}
-        <small className="truncate opacity-70">
-          Change this file only if you know what you are doing! (Each smart.c
-          compilation will overwrite your manual changes)
-        </small>
-      </EditorToolbar>
+      />
       <div className="min-h-0 flex-1 rounded">
         <Editor
           height="100%"
