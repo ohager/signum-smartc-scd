@@ -1,9 +1,14 @@
 import Editor, { type OnMount } from "@monaco-editor/react";
 import { useCallback, useRef, useState } from "react";
+import { useNavigate } from "react-router";
+import { StepForward } from "lucide-react";
 import {
   SurfaceToolbar,
+  ToolbarButton,
   ToolbarDiagnostic,
 } from "@/components/ui/surface-toolbar.tsx";
+import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { findProjectOfFolder } from "@/features/project/project-root";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import { registerClimateThemes } from "@/theme/monaco-themes";
 import { toast } from "sonner";
@@ -33,9 +38,27 @@ export function ScenarioEditor({ file }: { file: File }) {
     text: content,
     isDirty,
     onChange: onBufferChange,
+    save,
     saveNow,
     download,
   } = useEditorFile({ file });
+  const navigate = useNavigate();
+  const fs = useFileSystem();
+  const projectId = findProjectOfFolder(fs, file.metadata.folderId);
+
+  /**
+   * Saves before it leaves. The simulator reads scenarios from the file system
+   * rather than from this buffer, so an unsaved edit would be stepped in its
+   * previous version — the tool would be lying about what it is running.
+   * Quietly: the user asked to simulate, not to save.
+   */
+  const simulate = useCallback(async () => {
+    if (!projectId) return;
+    await save({ silent: true });
+    navigate(
+      `/projects/${projectId}/simulate?scenario=${encodeURIComponent(file.metadata.name)}`,
+    );
+  }, [save, navigate, projectId, file.metadata.name]);
   const [errors, setErrors] = useState<string[]>(() =>
     validationErrors(typeof file.content === "string" ? file.content : ""),
   );
@@ -71,9 +94,26 @@ export function ScenarioEditor({ file }: { file: File }) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* No verbs: a scenario is data, and there is nothing to do to it that
-          is not file housekeeping. The slot stays empty rather than absent. */}
       <SurfaceToolbar
+        verbs={
+          <ToolbarButton
+            weight="primary"
+            onClick={() => {
+              simulate().catch((e) =>
+                toast.error("Could not simulate: " + (e as Error).message),
+              );
+            }}
+            disabled={!isValid || !projectId}
+            title={
+              isValid
+                ? "Step the contract through this scenario"
+                : "Fix the scenario before simulating it"
+            }
+          >
+            <StepForward className="h-4 w-4" />
+            Simulate
+          </ToolbarButton>
+        }
         context={
           !isValid ? (
             <ToolbarDiagnostic tone="error">

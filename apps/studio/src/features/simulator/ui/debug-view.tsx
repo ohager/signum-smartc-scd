@@ -46,6 +46,10 @@ interface Props {
   onClose: () => void;
   /** Absent when the page cannot create files for this project. */
   onNewScenario?: () => void;
+  /** Which scenario to open with. Unknown names fall back to the first. */
+  initialScenario?: string;
+  /** Every change of the picker, so an owner can keep the address honest. */
+  onScenarioChange?: (name: string) => void;
 }
 
 /**
@@ -58,10 +62,18 @@ export function DebugView({
   sourceLabel,
   onClose,
   onNewScenario,
+  initialScenario,
+  onScenarioChange,
 }: Props) {
-  const [selectedName, setSelectedName] = useState<string>(
-    scenarios[0]?.name ?? "",
-  );
+  const [selectedName, setSelectedName] = useState<string>(() => {
+    const asked = scenarios.find((entry) => entry.name === initialScenario);
+    return asked?.name ?? scenarios[0]?.name ?? "";
+  });
+
+  const selectScenario = (name: string) => {
+    setSelectedName(name);
+    onScenarioChange?.(name);
+  };
   // Only ever set by the invitation's second button, and only while there is
   // nothing to pick.
   const [useDefault, setUseDefault] = useState(false);
@@ -95,7 +107,7 @@ export function DebugView({
           scenario={scenario}
           scenarios={scenarios}
           selectedName={selectedName}
-          onSelectScenario={setSelectedName}
+          onSelectScenario={selectScenario}
           onNewScenario={onNewScenario}
           sourceLabel={sourceLabel}
           onClose={onClose}

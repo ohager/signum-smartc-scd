@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import { Navigate, useLocation, useNavigate, useParams } from "react-router";
+import {
+  Navigate,
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router";
 import { Badge } from "@/components/ui/badge";
 import { Page, PageContent, PageHeader } from "@/components/ui/page";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
@@ -49,6 +55,9 @@ export function SimulatePage() {
 
   const replay =
     (useLocation().state as { replay?: Replay } | null)?.replay ?? null;
+  // Which scenario is being stepped belongs in the address: it survives a
+  // reload, it can be sent to someone, and the editor links straight into it.
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [source, setSource] = useState<string | null>(null);
   const [scenarios, setScenarios] = useState<{ name: string; json: string }[]>(
@@ -137,6 +146,12 @@ export function SimulatePage() {
               : scenarios
           }
           sourceLabel={replay ? `recording · ${replay.testName}` : undefined}
+          initialScenario={searchParams.get("scenario") ?? undefined}
+          // `replace`, so picking a scenario does not litter the history with
+          // entries the back button would have to walk through.
+          onScenarioChange={(name) =>
+            setSearchParams({ scenario: name }, { replace: true })
+          }
           // A replay belongs to one test run; there is no file to add a
           // scenario to.
           onNewScenario={replay ? undefined : createScenario}
