@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Navigate, useNavigate, useParams } from "react-router";
+import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 import { Badge } from "@/components/ui/badge";
 import { Page, PageContent, PageHeader } from "@/components/ui/page";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
@@ -12,10 +12,30 @@ import { useProjectFacts } from "@/features/workflow/use-project-facts";
 import { DebugView } from "@/features/simulator/ui/debug-view";
 
 /**
- * Stepping the project's contract against a scenario.
+ * A recording handed over by the test editor, carried in the history entry.
+ *
+ * It travels as navigation state rather than in a store, because that is what
+ * makes the back and forward buttons work: the recording belongs to the visit,
+ * not to the application.
+ */
+interface Replay {
+  source: string;
+  /** The recorded transaction stream, already converted to a scenario. */
+  scenario: string;
+  testName: string;
+  returnTo: string;
+}
+
+/**
+ * Stepping a contract against a scenario.
  *
  * A destination rather than a boolean inside the editor: the back button
  * works, and it sits beside `/debug/dashboard`, which was already a route.
+ *
+ * Two ways in. Normally it steps the project's own contract against the
+ * scenario files beside it. Arriving from a test, it steps what that test
+ * actually did — the run's recording, converted to a scenario, handed over in
+ * the history entry.
  */
 export function SimulatePage() {
   const fs = useFileSystem();
@@ -27,6 +47,9 @@ export function SimulatePage() {
   const { projectId, files, contract: choice } = useProjectFacts(routeFolderId);
   const contract = choice?.contract ?? null;
 
+  const replay =
+    (useLocation().state as { replay?: Replay } | null)?.replay ?? null;
+
   const [source, setSource] = useState<string | null>(null);
   const [scenarios, setScenarios] = useState<{ name: string; json: string }[]>(
     [],
@@ -34,7 +57,7 @@ export function SimulatePage() {
   const [missing, setMissing] = useState(false);
 
   useEffect(() => {
-    if (!contract) return;
+    if (!contract || replay) return;
 
     let cancelled = false;
 
@@ -87,25 +110,45 @@ export function SimulatePage() {
 
   // A project without a contract has nothing to step through. The file system
   // hydrates synchronously from localStorage, so this is not a race with load.
-  if (!contract || missing) return <Navigate to="/" replace />;
-  if (source === null) return <div className="p-4 text-sm">Loading…</div>;
+  if (!replay && (!contract || missing)) return <Navigate to="/" replace />;
+  if (!replay && source === null)
+    return <div className="p-4 text-sm">Loading…</div>;
 
   return (
     <Page>
       <PageHeader>
         <h1 className="text-sm font-semibold">Simulate</h1>
-        <Badge variant="secondary">SC-Simulator</Badge>
+        <Badge variant="secondary">
+          {replay ? replay.testName : "SC-Simulator"}
+        </Badge>
       </PageHeader>
       <PageContent className="overflow-hidden">
+        {replay && (
+          <p className="shrink-0 border-b border-[var(--border-1)] px-3 py-1 text-xs text-[var(--dim)]">
+            Replays what this test sent. Assertions do not re-evaluate while you
+            step, and only the last contract the test loaded is steppable.
+          </p>
+        )}
         <DebugView
-          source={source}
-          scenarios={scenarios}
+          source={replay ? replay.source : source!}
+          scenarios={
+            replay
+              ? [{ name: `from ${replay.testName}`, json: replay.scenario }]
+              : scenarios
+          }
+          sourceLabel={replay ? `recording · ${replay.testName}` : undefined}
+          // A replay belongs to one test run; there is no file to add a
+          // scenario to.
+          onNewScenario={replay ? undefined : createScenario}
           // `/projects/:projectId` is not a route — App.tsx has only the file
           // route and the two this phase adds. Closing goes back to the thing
           // being simulated.
-          onNewScenario={createScenario}
           onClose={() =>
-            navigate(`/projects/${projectId}/files/${contract.id}`)
+            navigate(
+              replay
+                ? replay.returnTo
+                : `/projects/${projectId}/files/${contract!.id}`,
+            )
           }
         />
       </PageContent>

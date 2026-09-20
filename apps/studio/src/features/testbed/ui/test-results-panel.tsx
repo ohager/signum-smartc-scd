@@ -1,4 +1,11 @@
-import { CheckCircle2, XCircle, MinusCircle, Clock, Loader2, Bug } from "lucide-react";
+import {
+  CheckCircle2,
+  XCircle,
+  MinusCircle,
+  Clock,
+  Loader2,
+  StepForward,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import type { RunState, TestRow } from "../test-run-model";
 import { serializeValue } from "../serialize-value";
@@ -52,7 +59,9 @@ function TestRowView({
           </button>
         )}
         {row.durationMs !== undefined && (
-          <span className="ml-auto shrink-0 text-xs text-muted-foreground">{row.durationMs}ms</span>
+          <span className="ml-auto shrink-0 text-xs text-muted-foreground">
+            {row.durationMs}ms
+          </span>
         )}
       </div>
 
@@ -64,7 +73,10 @@ function TestRowView({
                 ? "cursor-pointer text-[var(--mag)] hover:underline"
                 : "text-[var(--mag)]"
             }
-            onClick={() => row.failure?.line !== undefined && onRevealLine?.(row.failure.line)}
+            onClick={() =>
+              row.failure?.line !== undefined &&
+              onRevealLine?.(row.failure.line)
+            }
           >
             {row.failure.message}
           </div>
@@ -93,13 +105,13 @@ function TestRowView({
 export function TestResultsPanel({
   state,
   onRevealLine,
-  onDebug,
+  onSimulate,
   onSelectTest,
   activeTestId,
 }: {
   state: RunState;
   onRevealLine?: (line: number) => void;
-  onDebug?: () => void;
+  onSimulate?: () => void;
   onSelectTest?: (id: string) => void;
   activeTestId?: string | null;
 }) {
@@ -110,17 +122,28 @@ export function TestResultsPanel({
       <div className="flex items-center gap-3 border-b border-border px-3 py-2 text-xs">
         <span className="text-green-500">{counts.passed} passed</span>
         <span className="text-red-500">{counts.failed} failed</span>
-        {counts.skipped > 0 && <span className="text-muted-foreground">{counts.skipped} skipped</span>}
-        {counts.timedout > 0 && <span className="text-amber-500">{counts.timedout} timed out</span>}
+        {counts.skipped > 0 && (
+          <span className="text-muted-foreground">
+            {counts.skipped} skipped
+          </span>
+        )}
+        {counts.timedout > 0 && (
+          <span className="text-amber-500">{counts.timedout} timed out</span>
+        )}
         <div className="ml-auto flex items-center gap-3">
           {state.durationMs !== undefined && (
             <span className="text-muted-foreground">{state.durationMs}ms</span>
           )}
-          {/* The owner decides whether this run is debuggable; a recording without a
-              contract source is not, so it passes no callback rather than a dead button. */}
-          {onDebug && (
-            <button type="button" onClick={onDebug} className="flex items-center gap-1 hover:underline">
-              <Bug className="h-3.5 w-3.5" /> Debug
+          {/* The owner decides whether a run can be simulated; a recording
+              without a contract source cannot, so it passes no callback rather
+              than a dead button. */}
+          {onSimulate && (
+            <button
+              type="button"
+              onClick={onSimulate}
+              className="flex items-center gap-1 hover:underline"
+            >
+              <StepForward className="h-3.5 w-3.5" /> Simulate
             </button>
           )}
         </div>
@@ -128,22 +151,37 @@ export function TestResultsPanel({
 
       <div className="flex-1 overflow-auto">
         {state.status === "idle" && (
-          <p className="p-4 text-sm text-muted-foreground">Press Run to execute this test file.</p>
+          <p className="p-4 text-sm text-muted-foreground">
+            Press Run to execute this test file.
+          </p>
         )}
 
         {state.collectErrors.map((error, i) => (
-          <div key={i} className="border-b border-border/50 bg-[color-mix(in_srgb,var(--mag)_10%,transparent)] px-3 py-2 text-sm">
-            <div className="font-medium text-[var(--mag)]">Could not load {error.file}</div>
-            <div className="mt-1 font-mono text-xs text-muted-foreground">{error.message}</div>
+          <div
+            key={i}
+            className="border-b border-border/50 bg-[color-mix(in_srgb,var(--mag)_10%,transparent)] px-3 py-2 text-sm"
+          >
+            <div className="font-medium text-[var(--mag)]">
+              Could not load {error.file}
+            </div>
+            <div className="mt-1 font-mono text-xs text-muted-foreground">
+              {error.message}
+            </div>
           </div>
         ))}
 
         {state.hookErrors.map((error, i) => (
-          <div key={i} className="border-b border-border/50 bg-[color-mix(in_srgb,var(--amber)_10%,transparent)] px-3 py-2 text-sm">
+          <div
+            key={i}
+            className="border-b border-border/50 bg-[color-mix(in_srgb,var(--amber)_10%,transparent)] px-3 py-2 text-sm"
+          >
             <div className="font-medium text-[var(--amber)]">
-              {error.phase} failed{error.suite.length ? ` in ${error.suite.join(" › ")}` : ""}
+              {error.phase} failed
+              {error.suite.length ? ` in ${error.suite.join(" › ")}` : ""}
             </div>
-            <div className="mt-1 font-mono text-xs text-muted-foreground">{error.message}</div>
+            <div className="mt-1 font-mono text-xs text-muted-foreground">
+              {error.message}
+            </div>
           </div>
         ))}
 

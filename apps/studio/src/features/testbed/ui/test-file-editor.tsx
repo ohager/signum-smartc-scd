@@ -8,9 +8,9 @@ import {
 } from "@/components/ui/surface-toolbar.tsx";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import { registerClimateThemes } from "@/theme/monaco-themes";
-import { Play } from "lucide-react";
+import { Play, StepForward } from "lucide-react";
 import { toast } from "sonner";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import { findProjectOfFolder } from "@/features/project/project-root";
 import { contractOfProject } from "@/features/project/contract";
@@ -28,7 +28,6 @@ import {
 } from "@/components/ui/editor/file-actions.tsx";
 import { useEditorFile } from "@/components/ui/editor/use-editor-file.ts";
 import type { File } from "@/lib/file-system";
-import { DebugView } from "@/features/simulator/ui/debug-view";
 import { serializeScenario } from "@/features/simulator/scenario/scenario-io";
 import { configureTypeScriptForTests } from "../monaco-setup";
 import { useTestRun } from "../use-test-run";
@@ -53,6 +52,7 @@ interface Props {
 
 export function TestFileEditor({ file }: Props) {
   const { projectId = "" } = useParams<{ projectId: string }>();
+  const navigate = useNavigate();
   const fs = useFileSystem();
   const monacoTheme = useMonacoTheme();
   const monacoRef = useRef<typeof Monaco | null>(null);
@@ -91,10 +91,8 @@ export function TestFileEditor({ file }: Props) {
     traceForFile(file.metadata.path),
     inspectLine,
   );
-  const [debugging, setDebugging] = useState(false);
   const [debugRun, setDebugRun] = useState(false);
 
-  const recording = state.recordings?.[file.metadata.path];
   const activeRow = state.rows.find((row) => row.id === activeTestId);
 
   // acorn cannot parse TypeScript, so the scan runs on the emitted JavaScript —
@@ -150,12 +148,12 @@ export function TestFileEditor({ file }: Props) {
   const runFile = useCallback(
     async (filter?: string[]) => {
       const monaco = monacoRef.current;
-      if (!monaco) return;
+      if (!monaco) return null;
       lastRunWasFiltered.current = !!filter?.length;
       // Save first: the runner reads the project from the file system, not
       // the editor buffer. Quietly — the user asked for a run, not a save.
       await save({ silent: true });
-      await run(monaco, projectId, {
+      return run(monaco, projectId, {
         entryPath: file.metadata.path,
         debug: debugRun,
         filter,
@@ -231,59 +229,43 @@ export function TestFileEditor({ file }: Props) {
   useCursorTest(editorRef.current, foundTests, selectTestAtCursor);
 
   /**
-   * Re-runs the active test on its own, then opens the step debugger on it.
+   * Re-runs the active test on its own, then simulates the scenario it
+   * recorded.
    *
-   * Running first is what makes the recording per-test: the runner captures one
-   * recording per entry file, so a whole-file run yields every test's
+   * Running first is what makes the recording per-test: the runner captures
+   * one recording per entry file, so a whole-file run yields every test's
    * transactions concatenated — which is rarely what you want to step through.
+   *
+   * It navigates rather than swapping itself out. The debugger used to appear
+   * in place behind a boolean, which is why the back button could not return
+   * here — the same fault `3933bb1` fixed for the SmartC editor. The recording
+   * travels in the history entry, so going back and forward both work.
    */
-  const debugActiveTest = useCallback(async () => {
+  const simulateActiveTest = useCallback(async () => {
     const row = state.rows.find((candidate) => candidate.id === activeTestId);
     if (!row) return;
-    await runFile(row.path);
-    setDebugging(true);
-  }, [state.rows, activeTestId, runFile]);
 
-  if (debugging && !recording?.contractSource) {
-    return (
-      <div className="flex flex-col items-start gap-2 p-4">
-        <p className="text-sm text-muted-foreground">
-          {activeRow
-            ? `"${activeRow.name}" loaded no contract`
-            : "No contract was loaded"}
-          , so there is nothing to step through.
-        </p>
-        <Button variant="outline" size="sm" onClick={() => setDebugging(false)}>
-          Back to the editor
-        </Button>
-      </div>
-    );
-  }
+    const finished = await runFile(row.path);
+    const fresh = finished?.recordings?.[file.metadata.path];
 
-  if (debugging && recording?.contractSource) {
-    return (
-      <div className="flex min-h-0 flex-1 flex-col">
-        <p className="shrink-0 border-b border-border px-3 py-1 text-xs text-muted-foreground">
-          Replays the recorded transaction stream — assertions do not
-          re-evaluate while stepping. Only the last-loaded contract is
-          steppable.
-        </p>
-        <div className="min-h-0 flex-1">
-          <DebugView
-            source={recording.contractSource}
-            scenarios={[
-              {
-                name: "from test run",
-                json: serializeScenario(toDebugScenario(recording)),
-              },
-            ]}
-            sourceLabel={`recording · ${activeRow?.name ?? "test run"}`}
-            onClose={() => setDebugging(false)}
-          />
-        </div>
-      </div>
-    );
-  }
+    if (!fresh?.contractSource) {
+      toast.error(
+        `"${row.name}" loaded no contract, so there is nothing to simulate.`,
+      );
+      return;
+    }
+
+    navigate(`/projects/${projectId}/simulate`, {
+      state: {
+        replay: {
+          source: fresh.contractSource,
+          scenario: serializeScenario(toDebugScenario(fresh)),
+          testName: row.name,
+          returnTo: `/projects/${projectId}/files/${file.metadata.id}`,
+        },
+      },
+    });
+  }, [state.rows, activeTestId, runFile, navigate, projectId, file.metadata]);
 
   return (
     <div className="min-h-0 flex-1">
@@ -308,23 +290,27 @@ export function TestFileEditor({ file }: Props) {
                     <Play className="h-4 w-4" />
                     Run
                   </ToolbarButton>
-                  {/* The step debugger this app owns, not the browser's:
-                      DevTools cannot be opened from a page. The "Debug run"
-                      checkbox beside the results means that other thing. */}
+                  {/* Two words, two things, and they used to be one. Simulate
+                      replays what the test *sent*, as a scenario, in the
+                      simulator. Debug — the checkbox beside the results — is
+                      debugging the test itself, in the browser's own tools. */}
                   <ToolbarButton
                     onClick={() => {
-                      debugActiveTest().catch((e) =>
-                        toast.error("Could not debug: " + (e as Error).message),
+                      simulateActiveTest().catch((e) =>
+                        toast.error(
+                          "Could not simulate: " + (e as Error).message,
+                        ),
                       );
                     }}
                     disabled={isRunning || !activeTestId}
                     title={
                       activeTestId
-                        ? "Run the selected test and step through it"
-                        : "Select a test to step through it"
+                        ? "Run the selected test and simulate the scenario it records"
+                        : "Select a test to simulate its scenario"
                     }
                   >
-                    Debug
+                    <StepForward className="h-4 w-4" />
+                    Simulate
                   </ToolbarButton>
                 </>
               }
@@ -400,12 +386,12 @@ export function TestFileEditor({ file }: Props) {
                 <TestResultsPanel
                   state={state}
                   onRevealLine={revealLine}
-                  onDebug={
+                  onSimulate={
                     activeTestId && !isRunning
                       ? () => {
-                          debugActiveTest().catch((e) =>
+                          simulateActiveTest().catch((e) =>
                             toast.error(
-                              "Could not debug test: " + (e as Error).message,
+                              "Could not simulate: " + (e as Error).message,
                             ),
                           );
                         }
