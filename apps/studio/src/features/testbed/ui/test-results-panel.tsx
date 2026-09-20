@@ -4,7 +4,6 @@ import {
   MinusCircle,
   Clock,
   Loader2,
-  StepForward,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import type { RunState, TestRow } from "../test-run-model";
@@ -105,13 +104,11 @@ function TestRowView({
 export function TestResultsPanel({
   state,
   onRevealLine,
-  onSimulate,
   onSelectTest,
   activeTestId,
 }: {
   state: RunState;
   onRevealLine?: (line: number) => void;
-  onSimulate?: () => void;
   onSelectTest?: (id: string) => void;
   activeTestId?: string | null;
 }) {
@@ -133,18 +130,6 @@ export function TestResultsPanel({
         <div className="ml-auto flex items-center gap-3">
           {state.durationMs !== undefined && (
             <span className="text-muted-foreground">{state.durationMs}ms</span>
-          )}
-          {/* The owner decides whether a run can be simulated; a recording
-              without a contract source cannot, so it passes no callback rather
-              than a dead button. */}
-          {onSimulate && (
-            <button
-              type="button"
-              onClick={onSimulate}
-              className="flex items-center gap-1 hover:underline"
-            >
-              <StepForward className="h-3.5 w-3.5" /> Simulate
-            </button>
           )}
         </div>
       </div>

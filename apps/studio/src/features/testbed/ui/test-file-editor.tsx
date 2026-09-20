@@ -386,17 +386,6 @@ export function TestFileEditor({ file }: Props) {
                 <TestResultsPanel
                   state={state}
                   onRevealLine={revealLine}
-                  onSimulate={
-                    activeTestId && !isRunning
-                      ? () => {
-                          simulateActiveTest().catch((e) =>
-                            toast.error(
-                              "Could not simulate: " + (e as Error).message,
-                            ),
-                          );
-                        }
-                      : undefined
-                  }
                   activeTestId={activeTestId}
                   onSelectTest={setActiveTestId}
                 />
