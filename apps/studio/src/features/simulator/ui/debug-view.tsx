@@ -144,6 +144,10 @@ function DebugSession({
   const [state, setState] = useState<DebugState | null>(null);
   const [ledger, setLedger] = useState<LedgerState | null>(null);
   const [viewMode, setViewMode] = useState<"source" | "asm">("source");
+  // Whether the contract has moved since this round began. The engine cannot
+  // answer it: a contract is already `running` when it is activated, so the
+  // status alone cannot tell a first run from a resumption.
+  const [hasMoved, setHasMoved] = useState(false);
   const [assembly, setAssembly] = useState("");
   const monacoTheme = useMonacoTheme();
 
@@ -207,13 +211,18 @@ function DebugSession({
   );
 
   const run = (fn: () => DebugState) => () => {
-    if (controllerRef.current) setState(fn());
+    if (!controllerRef.current) return;
+    setState(fn());
+    setHasMoved(true);
   };
 
   const onForgeNextBlock = () => {
     if (controllerRef.current) {
       setState(controllerRef.current.forgeNextBlock());
       setLedger(controllerRef.current.getLedger());
+      // A new block is a new round: the next move starts it rather than
+      // resuming the last one.
+      setHasMoved(false);
     }
   };
 
@@ -221,6 +230,7 @@ function DebugSession({
     if (controllerRef.current) {
       setState(controllerRef.current.reset());
       setLedger(controllerRef.current.getLedger());
+      setHasMoved(false);
     }
   };
 
@@ -241,6 +251,7 @@ function DebugSession({
         onSelectScenario={onSelectScenario}
         onNewScenario={onNewScenario}
         sourceLabel={sourceLabel}
+        hasMoved={hasMoved}
         onClose={onClose}
       />
       <ResizablePanelGroup direction="horizontal" className="min-h-0 flex-1">

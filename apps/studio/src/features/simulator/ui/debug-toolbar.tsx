@@ -8,6 +8,7 @@ import {
   ToolbarReadout,
 } from "@/components/ui/surface-toolbar.tsx";
 import { SimulatorHelp } from "./simulator-help";
+import { transportFor } from "./transport";
 
 interface Props {
   state: DebugState | null;
@@ -24,6 +25,8 @@ interface Props {
   selectedName: string;
   onSelectScenario: (name: string) => void;
   onNewScenario?: () => void;
+  /** Whether anything has moved the contract since this round began. */
+  hasMoved: boolean;
   /**
    * Which kind of input this session is reading. There are two — a scenario
    * file and a recording of a test run — and they look identical while
@@ -60,23 +63,29 @@ export function DebugToolbar({
   onSelectScenario,
   onNewScenario,
   sourceLabel,
+  hasMoved,
 }: Props) {
   const status = state?.status ?? "ready";
-  const done = status === "finished" || status === "error";
+  const transport = transportFor(status, hasMoved);
 
   return (
     <SurfaceToolbar
       verbs={
         <>
-          <ToolbarButton weight="primary" onClick={onContinue} disabled={done}>
-            ▶ Continue
+          <ToolbarButton
+            weight={transport.emphasise === "run" ? "primary" : "secondary"}
+            onClick={onContinue}
+            disabled={transport.runDisabled}
+            title={transport.note || undefined}
+          >
+            ▶ {transport.runLabel}
           </ToolbarButton>
           {/* The source-line step — the one usually wanted, so it carries the
               plain name. */}
           <ToolbarButton
             onClick={onStepInto}
-            disabled={done}
-            title="Advance one source line"
+            disabled={!transport.canStep}
+            title={transport.note || "Advance one source line"}
           >
             Step
           </ToolbarButton>
@@ -85,15 +94,19 @@ export function DebugToolbar({
           {viewMode === "asm" && (
             <ToolbarButton
               onClick={onStep}
-              disabled={done}
-              title="Advance one AT instruction"
+              disabled={!transport.canStep}
+              title={transport.note || "Advance one AT instruction"}
             >
               Step instruction
             </ToolbarButton>
           )}
           <ToolbarDivider />
           {/* Moves the chain, not the contract — hence its own group. */}
+          {/* Takes the weight the run button gives up when a round ends: it is
+              the only way onwards from there, and used to sit quietly beside
+              two disabled buttons saying nothing. */}
           <ToolbarButton
+            weight={transport.emphasise === "forge" ? "primary" : "secondary"}
             onClick={onForgeNextBlock}
             title="Forge the next block and deliver its scheduled transactions"
           >
@@ -174,6 +187,14 @@ export function DebugToolbar({
                 : []),
             ]}
           />
+          {transport.note && !state?.error && (
+            <span
+              className="max-w-[280px] truncate text-xs text-[var(--dim)]"
+              title={transport.note}
+            >
+              {transport.note}
+            </span>
+          )}
           {state?.error && (
             <span
               className="max-w-[240px] truncate text-xs text-[var(--mag)]"
