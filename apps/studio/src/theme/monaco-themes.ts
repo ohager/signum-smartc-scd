@@ -40,6 +40,10 @@ export function asmThemeName(id: ClimateId): string {
   return `asm-${id}`;
 }
 
+export function jsonThemeName(id: ClimateId): string {
+  return `json-${id}`;
+}
+
 /** Monaco takes alpha as two trailing hex digits. */
 function withAlpha(hex: string, alpha: string): string {
   return `${hex}${alpha}`;
@@ -81,7 +85,11 @@ export function buildSmartcTheme(climate: Climate): MonacoThemeData {
       { token: "comment", foreground: editor.comment, fontStyle: "italic" },
       { token: "identifier", foreground: climate.text },
       { token: "delimiter", foreground: editor.gutter },
-      { token: "keyword.directive", foreground: editor.type, fontStyle: "bold" },
+      {
+        token: "keyword.directive",
+        foreground: editor.type,
+        fontStyle: "bold",
+      },
       { token: "api", foreground: editor.type, fontStyle: "bold" },
     ],
     colors: groundColours(climate),
@@ -95,15 +103,27 @@ export function buildAsmTheme(climate: Climate): MonacoThemeData {
     base: climate.base,
     inherit: true,
     rules: [
-      { token: "keyword.control", foreground: editor.keyword, fontStyle: "bold" },
+      {
+        token: "keyword.control",
+        foreground: editor.keyword,
+        fontStyle: "bold",
+      },
       { token: "keyword.stack", foreground: editor.string, fontStyle: "bold" },
-      { token: "keyword.operator", foreground: editor.number, fontStyle: "bold" },
+      {
+        token: "keyword.operator",
+        foreground: editor.number,
+        fontStyle: "bold",
+      },
       { token: "keyword.api", foreground: editor.type, fontStyle: "bold" },
       { token: "keyword.memory", foreground: editor.type, fontStyle: "bold" },
       { token: "directive", foreground: editor.number, fontStyle: "italic" },
       { token: "preprocessor", foreground: editor.keyword, fontStyle: "bold" },
       { token: "preprocessor.param", foreground: editor.type },
-      { token: "preprocessor.value", foreground: editor.comment, fontStyle: "italic" },
+      {
+        token: "preprocessor.value",
+        foreground: editor.comment,
+        fontStyle: "italic",
+      },
       { token: "comment", foreground: editor.comment, fontStyle: "italic" },
       { token: "label", foreground: climate.accent2, fontStyle: "bold" },
       { token: "number", foreground: editor.number },
@@ -120,10 +140,46 @@ export function buildAsmTheme(climate: Climate): MonacoThemeData {
   };
 }
 
-/** Registers all eight themes. Idempotent, so any `beforeMount` may call it. */
+/**
+ * Scenario files, which are JSON.
+ *
+ * They used to be painted with the SmartC theme, and Monaco matches a rule
+ * whose token is a prefix of the real one — so `string.key.json` and
+ * `string.value.json` both landed on the single `string` rule and every
+ * scenario read as one flat colour. A key is structure, not text: it takes the
+ * climate's type colour, and only the value stays a string.
+ */
+export function buildJsonTheme(climate: Climate): MonacoThemeData {
+  const { editor } = climate;
+
+  return {
+    base: climate.base,
+    inherit: true,
+    rules: [
+      { token: "string.key.json", foreground: editor.type },
+      { token: "string.value.json", foreground: editor.string },
+      { token: "string", foreground: editor.string },
+      { token: "number", foreground: editor.number },
+      // true, false and null — the only words JSON has.
+      { token: "keyword", foreground: editor.keyword, fontStyle: "bold" },
+      { token: "delimiter", foreground: editor.gutter },
+      { token: "comment", foreground: editor.comment, fontStyle: "italic" },
+    ],
+    colors: groundColours(climate),
+  };
+}
+
+/** Registers all twelve themes. Idempotent, so any `beforeMount` may call it. */
 export function registerClimateThemes(monaco: MonacoLike): void {
   for (const climate of CLIMATES) {
-    monaco.editor.defineTheme(smartcThemeName(climate.id), buildSmartcTheme(climate));
+    monaco.editor.defineTheme(
+      smartcThemeName(climate.id),
+      buildSmartcTheme(climate),
+    );
     monaco.editor.defineTheme(asmThemeName(climate.id), buildAsmTheme(climate));
+    monaco.editor.defineTheme(
+      jsonThemeName(climate.id),
+      buildJsonTheme(climate),
+    );
   }
 }

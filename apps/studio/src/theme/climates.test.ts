@@ -1,5 +1,10 @@
 import { describe, it, expect } from "bun:test";
-import { CLIMATES, DEFAULT_CLIMATE, climateById, CLIMATE_IDS } from "./climates";
+import {
+  CLIMATES,
+  DEFAULT_CLIMATE,
+  climateById,
+  CLIMATE_IDS,
+} from "./climates";
 
 describe("climates", () => {
   it("offers exactly the four approved climates, in picker order", () => {

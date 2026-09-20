@@ -28,7 +28,7 @@ function validationErrors(text: string): string[] {
 }
 
 export function ScenarioEditor({ file }: { file: File }) {
-  const monacoTheme = useMonacoTheme();
+  const monacoTheme = useMonacoTheme("json");
   const {
     text: content,
     isDirty,
