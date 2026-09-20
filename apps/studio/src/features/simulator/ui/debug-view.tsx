@@ -22,6 +22,7 @@ import {
 import { createDebugHost, type DebugHost } from "../debug-broadcast";
 import { useDebugDecorations } from "./use-debug-decorations";
 import { AsmView } from "./asm-view";
+import { SimulatorInvitation } from "./simulator-help";
 import {
   setDebugMemory,
   clearDebugMemory,
@@ -61,6 +62,9 @@ export function DebugView({
   const [selectedName, setSelectedName] = useState<string>(
     scenarios[0]?.name ?? "",
   );
+  // Only ever set by the invitation's second button, and only while there is
+  // nothing to pick.
+  const [useDefault, setUseDefault] = useState(false);
 
   const scenario: ScenarioFile = useMemo(() => {
     const entry = scenarios.find((s) => s.name === selectedName);
@@ -72,6 +76,15 @@ export function DebugView({
       return defaultScenario();
     }
   }, [scenarios, selectedName]);
+
+  if (scenarios.length === 0 && !useDefault) {
+    return (
+      <SimulatorInvitation
+        onCreate={onNewScenario}
+        onUseDefault={() => setUseDefault(true)}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col h-full">

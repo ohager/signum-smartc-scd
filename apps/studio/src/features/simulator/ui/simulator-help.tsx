@@ -4,6 +4,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Panel } from "@/components/ui/panel.tsx";
+import { ToolbarButton } from "@/components/ui/surface-toolbar.tsx";
 
 /**
  * How this thing works, in four sentences.
@@ -45,5 +47,44 @@ export function SimulatorHelp() {
         </ul>
       </TooltipContent>
     </Tooltip>
+  );
+}
+
+/**
+ * What a project with no scenario sees first.
+ *
+ * Not a barrier: `DebugView` falls back to a built-in default scenario, and a
+ * newcomer who just wants to watch the contract run should not have to author
+ * a file to do it. So the invitation explains the model and offers both — make
+ * one, or step through the default.
+ */
+export function SimulatorInvitation({
+  onCreate,
+  onUseDefault,
+}: {
+  onCreate?: () => void;
+  onUseDefault: () => void;
+}) {
+  return (
+    <div className="flex h-full items-center justify-center p-6">
+      <Panel variant="bracketed" className="max-w-[460px] p-5">
+        <h2 className="mb-2 text-sm font-medium">No scenario yet</h2>
+        <ul className="mb-4 space-y-1.5 text-xs text-[var(--dim)]">
+          {SIMULATOR_MODEL.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+        <div className="flex items-center gap-2">
+          {onCreate && (
+            <ToolbarButton weight="primary" onClick={onCreate}>
+              Create the first scenario
+            </ToolbarButton>
+          )}
+          <ToolbarButton onClick={onUseDefault}>
+            Step through the built-in default
+          </ToolbarButton>
+        </div>
+      </Panel>
+    </div>
   );
 }
