@@ -3,7 +3,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type * as Monaco from "monaco-editor";
 import { toast } from "sonner";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
-import { SMARTC_LANGUAGE_ID, registerSmartC } from "@/features/smartc-editor/language/register.ts";
+import {
+  SMARTC_LANGUAGE_ID,
+  registerSmartC,
+} from "@/features/smartc-editor/language/register.ts";
 import { DebugController } from "../debug-controller";
 import { ScSimulatorEngine } from "../engine/simulator-engine";
 import { parseScenario, defaultScenario } from "../scenario/scenario-io";
@@ -19,7 +22,10 @@ import {
 import { createDebugHost, type DebugHost } from "../debug-broadcast";
 import { useDebugDecorations } from "./use-debug-decorations";
 import { AsmView } from "./asm-view";
-import { setDebugMemory, clearDebugMemory } from "@/features/smartc-editor/language/debug-memory";
+import {
+  setDebugMemory,
+  clearDebugMemory,
+} from "@/features/smartc-editor/language/debug-memory";
 
 export interface ScenarioEntry {
   name: string;
@@ -37,14 +43,24 @@ interface Props {
    */
   sourceLabel?: string;
   onClose: () => void;
+  /** Absent when the page cannot create files for this project. */
+  onNewScenario?: () => void;
 }
 
 /**
  * Debug view with a scenario picker. Selecting a different scenario remounts the
  * inner session (via `key`) so it re-compiles/re-runs against the chosen one.
  */
-export function DebugView({ source, scenarios, sourceLabel, onClose }: Props) {
-  const [selectedName, setSelectedName] = useState<string>(scenarios[0]?.name ?? "");
+export function DebugView({
+  source,
+  scenarios,
+  sourceLabel,
+  onClose,
+  onNewScenario,
+}: Props) {
+  const [selectedName, setSelectedName] = useState<string>(
+    scenarios[0]?.name ?? "",
+  );
 
   const scenario: ScenarioFile = useMemo(() => {
     const entry = scenarios.find((s) => s.name === selectedName);
@@ -59,29 +75,18 @@ export function DebugView({ source, scenarios, sourceLabel, onClose }: Props) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 h-[30px] px-2 border-b bg-muted text-xs">
-        {sourceLabel && (
-          <span className="font-mono text-[10px] text-[var(--dim)]">{sourceLabel}</span>
-        )}
-        <span className="opacity-70">Scenario:</span>
-        <select
-          className="bg-transparent border rounded px-1 py-0.5 max-w-[240px]"
-          value={selectedName}
-          onChange={(e) => setSelectedName(e.target.value)}
-        >
-          {scenarios.length === 0 && <option value="">(built-in default)</option>}
-          {scenarios.map((s) => (
-            <option key={s.name} value={s.name}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-        {scenarios.length === 0 && (
-          <span className="opacity-50">— create one with “New Scenario” on the contract</span>
-        )}
-      </div>
       <div className="flex-1 min-h-0">
-        <DebugSession key={selectedName || "__default__"} source={source} scenario={scenario} onClose={onClose} />
+        <DebugSession
+          key={selectedName || "__default__"}
+          source={source}
+          scenario={scenario}
+          scenarios={scenarios}
+          selectedName={selectedName}
+          onSelectScenario={setSelectedName}
+          onNewScenario={onNewScenario}
+          sourceLabel={sourceLabel}
+          onClose={onClose}
+        />
       </div>
     </div>
   );
@@ -90,10 +95,20 @@ export function DebugView({ source, scenarios, sourceLabel, onClose }: Props) {
 function DebugSession({
   source,
   scenario,
+  scenarios,
+  selectedName,
+  onSelectScenario,
+  onNewScenario,
+  sourceLabel,
   onClose,
 }: {
   source: string;
   scenario: ScenarioFile;
+  scenarios: ScenarioEntry[];
+  selectedName: string;
+  onSelectScenario: (name: string) => void;
+  onNewScenario?: () => void;
+  sourceLabel?: string;
   onClose: () => void;
 }) {
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -196,6 +211,11 @@ function DebugSession({
         onPopOut={canPopOut ? onPopOut : undefined}
         viewMode={viewMode}
         onViewMode={setViewMode}
+        scenarios={scenarios}
+        selectedName={selectedName}
+        onSelectScenario={onSelectScenario}
+        onNewScenario={onNewScenario}
+        sourceLabel={sourceLabel}
         onClose={onClose}
       />
       <ResizablePanelGroup direction="horizontal" className="min-h-0 flex-1">
@@ -231,7 +251,8 @@ function DebugSession({
               state={state}
               ledger={ledger}
               onRemoveBreakpoint={(line) => {
-                if (controllerRef.current) setState(controllerRef.current.toggleBreakpoint(line));
+                if (controllerRef.current)
+                  setState(controllerRef.current.toggleBreakpoint(line));
               }}
             />
           </div>
