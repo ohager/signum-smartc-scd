@@ -20,6 +20,7 @@ describe("climates", () => {
       for (const key of [
         "code",
         "gutter",
+        "punctuation",
         "keyword",
         "type",
         "number",

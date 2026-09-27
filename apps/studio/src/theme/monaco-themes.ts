@@ -84,7 +84,7 @@ export function buildSmartcTheme(climate: Climate): MonacoThemeData {
       { token: "string", foreground: editor.string },
       { token: "comment", foreground: editor.comment, fontStyle: "italic" },
       { token: "identifier", foreground: climate.text },
-      { token: "delimiter", foreground: editor.gutter },
+      { token: "delimiter", foreground: editor.punctuation },
       {
         token: "keyword.directive",
         foreground: editor.type,
@@ -162,7 +162,7 @@ export function buildJsonTheme(climate: Climate): MonacoThemeData {
       { token: "number", foreground: editor.number },
       // true, false and null — the only words JSON has.
       { token: "keyword", foreground: editor.keyword, fontStyle: "bold" },
-      { token: "delimiter", foreground: editor.gutter },
+      { token: "delimiter", foreground: editor.punctuation },
       { token: "comment", foreground: editor.comment, fontStyle: "italic" },
     ],
     colors: groundColours(climate),
