@@ -1,6 +1,8 @@
 import { describe, it, expect } from "bun:test";
+import { HttpError } from "@signumjs/http";
 import {
   summariseContracts,
+  hasSettled,
   DEPLOYMENT_PAGE_SIZE,
 } from "./use-deployment-count";
 
@@ -36,5 +38,33 @@ describe("summariseContracts", () => {
 
   it("does not mark a partial page as capped", () => {
     expect(summariseContracts([at("9")], "123").capped).toBe(false);
+  });
+});
+
+describe("hasSettled", () => {
+  const ledger = (getTransaction: () => Promise<unknown>) =>
+    ({ transaction: { getTransaction } }) as any;
+
+  it("keeps waiting while the transaction is only in the pool", async () => {
+    expect(await hasSettled(ledger(async () => ({ transaction: "t1" })), "t1")).toBe(false);
+  });
+
+  it("is over once the transaction is in a block", async () => {
+    expect(
+      await hasSettled(ledger(async () => ({ transaction: "t1", block: "b1" })), "t1"),
+    ).toBe(true);
+  });
+
+  it("is over when the node no longer knows the transaction", async () => {
+    const unknown = new HttpError("url", 400, "Unknown transaction (Code: 5)", {
+      errorCode: 5,
+    });
+    expect(await hasSettled(ledger(() => Promise.reject(unknown)), "t1")).toBe(true);
+  });
+
+  it("keeps waiting when the node cannot be reached", async () => {
+    expect(
+      await hasSettled(ledger(() => Promise.reject(new Error("offline"))), "t1"),
+    ).toBe(false);
   });
 });

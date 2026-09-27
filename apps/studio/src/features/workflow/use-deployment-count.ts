@@ -1,10 +1,20 @@
 import { useEffect, useState } from "react";
 import type { Contract } from "@signumjs/contracts";
+import type { StandardLedger } from "@signumjs/core";
+import { HttpError } from "@signumjs/http";
 import { SmartC } from "smartc-signum-compiler";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import { useWalletStatus } from "@/hooks/use-wallet-status.ts";
 import type { FileMetadata } from "@/lib/file-system";
 import type { DeploymentAnswer } from "./rail-cells";
+import {
+  deploymentKey,
+  onDeploymentsChanged,
+  pendingDeployment,
+  settleDeployment,
+  watchChain,
+  type PendingDeployment,
+} from "./deployment-watch";
 
 /**
  * How many copies of this code are on chain.
@@ -16,6 +26,10 @@ import type { DeploymentAnswer } from "./rail-cells";
  * The node comes from the connected wallet and from nowhere else. Studio ships
  * no default node: a local-first tool should not quietly tell a third-party
  * server what code you are writing.
+ *
+ * A deploy sent from this session reads "deploying…" until its transaction is
+ * in a block — the chain lists nothing before that — and the cached answer
+ * for that code is dropped then, so the next ask sees the new contract.
  */
 
 /** Ten, so that a full page means "at least ten" and the cell can say `9+`. */
@@ -42,8 +56,35 @@ export function summariseContracts(
   };
 }
 
-/** Answers per code hash, for the session. */
+/**
+ * Whether the wait for this transaction is over: it is in a block, or the node
+ * no longer knows it (expired or dropped from the pool — it will never land).
+ * Anything else, including a failed request, keeps waiting.
+ */
+export async function hasSettled(
+  ledger: Pick<StandardLedger, "transaction">,
+  transactionId: string,
+): Promise<boolean> {
+  try {
+    const transaction = await ledger.transaction.getTransaction(transactionId);
+    return Boolean(transaction.block);
+  } catch (error) {
+    // Signum's "Unknown transaction".
+    return error instanceof HttpError && error.data?.errorCode === 5;
+  }
+}
+
+/** Answers per node and code hash, for the session. */
 const cache = new Map<string, DeploymentAnswer>();
+
+async function settleIfLanded(
+  ledger: StandardLedger,
+  deployment: PendingDeployment,
+) {
+  if (!(await hasSettled(ledger, deployment.transactionId))) return;
+  cache.delete(deploymentKey(deployment.nodeHost, deployment.codeHash));
+  settleDeployment(deployment);
+}
 
 export function useDeploymentCount(
   contract: FileMetadata | null,
@@ -53,6 +94,13 @@ export function useDeploymentCount(
   const [answer, setAnswer] = useState<DeploymentAnswer>({
     state: "no-wallet",
   });
+  // Bumped when a deploy is announced or settles, to ask again.
+  const [revision, setRevision] = useState(0);
+
+  useEffect(
+    () => onDeploymentsChanged(() => setRevision((r) => r + 1)),
+    [],
+  );
 
   useEffect(() => {
     if (!contract || !wallet) {
@@ -61,6 +109,7 @@ export function useDeploymentCount(
     }
 
     let cancelled = false;
+    let stopWatch: (() => void) | undefined;
 
     async function ask() {
       const { content } = await fs.loadFile<string>(contract!.id);
@@ -80,7 +129,22 @@ export function useDeploymentCount(
         return;
       }
 
-      const cached = cache.get(hash);
+      if (cancelled) return;
+      const ledger = wallet!.ledger;
+      const nodeHost = ledger.service.settings.nodeHost;
+
+      const waiting = pendingDeployment(nodeHost, hash);
+      if (waiting) {
+        setAnswer({ state: "deploying" });
+        const check = () => void settleIfLanded(ledger, waiting);
+        stopWatch = watchChain(nodeHost, check);
+        // It may have landed while nobody was watching.
+        check();
+        return;
+      }
+
+      const key = deploymentKey(nodeHost, hash);
+      const cached = cache.get(key);
       if (cached) {
         if (!cancelled) setAnswer(cached);
         return;
@@ -96,7 +160,7 @@ export function useDeploymentCount(
       });
 
       const summary = summariseContracts(list.ats, wallet!.accountId);
-      cache.set(hash, summary);
+      cache.set(key, summary);
       if (!cancelled) setAnswer(summary);
     }
 
@@ -106,8 +170,9 @@ export function useDeploymentCount(
 
     return () => {
       cancelled = true;
+      stopWatch?.();
     };
-  }, [fs, wallet, contract?.id, contract?.lastModified]);
+  }, [fs, wallet, contract?.id, contract?.lastModified, revision]);
 
   return answer;
 }

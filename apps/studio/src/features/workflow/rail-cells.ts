@@ -69,6 +69,8 @@ export type DeploymentAnswer =
   /** The source does not compile, so there is no code hash to ask about. */
   | { state: "no-code" }
   | { state: "asking" }
+  /** Sent from this session, and not yet in a block the chain would list. */
+  | { state: "deploying" }
   | { state: "answered"; total: number; mine: number; capped: boolean };
 
 export function deployCell(answer: DeploymentAnswer): CellContent {
@@ -79,6 +81,13 @@ export function deployCell(answer: DeploymentAnswer): CellContent {
     return { ...UNKNOWN, hint: "The contract does not compile yet" };
   }
   if (answer.state === "asking") return { fact: "…", tone: "neutral" };
+  if (answer.state === "deploying") {
+    return {
+      fact: "deploying…",
+      tone: "neutral",
+      hint: "Waiting for the next block",
+    };
+  }
   if (answer.total === 0) return { fact: "not deployed", tone: "neutral" };
 
   const count = answer.capped ? "9+" : String(answer.total);

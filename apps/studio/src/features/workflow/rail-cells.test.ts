@@ -115,6 +115,16 @@ describe("deployCell", () => {
     });
   });
 
+  it("says a deploy is on its way until the chain lists it", () => {
+    // The chain lists a contract only once it is in a block, minutes after the
+    // deploy flow reports success; "not deployed" would be wrong all along.
+    expect(deployCell({ state: "deploying" })).toEqual({
+      fact: "deploying…",
+      tone: "neutral",
+      hint: "Waiting for the next block",
+    });
+  });
+
   it("reports that this code is nowhere on chain", () => {
     expect(
       deployCell({ state: "answered", total: 0, mine: 0, capped: false }),
