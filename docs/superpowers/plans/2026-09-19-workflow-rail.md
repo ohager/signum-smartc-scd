@@ -105,7 +105,7 @@ reworking its three call sites is not this phase's job.
 
 No unit test: this is layout, verified by the build and in the browser at Task 10.
 
-- [ ] **Step 1: Make PageContent a flex container**
+- [x] **Step 1: Make PageContent a flex container**
 
 Replace the body of `PageContent` (`page.tsx:89-98`) with:
 
@@ -128,7 +128,7 @@ const PageContent = React.forwardRef<HTMLDivElement, PageContentProps>(
 );
 ```
 
-- [ ] **Step 2: Drop the measuring from the SmartC editor**
+- [x] **Step 2: Drop the measuring from the SmartC editor**
 
 In `smartc-editor.tsx`, delete the `editorHeight` state, the
 `calculateEditorHeight` effect and the `containerRef` usage for it, then:
@@ -144,7 +144,7 @@ In `smartc-editor.tsx`, delete the `editorHeight` state, the
   <Editor height="100%" …
 ```
 
-- [ ] **Step 3: Do the same in the ASM and scenario editors**
+- [x] **Step 3: Do the same in the ASM and scenario editors**
 
 `asm-code-editor.tsx` and `scenario-editor.tsx` carry the identical block.
 Delete `editorHeight`, its state, its effect and the resize listener; wrap in
@@ -153,7 +153,7 @@ Delete `editorHeight`, its state, its effect and the resize listener; wrap in
 The Monaco wrapper around each editor needs a definite box, so the div that
 holds `<Editor>` becomes `className="min-h-0 flex-1"`.
 
-- [ ] **Step 4: And in the test editor**
+- [x] **Step 4: And in the test editor**
 
 `test-file-editor.tsx` uses `panelHeight` for the whole `ResizablePanelGroup`.
 Delete `panelHeight`, `calculatePanelHeight` and its listener, and replace
@@ -168,7 +168,7 @@ with
 <div className="min-h-0 flex-1">
 ```
 
-- [ ] **Step 5: Delete the two components nothing imports**
+- [x] **Step 5: Delete the two components nothing imports**
 
 ```bash
 cd apps/studio && rm src/components/ui/layout/main-area.tsx src/components/ui/layout/right-sidebar.tsx
@@ -177,12 +177,12 @@ grep -rn "MainArea\|RightSidebar" src && echo "STILL REFERENCED" || echo "clean"
 
 Expected: `clean`
 
-- [ ] **Step 6: Verify**
+- [x] **Step 6: Verify**
 
 Run: `cd apps/studio && bun run build && bun test`
 Expected: `✅ Build completed`; suite green.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add apps/studio/src
@@ -215,7 +215,7 @@ The first question has no answer at all today, and needs one: `files-page.tsx:75
 rewrites the URL to the file's immediate parent folder, so `:projectId` is only
 the project when the contract happens to sit at the top level.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // apps/studio/src/features/project/contract.test.ts
@@ -263,12 +263,12 @@ describe("pickContract", () => {
 });
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `cd apps/studio && bun test src/features/project/contract.test.ts`
 Expected: FAIL — `Cannot find module './contract'`
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```ts
 // apps/studio/src/features/project/contract.ts
@@ -329,12 +329,12 @@ export function contractOfProject(
 }
 ```
 
-- [ ] **Step 4: Run it and watch it pass**
+- [x] **Step 4: Run it and watch it pass**
 
 Run: `cd apps/studio && bun test src/features/project/contract.test.ts`
 Expected: PASS, 5 tests
 
-- [ ] **Step 5: Share the predicate with the home page, and nothing else**
+- [x] **Step 5: Share the predicate with the home page, and nothing else**
 
 In `features/home/project-summary.ts`, delete the local `SMARTC_EXTENSION`
 constant and import the predicate instead:
@@ -355,14 +355,14 @@ fallback to a file of any type are what the project card needs, and
 existing comment about matching on the suffix: it explains why `FileTypes` is
 not imported here, which is still true.
 
-- [ ] **Step 6: Verify the home page's own tests still pass**
+- [x] **Step 6: Verify the home page's own tests still pass**
 
 Run: `cd apps/studio && bun test src/features/home/`
 Expected: PASS, unchanged count. In particular `picks the newest .smart.c as
 the main file` and `falls back to the newest file of any type` still pass —
 they are the two this task must not break.
 
-- [ ] **Step 7: Write the failing test for the project root**
+- [x] **Step 7: Write the failing test for the project root**
 
 ```ts
 // apps/studio/src/features/project/project-root.test.ts
@@ -401,12 +401,12 @@ describe("findProjectOfFolder", () => {
 });
 ```
 
-- [ ] **Step 8: Run it and watch it fail**
+- [x] **Step 8: Run it and watch it fail**
 
 Run: `cd apps/studio && bun test src/features/project/project-root.test.ts`
 Expected: FAIL — `Cannot find module './project-root'`
 
-- [ ] **Step 9: Write it**
+- [x] **Step 9: Write it**
 
 ```ts
 // apps/studio/src/features/project/project-root.ts
@@ -450,12 +450,12 @@ export function findProjectOfFolder(
 }
 ```
 
-- [ ] **Step 10: Run it and watch it pass**
+- [x] **Step 10: Run it and watch it pass**
 
 Run: `cd apps/studio && bun test src/features/project/`
 Expected: PASS, 9 new tests, plus the file-naming/tree-reveal suites already there.
 
-- [ ] **Step 11: Commit**
+- [x] **Step 11: Commit**
 
 ```bash
 git add apps/studio/src/features/project apps/studio/src/features/home/project-summary.ts
@@ -477,7 +477,7 @@ Built exactly like `recent-files.ts`: pure functions plus a service bound to a
 host, composed into `FileSystem` as a lazy getter — and, unlike `recents`,
 announcing its writes, because the rail has to repaint when a test run lands.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // apps/studio/src/lib/file-system/project-status.test.ts
@@ -586,12 +586,12 @@ describe("ProjectStatus", () => {
 });
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `cd apps/studio && bun test src/lib/file-system/project-status.test.ts`
 Expected: FAIL — `Cannot find module './project-status'`
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```ts
 // apps/studio/src/lib/file-system/project-status.ts
@@ -729,12 +729,12 @@ export class ProjectStatus {
 }
 ```
 
-- [ ] **Step 4: Run it and watch it pass**
+- [x] **Step 4: Run it and watch it pass**
 
 Run: `cd apps/studio && bun test src/lib/file-system/project-status.test.ts`
 Expected: PASS, 8 tests
 
-- [ ] **Step 5: Compose it into the file system**
+- [x] **Step 5: Compose it into the file system**
 
 In `lib/file-system/file-system.ts`:
 
@@ -803,7 +803,7 @@ And add the event to the union in `file-system-types.ts`, beside `fs:reloaded`:
 No wildcard handling needed: `emitEvent` only fans out `file:` and `folder:`
 prefixes, and this event has neither.
 
-- [ ] **Step 6: Prune on deletion, so nothing dangles**
+- [x] **Step 6: Prune on deletion, so nothing dangles**
 
 In `deleteFile`, beside `this.recents.forget(fileId);` add
 `this.status.forgetTests(fileId);`. In `recursiveDeleteFolder`, beside the same
@@ -811,16 +811,16 @@ call, add `this.status.forgetTests(fileId);`. In `deleteFolder`, after the
 recursive call, add `this.status.forgetProject(folderId);` — a deleted project
 takes its verdicts with it.
 
-- [ ] **Step 7: Export from the barrel**
+- [x] **Step 7: Export from the barrel**
 
 In `lib/file-system/index.ts` add `export * from './project-status';`
 
-- [ ] **Step 8: Verify the whole file-system suite**
+- [x] **Step 8: Verify the whole file-system suite**
 
 Run: `cd apps/studio && bun test src/lib/file-system/ && bun run build`
 Expected: PASS; `✅ Build completed`
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add apps/studio/src/lib/file-system
@@ -838,7 +838,7 @@ git commit -m "feat(studio): persist the compile and test verdicts a rail can re
 This is where the staleness rule lives, and therefore the most important test
 in the plan.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // apps/studio/src/features/workflow/rail-cells.test.ts
@@ -960,12 +960,12 @@ describe("deployCell", () => {
 });
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `cd apps/studio && bun test src/features/workflow/rail-cells.test.ts`
 Expected: FAIL — `Cannot find module './rail-cells'`
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```ts
 // apps/studio/src/features/workflow/rail-cells.ts
@@ -1058,12 +1058,12 @@ export function deployCell(answer: DeploymentAnswer): CellContent {
 }
 ```
 
-- [ ] **Step 4: Run it and watch it pass**
+- [x] **Step 4: Run it and watch it pass**
 
 Run: `cd apps/studio && bun test src/features/workflow/rail-cells.test.ts`
 Expected: PASS, 18 tests
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/studio/src/features/workflow
@@ -1082,7 +1082,7 @@ git commit -m "feat(studio): what each rail cell says, and when it refuses to"
 - Modify: `apps/studio/src/features/smartc-editor/smartc-editor.tsx` (record the verdict)
 - Modify: `apps/studio/src/features/testbed/ui/test-file-editor.tsx` (record the verdict)
 
-- [ ] **Step 1: Measure a compile before deciding to do one**
+- [x] **Step 1: Measure a compile before deciding to do one**
 
 The spec gates the lazy compile on cost. Measure it:
 
@@ -1107,7 +1107,7 @@ continue with Step 3 as written. **If it is over**, drop the compiling half of
 it: the hook becomes a plain read of `facts.status.compile`, and the Write cell
 reads `—` until the contract has been saved once.
 
-- [ ] **Step 2: Everything the rail reports on, and when it changes**
+- [x] **Step 2: Everything the rail reports on, and when it changes**
 
 Three separate mistakes live in reading `FileSystem` straight out of render,
 and one hook fixes all three.
@@ -1200,7 +1200,7 @@ export function useProjectFacts(routeFolderId: string): ProjectFacts {
 }
 ```
 
-- [ ] **Step 3: Write the read-through verdict hook**
+- [x] **Step 3: Write the read-through verdict hook**
 
 ```ts
 // apps/studio/src/features/workflow/use-compile-verdict.ts
@@ -1267,7 +1267,7 @@ export function useCompileVerdict(
 }
 ```
 
-- [ ] **Step 4: Write the rail**
+- [x] **Step 4: Write the rail**
 
 ```tsx
 // apps/studio/src/features/workflow/rail.tsx
@@ -1482,7 +1482,7 @@ function RailCell({
 not reactive, so `here("simulate")` would keep its answer from the previous
 route until something else re-rendered the header.
 
-- [ ] **Step 5: Give the page header a slot for it**
+- [x] **Step 5: Give the page header a slot for it**
 
 In `components/ui/page.tsx`, import the rail and render it between the title
 area and the actions, on project routes only:
@@ -1517,7 +1517,7 @@ const PageHeader = React.forwardRef<HTMLElement, PageHeaderProps>(
 );
 ```
 
-- [ ] **Step 6: Record the compile verdict when the file is written**
+- [x] **Step 6: Record the compile verdict when the file is written**
 
 The obvious place is `handleValidate`, and it is wrong. Monaco validates the
 **buffer**; `lastModified` is the **saved** state. Type an error without
@@ -1566,7 +1566,7 @@ Imports: `findProjectOfFolder` from `@/features/project/project-root`,
 `isContractFile` from `@/features/project/contract`, `analyzeWithCompiler`
 from `./language/compiler-symbols`.
 
-- [ ] **Step 7: Record the test verdict when a full run finishes**
+- [x] **Step 7: Record the test verdict when a full run finishes**
 
 In `features/testbed/ui/test-file-editor.tsx`:
 
@@ -1613,12 +1613,12 @@ and `import { contractOfProject } from "@/features/project/contract";`, and
 re-add `const fs = useFileSystem();` — a previous phase removed it when the
 direct save went away.
 
-- [ ] **Step 8: Verify**
+- [x] **Step 8: Verify**
 
 Run: `cd apps/studio && bun test && bun run build`
 Expected: suite green; `✅ Build completed`
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add apps/studio/src
@@ -1636,7 +1636,7 @@ Mean compile time measured at <N> ms, so the rail compiles on a miss."
 - Modify: `apps/studio/src/App.tsx`
 - Modify: `apps/studio/src/features/smartc-editor/smartc-editor.tsx`
 
-- [ ] **Step 1: Write the page**
+- [x] **Step 1: Write the page**
 
 ```tsx
 // apps/studio/src/pages/simulate/simulate-page.tsx
@@ -1723,7 +1723,7 @@ export function SimulatePage() {
 }
 ```
 
-- [ ] **Step 2: Let DebugView name its source**
+- [x] **Step 2: Let DebugView name its source**
 
 In `features/simulator/ui/debug-view.tsx`, add the prop and render it in the
 existing toolbar row (`debug-view.tsx:50`, the `h-[30px]` strip):
@@ -1750,7 +1750,7 @@ and inside that strip, before the scenario picker:
 )}
 ```
 
-- [ ] **Step 3: Name the other one too**
+- [x] **Step 3: Name the other one too**
 
 In `features/testbed/ui/test-file-editor.tsx`, the in-place handoff passes a
 recording. Give it the matching label:
@@ -1764,7 +1764,7 @@ recording. Give it the matching label:
           />
 ```
 
-- [ ] **Step 4: Add the route**
+- [x] **Step 4: Add the route**
 
 In `App.tsx`, inside the `AppLayout` route:
 
@@ -1774,7 +1774,7 @@ In `App.tsx`, inside the `AppLayout` route:
 
 with `import { SimulatePage } from "./pages/simulate/simulate-page";`
 
-- [ ] **Step 5: Take the Debug action and the mode out of the editor**
+- [x] **Step 5: Take the Debug action and the mode out of the editor**
 
 In `smartc-editor.tsx`, delete: the `isDebugging` state, the `ActionType.Debug`
 effect that registers the Debug action, the `if (isDebugging) return <DebugView …>`
@@ -1793,12 +1793,12 @@ only caller.
 
 Keep `baseName` and `FileTypes`: the `.asm` compile path still uses both.
 
-- [ ] **Step 6: Verify**
+- [x] **Step 6: Verify**
 
 Run: `cd apps/studio && bun test && bun run build`
 Expected: suite green; `✅ Build completed`
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add apps/studio/src
@@ -1816,7 +1816,7 @@ git commit -m "feat(studio): simulate is a destination, not a boolean"
 The ASM editor keeps its tabs until Task 8, so deployment stays reachable
 through both paths for exactly one commit.
 
-- [ ] **Step 1: Write the page**
+- [x] **Step 1: Write the page**
 
 ```tsx
 // apps/studio/src/pages/deploy/deploy-page.tsx
@@ -1898,7 +1898,7 @@ export function DeployPage() {
 `SmartC` directly rather than `analyzeWithCompiler` here, because this needs
 the machine code and not just the verdict.
 
-- [ ] **Step 2: Add the route**
+- [x] **Step 2: Add the route**
 
 In `App.tsx`:
 
@@ -1908,12 +1908,12 @@ In `App.tsx`:
 
 with `import { DeployPage } from "./pages/deploy/deploy-page";`
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run: `cd apps/studio && bun test && bun run build`
 Expected: suite green; `✅ Build completed`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add apps/studio/src
@@ -1928,7 +1928,7 @@ git commit -m "feat(studio): deploy the contract, not its assembly file"
 - Modify: `apps/studio/src/features/asm-editor/asm-editor.tsx`
 - Modify: `apps/studio/src/features/simulator/ui/debug-view.tsx`
 
-- [ ] **Step 1: Editor and detail panel, side by side**
+- [x] **Step 1: Editor and detail panel, side by side**
 
 Replace the `Tabs` structure in `asm-editor.tsx` (from `<Tabs` to `</Tabs>`)
 with a resizable pair, so the numbers are readable *while* the assembly is:
@@ -1958,7 +1958,7 @@ Imports: `ResizablePanelGroup`, `ResizablePanel`, `ResizableHandle` from
 `handleViewChange`, the `useSearchParams` usage and the `DeploymentView`
 import — deployment is its own destination now.
 
-- [ ] **Step 2: Put the debugger on the same idiom**
+- [x] **Step 2: Put the debugger on the same idiom**
 
 In `debug-view.tsx`, replace the hand-rolled split (`debug-view.tsx:241-275`:
 the `flex flex-1` row, the `panelRef`, `panelWidth` state and the drag handle)
@@ -1981,7 +1981,7 @@ with:
 Delete the width state, its persistence and the pointer handlers: panel sizes
 are the panel group's business now.
 
-- [ ] **Step 3: And the fifth height measurement, which Task 1 could not reach**
+- [x] **Step 3: And the fifth height measurement, which Task 1 could not reach**
 
 `DebugSession` carries its own copy of the `calc(100vh - containerTop)` block
 (`debug-view.tsx:94,159`). Task 1 fixed the four editors that sit directly in
@@ -2005,12 +2005,12 @@ prop simply goes. The `viewMode === "asm" ? "hidden" : ""` wrapper around the
 editor needs a definite box for Monaco: `className="h-full"` on the visible
 one.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `cd apps/studio && bun test && bun run build`
 Expected: suite green; `✅ Build completed`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/studio/src
@@ -2026,7 +2026,7 @@ git commit -m "feat(studio): one panel idiom, and assembly details beside the co
 - Test: `apps/studio/src/features/workflow/use-deployment-count.test.ts`
 - Modify: `apps/studio/src/pages/simulate/simulate-page.tsx` (the New Scenario action)
 
-- [ ] **Step 1: Write the failing test for the pure part**
+- [x] **Step 1: Write the failing test for the pure part**
 
 ```ts
 // apps/studio/src/features/workflow/use-deployment-count.test.ts
@@ -2069,12 +2069,12 @@ describe("summariseContracts", () => {
 });
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `cd apps/studio && bun test src/features/workflow/use-deployment-count.test.ts`
 Expected: FAIL — `Cannot find module './use-deployment-count'`
 
-- [ ] **Step 3: Write it**
+- [x] **Step 3: Write it**
 
 ```ts
 // apps/studio/src/features/workflow/use-deployment-count.ts
@@ -2179,12 +2179,12 @@ export function useDeploymentCount(contract: FileMetadata | null): DeploymentAns
 }
 ```
 
-- [ ] **Step 4: Run it and watch it pass**
+- [x] **Step 4: Run it and watch it pass**
 
 Run: `cd apps/studio && bun test src/features/workflow/use-deployment-count.test.ts`
 Expected: PASS, 6 tests
 
-- [ ] **Step 5: Move New Scenario to where scenarios are used**
+- [x] **Step 5: Move New Scenario to where scenarios are used**
 
 In `simulate-page.tsx`, register the action the SmartC editor used to own. It
 needs no state of its own: `projectId` and `contract` are already resolved on
@@ -2226,12 +2226,12 @@ Imports: `usePageHeaderActions`, `FilePlus2`, `FileTypes`, and
 This effect sits above the `if (!contract)` early return, like every other
 hook on the page — hence the guard inside it rather than around it.
 
-- [ ] **Step 6: Verify**
+- [x] **Step 6: Verify**
 
 Run: `cd apps/studio && bun test && bun run build`
 Expected: suite green; `✅ Build completed`
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add apps/studio/src
@@ -2247,7 +2247,7 @@ git commit -m "feat(studio): ask the chain how often this code is deployed"
 - Modify: `apps/studio/src/lib/file-system/transfer.ts`
 - Test: `apps/studio/src/lib/file-system/transfer.test.ts`
 
-- [ ] **Step 1: Write the failing test for the import gate**
+- [x] **Step 1: Write the failing test for the import gate**
 
 Add to `transfer.test.ts`:
 
@@ -2277,12 +2277,12 @@ Add to `transfer.test.ts`:
 `FakeFs` needs a `transferOf()` helper returning `new FileTransfer(this)`; add
 it beside the existing methods if it is not already there.
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `cd apps/studio && bun test src/lib/file-system/transfer.test.ts`
 Expected: FAIL — two contracts imported, `skipped` is 0.
 
-- [ ] **Step 3: Add the gate**
+- [x] **Step 3: Add the gate**
 
 In `transfer.ts`, inside `importEntries`, after the two existing gates:
 
@@ -2307,12 +2307,12 @@ In `transfer.ts`, inside `importEntries`, after the two existing gates:
 and use `admitted` in place of `accepted` for the rest of the method. Delete
 the old `const skipped = entries.length - accepted.length;`.
 
-- [ ] **Step 4: Run it and watch it pass**
+- [x] **Step 4: Run it and watch it pass**
 
 Run: `cd apps/studio && bun test src/lib/file-system/transfer.test.ts`
 Expected: PASS, all tests.
 
-- [ ] **Step 5: Stop offering a second contract in the dialog**
+- [x] **Step 5: Stop offering a second contract in the dialog**
 
 In `new-file-dialog.tsx`, the type list is built from `FileTypes`. Filter it:
 
@@ -2343,12 +2343,12 @@ const offered = hasContract
 Imports: `isContractFile` from `@/features/project/contract`,
 `findProjectOfFolder` from `@/features/project/project-root`.
 
-- [ ] **Step 6: Verify**
+- [x] **Step 6: Verify**
 
 Run: `cd apps/studio && bun test && bun run build`
 Expected: suite green; `✅ Build completed`
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add apps/studio/src
