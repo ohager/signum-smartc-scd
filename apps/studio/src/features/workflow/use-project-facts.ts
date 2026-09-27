@@ -20,9 +20,10 @@ import type { FileMetadata, ProjectStatusRecord } from "@/lib/file-system";
  *    the next navigation — and the staleness rule, which exists precisely to
  *    compare those timestamps, would never fire. `use-recent-files.ts` is the
  *    subscription this copies.
- * 3. **`listFilesRecursive` throws** on a folder it cannot find, and the rail
- *    renders in the page header of every `/projects/*` route. A stale URL, or
- *    a project another tab deleted, would otherwise take the header down.
+ * 3. **`listFilesRecursive` and the project walk throw** on a folder they
+ *    cannot find, and the rail renders in the page header of every
+ *    `/projects/*` route. A stale URL, or a project another tab deleted,
+ *    would otherwise take the header down.
  */
 
 export interface ProjectFacts {
@@ -46,10 +47,10 @@ export function useProjectFacts(routeFolderId: string): ProjectFacts {
   const read = useCallback((): ProjectFacts => {
     if (!routeFolderId) return NOTHING;
 
-    const projectId = findProjectOfFolder(fs, routeFolderId);
-    if (!projectId) return NOTHING;
-
     try {
+      const projectId = findProjectOfFolder(fs, routeFolderId);
+      if (!projectId) return NOTHING;
+
       const files = fs.listFilesRecursive(projectId);
       return {
         projectId,
@@ -58,7 +59,8 @@ export function useProjectFacts(routeFolderId: string): ProjectFacts {
         status: fs.status.of(projectId),
       };
     } catch {
-      // The project went away between resolving it and listing it.
+      // A folder the walk or the listing cannot find: the project went away,
+      // or the tree is mid-change.
       return NOTHING;
     }
   }, [fs, routeFolderId]);

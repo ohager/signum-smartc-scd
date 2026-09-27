@@ -588,9 +588,6 @@ export class FileSystem extends EventTarget {
 
     // Recursively delete folder contents
     const removedFiles = await this.recursiveDeleteFolder(folderId);
-    // A deleted project takes its verdicts with it. A no-op for a subfolder,
-    // which is never a status key.
-    this.status.forgetProject(folderId);
 
     if (parentFolderId) {
       // Remove from parent folder contents
@@ -601,6 +598,12 @@ export class FileSystem extends EventTarget {
     }
 
     this.saveMetadata();
+
+    // A deleted project takes its verdicts with it. A no-op for a subfolder,
+    // which is never a status key. Only now: it announces `status:updated`,
+    // and a listener walking the tree before the parent lets go would find a
+    // folder listed whose contents are already gone.
+    this.status.forgetProject(folderId);
 
     // Announced only now: a listener reacting to a deletion that is not yet
     // written would read a workspace that no reload would reproduce.
