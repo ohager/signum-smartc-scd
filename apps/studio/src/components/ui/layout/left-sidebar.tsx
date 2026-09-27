@@ -34,6 +34,7 @@ import { useSetAtom } from "jotai";
 import { Link, useMatch } from "react-router";
 import { toast } from "sonner";
 import { WalletStatusCard } from "@/components/ui/wallet-status-card.tsx";
+import { APP_VERSION, IS_PRERELEASE } from "@/lib/version";
 
 const footerItems = [
   {
@@ -126,6 +127,18 @@ export function LeftSidebar() {
           >
             STUDIO
           </span>
+          {IS_PRERELEASE && (
+            <Tooltip delayDuration={300}>
+              <TooltipTrigger asChild>
+                <span className="ml-auto rounded-sm border border-[var(--accent-2)] px-1.5 py-px text-[10px] font-semibold uppercase tracking-wider text-[var(--accent-2)] cursor-default">
+                  Alpha
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>v{APP_VERSION} · experimental — expect rough edges and breaking changes</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
         <SidebarGroup>
           <SidebarGroupContent>
