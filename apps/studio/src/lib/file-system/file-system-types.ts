@@ -27,7 +27,9 @@ export type FileSystemEventType =
   | "folder:deleted"
   | "folder:renamed"
   /** The whole workspace was replaced by one another tab wrote. */
-  | "fs:reloaded";
+  | "fs:reloaded"
+  /** A compile or test verdict was written. See `project-status.ts`. */
+  | "status:updated";
 
 export interface FileSystemEvent {
   type: FileSystemEventType;

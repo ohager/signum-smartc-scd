@@ -28,6 +28,7 @@ import type { MachineData } from "@/features/asm-editor/machine-data.ts";
 import { toast } from "sonner";
 import type { Amount } from "@signumjs/util";
 import { ExplorerLink } from "@/components/ui/explorer-link.tsx";
+import { announceDeployment } from "@/features/workflow/deployment-watch";
 import { formatContractSize, calculateContractSize, isTooLarge } from "./contract-size-helper";
 
 /**
@@ -122,6 +123,11 @@ export function LargeContractDeployment({
       }
 
       setTransactionId(result.transaction);
+      announceDeployment({
+        nodeHost: nodeUrl,
+        codeHash: data.MachineCodeHashId,
+        transactionId: result.transaction,
+      });
       setDeploymentStep("success");
 
       // Clear passphrase from memory

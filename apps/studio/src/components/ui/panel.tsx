@@ -43,3 +43,52 @@ export function Panel({
     </div>
   );
 }
+
+/**
+ * The strip a panel wears when one surface holds several views.
+ *
+ * Equal-width buttons, because the views are peers and the strip doubles as
+ * the panel's ruler. The count belongs here rather than in a heading above the
+ * list: it is what tells you whether the view is worth opening.
+ */
+export function PanelTabs<T extends string>({
+  tabs,
+  value,
+  onChange,
+  className,
+}: {
+  tabs: { id: T; label: ReactNode }[];
+  value: T;
+  // `NoInfer`, so a `useState` setter passed straight in doesn't drag `T` up
+  // to `string` through `SetStateAction`.
+  onChange: (id: NoInfer<T>) => void;
+  className?: string;
+}) {
+  return (
+    <div
+      role="tablist"
+      className={cn(
+        "flex shrink-0 border-b border-[var(--border-1)] text-xs",
+        className,
+      )}
+    >
+      {tabs.map(({ id, label }) => (
+        <button
+          key={id}
+          role="tab"
+          type="button"
+          aria-selected={value === id}
+          onClick={() => onChange(id)}
+          className={cn(
+            "flex-1 px-2 py-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ring)]",
+            value === id
+              ? "bg-[color-mix(in_srgb,var(--accent-1)_20%,transparent)] font-medium"
+              : "opacity-70 hover:opacity-100",
+          )}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}

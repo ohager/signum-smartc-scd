@@ -3,7 +3,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type * as Monaco from "monaco-editor";
 import { toast } from "sonner";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
-import { SMARTC_LANGUAGE_ID, registerSmartC } from "@/features/smartc-editor/language/register.ts";
+import {
+  SMARTC_LANGUAGE_ID,
+  registerSmartC,
+} from "@/features/smartc-editor/language/register.ts";
 import { DebugController } from "../debug-controller";
 import { ScSimulatorEngine } from "../engine/simulator-engine";
 import { parseScenario, defaultScenario } from "../scenario/scenario-io";
@@ -11,10 +14,19 @@ import type { DebugState, LedgerState } from "../engine/engine.types";
 import type { ScenarioFile } from "../scenario/scenario.types";
 import { DebugToolbar } from "./debug-toolbar";
 import { DebugSidePanel } from "./debug-side-panel";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 import { createDebugHost, type DebugHost } from "../debug-broadcast";
 import { useDebugDecorations } from "./use-debug-decorations";
 import { AsmView } from "./asm-view";
-import { setDebugMemory, clearDebugMemory } from "@/features/smartc-editor/language/debug-memory";
+import { SimulatorInvitation } from "./simulator-help";
+import {
+  setDebugMemory,
+  clearDebugMemory,
+} from "@/features/smartc-editor/language/debug-memory";
 
 export interface ScenarioEntry {
   name: string;
@@ -24,15 +36,47 @@ export interface ScenarioEntry {
 interface Props {
   source: string;
   scenarios: ScenarioEntry[];
+  /**
+   * Where this session's input came from. There are two kinds — a scenario
+   * file, and a recording of a test run — and they look identical while
+   * behaving differently: the recording replays a transaction stream and does
+   * not re-evaluate assertions. So each says which it is.
+   */
+  sourceLabel?: string;
   onClose: () => void;
+  /** Absent when the page cannot create files for this project. */
+  onNewScenario?: () => void;
+  /** Which scenario to open with. Unknown names fall back to the first. */
+  initialScenario?: string;
+  /** Every change of the picker, so an owner can keep the address honest. */
+  onScenarioChange?: (name: string) => void;
 }
 
 /**
  * Debug view with a scenario picker. Selecting a different scenario remounts the
  * inner session (via `key`) so it re-compiles/re-runs against the chosen one.
  */
-export function DebugView({ source, scenarios, onClose }: Props) {
-  const [selectedName, setSelectedName] = useState<string>(scenarios[0]?.name ?? "");
+export function DebugView({
+  source,
+  scenarios,
+  sourceLabel,
+  onClose,
+  onNewScenario,
+  initialScenario,
+  onScenarioChange,
+}: Props) {
+  const [selectedName, setSelectedName] = useState<string>(() => {
+    const asked = scenarios.find((entry) => entry.name === initialScenario);
+    return asked?.name ?? scenarios[0]?.name ?? "";
+  });
+
+  const selectScenario = (name: string) => {
+    setSelectedName(name);
+    onScenarioChange?.(name);
+  };
+  // Only ever set by the invitation's second button, and only while there is
+  // nothing to pick.
+  const [useDefault, setUseDefault] = useState(false);
 
   const scenario: ScenarioFile = useMemo(() => {
     const entry = scenarios.find((s) => s.name === selectedName);
@@ -45,28 +89,29 @@ export function DebugView({ source, scenarios, onClose }: Props) {
     }
   }, [scenarios, selectedName]);
 
+  if (scenarios.length === 0 && !useDefault) {
+    return (
+      <SimulatorInvitation
+        onCreate={onNewScenario}
+        onUseDefault={() => setUseDefault(true)}
+      />
+    );
+  }
+
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 h-[30px] px-2 border-b bg-muted text-xs">
-        <span className="opacity-70">Scenario:</span>
-        <select
-          className="bg-transparent border rounded px-1 py-0.5 max-w-[240px]"
-          value={selectedName}
-          onChange={(e) => setSelectedName(e.target.value)}
-        >
-          {scenarios.length === 0 && <option value="">(built-in default)</option>}
-          {scenarios.map((s) => (
-            <option key={s.name} value={s.name}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-        {scenarios.length === 0 && (
-          <span className="opacity-50">— create one with “New Scenario” on the contract</span>
-        )}
-      </div>
       <div className="flex-1 min-h-0">
-        <DebugSession key={selectedName || "__default__"} source={source} scenario={scenario} onClose={onClose} />
+        <DebugSession
+          key={selectedName || "__default__"}
+          source={source}
+          scenario={scenario}
+          scenarios={scenarios}
+          selectedName={selectedName}
+          onSelectScenario={selectScenario}
+          onNewScenario={onNewScenario}
+          sourceLabel={sourceLabel}
+          onClose={onClose}
+        />
       </div>
     </div>
   );
@@ -75,10 +120,20 @@ export function DebugView({ source, scenarios, onClose }: Props) {
 function DebugSession({
   source,
   scenario,
+  scenarios,
+  selectedName,
+  onSelectScenario,
+  onNewScenario,
+  sourceLabel,
   onClose,
 }: {
   source: string;
   scenario: ScenarioFile;
+  scenarios: ScenarioEntry[];
+  selectedName: string;
+  onSelectScenario: (name: string) => void;
+  onNewScenario?: () => void;
+  sourceLabel?: string;
   onClose: () => void;
 }) {
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -89,45 +144,12 @@ function DebugSession({
   const [state, setState] = useState<DebugState | null>(null);
   const [ledger, setLedger] = useState<LedgerState | null>(null);
   const [viewMode, setViewMode] = useState<"source" | "asm">("source");
+  // Whether the contract has moved since this round began. The engine cannot
+  // answer it: a contract is already `running` when it is activated, so the
+  // status alone cannot tell a first run from a resumption.
+  const [hasMoved, setHasMoved] = useState(false);
   const [assembly, setAssembly] = useState("");
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [editorHeight, setEditorHeight] = useState("calc(100vh)"); // Initial height
   const monacoTheme = useMonacoTheme();
-
-  // Resizable right inspector panel (drag handle mutates width live, commits on release).
-  const panelRef = useRef<HTMLDivElement>(null);
-  const [panelWidth, setPanelWidth] = useState<string>(
-    () => (typeof window !== "undefined" && localStorage.getItem("debug-panel-width")) || "320px",
-  );
-  useEffect(() => {
-    localStorage.setItem("debug-panel-width", panelWidth);
-  }, [panelWidth]);
-  const onPanelResize = (e: React.MouseEvent) => {
-    e.preventDefault();
-    let latest = panelWidth;
-    let frame = 0;
-    const onMove = (ev: MouseEvent) => {
-      const w = Math.min(Math.max(window.innerWidth - ev.clientX, 220), 680);
-      latest = `${w}px`;
-      if (frame) return;
-      frame = requestAnimationFrame(() => {
-        frame = 0;
-        if (panelRef.current) panelRef.current.style.width = latest;
-      });
-    };
-    const onUp = () => {
-      document.removeEventListener("mousemove", onMove);
-      document.removeEventListener("mouseup", onUp);
-      if (frame) cancelAnimationFrame(frame);
-      document.body.style.userSelect = "";
-      document.body.style.cursor = "";
-      setPanelWidth(latest);
-    };
-    document.body.style.userSelect = "none";
-    document.body.style.cursor = "col-resize";
-    document.addEventListener("mousemove", onMove);
-    document.addEventListener("mouseup", onUp);
-  };
 
   // Publish live memory for the hover provider; clear on unmount.
   useEffect(() => {
@@ -152,24 +174,6 @@ function DebugSession({
 
   const canPopOut = typeof BroadcastChannel !== "undefined";
   const onPopOut = () => window.open("/debug/dashboard", "smartc-debug");
-
-  useEffect(() => {
-    const calculateEditorHeight = () => {
-      if (containerRef.current) {
-        const containerTop = containerRef.current.getBoundingClientRect().top;
-        // subtract the 30px toolbar so nothing overflows
-        const newHeight = `calc(100vh - ${containerTop + 30}px)`;
-        setEditorHeight(newHeight);
-      }
-    };
-
-    calculateEditorHeight();
-    window.addEventListener("resize", calculateEditorHeight);
-
-    return () => {
-      window.removeEventListener("resize", calculateEditorHeight);
-    };
-  }, []);
 
   const onMount: OnMount = (editor, monaco) => {
     registerSmartC(monaco);
@@ -207,13 +211,18 @@ function DebugSession({
   );
 
   const run = (fn: () => DebugState) => () => {
-    if (controllerRef.current) setState(fn());
+    if (!controllerRef.current) return;
+    setState(fn());
+    setHasMoved(true);
   };
 
   const onForgeNextBlock = () => {
     if (controllerRef.current) {
       setState(controllerRef.current.forgeNextBlock());
       setLedger(controllerRef.current.getLedger());
+      // A new block is a new round: the next move starts it rather than
+      // resuming the last one.
+      setHasMoved(false);
     }
   };
 
@@ -221,11 +230,12 @@ function DebugSession({
     if (controllerRef.current) {
       setState(controllerRef.current.reset());
       setLedger(controllerRef.current.getLedger());
+      setHasMoved(false);
     }
   };
 
   return (
-    <div className="flex flex-col h-full" ref={containerRef}>
+    <div className="flex h-full min-h-0 flex-col">
       <DebugToolbar
         state={state}
         onStep={run(() => controllerRef.current!.step())}
@@ -236,13 +246,19 @@ function DebugSession({
         onPopOut={canPopOut ? onPopOut : undefined}
         viewMode={viewMode}
         onViewMode={setViewMode}
+        scenarios={scenarios}
+        selectedName={selectedName}
+        onSelectScenario={onSelectScenario}
+        onNewScenario={onNewScenario}
+        sourceLabel={sourceLabel}
+        hasMoved={hasMoved}
         onClose={onClose}
       />
-      <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1 min-w-0">
-          <div className={viewMode === "asm" ? "hidden" : ""}>
+      <ResizablePanelGroup direction="horizontal" className="min-h-0 flex-1">
+        <ResizablePanel defaultSize={66} minSize={30}>
+          <div className={viewMode === "asm" ? "hidden" : "h-full"}>
             <Editor
-              height={editorHeight}
+              height="100%"
               defaultLanguage={SMARTC_LANGUAGE_ID}
               value={source}
               theme={monacoTheme}
@@ -261,27 +277,23 @@ function DebugSession({
             <AsmView
               assembly={assembly}
               currentAsmLine={state?.instructionPointer ?? 0}
-              height={editorHeight}
             />
           )}
-        </div>
-        <div
-          onMouseDown={onPanelResize}
-          role="separator"
-          aria-orientation="vertical"
-          title="Drag to resize"
-          className="w-1.5 shrink-0 cursor-col-resize hover:bg-[color-mix(in_srgb,var(--accent-2)_40%,transparent)]"
-        />
-        <div ref={panelRef} style={{ width: panelWidth }} className="shrink-0 border-l overflow-hidden">
-          <DebugSidePanel
-            state={state}
-            ledger={ledger}
-            onRemoveBreakpoint={(line) => {
-              if (controllerRef.current) setState(controllerRef.current.toggleBreakpoint(line));
-            }}
-          />
-        </div>
-      </div>
+        </ResizablePanel>
+        <ResizableHandle withHandle />
+        <ResizablePanel defaultSize={34} minSize={20}>
+          <div className="h-full overflow-hidden border-l">
+            <DebugSidePanel
+              state={state}
+              ledger={ledger}
+              onRemoveBreakpoint={(line) => {
+                if (controllerRef.current)
+                  setState(controllerRef.current.toggleBreakpoint(line));
+              }}
+            />
+          </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
   );
 }

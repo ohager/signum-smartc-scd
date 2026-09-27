@@ -5,9 +5,9 @@ import { EditorActionButton } from "./actionButton.tsx";
 /**
  * File operations shared by every code editor (SmartC, ASM, Scenario).
  *
- * These live in the editor's own header rather than the page header, because
- * they act on the open file and are the same everywhere. Page header actions
- * stay reserved for file-type specific commands (Compile, Debug, ...).
+ * They sit on the right of the surface toolbar as icons, beside the readout:
+ * the left slot is for what the surface is *for*, and file operations are
+ * housekeeping that works identically everywhere and already has hotkeys.
  */
 
 // Typed off OnMount rather than the `monaco-editor` package: the app resolves

@@ -151,6 +151,25 @@ describe("consistency between metadata and content", () => {
 
     expect(storedWhenAnnounced).toEqual({});
   });
+
+  it("forgets a deleted project's verdicts only once the tree no longer lists it", async () => {
+    const folder = await fs.createFolder(fs.rootFolderId, "project");
+    fs.status.recordCompile(folder, { sourceModified: 1, errorCount: 0 });
+
+    // The rail walks the whole tree on this event to find its project.
+    let failure: unknown = null;
+    fs.addEventListener("status:updated", () => {
+      try {
+        for (const f of fs.listFolderContents().folders) fs.listFolderContents(f.id);
+      } catch (error) {
+        failure = error;
+      }
+    });
+
+    await fs.deleteFolder(folder);
+
+    expect(failure).toBeNull();
+  });
 });
 
 describe("another tab writing the workspace", () => {

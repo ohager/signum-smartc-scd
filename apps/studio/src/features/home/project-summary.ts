@@ -1,3 +1,5 @@
+import { isContractFile } from "@/features/project/contract";
+
 /**
  * Aggregate stats for a project (a root folder) shown on the home page.
  *
@@ -26,8 +28,6 @@ export interface ProjectSummary {
   /** File the project card opens, or `null` when the project has no files. */
   mainFileId: string | null;
 }
-
-const SMARTC_EXTENSION = ".smart.c";
 
 interface Candidate {
   id: string;
@@ -84,9 +84,7 @@ function newestId(candidates: readonly Candidate[]): string | null {
  * into this module and its tests.
  */
 function pickMainFile(candidates: readonly Candidate[]): string | null {
-  const contracts = candidates.filter((candidate) =>
-    candidate.name.toLowerCase().endsWith(SMARTC_EXTENSION),
-  );
+  const contracts = candidates.filter((candidate) => isContractFile(candidate.name));
   return newestId(contracts) ?? newestId(candidates);
 }
 

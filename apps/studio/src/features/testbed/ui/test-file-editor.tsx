@@ -2,24 +2,32 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import Editor, { type OnMount } from "@monaco-editor/react";
 import type * as Monaco from "monaco-editor";
-import { EditorToolbar } from "@/components/ui/editor/editor-toolbar.tsx";
+import {
+  SurfaceToolbar,
+  ToolbarButton,
+} from "@/components/ui/surface-toolbar.tsx";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import { registerClimateThemes } from "@/theme/monaco-themes";
-import { Play } from "lucide-react";
+import { Play, StepForward } from "lucide-react";
 import { toast } from "sonner";
-import { useParams } from "react-router";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { useNavigate, useParams } from "react-router";
+import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { findProjectOfFolder } from "@/features/project/project-root";
+import { contractOfProject } from "@/features/project/contract";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
 import {
   EditorFileActions,
   registerEditorFileActions,
 } from "@/components/ui/editor/file-actions.tsx";
 import { useEditorFile } from "@/components/ui/editor/use-editor-file.ts";
 import type { File } from "@/lib/file-system";
-import { DebugView } from "@/features/simulator/ui/debug-view";
 import { serializeScenario } from "@/features/simulator/scenario/scenario-io";
 import { configureTypeScriptForTests } from "../monaco-setup";
 import { useTestRun } from "../use-test-run";
@@ -32,7 +40,11 @@ import { transpileAll } from "../transpile";
 import { useValueDecorations } from "./use-value-decorations";
 import { DevToolsHelp } from "./devtools-help";
 import { ValuePanel } from "./value-panel";
-import { fileTraceAtom, activeTestIdAtom, inspectedLineAtom } from "../test-trace-store";
+import {
+  fileTraceAtom,
+  activeTestIdAtom,
+  inspectedLineAtom,
+} from "../test-trace-store";
 
 interface Props {
   file: File;
@@ -40,7 +52,8 @@ interface Props {
 
 export function TestFileEditor({ file }: Props) {
   const { projectId = "" } = useParams<{ projectId: string }>();
-  const { addAction, removeAction, updateAction } = usePageHeaderActions();
+  const navigate = useNavigate();
+  const fs = useFileSystem();
   const monacoTheme = useMonacoTheme();
   const monacoRef = useRef<typeof Monaco | null>(null);
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -78,33 +91,9 @@ export function TestFileEditor({ file }: Props) {
     traceForFile(file.metadata.path),
     inspectLine,
   );
-  const [debugging, setDebugging] = useState(false);
   const [debugRun, setDebugRun] = useState(false);
 
-  const recording = state.recordings?.[file.metadata.path];
   const activeRow = state.rows.find((row) => row.id === activeTestId);
-
-  // `h-full` does not resolve here: PageContent (src/components/ui/page.tsx)
-  // is a plain block div, not a flex container, so a percentage height on its
-  // child has no definite containing block to resolve against. The sibling
-  // editors (smartc-editor.tsx, scenario-editor.tsx) hit the same constraint
-  // and work around it by measuring the container's viewport offset and
-  // sizing with `calc(100vh - top)`; this follows the same convention.
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [panelHeight, setPanelHeight] = useState("calc(100vh)");
-
-  useEffect(() => {
-    const calculatePanelHeight = () => {
-      if (containerRef.current) {
-        const containerTop = containerRef.current.getBoundingClientRect().top;
-        setPanelHeight(`calc(100vh - ${containerTop}px)`);
-      }
-    };
-
-    calculatePanelHeight();
-    window.addEventListener("resize", calculatePanelHeight);
-    return () => window.removeEventListener("resize", calculatePanelHeight);
-  }, []);
 
   // acorn cannot parse TypeScript, so the scan runs on the emitted JavaScript —
   // which is also the form the runner sees, so both agree about what a test is.
@@ -151,21 +140,62 @@ export function TestFileEditor({ file }: Props) {
     editor.focus();
   }, []);
 
+  // A single-test run reaches "done" through this same path, and its counts
+  // describe one test. Filing those as the file's verdict would report
+  // "1 green" for a file of twelve, so only an unfiltered run may speak for it.
+  const lastRunWasFiltered = useRef(false);
+
   const runFile = useCallback(
     async (filter?: string[]) => {
       const monaco = monacoRef.current;
-      if (!monaco) return;
+      if (!monaco) return null;
+      lastRunWasFiltered.current = !!filter?.length;
       // Save first: the runner reads the project from the file system, not
       // the editor buffer. Quietly — the user asked for a run, not a save.
       await save({ silent: true });
-      await run(monaco, projectId, { entryPath: file.metadata.path, debug: debugRun, filter });
+      return run(monaco, projectId, {
+        entryPath: file.metadata.path,
+        debug: debugRun,
+        filter,
+      });
     },
     [save, file.metadata.path, projectId, run, debugRun],
   );
 
+  // The rail reports the last run, so the last run has to outlive this editor.
+  useEffect(() => {
+    if (state.status !== "done") return;
+    if (lastRunWasFiltered.current) return;
+
+    const projectRoot = findProjectOfFolder(fs, projectId);
+    if (!projectRoot) return;
+
+    const contract = contractOfProject(
+      fs.listFilesRecursive(projectRoot),
+    )?.contract;
+    fs.status.recordTests(projectRoot, file.metadata.id, {
+      sourceModified: file.metadata.lastModified,
+      contractModified: contract?.lastModified ?? 0,
+      // `counts` is already kept by the reducer; re-deriving it from `rows`
+      // would be a second definition of the same number. A timeout is a
+      // failure the user needs to see as one.
+      passed: state.counts.passed,
+      failed: state.counts.failed + state.counts.timedout,
+    });
+  }, [
+    state.status,
+    state.counts,
+    fs,
+    projectId,
+    file.metadata.id,
+    file.metadata.lastModified,
+  ]);
+
   const runSingleTest = useCallback(
     (path: string[]) => {
-      runFile(path).catch((e) => toast.error("Could not run test: " + (e as Error).message));
+      runFile(path).catch((e) =>
+        toast.error("Could not run test: " + (e as Error).message),
+      );
     },
     [runFile],
   );
@@ -173,7 +203,13 @@ export function TestFileEditor({ file }: Props) {
   // The hooks below read refs that onMount fills. Setting editorReady there
   // re-renders, at which point those refs are non-null and the effects re-run
   // on a genuine dependency change.
-  useTestDecorations(editorRef.current, monacoRef.current, state.rows, foundTests, runSingleTest);
+  useTestDecorations(
+    editorRef.current,
+    monacoRef.current,
+    state.rows,
+    foundTests,
+    runSingleTest,
+  );
 
   // The cursor picks the active test, whose values the editor annotates. Rows
   // are matched by name path rather than id: ids are collection-order counters
@@ -193,92 +229,114 @@ export function TestFileEditor({ file }: Props) {
   useCursorTest(editorRef.current, foundTests, selectTestAtCursor);
 
   /**
-   * Re-runs the active test on its own, then opens the step debugger on it.
+   * Re-runs the active test on its own, then simulates the scenario it
+   * recorded.
    *
-   * Running first is what makes the recording per-test: the runner captures one
-   * recording per entry file, so a whole-file run yields every test's
+   * Running first is what makes the recording per-test: the runner captures
+   * one recording per entry file, so a whole-file run yields every test's
    * transactions concatenated — which is rarely what you want to step through.
+   *
+   * It navigates rather than swapping itself out. The debugger used to appear
+   * in place behind a boolean, which is why the back button could not return
+   * here — the same fault `3933bb1` fixed for the SmartC editor. The recording
+   * travels in the history entry, so going back and forward both work.
    */
-  const debugActiveTest = useCallback(async () => {
+  const simulateActiveTest = useCallback(async () => {
     const row = state.rows.find((candidate) => candidate.id === activeTestId);
     if (!row) return;
-    await runFile(row.path);
-    setDebugging(true);
-  }, [state.rows, activeTestId, runFile]);
 
-  useEffect(() => {
-    addAction({
-      id: "run-tests",
-      tooltip: "Run this test file",
-      label: "Run",
-      icon: <Play className="h-4 w-4" />,
-      onClick: () => {
-        runFile().catch((e) => toast.error("Could not run tests: " + (e as Error).message));
+    const finished = await runFile(row.path);
+    const fresh = finished?.recordings?.[file.metadata.path];
+
+    if (!fresh?.contractSource) {
+      toast.error(
+        `"${row.name}" loaded no contract, so there is nothing to simulate.`,
+      );
+      return;
+    }
+
+    navigate(`/projects/${projectId}/simulate`, {
+      state: {
+        replay: {
+          source: fresh.contractSource,
+          scenario: serializeScenario(toDebugScenario(fresh)),
+          testName: row.name,
+          returnTo: `/projects/${projectId}/files/${file.metadata.id}`,
+        },
       },
-      variant: "accent",
     });
-    return () => removeAction("run-tests");
-  }, [addAction, removeAction, runFile]);
-
-  useEffect(() => {
-    updateAction({ id: "run-tests", updates: { disabled: isRunning } });
-  }, [isRunning, updateAction]);
-
-  if (debugging && !recording?.contractSource) {
-    return (
-      <div className="flex flex-col items-start gap-2 p-4">
-        <p className="text-sm text-muted-foreground">
-          {activeRow ? `"${activeRow.name}" loaded no contract` : "No contract was loaded"}, so
-          there is nothing to step through.
-        </p>
-        <Button variant="outline" size="sm" onClick={() => setDebugging(false)}>
-          Back to the editor
-        </Button>
-      </div>
-    );
-  }
-
-  if (debugging && recording?.contractSource) {
-    return (
-      <div className="flex flex-col" style={{ height: panelHeight }}>
-        <p className="shrink-0 border-b border-border px-3 py-1 text-xs text-muted-foreground">
-          Replays the recorded transaction stream — assertions do not re-evaluate while stepping. Only the
-          last-loaded contract is steppable.
-        </p>
-        <div className="min-h-0 flex-1">
-          <DebugView
-            source={recording.contractSource}
-            scenarios={[{ name: "from test run", json: serializeScenario(toDebugScenario(recording)) }]}
-            onClose={() => setDebugging(false)}
-          />
-        </div>
-      </div>
-    );
-  }
+  }, [state.rows, activeTestId, runFile, navigate, projectId, file.metadata]);
 
   return (
-    <div ref={containerRef} style={{ height: panelHeight }}>
+    <div className="min-h-0 flex-1">
       <ResizablePanelGroup direction="horizontal" className="h-full">
         <ResizablePanel defaultSize={60} minSize={30}>
           <div className="flex h-full flex-col">
-            <EditorToolbar
-              actions={
+            <SurfaceToolbar
+              verbs={
+                <>
+                  <ToolbarButton
+                    weight="primary"
+                    onClick={() => {
+                      runFile().catch((e) =>
+                        toast.error(
+                          "Could not run tests: " + (e as Error).message,
+                        ),
+                      );
+                    }}
+                    disabled={isRunning}
+                    title="Run this test file"
+                  >
+                    <Play className="h-4 w-4" />
+                    Run
+                  </ToolbarButton>
+                  {/* Two words, two things, and they used to be one. Simulate
+                      replays what the test *sent*, as a scenario, in the
+                      simulator. Debug — the checkbox beside the results — is
+                      debugging the test itself, in the browser's own tools. */}
+                  <ToolbarButton
+                    onClick={() => {
+                      simulateActiveTest().catch((e) =>
+                        toast.error(
+                          "Could not simulate: " + (e as Error).message,
+                        ),
+                      );
+                    }}
+                    disabled={isRunning || !activeTestId}
+                    title={
+                      activeTestId
+                        ? "Run the selected test and simulate the scenario it records"
+                        : "Select a test to simulate its scenario"
+                    }
+                  >
+                    <StepForward className="h-4 w-4" />
+                    Simulate
+                  </ToolbarButton>
+                </>
+              }
+              context={
+                isRunning ? (
+                  <span className="motion-pulse text-xs text-[var(--accent-3)]">
+                    running…
+                  </span>
+                ) : null
+              }
+              readout={
                 <EditorFileActions
                   isDirty={isDirty}
                   onSave={saveNow}
                   onDownload={download}
                 />
               }
-            >
-              {isRunning && (
-                <span className="motion-pulse text-[var(--accent-3)]">running…</span>
-              )}
-            </EditorToolbar>
+            />
             {activeRow && (
               <div className="shrink-0 border-b border-border px-3 py-1 text-xs text-muted-foreground">
                 showing values from:{" "}
-                {activeRow.path.length ? activeRow.path.join(" › ") : activeRow.name}
-                {activeRow.traceTruncated && " — trace truncated, some values were not recorded"}
+                {activeRow.path.length
+                  ? activeRow.path.join(" › ")
+                  : activeRow.name}
+                {activeRow.traceTruncated &&
+                  " — trace truncated, some values were not recorded"}
               </div>
             )}
             <div className="min-h-0 flex-1">
@@ -311,7 +369,8 @@ export function TestFileEditor({ file }: Props) {
               Debug run (DevTools)
               <DevToolsHelp />
               <span className="text-muted-foreground/70">
-                — runs in the page so DevTools can break; a runaway contract will freeze the tab
+                — runs in the page so DevTools can break; a runaway contract
+                will freeze the tab
               </span>
             </label>
             <Tabs
@@ -327,15 +386,6 @@ export function TestFileEditor({ file }: Props) {
                 <TestResultsPanel
                   state={state}
                   onRevealLine={revealLine}
-                  onDebug={
-                    activeTestId && !isRunning
-                      ? () => {
-                          debugActiveTest().catch((e) =>
-                            toast.error("Could not debug test: " + (e as Error).message),
-                          );
-                        }
-                      : undefined
-                  }
                   activeTestId={activeTestId}
                   onSelectTest={setActiveTestId}
                 />

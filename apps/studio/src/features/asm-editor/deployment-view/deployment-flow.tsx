@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useWalletStatus } from "@/hooks/use-wallet-status.ts";
+import { announceDeployment } from "@/features/workflow/deployment-watch";
 import type { MachineData } from "@/features/asm-editor/machine-data.ts";
 import { toast } from "sonner";
 import { wallet } from "@/lib/wallet.ts";
@@ -154,6 +155,11 @@ export function DeploymentFlow({
 
       setDeploymentStep("broadcasting");
       await waitForBroadcastedTx(tx.transactionId, status.ledger);
+      announceDeployment({
+        nodeHost: status.ledger.service.settings.nodeHost,
+        codeHash: data.MachineCodeHashId,
+        transactionId: tx.transactionId,
+      });
 
       setDeploymentStep("success");
       setDeploymentTransaction(tx);

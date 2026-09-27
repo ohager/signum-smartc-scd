@@ -2,7 +2,8 @@ import { describe, it, expect } from "bun:test";
 import { ScSimulatorEngine } from "./simulator-engine";
 import { defaultScenario } from "../scenario/scenario-io";
 
-const CONTRACT = "#pragma maxAuxVars 2\nlong n, acc;\nvoid main() { n = 3; acc = n + 1; }";
+const CONTRACT =
+  "#pragma maxAuxVars 2\nlong n, acc;\nvoid main() { n = 3; acc = n + 1; }";
 
 describe("ScSimulatorEngine (real smartc-signum-simulator)", () => {
   it("loads C, applies scenario, and steps with advancing state", () => {
@@ -19,7 +20,8 @@ describe("ScSimulatorEngine (real smartc-signum-simulator)", () => {
     const e = new ScSimulatorEngine();
     e.load(CONTRACT);
     e.applyScenario(defaultScenario());
-    for (let i = 0; i < 50 && e.getState().status !== "finished"; i++) e.stepInto();
+    for (let i = 0; i < 50 && e.getState().status !== "finished"; i++)
+      e.stepInto();
     const s = e.getState();
     expect(Object.keys(s.memory)).toContain("n");
     expect(s.memory.n).toBe("3");
@@ -30,7 +32,12 @@ describe("ScSimulatorEngine (real smartc-signum-simulator)", () => {
     e.load(CONTRACT);
     e.applyScenario(defaultScenario());
     let s = e.getState();
-    for (let i = 0; i < 200 && !["finished", "stopped", "error"].includes(s.status); i++) s = e.stepInto();
+    for (
+      let i = 0;
+      i < 200 && !["finished", "stopped", "error"].includes(s.status);
+      i++
+    )
+      s = e.stepInto();
     expect(["finished", "stopped", "error"]).toContain(s.status);
   });
 
@@ -59,11 +66,46 @@ describe("ScSimulatorEngine (real smartc-signum-simulator)", () => {
     e.toggleBreakpoint(BP_LINE);
     const s = e.continue();
     expect(s.currentSourceLine).toBe(BP_LINE);
+    // Still mid-round, so the session may go on stepping.
+    expect(s.status).toBe("running");
+  });
+
+  /**
+   * A contract whose code sits at the top level runs its round and leaves the
+   * instruction pointer back on its first line. A breakpoint there is matched
+   * by the very run that finishes, so the state reads as a stop on that line
+   * while the contract is in fact done for this block.
+   *
+   * The engine is right about all of it. This pins the shape because the
+   * toolbar has to tell the two situations apart, and `currentSourceLine`
+   * cannot: only `status` can. See `ui/transport.ts`.
+   */
+  const TOP_LEVEL = [
+    "#pragma maxAuxVars 2",
+    "long n, acc;",
+    "n = 3;",
+    "acc = n + 1;",
+  ].join("\n");
+
+  it("ends the round even when a breakpoint sits on the line it returns to", () => {
+    const e = new ScSimulatorEngine();
+    e.load(TOP_LEVEL);
+    e.applyScenario(defaultScenario());
+    const entryLine = e.getState().currentSourceLine!;
+    e.toggleBreakpoint(entryLine);
+
+    const s = e.continue();
+
+    // Looks like a stop on the breakpoint …
+    expect(s.currentSourceLine).toBe(entryLine);
+    // … and is not one.
+    expect(s.status).toBe("finished");
   });
 });
 
 describe("ScSimulatorEngine — block + ledger", () => {
-  const C = "#pragma maxAuxVars 2\nlong n, acc;\nvoid main() { n = 3; acc = n + 1; }";
+  const C =
+    "#pragma maxAuxVars 2\nlong n, acc;\nvoid main() { n = 3; acc = n + 1; }";
 
   it("reports currentBlock 1 after applying a scenario", () => {
     const e = new ScSimulatorEngine();
@@ -91,7 +133,8 @@ describe("ScSimulatorEngine — block + ledger", () => {
 });
 
 describe("ScSimulatorEngine — scenario application", () => {
-  const C = "#pragma maxAuxVars 2\nlong n, acc;\nvoid main() { n = 3; acc = n + 1; }";
+  const C =
+    "#pragma maxAuxVars 2\nlong n, acc;\nvoid main() { n = 3; acc = n + 1; }";
 
   it("pre-funds a sender so its balance is not negative after activation", () => {
     const e = new ScSimulatorEngine();
@@ -132,8 +175,12 @@ describe("ScSimulatorEngine — scenario application", () => {
       version: 2,
       creator: "555",
       accounts: [{ id: "1001", balance: "100_0000_0000" }],
-      transactions: [{ block: 1, sender: "1001", amount: "5_0000_0000", txId: "1234567890" }],
+      transactions: [
+        { block: 1, sender: "1001", amount: "5_0000_0000", txId: "1234567890" },
+      ],
     });
-    expect(e.getLedger().transactions.some((t) => t.txId === "1234567890")).toBe(true);
+    expect(
+      e.getLedger().transactions.some((t) => t.txId === "1234567890"),
+    ).toBe(true);
   });
 });

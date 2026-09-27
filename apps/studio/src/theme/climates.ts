@@ -14,6 +14,8 @@ export interface ClimateEditorColours {
   /** The editor ground. A step off `--bg`, so code sits apart from the chrome. */
   code: string;
   gutter: string;
+  /** `;`, `,`, brackets. Quieter than an identifier, but read — not the gutter. */
+  punctuation: string;
   keyword: string;
   type: string;
   number: string;
@@ -45,6 +47,7 @@ export const CLIMATES: Climate[] = [
     editor: {
       code: "#0a0f1c",
       gutter: "#2e3c55",
+      punctuation: "#7f93b5",
       keyword: "#5aa7ff",
       type: "#60c8ff",
       number: "#ffd700",
@@ -62,6 +65,7 @@ export const CLIMATES: Climate[] = [
     editor: {
       code: "#f7f9ff",
       gutter: "#a8b6d4",
+      punctuation: "#5a6a8c",
       keyword: "#0b3d91",
       type: "#0055cc",
       number: "#b87000",
@@ -79,6 +83,7 @@ export const CLIMATES: Climate[] = [
     editor: {
       code: "#120c05",
       gutter: "#5c4520",
+      punctuation: "#b08a50",
       keyword: "#ffb84d",
       type: "#ffe566",
       number: "#39d353",
@@ -96,6 +101,7 @@ export const CLIMATES: Climate[] = [
     editor: {
       code: "#001200",
       gutter: "#2a5a2a",
+      punctuation: "#4fa84f",
       keyword: "#66ff66",
       type: "#00cc00",
       number: "#ffcc00",

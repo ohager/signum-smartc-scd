@@ -1,20 +1,20 @@
 import Editor, { type OnMount } from "@monaco-editor/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { useNavigate } from "react-router";
+import { StepForward } from "lucide-react";
 import {
-  EditorToolbar,
-  EditorDiagnostic,
-} from "@/components/ui/editor/editor-toolbar.tsx";
+  SurfaceToolbar,
+  ToolbarButton,
+  ToolbarDiagnostic,
+} from "@/components/ui/surface-toolbar.tsx";
+import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { findProjectOfFolder } from "@/features/project/project-root";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import { registerClimateThemes } from "@/theme/monaco-themes";
 import { toast } from "sonner";
 import type { File } from "@/lib/file-system";
 import JSON5 from "json5";
 import { validateScenario } from "./scenario-io";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import {
   EditorFileActions,
   registerEditorFileActions,
@@ -33,14 +33,32 @@ function validationErrors(text: string): string[] {
 }
 
 export function ScenarioEditor({ file }: { file: File }) {
-  const monacoTheme = useMonacoTheme();
+  const monacoTheme = useMonacoTheme("json");
   const {
     text: content,
     isDirty,
     onChange: onBufferChange,
+    save,
     saveNow,
     download,
   } = useEditorFile({ file });
+  const navigate = useNavigate();
+  const fs = useFileSystem();
+  const projectId = findProjectOfFolder(fs, file.metadata.folderId);
+
+  /**
+   * Saves before it leaves. The simulator reads scenarios from the file system
+   * rather than from this buffer, so an unsaved edit would be stepped in its
+   * previous version — the tool would be lying about what it is running.
+   * Quietly: the user asked to simulate, not to save.
+   */
+  const simulate = useCallback(async () => {
+    if (!projectId) return;
+    await save({ silent: true });
+    navigate(
+      `/projects/${projectId}/simulate?scenario=${encodeURIComponent(file.metadata.name)}`,
+    );
+  }, [save, navigate, projectId, file.metadata.name]);
   const [errors, setErrors] = useState<string[]>(() =>
     validationErrors(typeof file.content === "string" ? file.content : ""),
   );
@@ -48,23 +66,6 @@ export function ScenarioEditor({ file }: { file: File }) {
   // Typed off OnMount rather than the `monaco-editor` package: the app resolves
   // two copies of it, and their editor types are not mutually assignable.
   const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
-
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [editorHeight, setEditorHeight] = useState("calc(100vh)");
-  useEffect(() => {
-    const calculateEditorHeight = () => {
-      if (containerRef.current) {
-        const containerTop = containerRef.current.getBoundingClientRect().top;
-        const newHeight = `calc(100vh - ${containerTop + 30}px)`;
-        setEditorHeight(newHeight);
-      }
-    };
-
-    calculateEditorHeight();
-    window.addEventListener("resize", calculateEditorHeight);
-
-    return () => window.removeEventListener("resize", calculateEditorHeight);
-  }, []);
 
   // Monaco's bundled JSON language service provides the formatter; running its
   // action keeps the button, the context menu and Shift+Alt+F on one code path.
@@ -92,9 +93,37 @@ export function ScenarioEditor({ file }: { file: File }) {
   };
 
   return (
-    <div className="flex flex-col" ref={containerRef}>
-      <EditorToolbar
-        actions={
+    <div className="flex min-h-0 flex-1 flex-col">
+      <SurfaceToolbar
+        verbs={
+          <ToolbarButton
+            weight="primary"
+            onClick={() => {
+              simulate().catch((e) =>
+                toast.error("Could not simulate: " + (e as Error).message),
+              );
+            }}
+            disabled={!isValid || !projectId}
+            title={
+              isValid
+                ? "Step the contract through this scenario"
+                : "Fix the scenario before simulating it"
+            }
+          >
+            <StepForward className="h-4 w-4" />
+            Simulate
+          </ToolbarButton>
+        }
+        context={
+          !isValid ? (
+            <ToolbarDiagnostic tone="error">
+              {errors.length > 1
+                ? `${errors.length} errors: ${errors[0]}`
+                : errors[0]}
+            </ToolbarDiagnostic>
+          ) : null
+        }
+        readout={
           <EditorFileActions
             isDirty={isDirty}
             onSave={saveNow}
@@ -102,25 +131,10 @@ export function ScenarioEditor({ file }: { file: File }) {
             onFormat={formatDocument}
           />
         }
-      >
-        {!isValid && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span>
-                <EditorDiagnostic tone="error">
-                  {errors.length > 1
-                    ? `${errors.length} errors: ${errors[0]}`
-                    : errors[0]}
-                </EditorDiagnostic>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent side="right">Invalid scenario</TooltipContent>
-          </Tooltip>
-        )}
-      </EditorToolbar>
-      <div className="flex-1 rounded h-full">
+      />
+      <div className="min-h-0 flex-1 rounded">
         <Editor
-          height={editorHeight}
+          height="100%"
           defaultLanguage="json"
           value={content}
           theme={monacoTheme}

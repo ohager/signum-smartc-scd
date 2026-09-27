@@ -1,12 +1,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
-import { Button } from "@/components/ui/button.tsx";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip.tsx"; // Assuming you have the cn utility
+import { useMatch } from "react-router";
+import { WorkflowRail } from "@/features/workflow/rail";
 
 interface PageProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -41,44 +36,30 @@ Page.displayName = "Page";
 
 const PageHeader = React.forwardRef<HTMLElement, PageHeaderProps>(
   ({ className, children, ...props }, ref) => {
-    const { actions } = usePageHeaderActions();
+    // The home page has no contract to report on and keeps its own strip.
+    const inProject = !!useMatch("/projects/:projectId/*");
+
+    // The header carries identity and the rail, and nothing else. Features
+    // used to push their buttons in here through a global atom, which is why
+    // its contents depended on which one mounted last; each verb now belongs
+    // to the surface it acts on.
     return (
       <header
         ref={ref}
         className={cn(
-          "p-4 border-b w-full flex justify-between items-center h-[60px]",
+          // 72px, and `py-1` rather than `p-4`: the rail is a 64px drawing,
+          // and 16px of vertical padding left it nowhere to stand. The twelve
+          // pixels this costs every page buy the one place where the tool
+          // says, of its own accord, how the contract stands.
+          "flex h-[72px] w-full shrink-0 items-center gap-4 border-b px-4 py-1",
           className,
         )}
         {...props}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">{children}</div>
+        <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+          {children}
         </div>
-        {actions && actions.length > 0 && (
-          <div className="flex items-center gap-2">
-            {actions.map((action) => (
-              <React.Fragment key={action.id}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      key={action.id}
-                      variant={action.variant}
-                      onClick={action.onClick}
-                      disabled={action.disabled}
-                      size={action.icon && !action.label ? "icon" : "sm"}
-                    >
-                      {action.icon}
-                      {action.label ?? ""}
-                    </Button>
-                  </TooltipTrigger>
-                  {action.tooltip && (
-                    <TooltipContent>{action.tooltip}</TooltipContent>
-                  )}
-                </Tooltip>
-              </React.Fragment>
-            ))}
-          </div>
-        )}
+        {inProject && <WorkflowRail />}
       </header>
     );
   },
@@ -88,7 +69,14 @@ PageHeader.displayName = "PageHeader";
 const PageContent = React.forwardRef<HTMLDivElement, PageContentProps>(
   ({ className, children, ...props }, ref) => {
     return (
-      <div ref={ref} className={cn("flex-1", className)} {...props}>
+      // `min-h-0` is the whole point: without it a flex child refuses to
+      // shrink below its content, and every editor inside scrolls the page
+      // instead of itself.
+      <div
+        ref={ref}
+        className={cn("flex min-h-0 flex-1 flex-col", className)}
+        {...props}
+      >
         {children}
       </div>
     );
@@ -101,7 +89,10 @@ const PageFooter = React.forwardRef<HTMLElement, PageFooterProps>(
     return (
       <footer
         ref={ref}
-        className={cn("p-4 bg-[var(--bg2)] border-t border-[var(--border-1)]", className)}
+        className={cn(
+          "p-4 bg-[var(--bg2)] border-t border-[var(--border-1)]",
+          className,
+        )}
         {...props}
       >
         {children}

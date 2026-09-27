@@ -152,16 +152,20 @@ describe("FileTransfer.importEntries", () => {
     ]);
   });
 
+  // Was written with two `.smart.c` imports. A project now holds exactly one
+  // contract, so a second one is skipped rather than renamed — which would
+  // test the contract rule, not the dedupe rule. Scenarios have no such limit
+  // and keep this about what it was always about.
   it("dedupes names within a folder (never overwrites)", async () => {
     const fs = new FakeFs();
     const target = await fs.createFolder("root", "proj");
     const t = new FileTransfer(fs);
 
-    await t.importEntries(target, [{ path: "a.smart.c", content: "1" }], testResolve);
-    await t.importEntries(target, [{ path: "a.smart.c", content: "2" }], testResolve);
+    await t.importEntries(target, [{ path: "a.scenario.json", content: "1" }], testResolve);
+    await t.importEntries(target, [{ path: "a.scenario.json", content: "2" }], testResolve);
 
     const names = fs.listFolderContents(target).files.map((f) => f.metadata.name);
-    expect(names.sort()).toEqual(["a-2.smart.c", "a.smart.c"]);
+    expect(names.sort()).toEqual(["a-2.scenario.json", "a.scenario.json"]);
   });
 
   it("reuses an existing subfolder of the same name", async () => {
@@ -210,5 +214,43 @@ describe("FileTransfer collect/export round-trip", () => {
     expect(fs.listFolderContents(sub.id).files.map((f) => f.metadata.name)).toEqual([
       "s1.scenario.json",
     ]);
+  });
+
+  it("imports at most one contract, because a project holds exactly one", async () => {
+    const fs = new FakeFs();
+    const target = await fs.createFolder("root", "proj");
+    const t = new FileTransfer(fs);
+
+    const result = await t.importEntries(
+      target,
+      [
+        { path: "a.smart.c", content: "long a;" },
+        { path: "b.smart.c", content: "long b;" },
+        { path: "a.scenario.json", content: '{"v":2}' },
+      ],
+      testResolve,
+    );
+
+    expect(result.imported).toBe(2);
+    expect(result.skipped).toBe(1);
+    expect(
+      fs.listFolderContents(target).files.filter((f) => f.metadata.name.endsWith(".smart.c")),
+    ).toHaveLength(1);
+  });
+
+  it("skips an imported contract when the project already has one", async () => {
+    const fs = new FakeFs();
+    const target = await fs.createFolder("root", "proj");
+    await fs.addFile(target, "main.smart.c", "smartc", "long a;");
+    const t = new FileTransfer(fs);
+
+    const result = await t.importEntries(
+      target,
+      [{ path: "other.smart.c", content: "long b;" }],
+      testResolve,
+    );
+
+    expect(result.imported).toBe(0);
+    expect(result.skipped).toBe(1);
   });
 });

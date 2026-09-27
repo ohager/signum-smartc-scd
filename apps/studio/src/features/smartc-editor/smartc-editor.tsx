@@ -1,11 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Editor, { type OnMount } from "@monaco-editor/react";
-import { Code2, Bug, FilePlus2 } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Code2 } from "lucide-react";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import { registerSmartC, SMARTC_LANGUAGE_ID } from "./language/register.ts";
 import {
@@ -14,22 +9,19 @@ import {
 } from "@/components/ui/editor/file-actions.tsx";
 import { useEditorFile } from "@/components/ui/editor/use-editor-file.ts";
 import {
-  EditorToolbar,
-  EditorDiagnostic,
-} from "@/components/ui/editor/editor-toolbar.tsx";
-import { usePageHeaderActions } from "@/hooks/use-page-header-actions.ts";
+  SurfaceToolbar,
+  ToolbarButton,
+  ToolbarDiagnostic,
+} from "@/components/ui/surface-toolbar.tsx";
 import { toast } from "sonner";
 import { SmartC } from "smartc-signum-compiler";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import { type File, FileSystem } from "@/lib/file-system";
 import { FileTypes } from "@/features/project/filetype-icons.tsx";
-import { DebugView } from "@/features/simulator/ui/debug-view.tsx";
-import {
-  defaultScenario,
-  serializeScenario,
-} from "@/features/simulator/scenario/scenario-io";
-import { useNavigate } from "react-router";
+import { findProjectOfFolder } from "@/features/project/project-root";
+import { isContractFile } from "@/features/project/contract";
+import { analyzeWithCompiler } from "./language/compiler-symbols";
 
 async function createAssemblyFile(
   folderId: string,
@@ -83,151 +75,58 @@ async function updateAssemblyFile(fileId: string, code: string) {
   }
 }
 
+const COMPILE_HOTKEY =
+  typeof navigator !== "undefined" && /Mac|iP(hone|ad|od)/i.test(navigator.userAgent)
+    ? "\u21e7\u2318C"
+    : "Ctrl+Shift+C";
+
 interface Props {
   file: File;
 }
 
 enum ActionType {
   Compile = "compile",
-  Debug = "debug",
-  NewScenario = "new-scenario",
 }
 
 function SmartCEditor({ file }: Props) {
-  const { addAction, removeAction, updateAction } = usePageHeaderActions();
   const fs = useFileSystem();
-  const navigate = useNavigate();
   const {
     text: code,
     isDirty,
     onChange: handleEditorChange,
     saveNow: saveSmartCFile,
     download,
-  } = useEditorFile({ file });
+  } = useEditorFile({
+    file,
+    // The rail's Write cell reports this, and `handleValidate` is the wrong
+    // place for it: Monaco validates the *buffer*, while `lastModified`
+    // describes the *save*. Filing a buffer verdict under a save timestamp
+    // would report a fault in code that is not on disk. Both halves have to
+    // describe the same bytes, so the verdict goes where the bytes land.
+    onSaved: (written) => {
+      const projectId = findProjectOfFolder(fs, file.metadata.folderId);
+      const saved = fs.getFileMetadata(file.metadata.id);
+      if (!projectId || !saved || !isContractFile(saved.name)) return;
+
+      // Never throws, and is the same call the language service makes for its
+      // markers — one implementation of "does this compile", not two.
+      const { error } = analyzeWithCompiler(written);
+      fs.status.recordCompile(projectId, {
+        sourceModified: saved.lastModified,
+        errorCount: error ? 1 : 0,
+      });
+    },
+  });
   const [validationError, setValidationError] = useState("");
   const monacoTheme = useMonacoTheme();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [editorHeight, setEditorHeight] = useState("calc(100vh)"); // Initial height
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [isDebugging, setIsDebugging] = useState(false);
-  const [scenarios, setScenarios] = useState<{ name: string; json: string }[]>(
-    [],
-  );
   const isValid = !validationError;
-
-  useEffect(() => {
-    const calculateEditorHeight = () => {
-      if (containerRef.current) {
-        const containerTop = containerRef.current.getBoundingClientRect().top;
-        const newHeight = `calc(100vh - ${containerTop + 30}px)`;
-        setEditorHeight(newHeight);
-      }
-    };
-
-    calculateEditorHeight();
-    window.addEventListener("resize", calculateEditorHeight);
-
-    return () => window.removeEventListener("resize", calculateEditorHeight);
-  }, []);
-
-  useEffect(() => {
-    addAction({
-      id: ActionType.Compile,
-      tooltip: "Compiles SmartC Code",
-      label: "Compile",
-      icon: <Code2 className="h-4 w-4" />,
-      onClick: compileSmartC,
-      variant: "accent",
-    });
-
-    return () => {
-      removeAction(ActionType.Compile);
-    };
-  }, [addAction, removeAction]);
-
-  useEffect(() => {
-    updateAction({
-      id: ActionType.Compile,
-      updates: { disabled: !isValid },
-    });
-  }, [isValid, updateAction]);
-
-  useEffect(() => {
-    addAction({
-      id: ActionType.Debug,
-      tooltip: "Debug in the SC-Simulator",
-      label: "Debug",
-      icon: <Bug className="h-4 w-4" />,
-      onClick: () => setIsDebugging(true),
-      variant: "default",
-    });
-
-    return () => {
-      removeAction(ActionType.Debug);
-    };
-  }, [addAction, removeAction]);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function loadScenarios() {
-      try {
-        const { files } = fs.listFolderContents(file.metadata.folderId);
-        const scenarioFiles = files.filter(({ metadata: { name } }) =>
-          name.endsWith(".scenario.json"),
-        );
-        const loaded = await Promise.all(
-          scenarioFiles.map(async (f) => ({
-            name: f.metadata.name,
-            json: (await fs.loadFile(f.id)).content as string,
-          })),
-        );
-        if (!cancelled) setScenarios(loaded);
-      } catch (e) {
-        console.error("Could not load scenario files:", e);
-        if (!cancelled) setScenarios([]);
-      }
-    }
-    loadScenarios();
-    return () => {
-      cancelled = true;
-    };
-  }, [file.metadata.folderId]);
 
   // TODO: candidate for being extracted to some FilePath lib
   const baseName = useMemo(() => {
     if (!file) return "";
     return file.metadata.name.split(".")[0];
   }, [file]);
-
-  useEffect(() => {
-    addAction({
-      id: ActionType.NewScenario,
-      tooltip: "Create a run scenario for this contract",
-      label: "New Scenario",
-      icon: <FilePlus2 className="h-4 w-4" />,
-      onClick: async () => {
-        const base = baseName.toLowerCase();
-        const existingNames = new Set(
-          fs
-            .listFolderContents(file.metadata.folderId)
-            .files.map((f) => f.metadata.name),
-        );
-        let fileName = `${base}.scenario.json`;
-        for (let n = 2; existingNames.has(fileName); n++) {
-          fileName = `${base}-${n}.scenario.json`;
-        }
-        const createdId = await fs.addFile(
-          file.metadata.folderId,
-          fileName,
-          FileTypes.Scenario,
-          serializeScenario(defaultScenario()),
-        );
-        navigate(`/projects/${file.metadata.folderId}/files/${createdId}`);
-      },
-      variant: "default",
-    });
-    return () => removeAction(ActionType.NewScenario);
-  }, [addAction, removeAction, baseName, file.metadata.folderId]);
 
   const compileSmartC = useCallback(async () => {
     const { files } = fs.listFolderContents(file.metadata.folderId);
@@ -275,41 +174,40 @@ function SmartCEditor({ file }: Props) {
     setValidationError(firstError?.message ?? "");
   };
 
-  if (isDebugging) {
-    return (
-      <DebugView
-        source={code}
-        scenarios={scenarios}
-        onClose={() => setIsDebugging(false)}
-      />
-    );
-  }
-
   return (
-    <div className="flex flex-col" ref={containerRef}>
-      <EditorToolbar
-        actions={
+    <div className="flex min-h-0 flex-1 flex-col">
+      <SurfaceToolbar
+        verbs={
+          <ToolbarButton
+            weight="primary"
+            onClick={compileSmartC}
+            disabled={!isValid}
+            title={
+              isValid
+                ? `Compile this contract (${COMPILE_HOTKEY})`
+                : "Fix the error before compiling"
+            }
+          >
+            <Code2 className="h-4 w-4" />
+            Compile
+          </ToolbarButton>
+        }
+        context={
+          !isValid ? (
+            <ToolbarDiagnostic tone="error">{validationError}</ToolbarDiagnostic>
+          ) : null
+        }
+        readout={
           <EditorFileActions
             isDirty={isDirty}
             onSave={saveSmartCFile}
             onDownload={download}
           />
         }
-      >
-        {!isValid && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span>
-                <EditorDiagnostic tone="error">{validationError}</EditorDiagnostic>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent side="right">Invalid code</TooltipContent>
-          </Tooltip>
-        )}
-      </EditorToolbar>
-      <div className="flex-1 rounded h-full">
+      />
+      <div className="min-h-0 flex-1 rounded">
         <Editor
-          height={editorHeight}
+          height="100%"
           defaultLanguage={SMARTC_LANGUAGE_ID}
           value={code}
           theme={monacoTheme}

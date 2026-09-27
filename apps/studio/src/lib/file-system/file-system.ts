@@ -13,6 +13,11 @@ import {
   type MetadataStorage,
 } from "./content-store.ts";
 import { RecentFiles, sanitizeRecents, type RecentEntry } from "./recent-files.ts";
+import {
+  ProjectStatus,
+  sanitizeStatuses,
+  type ProjectStatusMap,
+} from "./project-status.ts";
 
 // Constants
 const LS_METADATA_KEY = "scd:fs-metadata";
@@ -33,6 +38,8 @@ interface FileSystemMetadata {
   rootFolder: string;
   /** Recently opened file ids, newest first. See `recent-files.ts`. */
   recentFiles: RecentEntry[];
+  /** Per-project compile and test verdicts. See `project-status.ts`. */
+  projectStatus: ProjectStatusMap;
 }
 
 /**
@@ -58,6 +65,7 @@ export class FileSystem extends EventTarget {
   private metadata: FileSystemMetadata;
   private _transfer?: FileTransfer;
   private _recents?: RecentFiles;
+  private _status?: ProjectStatus;
 
   /**
    * The app uses `getInstance()`; the defaults below are that composition.
@@ -76,6 +84,7 @@ export class FileSystem extends EventTarget {
       // Blobs written before recents existed have no such field, and a corrupt
       // one must not break startup.
       this.metadata.recentFiles = sanitizeRecents(this.metadata.recentFiles);
+      this.metadata.projectStatus = sanitizeStatuses(this.metadata.projectStatus);
       this.repairFolderOwnership();
     } else {
       // Create initial structure with root folder
@@ -99,7 +108,8 @@ export class FileSystem extends EventTarget {
           }
         },
         rootFolder: rootFolderId,
-        recentFiles: []
+        recentFiles: [],
+        projectStatus: {}
       };
 
       this.saveMetadata();
@@ -130,6 +140,7 @@ export class FileSystem extends EventTarget {
 
     this.metadata = incoming;
     this.metadata.recentFiles = sanitizeRecents(this.metadata.recentFiles);
+    this.metadata.projectStatus = sanitizeStatuses(this.metadata.projectStatus);
     this.repairFolderOwnership();
 
     this.emitEvent({ type: "fs:reloaded", id: this.metadata.rootFolder });
@@ -418,6 +429,7 @@ export class FileSystem extends EventTarget {
     // Update metadata
     delete this.metadata.files[fileId];
     this.recents.forget(fileId);
+    this.status.forgetTests(fileId);
     this.metadata.folderContents[parentFolderId].files =
       this.metadata.folderContents[parentFolderId].files.filter(
         (id) => id !== fileId
@@ -587,6 +599,12 @@ export class FileSystem extends EventTarget {
 
     this.saveMetadata();
 
+    // A deleted project takes its verdicts with it. A no-op for a subfolder,
+    // which is never a status key. Only now: it announces `status:updated`,
+    // and a listener walking the tree before the parent lets go would find a
+    // folder listed whose contents are already gone.
+    this.status.forgetProject(folderId);
+
     // Announced only now: a listener reacting to a deletion that is not yet
     // written would read a workspace that no reload would reproduce.
     for (const removed of removedFiles) {
@@ -619,6 +637,7 @@ export class FileSystem extends EventTarget {
       await this.content.delete(fileId);
       delete this.metadata.files[fileId];
       this.recents.forget(fileId);
+      this.status.forgetTests(fileId);
       removed.push({ metadata, folderId });
     }
 
@@ -869,6 +888,25 @@ export class FileSystem extends EventTarget {
         this.saveMetadata();
       },
       exists: (fileId) => this.exists(fileId),
+    }));
+  }
+
+  /**
+   * Per-project compile and test verdicts, composed lazily. Persisted with
+   * the rest of the metadata, so reads stay synchronous.
+   */
+  get status(): ProjectStatus {
+    return (this._status ??= new ProjectStatus({
+      getStatuses: () => this.metadata.projectStatus,
+      setStatuses: (statuses) => {
+        this.metadata.projectStatus = statuses;
+        this.saveMetadata();
+        // Recents can stay silent because only the recents list reads them.
+        // A verdict is read by the rail, on a different surface from the one
+        // that wrote it, so a write nobody hears would show as a cell that
+        // never updates after a test run.
+        this.emitEvent({ type: "status:updated", id: this.metadata.rootFolder });
+      },
     }));
   }
 

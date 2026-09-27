@@ -1,38 +1,63 @@
-import { CodeIcon, CopyIcon, InfoIcon } from "lucide-react";
-import { Badge } from "@/components/ui/badge.tsx";
-import { Button } from "@/components/ui/button.tsx";
-import { BytecodeVisualizer } from "./bytecode-visualizer.tsx";
+import { useState, type ReactNode } from "react";
+import { PanelTabs } from "@/components/ui/panel.tsx";
 import type { MachineData } from "@/features/asm-editor/machine-data.ts";
-import { ContractMetadata } from "./contract-meta-data.tsx";
+import { ContractSummary } from "./contract-summary.tsx";
+import { HexDump } from "./hex-dump.tsx";
+import { LabelList, MemoryMap } from "./lists.tsx";
 
 interface Props {
-  machineData: MachineData
+  machineData: MachineData;
 }
 
-export function MetaDataView({machineData}:Props) {
-  return (
-    <div className="grid grid-cols-2 h-full">
-      <div className="border-r overflow-auto">
-        <div className="p-4">
-          <h3 className="text-lg font-medium mb-4 flex items-center">
-            <CodeIcon className="h-5 w-5 mr-2 text-green-500" />
-            Assembly Results
-            <Badge className="ml-2 bg-[color-mix(in_srgb,var(--green)_15%,transparent)] text-[var(--green)]">
-              Success
-            </Badge>
-          </h3>
-          {machineData && <ContractMetadata data={machineData} />}
-        </div>
-      </div>
+type View = "memory" | "labels" | "bytes";
 
-      <div className="overflow-auto">
-        <div className="p-4">
-          <h3 className="text-lg font-medium mb-4">
-            ByteCode Visualization
-          </h3>
-          {machineData && <BytecodeVisualizer data={machineData} />}
-        </div>
+/**
+ * What the assembly became, beside the assembly itself.
+ *
+ * One column, not two. This panel used to split its width between a metadata
+ * card and a tabbed bytecode view, which left each of them half of a side
+ * panel — and a hex dump in a quarter of the window is unreadable. The views
+ * take turns over the full width instead, and the summary above them stays
+ * put, because size, fee and hash are what you glance at while reading code.
+ */
+export function MetaDataView({ machineData }: Props) {
+  const [view, setView] = useState<View>("memory");
+
+  const tabs: { id: View; label: ReactNode }[] = [
+    {
+      id: "memory",
+      label: <Tab name="Memory" count={machineData.Memory.length} />,
+    },
+    {
+      id: "labels",
+      label: <Tab name="Labels" count={machineData.Labels.length} />,
+    },
+    {
+      id: "bytes",
+      label: <Tab name="Bytes" count={machineData.ByteCode.length / 2} />,
+    },
+  ];
+
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <ContractSummary data={machineData} />
+      <PanelTabs value={view} onChange={setView} tabs={tabs} />
+      <div className="min-h-0 flex-1">
+        {view === "memory" && <MemoryMap data={machineData} />}
+        {view === "labels" && <LabelList data={machineData} />}
+        {view === "bytes" && <HexDump hex={machineData.ByteCode} />}
       </div>
     </div>
-  )
+  );
+}
+
+function Tab({ name, count }: { name: string; count: number }) {
+  return (
+    <span className="flex items-baseline justify-center gap-1.5">
+      {name}
+      <span className="font-mono text-[11px] opacity-60">
+        {count.toLocaleString()}
+      </span>
+    </span>
+  );
 }

@@ -9,7 +9,11 @@ import { createMainThreadTransport } from "./main-thread-transport";
 import { initialRunState, reduceEvent, type RunState } from "./test-run-model";
 import { createLineResolver } from "./line-resolver";
 import { detectWrapperOffset } from "./source-position";
-import { tracesAtom, activeTestIdAtom, resetTracesAtom } from "./test-trace-store";
+import {
+  tracesAtom,
+  activeTestIdAtom,
+  resetTracesAtom,
+} from "./test-trace-store";
 
 /**
  * Named `TestRunOptions`, not `RunOptions`: `runner-client.ts` already exports a
@@ -28,11 +32,16 @@ export interface TestRunOptions {
 export interface UseTestRun {
   state: RunState;
   isRunning: boolean;
+  /**
+   * Resolves with the state the run ended in. `state` reaches the caller a
+   * render later, which is too late for anyone who wants to act on a recording
+   * the moment it exists.
+   */
   run: (
     monaco: typeof Monaco,
     projectFolderId: string,
     options?: TestRunOptions,
-  ) => Promise<void>;
+  ) => Promise<RunState>;
 }
 
 export function useTestRun(): UseTestRun {
@@ -46,7 +55,11 @@ export function useTestRun(): UseTestRun {
   const resetTraces = useSetAtom(resetTracesAtom);
 
   const run = useCallback(
-    async (monaco: typeof Monaco, projectFolderId: string, options: TestRunOptions = {}) => {
+    async (
+      monaco: typeof Monaco,
+      projectFolderId: string,
+      options: TestRunOptions = {},
+    ) => {
       const { entryPath, debug, filter } = options;
       setIsRunning(true);
       latest.current = initialRunState();
@@ -87,12 +100,18 @@ export function useTestRun(): UseTestRun {
                         ...event.failure,
                         // Test ids are `<file>#<n>`, so the file is the id's prefix —
                         // correct even when a run spans several files.
-                        line: resolveLine(event.failure.stack, event.id.split("#")[0]),
+                        line: resolveLine(
+                          event.failure.stack,
+                          event.id.split("#")[0],
+                        ),
                       },
                     }
                   : event;
 
-            latest.current = reduceEvent(latest.current, enriched as typeof event);
+            latest.current = reduceEvent(
+              latest.current,
+              enriched as typeof event,
+            );
             setState(latest.current);
 
             if (event.type === "test:end" && event.trace) {
@@ -128,11 +147,16 @@ export function useTestRun(): UseTestRun {
           message: e.message,
           stack: e.stack,
         });
-        latest.current = reduceEvent(latest.current, { type: "run:end", durationMs: 0 });
+        latest.current = reduceEvent(latest.current, {
+          type: "run:end",
+          durationMs: 0,
+        });
         setState(latest.current);
       } finally {
         setIsRunning(false);
       }
+
+      return latest.current;
     },
     [resetTraces, setTraces, setActiveTestId],
   );

@@ -1,9 +1,11 @@
 import { describe, it, expect } from "bun:test";
-import { climateById } from "./climates";
+import { CLIMATES, climateById } from "./climates";
 import {
   asmThemeName,
   buildAsmTheme,
+  buildJsonTheme,
   buildSmartcTheme,
+  jsonThemeName,
   smartcThemeName,
 } from "./monaco-themes";
 
@@ -14,6 +16,7 @@ describe("monaco theme names", () => {
   it("names a theme after its climate", () => {
     expect(smartcThemeName("nexus")).toBe("smartc-nexus");
     expect(asmThemeName("terminal")).toBe("asm-terminal");
+    expect(jsonThemeName("solaris")).toBe("json-solaris");
   });
 });
 
@@ -30,15 +33,19 @@ describe("buildSmartcTheme", () => {
 
   it("tints the active line with the accent, as eight-digit hex", () => {
     // Monaco takes alpha as two trailing hex digits; 0x1a is the 10% the spec asks for.
-    expect(buildSmartcTheme(nexus).colors["editor.lineHighlightBackground"]).toBe(
-      "#00aaff1a",
-    );
+    expect(
+      buildSmartcTheme(nexus).colors["editor.lineHighlightBackground"],
+    ).toBe("#00aaff1a");
   });
 
   it("colours keywords and comments from the climate", () => {
     const rules = buildSmartcTheme(nexus).rules;
-    expect(rules.find((r) => r.token === "keyword")!.foreground).toBe("#5aa7ff");
-    expect(rules.find((r) => r.token === "comment")!.foreground).toBe("#3d4d68");
+    expect(rules.find((r) => r.token === "keyword")!.foreground).toBe(
+      "#5aa7ff",
+    );
+    expect(rules.find((r) => r.token === "comment")!.foreground).toBe(
+      "#3d4d68",
+    );
   });
 });
 
@@ -63,6 +70,72 @@ describe("buildAsmTheme", () => {
       "variable.register",
     ]) {
       expect(tokens).toContain(token);
+    }
+  });
+});
+
+describe("buildJsonTheme", () => {
+  it("shares the climate's ground with the other grammars", () => {
+    expect(buildJsonTheme(nexus).colors["editor.background"]).toBe(
+      buildSmartcTheme(nexus).colors["editor.background"],
+    );
+  });
+
+  /**
+   * The bug this theme exists for. Monaco picks the rule whose token is the
+   * longest prefix of the real one, so under the SmartC set both
+   * `string.key.json` and `string.value.json` fell through to `string` and a
+   * scenario read as one flat colour.
+   */
+  it("tells a key apart from a value", () => {
+    const rules = buildJsonTheme(nexus).rules;
+    const key = rules.find((r) => r.token === "string.key.json")!.foreground;
+    const value = rules.find(
+      (r) => r.token === "string.value.json",
+    )!.foreground;
+
+    expect(key).not.toBe(value);
+    expect(key).toBe(nexus.editor.type);
+    expect(value).toBe(nexus.editor.string);
+  });
+
+  it("takes every colour from the climate in every climate", () => {
+    for (const climate of [nexus, dawn]) {
+      const theme = buildJsonTheme(climate);
+      const used = theme.rules.map((rule) => rule.foreground);
+      const owned = Object.values(climate.editor);
+
+      for (const colour of used) expect(owned).toContain(colour!);
+    }
+  });
+});
+
+/** WCAG relative luminance of a `#rrggbb` colour. */
+function luminance(hex: string): number {
+  const [r, g, b] = [1, 3, 5].map((i) => {
+    const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+}
+
+function contrast(a: string, b: string): number {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi! + 0.05) / (lo! + 0.05);
+}
+
+describe("punctuation", () => {
+  // It used to take the gutter colour, which is meant to recede: in Nexus a
+  // `;` stood at 1.8:1 against the code and could barely be seen. Quieter than
+  // an identifier, but it has to be read.
+  it("is readable against the code in every climate", () => {
+    for (const climate of CLIMATES) {
+      for (const theme of [buildSmartcTheme(climate), buildJsonTheme(climate)]) {
+        const delimiter = theme.rules.find((r) => r.token === "delimiter")!;
+        expect(
+          contrast(delimiter.foreground!, climate.editor.code),
+        ).toBeGreaterThanOrEqual(4.5);
+      }
     }
   });
 });
