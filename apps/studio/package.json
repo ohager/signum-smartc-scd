@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "bun --hot serve.ts",
     "start": "NODE_ENV=production bun serve.ts",
-    "build": "NODE_ENV=production bun run build.ts --sourcemap=none"
+    "build": "NODE_ENV=production bun run build.ts --sourcemap=none",
+    "i18n:types": "bun run scripts/i18n-types.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

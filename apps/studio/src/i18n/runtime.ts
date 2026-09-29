@@ -1,6 +1,7 @@
 import en from "./locales/en";
 import { isPluralNode } from "./flatten";
 import type { LocaleId } from "./locales";
+import type { MessageKey, MessageParams } from "./keys.generated";
 
 /**
  * The locale is fixed for the lifetime of the page: `boot.ts` sets it once,
@@ -82,4 +83,13 @@ export function formatDate(
   options?: Intl.DateTimeFormatOptions,
 ): string {
   return new Intl.DateTimeFormat(locale, options).format(value);
+}
+
+type ArgsFor<K extends MessageKey> = MessageParams[K] extends undefined
+  ? [params?: undefined]
+  : [params: MessageParams[K]];
+
+/** Typed `translate`: an unknown key or a missing `{param}` is a compile error. */
+export function t<K extends MessageKey>(key: K, ...args: ArgsFor<K>): string {
+  return translate(key, args[0] as Params | undefined);
 }
