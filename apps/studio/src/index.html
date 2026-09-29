@@ -5,9 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/webp" href="./logo.webp" />
     <title>Signum SCD Studio</title>
+    <script>
+      // next-themes sets data-theme only once React runs. Setting it here
+      // gives the splash, and the first frame, the right climate.
+      try {
+        document.documentElement.dataset.theme =
+          localStorage.getItem("theme") || "nexus";
+      } catch (e) {
+        document.documentElement.dataset.theme = "nexus";
+      }
+    </script>
+    <style>
+      /* Inline: the Tailwind bundle is not loaded yet while this shows. */
+      html { background: #050810; }
+      html[data-theme="dawn"] { background: #eef2fb; }
+      html[data-theme="solaris"] { background: #0d0906; }
+      html[data-theme="terminal"] { background: #000a00; }
+      .studio-splash {
+        position: fixed; inset: 0; display: grid; place-items: center;
+        opacity: 0;
+        /* A fast boot never shows the splash at all. */
+        animation: studio-splash-in 240ms ease-out 150ms forwards;
+      }
+      .studio-splash img {
+        width: 72px; height: 72px;
+        animation: studio-splash-breathe 1.6s ease-in-out 390ms infinite;
+      }
+      @keyframes studio-splash-in { to { opacity: 1; } }
+      @keyframes studio-splash-breathe {
+        0%, 100% { opacity: 0.55; transform: scale(0.96); }
+        50% { opacity: 1; transform: scale(1); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .studio-splash img { animation: none; }
+      }
+    </style>
     <script type="module" src="./index.tsx" async></script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="studio-splash" role="status" aria-label="Loading Studio">
+        <img src="./logo.webp" alt="" />
+      </div>
+    </div>
   </body>
 </html>
