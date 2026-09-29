@@ -17,6 +17,8 @@ function placeholders(text: string): string[] {
 export function generateKeyTypes(tree: Messages): string {
   const lines: string[] = [];
   for (const [key, leaf] of flattenMessages(tree)) {
+    // Never passed to t(): laid over the definitions by symbol (doc-walk.ts).
+    if (key.startsWith("editor-docs.")) continue;
     const isPlural = typeof leaf !== "string";
     const texts = isPlural ? Object.values(leaf) : [leaf];
     const names = [...new Set(texts.flatMap(placeholders))].filter(

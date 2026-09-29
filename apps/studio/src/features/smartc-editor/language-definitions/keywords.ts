@@ -1,5 +1,7 @@
+import { localizeDocs } from "@/i18n/doc-walk";
+
 export const SmartCKeywords: Record<string, { detail: string, documentation: string }> =
-  {
+  localizeDocs("editor-docs.keywords", {
     "exit": {
       detail: "Stops the contract execution and resets to main",
       documentation: "Puts the contract in 'stop' mode and set program to restart from main function ('finished' mode). It will be inactive until a new transaction is received. Once a tx is received, it will start execution at void main() function. If main function is not defined, the execution will start again from beginning of code, running again all global statements. If the main function is defined, the global statements will be executed only in the first activations of the contract. exit takes no argument. If contract activation amount is zero, contract will resume execution on next block (similar to sleep)"
@@ -16,7 +18,7 @@ export const SmartCKeywords: Record<string, { detail: string, documentation: str
       detail: "Contract will be inactive until a next transaction",
       documentation: "Puts the contract in 'stop' mode. It will be inactive until a new transaction is received, then it will resume execution at next instruction. It takes no argument. If contract activation amount is zero, contract will resume execution on next block."
     }
-  };
+  });
 
 
 export const SmartCDisabledKeywords = [

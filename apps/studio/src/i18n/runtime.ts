@@ -50,6 +50,16 @@ function select(
   return node[category] ?? node.other;
 }
 
+/**
+ * The active locale's own text for `key`, without falling back to English —
+ * `undefined` while English is active. For content whose English lives in code.
+ */
+export function ownTranslation(key: string): string | undefined {
+  if (locale === "en") return undefined;
+  const node = lookup(messages, key);
+  return typeof node === "string" ? node : undefined;
+}
+
 /** The template for `key` — active locale first, then English. */
 export function rawMessage(key: string, params?: Params): string | undefined {
   return (

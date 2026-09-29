@@ -1,3 +1,5 @@
+import { localizeDocs } from "@/i18n/doc-walk";
+
 export type DirectiveDeclaration = {
   detail: string;
   documentation: string;
@@ -138,7 +140,7 @@ export const SmartCDirectives: Record<
     documentation: string;
     properties: Record<string, DirectiveDeclaration>;
   }
-> = {
+> = localizeDocs("editor-docs.directives", {
   program: {
     detail: "Contract metadata",
     documentation:
@@ -156,4 +158,4 @@ export const SmartCDirectives: Record<
       "Turns on a table of low-level API functions: `#include APIFunctions` or `#include fixedAPIFunctions`.",
     properties: SmartCIncludeDirectives,
   },
-};
+});

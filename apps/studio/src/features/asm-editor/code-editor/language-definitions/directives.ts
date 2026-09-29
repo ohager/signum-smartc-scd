@@ -1,3 +1,5 @@
+import { localizeDocs } from "@/i18n/doc-walk";
+
 /**
  * Assembler directives (`^...`). The accepted set and the error behaviour come
  * from the assembler itself (`smartc-signum-compiler`, src/assembler/assembler.ts):
@@ -71,7 +73,7 @@ const ProgramProperties: Record<string, AsmDirectiveProperty> = {
   },
 };
 
-export const AsmDirectiveDocs: Record<string, AsmDirectiveDeclaration> = {
+export const AsmDirectiveDocs: Record<string, AsmDirectiveDeclaration> = localizeDocs("editor-docs.asmDirectives", {
   program: {
     detail: "Contract metadata",
     documentation:
@@ -101,7 +103,7 @@ export const AsmDirectiveDocs: Record<string, AsmDirectiveDeclaration> = {
       "SmartC uses it to annotate its output — `#pragma verboseAssembly` interleaves the original C source this way, and " +
       "`#pragma verboseScope` adds register-lifetime notes.",
   },
-};
+});
 
 /**
  * Completion items, derived from the docs above so the prose lives in one place.
