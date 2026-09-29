@@ -16,6 +16,7 @@ import { useAccountBalance } from "@/hooks/use-account-balance.ts";
 import { AccountAddress } from "@/components/ui/accountAddress.tsx";
 import { Amount } from "@/components/ui/amount.tsx";
 import { ExplorerLink } from "@/components/ui/explorer-link.tsx";
+import { t } from "@/i18n/runtime";
 
 export function WalletConnection() {
   const walletStatus = useWalletStatus();
@@ -24,9 +25,9 @@ export function WalletConnection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Wallet Connection</CardTitle>
+        <CardTitle className="text-lg">{t("asm-editor.wallet.title")}</CardTitle>
         <CardDescription>
-          Connect to XT Wallet to deploy your contract
+          {t("asm-editor.wallet.subtitle")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -39,23 +40,23 @@ export function WalletConnection() {
             <Alert className="border-[var(--green)] bg-[color-mix(in_srgb,var(--green)_10%,transparent)]">
               <Check className="h-4 w-4 text-[var(--green)]" />
               <AlertTitle className="flex justify-between items-center">
-                Wallet Connected
+                {t("asm-editor.wallet.connected")}
                 <Badge variant="outline">
                   {walletStatus.network.toUpperCase()}
                 </Badge>
               </AlertTitle>
               <AlertDescription>
-                Your XT Wallet is connected and ready to deploy.
+                {t("asm-editor.wallet.connectedBody")}
               </AlertDescription>
             </Alert>
 
             <div className="p-4 flex flex-col gap-y-2 rounded-lg">
               <div className="flex justify-between">
-                <span className="text-muted-foreground text-sm">Account</span>
+                <span className="text-muted-foreground text-sm">{t("common.wallet.account")}</span>
                 <AccountAddress className="!text-base" />
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground text-sm">Balance</span>
+                <span className="text-muted-foreground text-sm">{t("common.wallet.balance")}</span>
                 <span className="font-medium">
                   {accountBalance.isLoading ? (
                     <div>...</div>
@@ -75,7 +76,7 @@ export function WalletConnection() {
         <ExplorerLink identifier={walletStatus?.accountId ?? ""} type="address">
           <Button variant="outline">
             <ExternalLink className="h-4 w-4 mr-2" />
-            Open In Explorer
+            {t("asm-editor.wallet.openExplorer")}
           </Button>
         </ExplorerLink>
       </CardFooter>

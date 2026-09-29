@@ -1,1 +1,141 @@
-{}
+{
+  "editor": {
+    "deploy": "Deploy",
+    "deployHint": "Publish this contract to the chain",
+    "handEdits": "Hand edits are overwritten by the next compile",
+    "assembleFirst": "Assemble the file to see its pages, memory and bytes."
+  },
+  "meta": {
+    "unnamed": "Unnamed contract",
+    "minimumFee": "Minimum fee",
+    "activation": "Activation",
+    "machineCode": "Machine code",
+    "bytes": {
+      "one": "{count} byte",
+      "other": "{count} bytes"
+    },
+    "codeHash": "Code hash",
+    "noCode": "This contract assembles to no code.",
+    "noVariables": "This contract declares no variables.",
+    "noLabels": "This contract has no jump targets.",
+    "memory": "Memory",
+    "labels": "Labels",
+    "bytesTab": "Bytes",
+    "pages": {
+      "code": "code",
+      "data": "data",
+      "codeStack": "code stack",
+      "userStack": "user stack"
+    }
+  },
+  "size": {
+    "tooLargeTitle": "Contract Too Large",
+    "cannotDeploy": "This contract cannot be deployed",
+    "exceedsTitle": "Contract Exceeds Maximum Size",
+    "exceeds": "Your contract size is {size}, which exceeds the maximum deployment limit of 10 KiB (10240 bytes). Please optimize your contract code to reduce its size before deployment.",
+    "largeTitle": "Large Contract Detected ({size})",
+    "large": "This contract is too large (>8KiB) for standard deployment. XT Wallet signing is not supported for large contracts. You must provide your passphrase for direct submission to the node."
+  },
+  "deploy": {
+    "title": "Deploy Smart Contract",
+    "noteTitle": "Important Note",
+    "note": "Deploying a smart contract is irreversible. Make sure you have tested your contract thoroughly before deployment.",
+    "summary": "Contract Summary",
+    "summaryHint": "Review your contract before deployment",
+    "name": "Contract Name",
+    "activationAmount": "Activation Amount",
+    "description": "Description",
+    "codeSize": "Code Size",
+    "minimumFee": "Minimum Fee",
+    "settings": "Deployment Settings",
+    "settingsHint": "Configure your deployment parameters",
+    "activationSigna": "Activation Amount (SIGNA)",
+    "feeSigna": "Transaction Fee (SIGNA)",
+    "minimum": "Minimum:",
+    "deadline": "Deadline (minutes)",
+    "deadlineHint": "Transaction deadline in minutes (max: 1440)"
+  },
+  "flow": {
+    "connectWallet": "Please connect to a wallet to deploy your contract",
+    "title": "Contract Deployment",
+    "subtitle": "Deploy your smart contract to the Signum blockchain",
+    "inProgress": "In Progress",
+    "progress": "Deployment Progress",
+    "connectFirst": "Connect Wallet First",
+    "deploy": "Deploy Contract",
+    "deployed": "Deployed!",
+    "broadcasting": "Broadcasting...",
+    "reset": "Reset",
+    "failed": "Deployment Failed",
+    "success": "Deployment Successful!",
+    "successBody": "Your smart contract has been deployed successfully.",
+    "checkWallet": "Check XT Wallet",
+    "unsignedBytes": "Unsigned Bytes:",
+    "walletAction": "XT Wallet Action Required",
+    "walletActionBody": "Please check your XT Wallet extension. A confirmation dialog should have opened. Review the transaction details and confirm to proceed with the deployment.",
+    "steps": {
+      "preparing": "Preparing Transaction",
+      "preparingHint": "Getting unsigned bytes from Signum ledger",
+      "confirm": "Wallet Confirmation",
+      "confirmHint": "Waiting for XT Wallet confirmation",
+      "broadcasting": "Broadcasting",
+      "broadcastingHint": "Submitting transaction to the network",
+      "deployed": "Deployed",
+      "deployedHint": "Contract successfully deployed"
+    }
+  },
+  "large": {
+    "enterPassphrase": "Please enter your passphrase",
+    "deployed": "Contract deployed successfully!",
+    "failed": "Deployment failed",
+    "noTxId": "No transaction ID returned from node",
+    "title": "Large Contract Deployment",
+    "subtitle": "Deploy using Form POST method (passphrase required)",
+    "passphraseTitle": "Passphrase Required",
+    "passphraseBody": "Your passphrase will be used to sign the transaction directly. It will not be stored and will be cleared from memory after deployment.",
+    "passphraseLabel": "Account Passphrase",
+    "passphrasePlaceholder": "Enter your 12-word passphrase",
+    "submittingTitle": "Submitting Transaction",
+    "submittingBody": "Sending contract to the Signum node via Form POST...",
+    "successBody": "Your large smart contract has been deployed successfully.",
+    "copied": "Transaction ID copied!",
+    "deployLarge": "Deploy Large Contract",
+    "submitting": "Submitting...",
+    "deployAnother": "Deploy Another",
+    "tryAgain": "Try Again"
+  },
+  "wallet": {
+    "title": "Wallet Connection",
+    "subtitle": "Connect to XT Wallet to deploy your contract",
+    "connected": "Wallet Connected",
+    "connectedBody": "Your XT Wallet is connected and ready to deploy.",
+    "openExplorer": "Open In Explorer"
+  },
+  "completion": {
+    "void": "Void function",
+    "one": "One parameter function",
+    "two": "Two parameter function",
+    "returns": "Return value function",
+    "special": "Special function",
+    "unknown": "Unknown function type"
+  },
+  "hover": {
+    "steps": {
+      "one": "{count} step",
+      "other": "{count} steps"
+    },
+    "formTable": "| Form | Opcode | Bytes |",
+    "apiFunction": "API function",
+    "apiBody": "Built-in blockchain API function, invoked through the `FUN` instruction.",
+    "apiTable": "| API code | Instruction | Arguments |",
+    "opcode": "opcode {hex}",
+    "form": {
+      "none": "no arguments, no return value",
+      "one": "one argument",
+      "two": "two arguments",
+      "returns": "returns a value",
+      "returnsOne": "returns a value, one argument",
+      "returnsTwo": "returns a value, two arguments"
+    }
+  }
+}

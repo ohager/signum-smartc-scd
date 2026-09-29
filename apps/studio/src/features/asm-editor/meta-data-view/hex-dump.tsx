@@ -4,6 +4,7 @@ import {
   OFFSET_DIGITS,
   largestRowFitting,
 } from "./machine-image.ts";
+import { t } from "@/i18n/runtime";
 
 /** How many bytes fit on one line of the panel at its current width. */
 function useBytesPerRow(ref: RefObject<HTMLElement | null>) {
@@ -67,7 +68,7 @@ export function HexDump({ hex }: { hex: string }) {
       className="relative h-full overflow-auto p-3 font-mono text-xs"
     >
       {rows.length === 0 ? (
-        <p className="text-[var(--dim)]">This contract assembles to no code.</p>
+        <p className="text-[var(--dim)]">{t("asm-editor.meta.noCode")}</p>
       ) : (
         rows.map(({ offset, text }) => (
           <div key={offset} className="whitespace-pre leading-5">

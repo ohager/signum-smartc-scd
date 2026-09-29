@@ -1,6 +1,7 @@
 import { useMemo, type ReactNode } from "react";
 import type { MachineData } from "@/features/asm-editor/machine-data.ts";
 import { initialValue } from "./machine-image.ts";
+import { t } from "@/i18n/runtime";
 
 /**
  * The two lists share a row: a dim identifier on the left, the name beside it,
@@ -53,7 +54,7 @@ export function MemoryMap({ data }: { data: MachineData }) {
   );
 
   if (slots.length === 0) {
-    return <Empty>This contract declares no variables.</Empty>;
+    return <Empty>{t("asm-editor.meta.noVariables")}</Empty>;
   }
 
   return (
@@ -80,7 +81,7 @@ export function LabelList({ data }: { data: MachineData }) {
   );
 
   if (labels.length === 0) {
-    return <Empty>This contract has no jump targets.</Empty>;
+    return <Empty>{t("asm-editor.meta.noLabels")}</Empty>;
   }
 
   return (

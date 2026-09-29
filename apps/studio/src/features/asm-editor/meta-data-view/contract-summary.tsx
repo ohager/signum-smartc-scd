@@ -4,6 +4,7 @@ import { CheckIcon, CopyIcon } from "lucide-react";
 import { Amount } from "@/components/ui/amount.tsx";
 import type { MachineData } from "@/features/asm-editor/machine-data.ts";
 import { pageBudget, type PageKind } from "./machine-image.ts";
+import { t } from "@/i18n/runtime";
 
 type Swatch = { color: string; opacity: number };
 type Ribbon = PageKind & Swatch;
@@ -124,7 +125,7 @@ export function ContractSummary({ data }: { data: MachineData }) {
       <div>
         <h2 className="truncate text-sm font-medium">
           {data.PName || (
-            <span className="text-[var(--dim)]">Unnamed contract</span>
+            <span className="text-[var(--dim)]">{t("asm-editor.meta.unnamed")}</span>
           )}
         </h2>
         {data.PDescription && (
@@ -140,24 +141,24 @@ export function ContractSummary({ data }: { data: MachineData }) {
       <PageRibbon kinds={kinds} />
 
       <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-3 gap-y-1.5 text-xs">
-        <Fact label="Minimum fee">
+        <Fact label={t("asm-editor.meta.minimumFee")}>
           <Amount
             amount={data.MinimumFeeNQT}
             isAtomic
             className="text-xs font-medium"
           />
         </Fact>
-        <Fact label="Activation">
+        <Fact label={t("asm-editor.meta.activation")}>
           <Amount
             amount={data.PActivationAmount}
             isAtomic
             className="text-xs font-medium"
           />
         </Fact>
-        <Fact label="Machine code">
-          <span className="font-mono">{formatNumber(codeBytes)} bytes</span>
+        <Fact label={t("asm-editor.meta.machineCode")}>
+          <span className="font-mono">{t("asm-editor.meta.bytes", { count: codeBytes })}</span>
         </Fact>
-        <Fact label="Code hash">
+        <Fact label={t("asm-editor.meta.codeHash")}>
           <HashId value={data.MachineCodeHashId} />
         </Fact>
       </dl>
