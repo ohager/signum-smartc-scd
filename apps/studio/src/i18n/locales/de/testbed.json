@@ -1,0 +1,51 @@
+{
+  "editor": {
+    "run": "Ausführen",
+    "runHint": "Diese Testdatei ausführen",
+    "runFailed": "Tests konnten nicht ausgeführt werden: {message}",
+    "runOneFailed": "Test konnte nicht ausgeführt werden: {message}",
+    "simulate": "Simulieren",
+    "simulateHint": "Den gewählten Test ausführen und das aufgezeichnete Szenario simulieren",
+    "selectToSimulate": "Wähl einen Test, um sein Szenario zu simulieren",
+    "simulateFailed": "Simulieren fehlgeschlagen: {message}",
+    "noContract": "„{name}“ hat keinen Contract geladen, es gibt also nichts zu simulieren.",
+    "running": "läuft…",
+    "showingValues": "Werte aus:",
+    "traceTruncated": " — Trace gekürzt, einige Werte wurden nicht aufgezeichnet",
+    "debugRun": "Debug-Lauf (DevTools)",
+    "debugRunNote": "— läuft in der Seite, damit DevTools anhalten kann; ein durchgehender Contract friert den Tab ein",
+    "results": "Ergebnisse",
+    "value": "Wert"
+  },
+  "results": {
+    "goToLine": "Zu Zeile {line}",
+    "duration": "{ms} ms",
+    "expected": "erwartet: {value}",
+    "received": "erhalten: {value}",
+    "passed": "{count} bestanden",
+    "failed": "{count} fehlgeschlagen",
+    "skipped": "{count} übersprungen",
+    "timedOut": "{count} Zeitüberschreitung",
+    "pressRun": "Drück Ausführen, um diese Testdatei zu starten.",
+    "couldNotLoad": "{file} konnte nicht geladen werden",
+    "hookFailed": "{phase} fehlgeschlagen",
+    "hookFailedIn": "{phase} fehlgeschlagen in {suite}"
+  },
+  "value": {
+    "hint": "Klick auf einen Wert am Zeilenende, um ihn hier anzusehen.",
+    "fallbackName": "Wert",
+    "ranTimes": "{count}-mal ausgeführt — zeigt den letzten",
+    "collapseAll": "Alle einklappen",
+    "expandAll": "Alle ausklappen",
+    "noValue": "Diese Zeile hat eine Assertion erfüllt, aber keinen Wert gebunden."
+  },
+  "devtools": {
+    "label": "Wie man mit DevTools debuggt",
+    "title": "Debuggen mit DevTools",
+    "openFirst": "Öffne zuerst die DevTools — sie können sich nicht an einen laufenden Durchlauf hängen.",
+    "tick": "Setz dieses Häkchen und drück dann Ausführen.",
+    "find": "Such deinen Test unter Sources im Projektpfad, z. B. <code>/my-project/tests/counter.test.ts</code>.",
+    "breakpoint": "Setz dort einen Haltepunkt oder schreib eine <code>debugger;</code>-Anweisung in den Test.",
+    "freeze": "Tests laufen in der Seite statt in einem Worker, daher friert ein Contract mit Endlosschleife den Tab ein — der Watchdog kann die blockierende Schleife nicht unterbrechen."
+  }
+}

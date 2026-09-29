@@ -1,0 +1,41 @@
+{
+  "folder": {
+    "addFile": "Datei hinzufügen",
+    "newFolder": "Neuer Ordner",
+    "downloadZip": "Herunterladen (zip)",
+    "uploadFiles": "Datei(en) hochladen…",
+    "importZip": "ZIP importieren…",
+    "importFolder": "Ordner importieren…",
+    "folderName": "Ordnername",
+    "renameTitle": "Ordner umbenennen",
+    "nameTaken": "Ein Ordner mit diesem Namen existiert bereits",
+    "deleteTitle": "Ordner löschen",
+    "deleteConfirm": "Diesen Ordner mit seinem gesamten Inhalt löschen? Das lässt sich nicht rückgängig machen."
+  },
+  "file": {
+    "renameTitle": "Datei umbenennen",
+    "fileName": "Dateiname",
+    "nameTaken": "Eine Datei mit diesem Namen existiert bereits",
+    "deleteTitle": "Datei löschen",
+    "deleteConfirm": "Willst du diese Datei wirklich löschen? Das lässt sich nicht rückgängig machen."
+  },
+  "newFile": {
+    "title": "Neue Datei",
+    "type": "Typ",
+    "name": "Name",
+    "smartc": "SmartC-Contract (.smart.c)",
+    "scenario": "Szenario (.scenario.json)",
+    "test": "Test (.test.ts)"
+  },
+  "newProject": {
+    "title": "Neues Projekt",
+    "createDescription": "Füge deinem Arbeitsbereich ein neues Smart-Contract-Projekt hinzu.",
+    "inspectDescription": "Ein Projekt zum Untersuchen von Smart Contracts erstellen",
+    "type": "Projekttyp",
+    "selectType": "Projekttyp wählen",
+    "create": "Neuen Smart Contract erstellen",
+    "inspect": "Smart Contract(s) untersuchen",
+    "name": "Name",
+    "namePlaceholder": "Mein neues Projekt"
+  }
+}
