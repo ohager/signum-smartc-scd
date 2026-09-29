@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { t } from "@/i18n/runtime";
 
 export function Pill({ children, tone = "default" }: { children: ReactNode; tone?: "default" | "accent" | "error" }) {
   const cls =
@@ -26,7 +27,7 @@ export function Section({ label, count, children }: { label: string; count?: num
 }
 
 export function KVTable({ rows }: { rows: { k: string; v: string; muted?: boolean }[] }) {
-  if (rows.length === 0) return <div className="opacity-50 text-xs font-mono">— none —</div>;
+  if (rows.length === 0) return <div className="opacity-50 text-xs font-mono">{t("simulator.panels.none")}</div>;
   return (
     <table className="w-full border-collapse text-[11px] font-mono">
       <tbody>

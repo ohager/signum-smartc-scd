@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { DebugState, LedgerState } from "../engine/engine.types";
 import { InspectorPanel } from "./inspector-panel";
 import { LedgerView } from "./ledger-view";
+import { t } from "@/i18n/runtime";
 
 type View = "contract" | "ledger";
 
@@ -24,7 +25,7 @@ export function DebugSidePanel({
             onClick={() => setView(v)}
             className={"flex-1 px-2 py-1 " + (view === v ? "bg-[color-mix(in_srgb,var(--accent-1)_20%,transparent)] font-medium" : "opacity-70")}
           >
-            {v === "contract" ? "Contract Status" : "Ledger Status"}
+            {v === "contract" ? t("simulator.panels.contractStatus") : t("simulator.panels.ledgerStatus")}
           </button>
         ))}
       </div>

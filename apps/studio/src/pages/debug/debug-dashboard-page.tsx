@@ -15,7 +15,7 @@ export function DebugDashboardPage() {
       <div className="flex items-center gap-2 h-9 px-3 border-b bg-card shrink-0">
         {/* i18n-ignore — product name */}
         <span className="font-bold tracking-wide">⛓ SmartC Debug</span>
-        {s && <Pill tone={status === "error" ? "error" : status === "running" ? "accent" : "default"}>{status}</Pill>}
+        {s && <Pill tone={status === "error" ? "error" : status === "running" ? "accent" : "default"}>{t(`simulator.status.${status}`)}</Pill>}
         {s && <Pill>{t("common.debugDashboard.block", { block: s.currentBlock })}</Pill>}
         {s && <Pill>{t("common.debugDashboard.step", { step: s.steps })}</Pill>}
         {s?.error && <Pill tone="error">{s.error}</Pill>}

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/surface-toolbar.tsx";
 import { SimulatorHelp } from "./simulator-help";
 import { transportFor } from "./transport";
+import { t } from "@/i18n/runtime";
 
 interface Props {
   state: DebugState | null;
@@ -78,16 +79,16 @@ export function DebugToolbar({
             disabled={transport.runDisabled}
             title={transport.note || undefined}
           >
-            ▶ {transport.runLabel}
+            ▶ {transport.runLabel === "Start" ? t("simulator.toolbar.start") : t("simulator.toolbar.continue")}
           </ToolbarButton>
           {/* The source-line step — the one usually wanted, so it carries the
               plain name. */}
           <ToolbarButton
             onClick={onStepInto}
             disabled={!transport.canStep}
-            title={transport.note || "Advance one source line"}
+            title={transport.note || t("simulator.toolbar.stepHint")}
           >
-            Step
+            {t("simulator.toolbar.step")}
           </ToolbarButton>
           {/* One AT instruction. That is the asm view's granularity, so it is
               offered where that granularity is on screen and nowhere else. */}
@@ -95,9 +96,9 @@ export function DebugToolbar({
             <ToolbarButton
               onClick={onStep}
               disabled={!transport.canStep}
-              title={transport.note || "Advance one AT instruction"}
+              title={transport.note || t("simulator.toolbar.stepInstructionHint")}
             >
-              Step instruction
+              {t("simulator.toolbar.stepInstruction")}
             </ToolbarButton>
           )}
           <ToolbarDivider />
@@ -108,26 +109,26 @@ export function DebugToolbar({
           <ToolbarButton
             weight={transport.emphasise === "forge" ? "primary" : "secondary"}
             onClick={onForgeNextBlock}
-            title="Forge the next block and deliver its scheduled transactions"
+            title={t("simulator.toolbar.nextBlockHint")}
           >
-            ⛏ Next block
+            {t("simulator.toolbar.nextBlock")}
           </ToolbarButton>
           <ToolbarDivider />
-          <ToolbarButton onClick={onReset} title="Start this scenario over">
-            ⟳ Reset
+          <ToolbarButton onClick={onReset} title={t("simulator.toolbar.resetHint")}>
+            {t("simulator.toolbar.reset")}
           </ToolbarButton>
         </>
       }
       context={
         <>
           <select
-            aria-label="Scenario"
+            aria-label={t("simulator.toolbar.scenario")}
             className="max-w-[220px] border border-[var(--border-1)] bg-transparent px-2 py-1 font-mono text-[11px]"
             value={selectedName}
             onChange={(e) => onSelectScenario(e.target.value)}
           >
             {scenarios.length === 0 && (
-              <option value="">(built-in default)</option>
+              <option value="">{t("simulator.toolbar.builtInDefault")}</option>
             )}
             {scenarios.map((scenario) => (
               <option key={scenario.name} value={scenario.name}>
@@ -138,9 +139,9 @@ export function DebugToolbar({
           {onNewScenario && (
             <ToolbarButton
               onClick={onNewScenario}
-              title="Create a run scenario for this contract"
+              title={t("simulator.toolbar.newScenarioHint")}
             >
-              + New
+              {t("simulator.toolbar.newScenario")}
             </ToolbarButton>
           )}
           <span className="inline-flex border border-[var(--border-2)] text-xs">
@@ -170,10 +171,10 @@ export function DebugToolbar({
           <ToolbarReadout
             items={[
               ...(sourceLabel ? [{ label: "", value: sourceLabel }] : []),
-              { label: "block", value: String(state?.currentBlock ?? 0) },
+              { label: t("simulator.toolbar.block"), value: String(state?.currentBlock ?? 0) },
               {
                 label: "",
-                value: status,
+                value: t(`simulator.status.${status}`),
                 tone:
                   status === "error"
                     ? "bad"
@@ -181,9 +182,9 @@ export function DebugToolbar({
                       ? "good"
                       : undefined,
               },
-              { label: "step", value: String(state?.steps ?? 0) },
+              { label: t("simulator.toolbar.stepCount"), value: String(state?.steps ?? 0) },
               ...(state?.currentSourceLine != null
-                ? [{ label: "line", value: String(state.currentSourceLine) }]
+                ? [{ label: t("simulator.toolbar.line"), value: String(state.currentSourceLine) }]
                 : []),
             ]}
           />
@@ -205,13 +206,13 @@ export function DebugToolbar({
           )}
           {onPopOut && (
             <ToolbarIconButton
-              label="Open a live debug dashboard in a separate tab"
+              label={t("simulator.toolbar.popOut")}
               onClick={onPopOut}
             >
               ⧉
             </ToolbarIconButton>
           )}
-          <ToolbarIconButton label="Close the simulator" onClick={onClose}>
+          <ToolbarIconButton label={t("simulator.toolbar.close")} onClick={onClose}>
             ✕
           </ToolbarIconButton>
         </>
