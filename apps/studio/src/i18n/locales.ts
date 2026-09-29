@@ -26,6 +26,7 @@ export interface LocaleEntry {
 export const LOCALES: LocaleEntry[] = [
   { id: "en", nativeLabel: "English", load: async () => ({ default: en }) },
   { id: "de", nativeLabel: "Deutsch", load: () => import("./locales/de") },
+  { id: "ru", nativeLabel: "Русский", load: () => import("./locales/ru") },
 ];
 
 export const STORAGE_KEY = "studio.locale";
