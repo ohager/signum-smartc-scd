@@ -1,0 +1,38 @@
+{
+  "rail": {
+    "label": "Робочий процес",
+    "write": "Написати",
+    "test": "Тест",
+    "simulate": "Симуляція",
+    "deploy": "Розгортання",
+    "noContract": "немає контракту",
+    "needsCompile": "потрібен контракт, що компілюється",
+    "ignoredContract": " · другий контракт ({name}) ігнорується"
+  },
+  "cells": {
+    "compiles": "компілюється",
+    "errors": {
+      "one": "{count} помилка",
+      "few": "{count} помилки",
+      "many": "{count} помилок",
+      "other": "{count} помилки"
+    },
+    "noTests": "немає тестів",
+    "failed": "не пройдено: {count}",
+    "green": "пройдено: {count}",
+    "noScenario": "немає сценарію",
+    "scenarios": {
+      "one": "{count} сценарій",
+      "few": "{count} сценарії",
+      "many": "{count} сценаріїв",
+      "other": "{count} сценарії"
+    },
+    "connectWallet": "Під'єднайте гаманець, щоб запитати блокчейн",
+    "notCompiling": "Контракт поки не компілюється",
+    "deploying": "розгортання…",
+    "waitingBlock": "Очікування наступного блоку",
+    "notDeployed": "не розгорнуто",
+    "yours": "{count} · ваших: {mine}",
+    "deployed": "розгорнуто: {count}"
+  }
+}
