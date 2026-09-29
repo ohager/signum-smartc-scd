@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { SubmitOnEnter } from "@/components/ui/submit-on-enter";
 import { type ReactNode } from "react";
+import { t } from "@/i18n/runtime";
 
 interface ConfirmationDialogProps {
   open: boolean;
@@ -27,10 +28,10 @@ export function ConfirmationDialog({
   open,
   onOpenChange,
   onConfirm,
-  title = "Confirm Action",
-  description = "Do you really want to do this?",
-  confirmText = "Confirm",
-  cancelText = "Cancel",
+  title = t("common.confirm.title"),
+  description = t("common.confirm.description"),
+  confirmText = t("common.actions.confirm"),
+  cancelText = t("common.actions.cancel"),
   variant = "default",
   isConfirmDisabled = false,
   children,

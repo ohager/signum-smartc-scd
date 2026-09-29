@@ -1,6 +1,7 @@
 import type { OnMount } from "@monaco-editor/react";
 import { AlignLeft, DownloadIcon, SaveIcon } from "lucide-react";
 import { EditorActionButton } from "./actionButton.tsx";
+import { t } from "@/i18n/runtime";
 
 /**
  * File operations shared by every code editor (SmartC, ASM, Scenario).
@@ -52,21 +53,23 @@ export function EditorFileActions({
     <div className="flex items-center gap-1">
       {onFormat && (
         <EditorActionButton
-          tooltip={`Format document (${EDITOR_HOTKEYS.format})`}
+          tooltip={t("common.editor.format", { hotkey: EDITOR_HOTKEYS.format })}
           onClick={onFormat}
         >
           <AlignLeft />
         </EditorActionButton>
       )}
       <EditorActionButton
-        tooltip={`Download this file (${EDITOR_HOTKEYS.download})`}
+        tooltip={t("common.editor.download", { hotkey: EDITOR_HOTKEYS.download })}
         onClick={onDownload}
       >
         <DownloadIcon />
       </EditorActionButton>
       <EditorActionButton
         tooltip={
-          isDirty ? `Unsaved changes (${EDITOR_HOTKEYS.save})` : "All Saved"
+          isDirty
+            ? t("common.editor.unsaved", { hotkey: EDITOR_HOTKEYS.save })
+            : t("common.editor.allSaved")
         }
         onClick={() => onSave()}
       >
@@ -92,7 +95,7 @@ export function registerEditorFileActions(
 ): void {
   editor.addAction({
     id: "file-save",
-    label: "Save File",
+    label: t("common.editor.saveAction"),
     keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS],
     contextMenuGroupId: "navigation",
     contextMenuOrder: 1.5,
@@ -102,7 +105,7 @@ export function registerEditorFileActions(
   });
   editor.addAction({
     id: "file-download",
-    label: "Download File",
+    label: t("common.editor.downloadAction"),
     keybindings: [
       monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyS,
     ],

@@ -18,6 +18,7 @@ import {
   sanitizeStatuses,
   type ProjectStatusMap,
 } from "./project-status.ts";
+import { t } from "@/i18n/runtime";
 
 // Constants
 const LS_METADATA_KEY = "scd:fs-metadata";
@@ -263,7 +264,7 @@ export class FileSystem extends EventTarget {
     );
 
     if (taken) {
-      throw new Error(`A file named ${name} already exists in this folder`);
+      throw new Error(t("common.files.nameTaken", { name }));
     }
   }
 
@@ -273,7 +274,7 @@ export class FileSystem extends EventTarget {
     );
 
     if (taken) {
-      throw new Error(`A folder named ${name} already exists here`);
+      throw new Error(t("common.files.folderNameTaken", { name }));
     }
   }
 
@@ -569,7 +570,7 @@ export class FileSystem extends EventTarget {
     }
 
     if (folderId === this.metadata.rootFolder) {
-      throw new Error("Cannot delete root folder");
+      throw new Error(t("common.files.deleteRoot"));
     }
 
     const metadata = { ...this.metadata.folders[folderId] };
@@ -666,7 +667,7 @@ export class FileSystem extends EventTarget {
     }
 
     if (folderId === this.metadata.rootFolder) {
-      throw new Error("Cannot rename root folder");
+      throw new Error(t("common.files.renameRoot"));
     }
 
     const oldPath = this.metadata.folders[folderId].path;

@@ -36,10 +36,11 @@ import { Link, useMatch } from "react-router";
 import { toast } from "sonner";
 import { WalletStatusCard } from "@/components/ui/wallet-status-card.tsx";
 import { APP_VERSION, IS_PRERELEASE } from "@/lib/version";
+import { t } from "@/i18n/runtime";
 
 const footerItems = [
   {
-    title: "Settings",
+    title: "Settings", // i18n-ignore — footer is commented out below
     url: "#",
     icon: SettingsIcon,
   },
@@ -102,7 +103,9 @@ export function LeftSidebar() {
         const bytes = new Uint8Array(await file.arrayBuffer());
         const res = await fs.transfer.importZip(folderId, bytes, acceptedFileType);
         toast.success(
-          `Imported ${res.imported} file(s)` + (res.skipped ? ` (${res.skipped} skipped)` : ""),
+          res.skipped
+            ? t("common.import.doneWithSkipped", { count: res.imported, skipped: res.skipped })
+            : t("common.import.done", { count: res.imported }),
         );
       }
     } catch (err: any) {
@@ -126,17 +129,18 @@ export function LeftSidebar() {
             className="text-[12px] font-black tracking-[3px] text-[var(--text)]"
             style={{ fontFamily: "Orbitron, sans-serif" }}
           >
+            {/* i18n-ignore — wordmark */}
             STUDIO
           </span>
           {IS_PRERELEASE && (
             <Tooltip delayDuration={300}>
               <TooltipTrigger asChild>
                 <span className="ml-auto rounded-sm border border-[var(--accent-2)] px-1.5 py-px text-[10px] font-semibold uppercase tracking-wider text-[var(--accent-2)] cursor-default">
-                  Alpha
+                  {t("common.sidebar.alpha")}
                 </span>
               </TooltipTrigger>
               <TooltipContent>
-                <p>v{APP_VERSION} · experimental — expect rough edges and breaking changes</p>
+                <p>{t("common.sidebar.prerelease", { version: APP_VERSION })}</p>
               </TooltipContent>
             </Tooltip>
           )}
@@ -148,7 +152,7 @@ export function LeftSidebar() {
                 <SidebarMenuButton asChild isActive={isHome}>
                   <Link to="/">
                     <HouseIcon className="h-4 w-4" />
-                    <span>Home</span>
+                    <span>{t("common.sidebar.home")}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -158,7 +162,7 @@ export function LeftSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>
             <div className="w-full flex justify-between items-center">
-              Projects
+              {t("common.sidebar.projects")}
               <div className="flex items-center gap-1">
                 <Dialog open={isOpen} onOpenChange={setIsOpen}>
                   <DialogTrigger>
@@ -167,7 +171,7 @@ export function LeftSidebar() {
                         <PlusIcon className="h-6 w-6 p-1 rounded-sm hover:bg-black/5 cursor-pointer" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Add new project</p>
+                        <p>{t("common.sidebar.addProject")}</p>
                       </TooltipContent>
                     </Tooltip>
                   </DialogTrigger>
@@ -181,13 +185,13 @@ export function LeftSidebar() {
                     />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Import project (zip)</p>
+                    <p>{t("common.sidebar.importProject")}</p>
                   </TooltipContent>
                 </Tooltip>
                 <Tooltip delayDuration={1000}>
                   <TooltipTrigger asChild>
                     <CrosshairIcon
-                      aria-label="Select opened file"
+                      aria-label={t("common.sidebar.selectOpenedFile")}
                       onClick={onSelectOpenedFile}
                       className={
                         "h-6 w-6 p-1 rounded-sm " +
@@ -198,7 +202,7 @@ export function LeftSidebar() {
                     />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Select opened file</p>
+                    <p>{t("common.sidebar.selectOpenedFile")}</p>
                   </TooltipContent>
                 </Tooltip>
               </div>
@@ -218,7 +222,7 @@ export function LeftSidebar() {
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button variant="outline" size="sm">
-                        Create new project
+                        {t("common.sidebar.createProject")}
                       </Button>
                     </DialogTrigger>
                     <NewProjectDialog close={() => setIsOpen(false)} />

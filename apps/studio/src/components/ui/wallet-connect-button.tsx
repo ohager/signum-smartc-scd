@@ -10,6 +10,7 @@ import { AlertDialog } from "@/components/ui/alert-dialog.tsx";
 import { type ComponentProps, useState } from "react";
 import type { NetworkType } from "@/types/wallet.types.ts";
 import { wallet } from "@/lib/wallet.ts";
+import { t } from "@/i18n/runtime";
 
 export function WalletConnectButton(props: ComponentProps<typeof Button>) {
   const [connectionError, setConnectionError] = useState("");
@@ -32,30 +33,30 @@ export function WalletConnectButton(props: ComponentProps<typeof Button>) {
         <DropdownMenuTrigger>
           <Button {...props}>
             <PlugZapIcon className="mr-1" />
-            Connect Wallet
+            {t("common.wallet.connect")}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-full">
           <DropdownMenuItem onClick={() => connectWallet("TestNet")}>
             <FlaskConicalIcon className="h-4 w-4" />
-            Connect to Testnet
+            {t("common.wallet.connectTestnet")}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => connectWallet("MainNet")}>
             <CrownIcon className="h-4 w-4" />
-            Connect to Mainnet
+            {t("common.wallet.connectMainnet")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <AlertDialog
         open={showAlertDialog}
         onOpenChange={setShowAlertDialog}
-        title="Connection Issue"
+        title={t("common.wallet.connectionIssue")}
         type="warning"
         description={
           <div>
             {connectionError}
             <div className="border rounded-md p-2 mt-2 text-center">
-              Expected Network: {expectedNetwork?.toUpperCase()}
+              {t("common.wallet.expectedNetwork", { network: expectedNetwork?.toUpperCase() ?? "" })}
             </div>
           </div>
         }

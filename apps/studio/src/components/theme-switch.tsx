@@ -5,6 +5,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { t } from "@/i18n/runtime";
 
 /**
  * Four climates, four dots, each in its own accent. The active one is ringed.
@@ -19,7 +20,7 @@ export function ThemeSwitch() {
     <div
       className="flex items-center gap-1.5"
       role="group"
-      aria-label="Colour climate"
+      aria-label={t("common.climate.label")}
     >
       {CLIMATES.map((climate) => {
         const active = theme === climate.id;

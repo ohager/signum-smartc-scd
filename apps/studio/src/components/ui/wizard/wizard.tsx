@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { type ReactNode } from "react";
 import type { PropertyPath } from "lodash";
+import { t } from "@/i18n/runtime";
 
 export interface WizardStepProps<T, V = any> {
   step: number;
@@ -37,7 +38,7 @@ export function Wizard<T extends object, V = any>({
   steps,
   initialState,
   onFinish,
-  finishButtonLabel = "Finish",
+  finishButtonLabel = t("common.actions.finish"),
   children,
 }: WizardProps<T, V>) {
   const {
@@ -83,14 +84,14 @@ export function Wizard<T extends object, V = any>({
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button onClick={previousStep} disabled={step === 1} variant="outline">
-          <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+          <ChevronLeft className="mr-2 h-4 w-4" /> {t("common.actions.previous")}
         </Button>
         <Button
           variant="accent"
           onClick={step === steps.length ? () => onFinish(data) : nextStep}
           disabled={!canProceed}
         >
-          {step === steps.length ? finishButtonLabel : "Next"}{" "}
+          {step === steps.length ? finishButtonLabel : t("common.actions.next")}{" "}
           <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </CardFooter>
