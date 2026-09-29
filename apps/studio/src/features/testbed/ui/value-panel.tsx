@@ -29,8 +29,7 @@ export function ValuePanel() {
   const sourceText =
     inspected?.trace.detail !== undefined ? toSourceText(inspected.trace.detail) : "";
 
-  const onMount: OnMount = (editor, monaco) => {
-    registerClimateThemes(monaco);
+  const onMount: OnMount = (editor) => {
     // @ts-ignore — @monaco-editor/react resolves its own nested monaco-editor
     // version, which structurally diverges from the root one; see the same
     // workaround in debug-view.tsx's onMount.
@@ -125,6 +124,7 @@ export function ValuePanel() {
             language="javascript"
             theme={monacoTheme}
             value={sourceText}
+            beforeMount={registerClimateThemes}
             onMount={onMount}
             options={{
               readOnly: true,

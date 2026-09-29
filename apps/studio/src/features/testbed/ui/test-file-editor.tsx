@@ -126,7 +126,6 @@ export function TestFileEditor({ file }: Props) {
     // workaround in debug-view.tsx's onMount.
     editorRef.current = editor;
     monacoRef.current = monaco;
-    registerClimateThemes(monaco);
     configureTypeScriptForTests(monaco);
     registerEditorFileActions(editor, monaco, { onDownload: download });
     setEditorReady(true);
@@ -347,6 +346,9 @@ export function TestFileEditor({ file }: Props) {
                 theme={monacoTheme}
                 value={code}
                 onChange={onCodeChange}
+                // Themes must exist before the editor is created, or a direct
+                // load/reload renders with Monaco's default theme.
+                beforeMount={registerClimateThemes}
                 onMount={onMount}
                 options={{
                   minimap: { enabled: false },
