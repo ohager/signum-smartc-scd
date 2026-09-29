@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { formatNumber } from "@/i18n/runtime";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import { Amount } from "@/components/ui/amount.tsx";
 import type { MachineData } from "@/features/asm-editor/machine-data.ts";
@@ -154,7 +155,7 @@ export function ContractSummary({ data }: { data: MachineData }) {
           />
         </Fact>
         <Fact label="Machine code">
-          <span className="font-mono">{codeBytes.toLocaleString()} bytes</span>
+          <span className="font-mono">{formatNumber(codeBytes)} bytes</span>
         </Fact>
         <Fact label="Code hash">
           <HashId value={data.MachineCodeHashId} />

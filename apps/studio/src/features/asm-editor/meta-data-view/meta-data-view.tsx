@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { formatNumber } from "@/i18n/runtime";
 import { PanelTabs } from "@/components/ui/panel.tsx";
 import type { MachineData } from "@/features/asm-editor/machine-data.ts";
 import { ContractSummary } from "./contract-summary.tsx";
@@ -56,7 +57,7 @@ function Tab({ name, count }: { name: string; count: number }) {
     <span className="flex items-baseline justify-center gap-1.5">
       {name}
       <span className="font-mono text-[11px] opacity-60">
-        {count.toLocaleString()}
+        {formatNumber(count)}
       </span>
     </span>
   );
