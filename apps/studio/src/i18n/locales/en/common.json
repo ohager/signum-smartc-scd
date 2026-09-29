@@ -3,11 +3,16 @@
     "cancel": "Cancel",
     "close": "Close",
     "confirm": "Confirm",
+    "create": "Create",
+    "delete": "Delete",
     "disconnect": "Disconnect",
+    "download": "Download",
     "finish": "Finish",
     "next": "Next",
     "open": "Open",
-    "previous": "Previous"
+    "previous": "Previous",
+    "rename": "Rename",
+    "save": "Save"
   },
   "confirm": {
     "title": "Confirm Action",
@@ -28,7 +33,10 @@
     "mobileDescription": "Displays the mobile sidebar."
   },
   "import": {
-    "done": { "one": "Imported {count} file", "other": "Imported {count} files" },
+    "done": {
+      "one": "Imported {count} file",
+      "other": "Imported {count} files"
+    },
     "doneWithSkipped": {
       "one": "Imported {count} file ({skipped} skipped)",
       "other": "Imported {count} files ({skipped} skipped)"

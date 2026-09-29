@@ -1,1 +1,41 @@
-{}
+{
+  "folder": {
+    "addFile": "Add File",
+    "newFolder": "New Folder",
+    "downloadZip": "Download (zip)",
+    "uploadFiles": "Upload File(s)…",
+    "importZip": "Import ZIP…",
+    "importFolder": "Import Folder…",
+    "folderName": "Folder name",
+    "renameTitle": "Rename Folder",
+    "nameTaken": "A folder with this name already exists",
+    "deleteTitle": "Delete Folder",
+    "deleteConfirm": "Delete this folder and all its contents? This action cannot be undone."
+  },
+  "file": {
+    "renameTitle": "Rename File",
+    "fileName": "File name",
+    "nameTaken": "A file with this name already exists",
+    "deleteTitle": "Delete File",
+    "deleteConfirm": "Are you sure you want to delete this file? This action cannot be undone."
+  },
+  "newFile": {
+    "title": "New File",
+    "type": "Type",
+    "name": "Name",
+    "smartc": "SmartC contract (.smart.c)",
+    "scenario": "Scenario (.scenario.json)",
+    "test": "Test (.test.ts)"
+  },
+  "newProject": {
+    "title": "New Project",
+    "createDescription": "Add a new Smart Contract project to your workspace.",
+    "inspectDescription": "Create a Smart Contract inspection project",
+    "type": "Project Type",
+    "selectType": "Select Project Type",
+    "create": "Create new Smart Contract",
+    "inspect": "Inspect Smart Contract(s)",
+    "name": "Name",
+    "namePlaceholder": "My new project"
+  }
+}
