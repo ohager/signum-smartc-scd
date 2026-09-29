@@ -1,4 +1,5 @@
 import type { CompileVerdict, TestVerdict } from "@/lib/file-system";
+import { t } from "@/i18n/runtime";
 
 /**
  * What each cell of the workflow rail shows.
@@ -14,6 +15,9 @@ import type { CompileVerdict, TestVerdict } from "@/lib/file-system";
  * and `analyzeWithCompiler` returns at most one error. The plural branch is
  * kept anyway: it costs one ternary and it is the only thing that would need
  * writing if the compiler ever learns to recover.
+ *
+ * The words come from `t()`: the locale is fixed for the page, so these stay
+ * pure functions of their arguments within any one page load.
  */
 
 export type CellTone = "good" | "bad" | "neutral";
@@ -32,10 +36,10 @@ export function compileCell(
   contractModified: number,
 ): CellContent {
   if (!verdict || verdict.sourceModified !== contractModified) return UNKNOWN;
-  if (verdict.errorCount === 0) return { fact: "compiles", tone: "good" };
+  if (verdict.errorCount === 0) return { fact: t("workflow.cells.compiles"), tone: "good" };
 
   return {
-    fact: verdict.errorCount === 1 ? "1 error" : `${verdict.errorCount} errors`,
+    fact: t("workflow.cells.errors", { count: verdict.errorCount }),
     tone: "bad",
   };
 }
@@ -45,21 +49,21 @@ export function testCell(
   verdict: TestVerdict | undefined,
   contractModified: number,
 ): CellContent {
-  if (!testFile) return { fact: "no tests", tone: "neutral" };
+  if (!testFile) return { fact: t("workflow.cells.noTests"), tone: "neutral" };
   if (!verdict) return UNKNOWN;
   if (verdict.sourceModified !== testFile.modified) return UNKNOWN;
   if (verdict.contractModified !== contractModified) return UNKNOWN;
   if (verdict.failed > 0)
-    return { fact: `${verdict.failed} failed`, tone: "bad" };
+    return { fact: t("workflow.cells.failed", { count: verdict.failed }), tone: "bad" };
 
-  return { fact: `${verdict.passed} green`, tone: "good" };
+  return { fact: t("workflow.cells.green", { count: verdict.passed }), tone: "good" };
 }
 
 export function simulateCell(scenarioCount: number): CellContent {
-  if (scenarioCount === 0) return { fact: "no scenario", tone: "neutral" };
+  if (scenarioCount === 0) return { fact: t("workflow.cells.noScenario"), tone: "neutral" };
 
   return {
-    fact: scenarioCount === 1 ? "1 scenario" : `${scenarioCount} scenarios`,
+    fact: t("workflow.cells.scenarios", { count: scenarioCount }),
     tone: "neutral",
   };
 }
@@ -75,24 +79,24 @@ export type DeploymentAnswer =
 
 export function deployCell(answer: DeploymentAnswer): CellContent {
   if (answer.state === "no-wallet") {
-    return { ...UNKNOWN, hint: "Connect a wallet to ask the chain" };
+    return { ...UNKNOWN, hint: t("workflow.cells.connectWallet") };
   }
   if (answer.state === "no-code") {
-    return { ...UNKNOWN, hint: "The contract does not compile yet" };
+    return { ...UNKNOWN, hint: t("workflow.cells.notCompiling") };
   }
   if (answer.state === "asking") return { fact: "…", tone: "neutral" };
   if (answer.state === "deploying") {
     return {
-      fact: "deploying…",
+      fact: t("workflow.cells.deploying"),
       tone: "neutral",
-      hint: "Waiting for the next block",
+      hint: t("workflow.cells.waitingBlock"),
     };
   }
-  if (answer.total === 0) return { fact: "not deployed", tone: "neutral" };
+  if (answer.total === 0) return { fact: t("workflow.cells.notDeployed"), tone: "neutral" };
 
   const count = answer.capped ? "9+" : String(answer.total);
   if (answer.mine > 0)
-    return { fact: `${count} · ${answer.mine} yours`, tone: "good" };
+    return { fact: t("workflow.cells.yours", { count, mine: answer.mine }), tone: "good" };
 
-  return { fact: `${count} deployed`, tone: "neutral" };
+  return { fact: t("workflow.cells.deployed", { count }), tone: "neutral" };
 }

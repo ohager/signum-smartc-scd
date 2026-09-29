@@ -134,6 +134,28 @@ export type MessageParams = {
   "project.newProject.inspect": undefined;
   "project.newProject.name": undefined;
   "project.newProject.namePlaceholder": undefined;
+  "workflow.rail.label": undefined;
+  "workflow.rail.write": undefined;
+  "workflow.rail.test": undefined;
+  "workflow.rail.simulate": undefined;
+  "workflow.rail.deploy": undefined;
+  "workflow.rail.noContract": undefined;
+  "workflow.rail.needsCompile": undefined;
+  "workflow.rail.ignoredContract": { name: string | number };
+  "workflow.cells.compiles": undefined;
+  "workflow.cells.errors": { count: number };
+  "workflow.cells.noTests": undefined;
+  "workflow.cells.failed": { count: string | number };
+  "workflow.cells.green": { count: string | number };
+  "workflow.cells.noScenario": undefined;
+  "workflow.cells.scenarios": { count: number };
+  "workflow.cells.connectWallet": undefined;
+  "workflow.cells.notCompiling": undefined;
+  "workflow.cells.deploying": undefined;
+  "workflow.cells.waitingBlock": undefined;
+  "workflow.cells.notDeployed": undefined;
+  "workflow.cells.yours": { count: string | number; mine: string | number };
+  "workflow.cells.deployed": { count: string | number };
 };
 
 export type MessageKey = keyof MessageParams;

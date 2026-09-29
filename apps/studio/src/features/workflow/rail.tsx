@@ -11,6 +11,7 @@ import {
 import { useProjectFacts } from "./use-project-facts";
 import { useCompileVerdict } from "./use-compile-verdict";
 import { useDeploymentCount } from "./use-deployment-count";
+import { t } from "@/i18n/runtime";
 
 interface Cell {
   id: "write" | "test" | "simulate" | "deploy";
@@ -69,17 +70,17 @@ export function WorkflowRail() {
   const cells: Cell[] = [
     {
       id: "write",
-      label: "Write",
+      label: t("workflow.rail.write"),
       content: contract
         ? compileCell(verdict, contract.lastModified)
-        : { fact: "no contract", tone: "neutral" },
+        : { fact: t("workflow.rail.noContract"), tone: "neutral" },
       go: contract
         ? () => navigate(`/projects/${projectId}/files/${contract.id}`)
         : undefined,
     },
     {
       id: "test",
-      label: "Test",
+      label: t("workflow.rail.test"),
       content: testCell(
         activeTest ? { modified: activeTest.lastModified } : null,
         activeTest ? status.tests[activeTest.id] : undefined,
@@ -91,7 +92,7 @@ export function WorkflowRail() {
     },
     {
       id: "simulate",
-      label: "Simulate",
+      label: t("workflow.rail.simulate"),
       content: simulateCell(scenarios.length),
       go: contract
         ? () => navigate(`/projects/${projectId}/simulate`)
@@ -99,7 +100,7 @@ export function WorkflowRail() {
     },
     {
       id: "deploy",
-      label: "Deploy",
+      label: t("workflow.rail.deploy"),
       content: deployCell(deployment),
       // The only destination that can be barred, and only while the source
       // does not compile — Deploy is the one step that needs machine code.
@@ -117,14 +118,14 @@ export function WorkflowRail() {
   };
 
   const ignoredNote = choice?.ignored.length
-    ? ` · a second contract (${choice.ignored[0]!.name}) is ignored`
+    ? t("workflow.rail.ignoredContract", { name: choice.ignored[0]!.name })
     : "";
 
   return (
     <div
       className="flex shrink-0 items-center"
       role="group"
-      aria-label="Workflow"
+      aria-label={t("workflow.rail.label")}
     >
       <RailTrack
         stops={cells.map<Stop>((cell) => ({
@@ -137,7 +138,7 @@ export function WorkflowRail() {
           pulsing: cell.id === "write" && compiling,
           hint:
             (cell.content.hint ??
-              (cell.go ? "" : "needs a contract that compiles")) +
+              (cell.go ? "" : t("workflow.rail.needsCompile"))) +
             (cell.id === "write" ? ignoredNote : ""),
           go: cell.go,
         }))}
