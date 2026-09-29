@@ -1,1 +1,26 @@
-{}
+{
+  "compile": {
+    "created": "Smart Contract compiled successfully - Assembly file created!",
+    "createFailed": "Could not create Assembly file: {message}",
+    "updated": "Smart Contract compiled successfully - Assembly file updated!",
+    "updateFailed": "Could not update Assembly file: {message}",
+    "noAsmFile": "Could not find existing file",
+    "action": "Compile SmartC",
+    "button": "Compile",
+    "hint": "Compile this contract ({hotkey})",
+    "fixFirst": "Fix the error before compiling",
+    "overwriteTitle": "Compile SmartC",
+    "overwrite": "An assembly file already exists. All previous code will be overwritten if you re-compile",
+    "recompile": "Re-Compile"
+  },
+  "completion": {
+    "suggestProperties": "Suggest properties"
+  },
+  "hover": {
+    "function": "**SmartC Function**",
+    "apiFunction": "**SmartC API Function** (requires `#include {include}`)",
+    "keyword": "**SmartC Keyword**",
+    "variable": "SmartC variable (line {line})",
+    "userFunction": "SmartC function"
+  }
+}

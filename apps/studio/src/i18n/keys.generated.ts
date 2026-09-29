@@ -268,6 +268,24 @@ export type MessageParams = {
   "testbed.devtools.find": undefined;
   "testbed.devtools.breakpoint": undefined;
   "testbed.devtools.freeze": undefined;
+  "smartc-editor.compile.created": undefined;
+  "smartc-editor.compile.createFailed": { message: string | number };
+  "smartc-editor.compile.updated": undefined;
+  "smartc-editor.compile.updateFailed": { message: string | number };
+  "smartc-editor.compile.noAsmFile": undefined;
+  "smartc-editor.compile.action": undefined;
+  "smartc-editor.compile.button": undefined;
+  "smartc-editor.compile.hint": { hotkey: string | number };
+  "smartc-editor.compile.fixFirst": undefined;
+  "smartc-editor.compile.overwriteTitle": undefined;
+  "smartc-editor.compile.overwrite": undefined;
+  "smartc-editor.compile.recompile": undefined;
+  "smartc-editor.completion.suggestProperties": undefined;
+  "smartc-editor.hover.function": undefined;
+  "smartc-editor.hover.apiFunction": { include: string | number };
+  "smartc-editor.hover.keyword": undefined;
+  "smartc-editor.hover.variable": { line: string | number };
+  "smartc-editor.hover.userFunction": undefined;
 };
 
 export type MessageKey = keyof MessageParams;
