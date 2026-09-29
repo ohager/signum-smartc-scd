@@ -1,4 +1,5 @@
 import { describe, it, expect } from "bun:test";
+import { translate } from "@/i18n/runtime";
 import {
   LEARN_CONTENT,
   MAX_RAIL_LINKS,
@@ -28,9 +29,10 @@ describe("LEARN_CONTENT", () => {
     }
   });
 
-  it("gives every entry a non-empty title", () => {
+  it("gives every entry a title that exists in the English messages", () => {
     for (const entry of LEARN_CONTENT) {
-      expect(entry.title.trim().length).toBeGreaterThan(0);
+      expect(translate(entry.titleKey)).not.toBe(entry.titleKey);
+      if (entry.blurbKey) expect(translate(entry.blurbKey)).not.toBe(entry.blurbKey);
     }
   });
 });
@@ -40,17 +42,17 @@ describe("railVideos / railLinks", () => {
     ...Array.from({ length: 6 }, (_, i): LearnEntry => ({
       id: `v${i}`,
       kind: "video",
-      title: `video ${i}`,
+      titleKey: "home.learn.smartc-repo.title",
       youtubeId: `id${i}`,
     })),
     ...Array.from({ length: 9 }, (_, i): LearnEntry => ({
       id: `l${i}`,
       kind: "link",
-      title: `link ${i}`,
+      titleKey: "home.learn.smartc-repo.title",
       href: "https://example.com",
     })),
-    { id: "g1", kind: "guide", title: "a guide" },
-    { id: "e1", kind: "example", title: "an example" },
+    { id: "g1", kind: "guide", titleKey: "home.learn.smartc-repo.title" },
+    { id: "e1", kind: "example", titleKey: "home.learn.smartc-repo.title" },
   ];
 
   it("caps videos at MAX_RAIL_VIDEOS, preserving order", () => {

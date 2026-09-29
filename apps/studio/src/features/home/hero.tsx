@@ -3,9 +3,7 @@ import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { NewProjectDialog } from "@/features/project/new-project-dialog";
 import { UploadIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
-
-const PITCH =
-  "Write, simulate and deploy Signum smart contracts — entirely in your browser. Nothing to install.";
+import { t } from "@/i18n/runtime";
 
 interface Props {
   variant: "full" | "band";
@@ -41,8 +39,8 @@ function SignumMark({ className }: { className?: string }) {
 export function Hero({ variant, onImportClick }: Props) {
   const [isNewProjectOpen, setIsNewProjectOpen] = useState(false);
 
-  const createLabel = variant === "full" ? "Create your first contract" : "New Project";
-  const importLabel = variant === "full" ? "Import project" : "Import";
+  const createLabel = variant === "full" ? t("home.hero.createFirst") : t("home.hero.newProject");
+  const importLabel = variant === "full" ? t("home.hero.importProject") : t("home.hero.import");
 
   const actions = (
     <div className="flex items-center gap-2">
@@ -97,7 +95,7 @@ export function Hero({ variant, onImportClick }: Props) {
         </div>
 
         <p className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both delay-100 duration-700 mt-6 font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-          Signum · Browser IDE
+          {t("home.hero.tagline")}
         </p>
 
         <h1 className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both delay-150 duration-700 mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
@@ -108,7 +106,7 @@ export function Hero({ variant, onImportClick }: Props) {
         </h1>
 
         <p className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both delay-200 duration-700 mt-5 max-w-lg text-pretty text-base leading-relaxed text-muted-foreground">
-          {PITCH}
+          {t("home.hero.pitch")}
         </p>
 
         <div className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both delay-300 duration-700 mt-8">

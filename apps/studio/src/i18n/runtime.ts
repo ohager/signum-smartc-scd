@@ -85,6 +85,11 @@ export function formatDate(
   return new Intl.DateTimeFormat(locale, options).format(value);
 }
 
+/** Keys whose message takes no parameters — the type for a key stored in data. */
+export type PlainKey = {
+  [K in MessageKey]: MessageParams[K] extends undefined ? K : never;
+}[MessageKey];
+
 type ArgsFor<K extends MessageKey> = MessageParams[K] extends undefined
   ? [params?: undefined]
   : [params: MessageParams[K]];

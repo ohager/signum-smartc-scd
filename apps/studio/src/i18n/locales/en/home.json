@@ -1,1 +1,41 @@
-{}
+{
+  "hero": {
+    "pitch": "Write, simulate and deploy Signum smart contracts — entirely in your browser. Nothing to install.",
+    "tagline": "Signum · Browser IDE",
+    "createFirst": "Create your first contract",
+    "newProject": "New Project",
+    "importProject": "Import project",
+    "import": "Import"
+  },
+  "howItWorks": {
+    "heading": "How it works",
+    "soon": "soon",
+    "write": { "title": "Write", "blurb": "SmartC editor with completion, hover docs and live compiler diagnostics." },
+    "test": { "title": "Test", "blurb": "Write tests beside your contract and run them in the browser, with values inline." },
+    "simulate": { "title": "Simulate", "blurb": "Step through against a scenario: breakpoints, variables, a mock ledger." },
+    "deploy": { "title": "Deploy", "blurb": "Connect your wallet and publish to Signum testnet or mainnet." }
+  },
+  "learn": {
+    "heading": "Learn",
+    "smartc-repo": { "title": "SmartC language & compiler", "blurb": "Syntax reference, built-in functions and the compiler itself." },
+    "signum-docs": { "title": "Signum documentation", "blurb": "How the Signum network, accounts and transactions work." },
+    "signum-network": { "title": "Signum network", "blurb": "The project, its ecosystem and community." }
+  },
+  "continue": {
+    "heading": "Continue where you left off",
+    "justNow": "just now",
+    "minutesAgo": "{minutes} min ago",
+    "hoursAgo": "{hours} h ago",
+    "yesterday": "yesterday",
+    "daysAgo": { "one": "{count} day ago", "other": "{count} days ago" }
+  },
+  "projects": {
+    "heading": "Projects",
+    "files": { "one": "{count} file", "other": "{count} files" },
+    "nothingToOpen": " · nothing to open yet"
+  },
+  "smallScreen": {
+    "title": "Best on a larger screen",
+    "body": "SmartC Studio is built for desktop use. On small screens the editor, simulator and deployment views won't have enough room — please switch to a laptop or desktop."
+  }
+}

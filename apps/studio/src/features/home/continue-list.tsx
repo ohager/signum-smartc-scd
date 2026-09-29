@@ -5,6 +5,7 @@ import { revealFileRequestAtom } from "@/stores/project-tree-atoms";
 import { findFolderChainToFile } from "@/features/project/tree-reveal";
 import { useSetAtom } from "jotai";
 import { useNavigate } from "react-router";
+import { t } from "@/i18n/runtime";
 
 interface Props {
   recents: ResolvedRecent[];
@@ -13,13 +14,13 @@ interface Props {
 /** "2 min ago" style label. Coarse on purpose — the exact minute never matters. */
 function relativeTime(timestamp: number, now: number): string {
   const seconds = Math.max(0, Math.round((now - timestamp) / 1000));
-  if (seconds < 60) return "just now";
+  if (seconds < 60) return t("home.continue.justNow");
   const minutes = Math.round(seconds / 60);
-  if (minutes < 60) return `${minutes} min ago`;
+  if (minutes < 60) return t("home.continue.minutesAgo", { minutes });
   const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours} h ago`;
+  if (hours < 24) return t("home.continue.hoursAgo", { hours });
   const days = Math.round(hours / 24);
-  return days === 1 ? "yesterday" : `${days} days ago`;
+  return days === 1 ? t("home.continue.yesterday") : t("home.continue.daysAgo", { count: days });
 }
 
 export function ContinueList({ recents }: Props) {
@@ -41,7 +42,7 @@ export function ContinueList({ recents }: Props) {
   return (
     <section className="px-6 py-6">
       <h2 className="mb-4 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-        Continue where you left off
+        {t("home.continue.heading")}
         <span className="h-px flex-1 bg-border" />
       </h2>
 
