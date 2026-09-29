@@ -45,6 +45,7 @@ import {
   activeTestIdAtom,
   inspectedLineAtom,
 } from "../test-trace-store";
+import { t } from "@/i18n/runtime";
 
 interface Props {
   file: File;
@@ -193,7 +194,7 @@ export function TestFileEditor({ file }: Props) {
   const runSingleTest = useCallback(
     (path: string[]) => {
       runFile(path).catch((e) =>
-        toast.error("Could not run test: " + (e as Error).message),
+        toast.error(t("testbed.editor.runOneFailed", { message: (e as Error).message })),
       );
     },
     [runFile],
@@ -248,9 +249,7 @@ export function TestFileEditor({ file }: Props) {
     const fresh = finished?.recordings?.[file.metadata.path];
 
     if (!fresh?.contractSource) {
-      toast.error(
-        `"${row.name}" loaded no contract, so there is nothing to simulate.`,
-      );
+      toast.error(t("testbed.editor.noContract", { name: row.name }));
       return;
     }
 
@@ -279,15 +278,15 @@ export function TestFileEditor({ file }: Props) {
                     onClick={() => {
                       runFile().catch((e) =>
                         toast.error(
-                          "Could not run tests: " + (e as Error).message,
+                          t("testbed.editor.runFailed", { message: (e as Error).message }),
                         ),
                       );
                     }}
                     disabled={isRunning}
-                    title="Run this test file"
+                    title={t("testbed.editor.runHint")}
                   >
                     <Play className="h-4 w-4" />
-                    Run
+                    {t("testbed.editor.run")}
                   </ToolbarButton>
                   {/* Two words, two things, and they used to be one. Simulate
                       replays what the test *sent*, as a scenario, in the
@@ -297,26 +296,26 @@ export function TestFileEditor({ file }: Props) {
                     onClick={() => {
                       simulateActiveTest().catch((e) =>
                         toast.error(
-                          "Could not simulate: " + (e as Error).message,
+                          t("testbed.editor.simulateFailed", { message: (e as Error).message }),
                         ),
                       );
                     }}
                     disabled={isRunning || !activeTestId}
                     title={
                       activeTestId
-                        ? "Run the selected test and simulate the scenario it records"
-                        : "Select a test to simulate its scenario"
+                        ? t("testbed.editor.simulateHint")
+                        : t("testbed.editor.selectToSimulate")
                     }
                   >
                     <StepForward className="h-4 w-4" />
-                    Simulate
+                    {t("testbed.editor.simulate")}
                   </ToolbarButton>
                 </>
               }
               context={
                 isRunning ? (
                   <span className="motion-pulse text-xs text-[var(--accent-3)]">
-                    running…
+                    {t("testbed.editor.running")}
                   </span>
                 ) : null
               }
@@ -330,12 +329,12 @@ export function TestFileEditor({ file }: Props) {
             />
             {activeRow && (
               <div className="shrink-0 border-b border-border px-3 py-1 text-xs text-muted-foreground">
-                showing values from:{" "}
+                {t("testbed.editor.showingValues")}{" "}
                 {activeRow.path.length
                   ? activeRow.path.join(" › ")
                   : activeRow.name}
                 {activeRow.traceTruncated &&
-                  " — trace truncated, some values were not recorded"}
+                  t("testbed.editor.traceTruncated")}
               </div>
             )}
             <div className="min-h-0 flex-1">
@@ -368,11 +367,10 @@ export function TestFileEditor({ file }: Props) {
                 checked={debugRun}
                 onCheckedChange={(checked) => setDebugRun(checked === true)}
               />
-              Debug run (DevTools)
+              {t("testbed.editor.debugRun")}
               <DevToolsHelp />
               <span className="text-muted-foreground/70">
-                — runs in the page so DevTools can break; a runaway contract
-                will freeze the tab
+                {t("testbed.editor.debugRunNote")}
               </span>
             </label>
             <Tabs
@@ -381,8 +379,8 @@ export function TestFileEditor({ file }: Props) {
               className="flex min-h-0 flex-1 flex-col gap-0"
             >
               <TabsList className="mx-3 mt-2 shrink-0 self-start">
-                <TabsTrigger value="results">Results</TabsTrigger>
-                <TabsTrigger value="value">Value</TabsTrigger>
+                <TabsTrigger value="results">{t("testbed.editor.results")}</TabsTrigger>
+                <TabsTrigger value="value">{t("testbed.editor.value")}</TabsTrigger>
               </TabsList>
               <TabsContent value="results" className="min-h-0 flex-1">
                 <TestResultsPanel

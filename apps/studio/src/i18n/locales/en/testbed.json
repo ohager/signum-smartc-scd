@@ -1,1 +1,51 @@
-{}
+{
+  "editor": {
+    "run": "Run",
+    "runHint": "Run this test file",
+    "runFailed": "Could not run tests: {message}",
+    "runOneFailed": "Could not run test: {message}",
+    "simulate": "Simulate",
+    "simulateHint": "Run the selected test and simulate the scenario it records",
+    "selectToSimulate": "Select a test to simulate its scenario",
+    "simulateFailed": "Could not simulate: {message}",
+    "noContract": "\"{name}\" loaded no contract, so there is nothing to simulate.",
+    "running": "running…",
+    "showingValues": "showing values from:",
+    "traceTruncated": " — trace truncated, some values were not recorded",
+    "debugRun": "Debug run (DevTools)",
+    "debugRunNote": "— runs in the page so DevTools can break; a runaway contract will freeze the tab",
+    "results": "Results",
+    "value": "Value"
+  },
+  "results": {
+    "goToLine": "Go to line {line}",
+    "duration": "{ms}ms",
+    "expected": "expected: {value}",
+    "received": "received: {value}",
+    "passed": "{count} passed",
+    "failed": "{count} failed",
+    "skipped": "{count} skipped",
+    "timedOut": "{count} timed out",
+    "pressRun": "Press Run to execute this test file.",
+    "couldNotLoad": "Could not load {file}",
+    "hookFailed": "{phase} failed",
+    "hookFailedIn": "{phase} failed in {suite}"
+  },
+  "value": {
+    "hint": "Click a value shown at the end of a line to inspect it here.",
+    "fallbackName": "value",
+    "ranTimes": "ran {count} times — showing the last",
+    "collapseAll": "Collapse all",
+    "expandAll": "Expand all",
+    "noValue": "This line completed an assertion but bound no value."
+  },
+  "devtools": {
+    "label": "How to debug with DevTools",
+    "title": "Debugging with DevTools",
+    "openFirst": "Open DevTools first — it cannot attach to a run already underway.",
+    "tick": "Tick this box, then press Run.",
+    "find": "Find your test in Sources under its project path, e.g. <code>/my-project/tests/counter.test.ts</code>.",
+    "breakpoint": "Set a breakpoint there, or put a <code>debugger;</code> statement in the test.",
+    "freeze": "Tests run in the page instead of a worker, so a contract that loops forever will freeze the tab — the watchdog cannot interrupt the loop that is blocking it."
+  }
+}
