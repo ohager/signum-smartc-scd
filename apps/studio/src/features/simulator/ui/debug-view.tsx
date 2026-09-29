@@ -176,7 +176,6 @@ function DebugSession({
   const onPopOut = () => window.open("/debug/dashboard", "smartc-debug");
 
   const onMount: OnMount = (editor, monaco) => {
-    registerSmartC(monaco);
     // @ts-ignore
     editorRef.current = editor;
     monacoRef.current = monaco;
@@ -270,6 +269,7 @@ function DebugSession({
                 automaticLayout: true,
                 scrollBeyondLastLine: false,
               }}
+              beforeMount={(monaco) => registerSmartC(monaco)}
               onMount={onMount}
             />
           </div>

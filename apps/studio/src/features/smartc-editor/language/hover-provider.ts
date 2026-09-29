@@ -1,6 +1,7 @@
 import type * as Monaco from "monaco-editor";
 import { SmartCKeywords } from "../language-definitions/keywords";
 import { SmartCFunctions } from "../language-definitions/functions";
+import { AllSmartCApiFunctions } from "../language-definitions/api-functions";
 import { SmartCDirectives } from "../language-definitions/directives";
 import { getSymbols } from "./symbol-cache";
 import { getDebugMemory } from "./debug-memory";
@@ -43,7 +44,7 @@ function directiveHover(
 
   if (context.kind === "directive") {
     const info = SmartCDirectives[word as keyof typeof SmartCDirectives];
-    if (!info) return null; // e.g. #define, #include
+    if (!info) return null; // e.g. #define
     return {
       contents: [
         { value: `\`#${word}\` — **${info.detail}**` },
@@ -101,6 +102,16 @@ export function createHoverProvider(
           contents: [
             { value: `\`${fn.signature}\` - **SmartC Function**` },
             { value: fn.documentation },
+          ],
+        };
+      }
+      // Shown even without the #include, so the hover explains what is missing.
+      const api = AllSmartCApiFunctions[word.word];
+      if (api) {
+        return {
+          contents: [
+            { value: `\`${api.signature}\` - **SmartC API Function** (requires \`#include ${api.include}\`)` },
+            { value: api.documentation },
           ],
         };
       }

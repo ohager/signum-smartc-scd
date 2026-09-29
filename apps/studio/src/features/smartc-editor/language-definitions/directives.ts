@@ -110,8 +110,29 @@ export const SmartCPragmaDirectives: Record<string, DirectiveDeclaration> = {
   },
 };
 
+/** `#include ...` — opt-in tables of low-level API functions. */
+export const SmartCIncludeDirectives: Record<string, DirectiveDeclaration> = {
+  APIFunctions: {
+    detail: "Enable the low-level API functions",
+    documentation:
+      "Makes the AT machine's API calls available as C functions: `Get_A1`, `Set_B1_B2`, `Clear_A`, `SHA256_A_To_B`, `Send_To_Address_In_B`, … " +
+      "They work on the A and B pseudo-registers directly, for cases the built-in functions do not cover. " +
+      "Optional value `true`/`false` (default `true`).",
+    snippet: "",
+  },
+  fixedAPIFunctions: {
+    detail: "Enable the fixed-point low-level API functions",
+    documentation:
+      "Adds `fixed`-typed twins of the API calls that move Signa amounts: `F_Get_Current_Balance`, `F_Send_To_Address_In_B`, `F_Get_A1`, … " +
+      "Independent of `#include APIFunctions`. Optional value `true`/`false` (default `true`).",
+    snippet: "",
+  },
+};
+
+export type DirectiveName = "program" | "pragma" | "include";
+
 export const SmartCDirectives: Record<
-  "program" | "pragma",
+  DirectiveName,
   {
     detail: string;
     documentation: string;
@@ -128,5 +149,11 @@ export const SmartCDirectives: Record<
     detail: "Compiler options",
     documentation: "Special features used by compiler.",
     properties: SmartCPragmaDirectives,
+  },
+  include: {
+    detail: "Enable low-level API functions",
+    documentation:
+      "Turns on a table of low-level API functions: `#include APIFunctions` or `#include fixedAPIFunctions`.",
+    properties: SmartCIncludeDirectives,
   },
 };

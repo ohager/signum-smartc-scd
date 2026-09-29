@@ -6,6 +6,7 @@ import { HowItWorks } from "@/features/home/how-it-works";
 import { ContinueList } from "@/features/home/continue-list";
 import { ProjectGrid } from "@/features/home/project-grid";
 import { LearnRail } from "@/features/home/learn-rail";
+import { SmallScreenNotice } from "@/features/home/small-screen-notice";
 import { useRecentFiles } from "@/hooks/use-recent-files";
 import { acceptedFileType } from "@/features/project/filetype-icons";
 import { uniqueName } from "@/features/project/file-naming";
@@ -59,6 +60,8 @@ export function HomePage() {
     <Page>
       <PageContent className="overflow-y-auto">
         <input ref={importInputRef} type="file" accept=".zip" hidden onChange={onImportProject} />
+
+        <SmallScreenNotice />
 
         <Hero
           variant={isEmptyWorkspace ? "full" : "band"}

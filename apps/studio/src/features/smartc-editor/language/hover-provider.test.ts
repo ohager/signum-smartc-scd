@@ -85,6 +85,19 @@ describe("directive hover", () => {
     expect(hoverAt(line, columnOf(line, "define"))).toBeNull();
   });
 
+  it("documents an #include table", () => {
+    const line = "#include APIFunctions";
+    const text = textOf(hoverAt(line, columnOf(line, "APIFunctions")));
+    expect(text).toContain("`#include APIFunctions`");
+  });
+
+  it("documents low-level API functions and names the include they need", () => {
+    const line = "Set_A1_A2(key1, key2);";
+    const text = textOf(hoverAt(line, columnOf(line, "Set_A1_A2")));
+    expect(text).toContain("void Set_A1_A2(long a1, long a2)");
+    expect(text).toContain("#include APIFunctions");
+  });
+
   it("still documents built-ins in regular code", () => {
     const line = "long a = getNextTx();";
     const text = textOf(hoverAt(line, columnOf(line, "getNextTx")));
