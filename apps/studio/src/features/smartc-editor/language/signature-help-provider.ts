@@ -1,5 +1,6 @@
 import type * as Monaco from "monaco-editor";
 import { SmartCFunctions } from "../language-definitions/functions";
+import { AllSmartCApiFunctions } from "../language-definitions/api-functions";
 import { getSymbols } from "./symbol-cache";
 
 /** Finds the innermost function call name and active parameter index at `textUntilPosition`. */
@@ -65,7 +66,7 @@ export function createSignatureHelpProvider(
       const call = findActiveCall(textUntilPosition);
       if (!call) return null;
 
-      const builtin = SmartCFunctions[call.name];
+      const builtin = SmartCFunctions[call.name] ?? AllSmartCApiFunctions[call.name];
       if (builtin) {
         const signature: Monaco.languages.SignatureInformation = {
           label: builtin.signature,

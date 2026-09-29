@@ -5,6 +5,7 @@ import {
 } from "../language-definitions/keywords";
 import { SmartCFunctions } from "../language-definitions/functions";
 import { SmartCDirectives } from "../language-definitions/directives";
+import { enabledApiFunctions } from "./api-includes";
 import { getSymbols } from "./symbol-cache";
 import {
   matchDirectiveContext,
@@ -72,6 +73,23 @@ export function createCompletionProvider(
           insertTextRules:
             monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
           detail: info.detail,
+          documentation: { value: info.documentation, isTrusted: true },
+          range,
+        });
+      }
+
+      // Only what the file `#include`s: the compiler rejects the rest.
+      for (const [fn, info] of Object.entries(enabledApiFunctions(model.getValue()))) {
+        const args = info.params
+          .map((p, i) => `\${${i + 1}:${p.name}}`)
+          .join(", ");
+        items.push({
+          label: fn,
+          kind: monaco.languages.CompletionItemKind.Function,
+          insertText: `${fn}(${args})`,
+          insertTextRules:
+            monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          detail: `${info.detail} · #include ${info.include}`,
           documentation: { value: info.documentation, isTrusted: true },
           range,
         });

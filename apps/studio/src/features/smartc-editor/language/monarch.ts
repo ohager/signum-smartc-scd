@@ -1,8 +1,12 @@
 import type * as Monaco from "monaco-editor";
 import { SmartCFunctions } from "../language-definitions/functions";
+import { AllSmartCApiFunctions } from "../language-definitions/api-functions";
 import { SmartCDisabledKeywords } from "../language-definitions/keywords";
 
-const builtinFunctions = Object.keys(SmartCFunctions);
+const builtinFunctions = [
+  ...Object.keys(SmartCFunctions),
+  ...Object.keys(AllSmartCApiFunctions),
+];
 
 export const smartcMonarch: Monaco.languages.IMonarchLanguage = {
   defaultToken: "",

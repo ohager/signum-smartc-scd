@@ -49,9 +49,22 @@ describe("matchDirectiveContext", () => {
     });
   });
 
-  it("does not treat other directives as program/pragma", () => {
+  it("offers the API tables after '#include'", () => {
+    expect(matchDirectiveContext("#include ")).toEqual({
+      kind: "property",
+      directive: "include",
+    });
+    expect(matchDirectiveContext("#include API")).toEqual({
+      kind: "property",
+      directive: "include",
+    });
+    expect(matchDirectiveContext("#include APIFunctions ")).toEqual({
+      kind: "value",
+    });
+  });
+
+  it("does not treat #define as a known directive", () => {
     expect(matchDirectiveContext("#define MAX 10")).toBeNull();
-    expect(matchDirectiveContext("#include APIFunctions")).toBeNull();
   });
 
   it("ignores regular code", () => {
