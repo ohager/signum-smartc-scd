@@ -25,6 +25,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
 import { FolderNode } from "@/features/project/folder-node";
 import { useEffect, useRef, useState } from "react";
 import { ThemeSwitch } from "@/components/theme-switch";
+import { LocaleSwitch } from "@/components/locale-switch";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import { acceptedFileType } from "@/features/project/filetype-icons";
 import { uniqueName } from "@/features/project/file-naming";
@@ -248,7 +249,10 @@ export function LeftSidebar() {
         {/*  ))}*/}
         {/*</SidebarMenu>*/}
         <hr />
-        <ThemeSwitch />
+        <div className="flex items-center justify-between gap-2">
+          <ThemeSwitch />
+          <LocaleSwitch />
+        </div>
       </SidebarFooter>
 
     </Sidebar>

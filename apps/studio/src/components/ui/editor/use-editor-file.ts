@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import type { File } from "@/lib/file-system";
 import { downloadBlob } from "@/lib/download.ts";
+import { registerPendingSave } from "@/lib/pending-saves";
 
 /**
  * The open buffer of a file: its text, whether it differs from what is
@@ -94,7 +95,7 @@ export function useEditorFile({ file, onSaved }: Options): EditorFile {
   saveRef.current = save;
 
   const autosave = useMemo(
-    () => debounce(() => void saveRef.current({ silent: true }), AUTOSAVE_PAUSE_MS),
+    () => debounce(() => saveRef.current({ silent: true }), AUTOSAVE_PAUSE_MS),
     [],
   );
 
@@ -114,7 +115,10 @@ export function useEditorFile({ file, onSaved }: Options): EditorFile {
   }, [autosave, save]);
 
   // Closing the file is not a reason to drop what is pending.
-  useEffect(() => () => autosave.flush(), [autosave]);
+  useEffect(() => () => void autosave.flush(), [autosave]);
+
+  // A language switch reloads the page; it waits for this before it does.
+  useEffect(() => registerPendingSave(() => autosave.flush()), [autosave]);
 
   const download = useCallback(
     () =>
