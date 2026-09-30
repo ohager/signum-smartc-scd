@@ -27,6 +27,7 @@ import {
   setDebugMemory,
   clearDebugMemory,
 } from "@/features/smartc-editor/language/debug-memory";
+import { EDITOR_SCROLLBAR } from "@/theme/monaco-themes";
 
 export interface ScenarioEntry {
   name: string;
@@ -264,6 +265,7 @@ function DebugSession({
               options={{
                 readOnly: true,
                 minimap: { enabled: false },
+                scrollbar: EDITOR_SCROLLBAR,
                 glyphMargin: true,
                 fontSize: 14,
                 automaticLayout: true,

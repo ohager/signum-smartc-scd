@@ -7,7 +7,7 @@ import {
   ToolbarButton,
 } from "@/components/ui/surface-toolbar.tsx";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
-import { registerClimateThemes } from "@/theme/monaco-themes";
+import { registerClimateThemes, EDITOR_SCROLLBAR } from "@/theme/monaco-themes";
 import { Play, StepForward } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate, useParams } from "react-router";
@@ -352,6 +352,7 @@ export function TestFileEditor({ file }: Props) {
                 onMount={onMount}
                 options={{
                   minimap: { enabled: false },
+                  scrollbar: EDITOR_SCROLLBAR,
                   fontSize: 13,
                   scrollBeyondLastLine: false,
                   glyphMargin: true,

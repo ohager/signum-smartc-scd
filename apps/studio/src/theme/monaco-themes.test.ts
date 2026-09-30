@@ -7,6 +7,7 @@ import {
   buildSmartcTheme,
   jsonThemeName,
   smartcThemeName,
+  EDITOR_SCROLLBAR,
 } from "./monaco-themes";
 
 const nexus = climateById("nexus")!;
@@ -137,5 +138,25 @@ describe("punctuation", () => {
         ).toBeGreaterThanOrEqual(4.5);
       }
     }
+  });
+});
+
+describe("editor scrollbars", () => {
+  it("tint the scrollbar slider from the climate accent in every climate", () => {
+    for (const climate of CLIMATES) {
+      const colors = buildSmartcTheme(climate).colors;
+      expect(colors["scrollbarSlider.background"]).toBe(`${climate.accent2}33`);
+      expect(colors["scrollbarSlider.hoverBackground"]).toBe(`${climate.accent2}66`);
+      expect(colors["scrollbarSlider.activeBackground"]).toBe(`${climate.accent2}99`);
+      expect(colors["scrollbar.shadow"]).toBe("#00000000");
+    }
+  });
+
+  it("are thin in every editor", () => {
+    expect(EDITOR_SCROLLBAR).toEqual({
+      verticalScrollbarSize: 6,
+      horizontalScrollbarSize: 6,
+      useShadows: false,
+    });
   });
 });

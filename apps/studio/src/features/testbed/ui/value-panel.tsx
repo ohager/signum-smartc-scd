@@ -3,7 +3,7 @@ import { useAtomValue } from "jotai";
 import Editor, { type OnMount } from "@monaco-editor/react";
 import type * as Monaco from "monaco-editor";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
-import { registerClimateThemes } from "@/theme/monaco-themes";
+import { registerClimateThemes, EDITOR_SCROLLBAR } from "@/theme/monaco-themes";
 import { ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import { inspectedValueAtom } from "../test-trace-store";
 import { toSourceText } from "../value-node";
@@ -130,6 +130,7 @@ export function ValuePanel() {
               readOnly: true,
               domReadOnly: true,
               minimap: { enabled: false },
+              scrollbar: EDITOR_SCROLLBAR,
               fontSize: 12,
               // Line numbers stay on because the folding controls live in the
               // same gutter: with them off it collapses to a few pixels and the

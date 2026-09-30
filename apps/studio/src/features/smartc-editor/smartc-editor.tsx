@@ -22,6 +22,7 @@ import { FileTypes } from "@/features/project/filetype-icons.tsx";
 import { findProjectOfFolder } from "@/features/project/project-root";
 import { isContractFile } from "@/features/project/contract";
 import { analyzeWithCompiler } from "./language/compiler-symbols";
+import { EDITOR_SCROLLBAR } from "@/theme/monaco-themes";
 
 async function createAssemblyFile(
   folderId: string,
@@ -217,6 +218,7 @@ function SmartCEditor({ file }: Props) {
           onValidate={handleValidate}
           options={{
             minimap: { enabled: true },
+            scrollbar: EDITOR_SCROLLBAR,
             scrollBeyondLastLine: false,
             fontSize: 14,
             wordWrap: "on",

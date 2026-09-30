@@ -1,5 +1,6 @@
 import { useCallback, useRef } from "react";
 import { useSidebar } from "@/components/ui/sidebar";
+import { ResizeGrip } from "@/components/ui/resize-grip";
 
 interface Props {
   /** Called once on drag end with the final width (e.g. "320px"). */
@@ -56,6 +57,8 @@ export function SidebarResizer({ onCommit, min = 180, max = 520 }: Props) {
 
   if (isMobile || state !== "expanded") return null;
 
+  // Looks exactly like the panel dividers (`ResizableHandle withHandle`): a
+  // hairline with the grip knob. The 12px-wide box is only the hit area.
   return (
     <div
       ref={ref}
@@ -63,8 +66,14 @@ export function SidebarResizer({ onCommit, min = 180, max = 520 }: Props) {
       aria-orientation="vertical"
       onMouseDown={onMouseDown}
       style={{ left: "var(--sidebar-width)" }}
-      className="fixed inset-y-0 z-20 w-1.5 -translate-x-1/2 cursor-col-resize bg-transparent transition-colors hover:bg-[color-mix(in_srgb,var(--accent-2)_40%,transparent)]"
+      className="group/grip fixed inset-y-0 z-20 flex w-3 -translate-x-1/2 cursor-col-resize items-center justify-center"
       title="Drag to resize sidebar"
-    />
+    >
+      <span
+        aria-hidden
+        className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-[var(--border-1)] transition-colors group-hover/grip:bg-[var(--accent-2)]"
+      />
+      <ResizeGrip />
+    </div>
   );
 }

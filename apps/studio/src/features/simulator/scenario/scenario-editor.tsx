@@ -10,7 +10,7 @@ import {
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import { findProjectOfFolder } from "@/features/project/project-root";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
-import { registerClimateThemes } from "@/theme/monaco-themes";
+import { registerClimateThemes, EDITOR_SCROLLBAR } from "@/theme/monaco-themes";
 import { toast } from "sonner";
 import type { File } from "@/lib/file-system";
 import JSON5 from "json5";
@@ -148,6 +148,7 @@ export function ScenarioEditor({ file }: { file: File }) {
           onMount={handleEditorDidMount}
           options={{
             minimap: { enabled: false },
+            scrollbar: EDITOR_SCROLLBAR,
             fontSize: 14,
             scrollBeyondLastLine: false,
             automaticLayout: true,

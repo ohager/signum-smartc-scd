@@ -6,6 +6,7 @@ import {
   ASM_LANGUAGE_ID,
   registerAsmLanguage,
 } from "@/features/asm-editor/code-editor/language-definitions/asm-language-definitions.ts";
+import { EDITOR_SCROLLBAR } from "@/theme/monaco-themes";
 
 /**
  * Read-only view of the generated assembly with the current instruction
@@ -64,6 +65,7 @@ export function AsmView({
       options={{
         readOnly: true,
         minimap: { enabled: false },
+        scrollbar: EDITOR_SCROLLBAR,
         fontSize: 13,
         lineNumbers: "on",
         glyphMargin: true,
