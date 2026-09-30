@@ -27,4 +27,15 @@ describe("pending saves", () => {
     off();
     error.mockRestore();
   });
+
+  it("does not reject when a flush throws synchronously", async () => {
+    const error = spyOn(console, "error").mockImplementation(() => {});
+    const off = registerPendingSave(() => {
+      throw new Error("sync boom");
+    });
+    await flushPendingSaves();
+    expect(error).toHaveBeenCalled();
+    off();
+    error.mockRestore();
+  });
 });

@@ -14,7 +14,11 @@ export async function switchLocale(id: LocaleId, deps: Deps = {}): Promise<void>
     reload = () => location.reload(),
     flush = flushPendingSaves,
   } = deps;
-  await flush();
+  try {
+    await flush();
+  } catch (error) {
+    console.error("[i18n] flushing pending saves failed", error);
+  }
   try {
     storage.setItem(STORAGE_KEY, id);
   } catch (error) {

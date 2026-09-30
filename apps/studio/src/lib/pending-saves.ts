@@ -10,7 +10,10 @@ export function registerPendingSave(flush: () => unknown): () => void {
 }
 
 export async function flushPendingSaves(): Promise<void> {
-  const results = await Promise.allSettled([...pending].map((flush) => flush()));
+  // Through a promise, so a flush that throws synchronously is settled like one that rejects.
+  const results = await Promise.allSettled(
+    [...pending].map((flush) => Promise.resolve().then(flush)),
+  );
   for (const r of results) {
     if (r.status === "rejected") console.error("[pending-saves] flush failed", r.reason);
   }
