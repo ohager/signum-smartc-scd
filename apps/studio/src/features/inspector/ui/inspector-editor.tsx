@@ -8,6 +8,7 @@ import { t } from "@/i18n/runtime";
 import { addContracts, parseWatchlist, removeContract, updateContract, type WatchEntry } from "../model/watchlist";
 import { useFollowedFile } from "../workspace/use-followed-file";
 import { JsoncSourceEditor } from "./jsonc-source-editor";
+import { writeThrough } from "./write-through";
 import { ContractView } from "./contract-view";
 import { entryKey, WatchlistPanel } from "./watchlist-panel";
 import { AddContractDialog } from "./add-contract-dialog";
@@ -33,8 +34,7 @@ export function InspectorEditor({ file }: { file: File }) {
 
   const write = (edit: (text: string) => string) => {
     try {
-      editor.onChange(edit(editor.textRef.current));
-      void editor.saveNow();
+      void writeThrough(editor, edit);
     } catch (e) {
       toast.error((e as Error).message);
     }

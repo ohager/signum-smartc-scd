@@ -25,6 +25,7 @@ import { useFollowedFile } from "../workspace/use-followed-file";
 import { enumToLines, parseEnumLines } from "./enum-lines";
 import { GenerateLabelsDialog } from "./generate-labels-dialog";
 import { JsoncSourceEditor } from "./jsonc-source-editor";
+import { writeThrough } from "./write-through";
 import { MapGroupDialog } from "./map-group-dialog";
 import { SlotLabelDialog } from "./slot-label-dialog";
 
@@ -46,8 +47,7 @@ export function LabelMapEditor({ file }: { file: File }) {
 
   const write = (edit: (text: string) => string) => {
     try {
-      editor.onChange(edit(editor.textRef.current));
-      void editor.saveNow();
+      void writeThrough(editor, edit);
     } catch (e) {
       toast.error((e as Error).message);
     }
