@@ -3,37 +3,12 @@ import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { NewProjectDialog } from "@/features/project/new-project-dialog";
 import { UploadIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
+import { RegisterMark } from "@/components/brand/register-mark";
 import { t } from "@/i18n/runtime";
 
 interface Props {
   variant: "full" | "band";
   onImportClick: () => void;
-}
-
-/**
- * The `◈` mark from the design sketches, drawn rather than imported: an inline
- * SVG stays crisp at any size, inherits the Signum gradient in both themes and
- * costs no asset request.
- */
-function SignumMark({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 32" aria-hidden className={className}>
-      <defs>
-        <linearGradient id="signum-mark" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="var(--accent-1)" />
-          <stop offset="100%" stopColor="var(--accent-2)" />
-        </linearGradient>
-      </defs>
-      <path d="M16 1.5 30.5 16 16 30.5 1.5 16Z" fill="url(#signum-mark)" opacity="0.18" />
-      <path
-        d="M16 1.5 30.5 16 16 30.5 1.5 16Z"
-        fill="none"
-        stroke="url(#signum-mark)"
-        strokeWidth="1.5"
-      />
-      <path d="M16 9.5 22.5 16 16 22.5 9.5 16Z" fill="url(#signum-mark)" />
-    </svg>
-  );
 }
 
 export function Hero({ variant, onImportClick }: Props) {
@@ -68,7 +43,7 @@ export function Hero({ variant, onImportClick }: Props) {
     return (
       <section className="flex flex-wrap items-center justify-between gap-3 border-b px-6 py-3">
         <div className="flex items-center gap-2.5">
-          <SignumMark className="h-5 w-5" />
+          <RegisterMark size={20} />
           <h1 className="text-sm font-semibold tracking-tight">
             SmartC{" "}
             <span className="bg-gradient-to-r from-[var(--accent-1)] to-[var(--accent-2)] bg-clip-text text-transparent">
@@ -90,9 +65,8 @@ export function Hero({ variant, onImportClick }: Props) {
       </div>
 
       <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
-        <div className="animate-in fade-in zoom-in-95 fill-mode-both duration-700">
-          <SignumMark className="h-14 w-14" />
-        </div>
+        {/* i18n-ignore — product name */}
+        <RegisterMark size={56} animate label="SmartC Studio" />
 
         <p className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both delay-100 duration-700 mt-6 font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
           {t("home.hero.tagline")}

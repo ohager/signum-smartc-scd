@@ -107,3 +107,17 @@
   transform: scale(0.97);
   transition: transform var(--motion-instant) var(--spring-snap);
 }
+
+/*
+ * The Register mark builds its S in pen order — once, when it first appears
+ * (the home hero, the splash). The empty cells are there from the start.
+ */
+@keyframes register-cell {
+  from {
+    fill-opacity: 0;
+  }
+}
+.register-build .rg-cell {
+  animation: register-cell 170ms linear backwards;
+  animation-delay: calc(var(--i) * 55ms);
+}
