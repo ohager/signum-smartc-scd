@@ -81,7 +81,7 @@
     "notCompiling": "Der Contract kompiliert nicht, es gibt also nichts zu veröffentlichen: {error}",
     "compiling": "Wird kompiliert…",
     "simulate": "Simulieren",
-    "replayNote": "Spielt ab, was dieser Test gesendet hat. Assertions werden beim schrittweisen Ausführen nicht neu ausgewertet, und nur der zuletzt vom Test geladene Contract lässt sich durchschreiten.",
+    "replayNote": "Spielt ab, was dieser Test gesendet hat. Assertions werden beim schrittweisen Ausführen nicht neu ausgewertet, und nur der zuletzt vom Test geladene Contract lässt sich durchschreiten",
     "replayScenario": "aus {test}"
   },
   "debugDashboard": {

@@ -1,0 +1,1241 @@
+{
+  "builtins": {
+    "getNextTx": {
+      "detail": "跟踪传入的交易并返回下一笔交易的 ID。",
+      "documentation": "跟踪传入的交易并返回下一笔交易的 ID。\n如果没有新交易，返回零。\n内部变量 '_counterTimestamp' 用于存储最后收到的交易，并由此函数更新。\n* 注意：\n如果之后需要回到某笔交易，可以把自动计数器的值减一保存到另一个变量。之后只需覆盖自动计数器，再调用 `getNextTx` 函数。这样就能从该点开始重新遍历所有消息。示例：\n```c\n// Save current loop point\ncurrrentTransaction = getNextTx();\nrewindPoint = _counterTimestamp - 1;\n// ...\n\n// Restore loop point\n_counterTimestamp = rewindPoint;\ncurrrentTransaction = getNextTx();\n// currrentTransaction will be the same from save point\n// and all messages after that one can be visited again.\n```"
+    },
+    "getNextTxFromBlockheight": {
+      "detail": "返回在区块 'blockheight' 或之后收到的第一笔交易的 ID。",
+      "documentation": "返回在区块 'blockheight' 或之后收到的第一笔交易的 ID。\n如果没有交易，返回零。\n此函数还会设置内部变量 '_counterTimestamp'，可与 `getNextTx` 一起使用。"
+    },
+    "getBlockheight": {
+      "detail": "返回 'transaction' 的区块高度。",
+      "documentation": "返回 'transaction' 的区块高度。\n如果交易无效，返回 4294967295。",
+      "params": {
+        "transaction": "transaction'."
+      }
+    },
+    "getAmount": {
+      "documentation": "返回 'transaction' 中的 Signa 金额。\n返回值为原始发送金额减去合约的激活金额。\n如果交易无效，返回 -1（fixed 中为 -0.00000001）。"
+    },
+    "getAmountFx": {
+      "documentation": "返回 'transaction' 中的 Signa 金额。\n返回值为原始发送金额减去合约的激活金额。\n如果交易无效，返回 -1（fixed 中为 -0.00000001）。"
+    },
+    "getSender": {
+      "detail": "返回 'transaction' 的发送者 ID。",
+      "documentation": "返回 'transaction' 的发送者 ID。\n如果交易无效，返回 0。"
+    },
+    "getType": {
+      "detail": "返回 'transaction' 的类型。",
+      "documentation": "返回 'transaction' 的类型。\n所有交易类型可通过 HTTP API [getConstants](https://europe.signum.network/api-doc?requestTag=INFO) 获取。\n如果交易无效，返回 -1。",
+      "params": {
+        "transaction": "transaction'."
+      }
+    },
+    "readMessage": {
+      "detail": "读取 'transaction' 第 'page' 页的传入消息并存入 'buffer'。",
+      "documentation": "读取 'transaction' 第 'page' 页的传入消息并存入 'buffer'。\n每页 32 字节（4 个 long），因此缓冲区至少需要 4 个 long，否则函数会溢出缓冲区。\n第一页为 0，且没有消息长度标识。请根据消息结束后的零来判断消息结尾。\n如果 'page' 小于零或大于 32，缓冲区将填充为零。\n如果 'transaction' 无效或未附带消息，缓冲区将填充为零。\n",
+      "params": {
+        "transaction": "transaction' at 'page' and store it at 'buffer'.",
+        "page": "page' and store it at 'buffer'."
+      }
+    },
+    "readShortMessage": {
+      "detail": "读取 'transaction' 消息的前 'length' 个 long 并存入 'buffer'。",
+      "documentation": "读取 'transaction' 消息的前 'length' 个 long 并存入 'buffer'。\n此函数只读取消息的第零页。\n请确保 'buffer' 至少有 'length' 个 long，否则函数会溢出缓冲区。\n如果 'transaction' 无效或未附带消息，缓冲区将填充为零。\n限制：0 <= length <= 4。",
+      "params": {
+        "transaction": "transaction' and store it at 'buffer'.",
+        "length": "'length' longs from message of 'transaction' and store it at 'buffer'."
+      }
+    },
+    "readAssets": {
+      "detail": "读取 'transaction' 的所有资产 ID（最多 4 个）并存入 'buffer'。",
+      "documentation": "读取 'transaction' 的所有资产 ID（最多 4 个）并存入 'buffer'。\n将读取四个值，因此缓冲区至少需要 4 个 long，否则函数会溢出缓冲区。\n如果 'transaction' 无效或未找到资产，缓冲区将填充为零。\n如果找到的资产少于 4 个，前面的值为 assetId，其余为零。\n",
+      "params": {
+        "transaction": "transaction' and store them at 'buffer'.",
+        "buffer": "buffer'."
+      }
+    },
+    "getQuantity": {
+      "detail": "返回 'transaction' 中转移的 'assetId' 数量（QNT）。",
+      "documentation": "返回 'transaction' 中转移的 'assetId' 数量（QNT）。\n如果交易无效，返回 -1。\n如果交易有效但没有匹配 'assetId' 的资产转移，返回零。",
+      "params": {
+        "transaction": "transaction'.",
+        "assetId": "assetId' transfered in 'transaction'."
+      }
+    },
+    "sendAmount": {
+      "documentation": "将一笔向 'accountId' 发送 'amount' Signa 的交易加入队列。\n发送 Signa 和消息时，每个区块只发送一笔交易，金额会累加。\n如果 'amount' 大于合约当前余额，将发送全部余额，合约停止执行（没有 gas）。\n不会发送空交易，交易至少需发送 1 NQT（即 0.00000001 Signa）。\n",
+      "params": {
+        "amount": "金额，单位 NQT/Planck",
+        "accountId": "收款人地址"
+      }
+    },
+    "sendAmountFx": {
+      "documentation": "将一笔向 'accountId' 发送 'amount' Signa 的交易加入队列。\n发送 Signa 和消息时，每个区块只发送一笔交易，金额会累加。\n如果 'amount' 大于合约当前余额，将发送全部余额，合约停止执行（没有 gas）。\n不会发送空交易，交易至少需发送 1 NQT（即 0.00000001 Signa）。\n",
+      "params": {
+        "amount": "金额，单位 Signa",
+        "accountId": "收款人地址"
+      }
+    },
+    "sendMessage": {
+      "detail": "将一笔把 'buffer' 内容作为一页消息（32 字节或 4 个 long）发送给 'accountId' 的交易加入队列。",
+      "documentation": "将一笔把 'buffer' 内容作为一页消息（32 字节或 4 个 long）发送给 'accountId' 的交易加入队列。\n缓冲区至少需要 4 个 long，否则函数读取时会越界。\n如果在一个区块中多次调用此函数，消息会拼接，最多 992 字节（31 页）。\n如果发送第 32 页，前 31 页将被丢弃并重新开始。\n待核实：是否会发送带空消息的交易？空消息指只包含零的消息。",
+      "params": {
+        "buffer": "buffer' as one message page (32 bytes or 4 longs) to 'accountId'.",
+        "accountId": "收款人地址'."
+      }
+    },
+    "sendShortMessage": {
+      "detail": "将一笔把长度为 'length' 的 'buffer' 内容作为一页消息（32 字节或 4 个 long）发送给 'accountId' 的交易加入队列。",
+      "documentation": "将一笔把长度为 'length' 的 'buffer' 内容作为一页消息（32 字节或 4 个 long）发送给 'accountId' 的交易加入队列。\n如果 'length' 小于等于 3，剩余的 long 将填充为零。\n消息总大小限制与 SendMessage 相同。\n限制：0 <= length <= 4。",
+      "params": {
+        "buffer": "buffer' with 'length' as one message page (32 bytes or 4 longs) to 'accountId'.",
+        "length": "length' as one message page (32 bytes or 4 longs) to 'accountId'.",
+        "accountId": "收款人地址'."
+      }
+    },
+    "sendAmountAndMessage": {
+      "detail": "`sendAmount` 与 `sendMessage` 的简写（优化代码）。适用相同的限制。",
+      "documentation": "`sendAmount` 与 `sendMessage` 的简写（优化代码）。适用相同的限制。",
+      "params": {
+        "amount": "金额，单位 Planck",
+        "buffer": "要发送的消息",
+        "accountId": "收款人地址'."
+      }
+    },
+    "sendAmountAndMessageFx": {
+      "detail": "`sendAmount` 与 `sendMessage` 的简写（优化代码）。适用相同的限制。",
+      "documentation": "`sendAmount` 与 `sendMessage` 的简写（优化代码）。适用相同的限制。",
+      "params": {
+        "amount": "金额，单位 Signa",
+        "buffer": "要发送的消息",
+        "accountId": "收款人地址'."
+      }
+    },
+    "sendBalance": {
+      "detail": "将一笔向 'accountId' 发送全部当前余额（Signa）的交易加入队列。",
+      "documentation": "将一笔向 'accountId' 发送全部当前余额（Signa）的交易加入队列。\n适用与 `sendAmount` 相同的限制。\n合约将停止执行（没有 gas）。",
+      "params": {
+        "accountId": "收款人地址'."
+      }
+    },
+    "sendQuantity": {
+      "detail": "向 'accountId' 转移 'quantity' 数量的 'assetId'。",
+      "documentation": "发送一笔向 'accountId' 转移 'quantity' 数量 'assetId' 的交易。\n如果合约的 'assetId' 余额少于 'quantity'，将发送全部 'assetId' 余额。\n如果同一区块内两次转移同一资产，数量会累加，只发送一笔交易。\n智能合约的交易只能转移一种资产。如果同一区块内转移两种不同资产，将发送两笔交易。\n不会发送空交易，交易至少需转移某种资产的 1 QNT。",
+      "params": {
+        "quantity": "quantity' of 'assetId' to 'accountId'.",
+        "assetId": "要发送资产的 assetId。",
+        "accountId": "收款人地址'."
+      }
+    },
+    "sendQuantityAndAmount": {
+      "detail": "向 'accountId' 转移 'quantity' 数量的 'assetId' 和 'amount' NQT",
+      "documentation": "发送一笔向 'accountId' 转移 'quantity' 数量 'assetId' 和 'amount' NQT/Planck 的交易。\n此函数确保资产和 Signa 在同一笔交易中以优化代码发送。\n如果 'quantity' 为零，即使 'amount' 大于零也不会发送交易。\n如果合约的 'assetId' 余额少于 'quantity'，将发送全部 'assetId' 余额。\n如果合约余额少于 'amount'，将发送全部 Signa 余额。\n转移资产的交易不能附带消息。\n如果同一区块内两次转移同一资产，数量会累加，只发送一笔交易。\n智能合约的交易只能转移一种资产。如果同一区块内转移两种不同资产，将发送两笔交易。",
+      "params": {
+        "quantity": "要发送的资产数量",
+        "assetId": "要发送资产的资产 ID。",
+        "amount": "要发送的金额，单位 NQT/Planck",
+        "accountId": "收款人地址'."
+      }
+    },
+    "sendQuantityAndAmountFx": {
+      "detail": "向 'accountId' 转移 'quantity' 数量的 'assetId' 和 'amount' Signa",
+      "documentation": "发送一笔向 'accountId' 转移 'quantity' 数量 'assetId' 和 'amount' Signa 的交易。\n此函数确保资产和 Signa 在同一笔交易中以优化代码发送。\n如果 'quantity' 为零，即使 'amount' 大于零也不会发送交易。\n如果合约的 'assetId' 余额少于 'quantity'，将发送全部 'assetId' 余额。\n如果合约余额少于 'amount'，将发送全部 Signa 余额。\n转移资产的交易不能附带消息。\n如果同一区块内两次转移同一资产，数量会累加，只发送一笔交易。\n智能合约的交易只能转移一种资产。如果同一区块内转移两种不同资产，将发送两笔交易。",
+      "params": {
+        "quantity": "要发送的资产数量",
+        "assetId": "要发送资产的资产 ID。",
+        "amount": "要发送的金额，单位 Signa",
+        "accountId": "收款人地址'."
+      }
+    },
+    "getCurrentBlockheight": {
+      "detail": "返回执行该指令时的当前区块高度。",
+      "documentation": "返回执行该指令时的当前区块高度。"
+    },
+    "getWeakRandomNumber": {
+      "detail": "返回基于上一区块签名的简单随机数。",
+      "documentation": "返回基于上一区块签名的简单随机数。\n有人篡改这个数的可能性极低，但理论上可行。\n处理大额资金的合约需要注意。\n返回值可能为负数，而负数 MOD 正数的结果为负数。提示：用右移去掉负值 `positiveRnd = getWeakRandomNumber() >> 1;`。"
+    },
+    "getCreator": {
+      "detail": "返回当前合约创建者的账户 ID。",
+      "documentation": "返回当前合约创建者的账户 ID。"
+    },
+    "getCreatorOf": {
+      "detail": "返回 'contractId' 创建者的账户 ID。",
+      "documentation": "返回 'contractId' 创建者的账户 ID。\n如果 'contractId' 不是合约，返回零。",
+      "params": {
+        "contractId": "contractId'."
+      }
+    },
+    "getCodeHashOf": {
+      "detail": "返回 'contractId' 的代码哈希 ID。",
+      "documentation": "返回 'contractId' 的代码哈希 ID。\n如果 'contractId' 为零，返回合约自身的代码哈希。\n如果 'contractId' 不是合约，返回零。",
+      "params": {
+        "contractId": "contractId'."
+      }
+    },
+    "getActivationOf": {
+      "detail": "返回激活 'contractId' 所需的最低金额（NQT/Planck）",
+      "documentation": "返回激活 'contractId' 所需的最低金额（NQT/Planck）。\n如果 'contractId' 为零，返回合约自身的最低激活金额。\n如果 'contractId' 不是合约，返回零。",
+      "params": {
+        "contractId": "目标合约"
+      }
+    },
+    "getActivationOfFx": {
+      "detail": "返回激活 'contractId' 所需的最低金额（Signa）",
+      "documentation": "返回激活 'contractId' 所需的最低金额（Signa）。\n如果 'contractId' 为零，返回合约自身的最低激活金额。\n如果 'contractId' 不是合约，返回零。",
+      "params": {
+        "contractId": "目标合约"
+      }
+    },
+    "getCurrentBalance": {
+      "detail": "获取当前余额",
+      "documentation": "返回执行该指令时的合约余额（NQT/Planck）。"
+    },
+    "getCurrentBalanceFx": {
+      "detail": "获取当前余额",
+      "documentation": "返回执行该指令时的合约余额（Signa）。"
+    },
+    "getAssetBalance": {
+      "detail": "返回执行该指令时合约在指定 'assetId' 上的余额。",
+      "documentation": "返回执行该指令时合约在指定 'assetId' 上的余额。\n如果 'assetId' 为零，返回值与 `getCurrentBalance` 相同。",
+      "params": {
+        "assetId": "assetId' at the time the instruction is executed."
+      }
+    },
+    "setMapValue": {
+      "detail": "将 'currentContract[key1][key2]' 处的映射设为 'value'",
+      "documentation": "将 'currentContract[key1][key2]' 处的映射设为 'value'\n\n映射提供“无限”的存储空间。每个存储的值（64 位 long 或 fixed）通过两个键（64 位 long）读取或写入。\n任何未设置过的项值为零。无法删除，需要时将其设为零即可。",
+      "params": {
+        "key1": "第一个键",
+        "key2": "第二个键",
+        "value": "值"
+      }
+    },
+    "setMapValueFx": {
+      "detail": "将 'currentContract[key1][key2]' 处的映射设为 'value'",
+      "documentation": "将 'currentContract[key1][key2]' 处的映射设为 'value'\n\n映射提供“无限”的存储空间。每个存储的值（64 位 long 或 fixed）通过两个键（64 位 long）读取或写入。\n任何未设置过的项值为零。无法删除，需要时将其设为零即可。",
+      "params": {
+        "key1": "第一个键",
+        "key2": "第二个键",
+        "value": "以 Signa fixed 表示的值"
+      }
+    },
+    "getMapValue": {
+      "detail": "从 'currentContract[key1][key2]' 处的映射读取 'value'",
+      "documentation": "将 'currentContract[key1][key2]' 处的映射设为 'value'\n\n映射提供“无限”的存储空间。每个存储的值（64 位 long 或 fixed）通过两个键（64 位 long）读取或写入。\n任何未设置过的项值为零。无法删除，需要时将其设为零即可。",
+      "params": {
+        "key1": "第一个键",
+        "key2": "第二个键"
+      }
+    },
+    "getMapValueFx": {
+      "detail": "从 'currentContract[key1][key2]' 处的映射读取 'value'（fixed 格式）",
+      "documentation": "将 'currentContract[key1][key2]' 处的映射设为 'value'\n\n映射提供“无限”的存储空间。每个存储的值（64 位 long 或 fixed）通过两个键（64 位 long）读取或写入。\n任何未设置过的项值为零。无法删除，需要时将其设为零即可。",
+      "params": {
+        "key1": "第一个键",
+        "key2": "第二个键"
+      }
+    },
+    "getExtMapValue": {
+      "detail": "读取外部合约 'contractId[key1][key2]' 处的映射",
+      "documentation": "读取外部合约 'contractId[key1][key2]' 处的映射。\n如果该合约没有映射，或 'contractId' 不是合约，返回零。\n与合约内存不同，其他合约的映射值可以通过此函数读取。\n\n映射提供“无限”的存储空间。每个存储的值（64 位 long 或 fixed）通过两个键（64 位 long）读取或写入。\n任何未设置过的项值为零。无法删除，需要时将其设为零即可。",
+      "params": {
+        "key1": "第一个键",
+        "key2": "第二个键",
+        "contractId": "外部合约 ID"
+      }
+    },
+    "getExtMapValueFx": {
+      "detail": "读取外部合约 'contractId[key1][key2]' 处的映射，返回 fixed 值",
+      "documentation": "读取外部合约 'contractId[key1][key2]' 处的映射。\n如果该合约没有映射，或 'contractId' 不是合约，返回零。\n与合约内存不同，其他合约的映射值可以通过此函数读取。\n\n映射提供“无限”的存储空间。每个存储的值（64 位 long 或 fixed）通过两个键（64 位 long）读取或写入。\n任何未设置过的项值为零。无法删除，需要时将其设为零即可。",
+      "params": {
+        "key1": "第一个键",
+        "key2": "第二个键",
+        "contractId": "外部合约 ID"
+      }
+    },
+    "checkSignature": {
+      "detail": "检查 'transaction' 中第 'page' 和 'page+1' 页上 'accountId' 的签名是否与给定的 'message2..4' 匹配。",
+      "documentation": "检查 'transaction' 中第 'page' 和 'page+1' 页上 'accountId' 的签名是否与给定的 'message2..4' 匹配。\n签名有效时返回 1（真），否则返回 0。",
+      "params": {
+        "transaction": "transaction' at 'page' and 'page+1' matches for the given 'message2.",
+        "page": "page' and 'page+1' matches for the given 'message2.",
+        "accountId": "accountId' in 'transaction' at 'page' and 'page+1' matches for the given 'message2."
+      }
+    },
+    "issueAsset": {
+      "detail": "发行一种新资产并返回其 ID。",
+      "documentation": "发行一种新资产并返回其 ID。\n资产名称长度须为 3 到 10 个字符，只允许大写字母、小写字母和数字。\n前 8 个字符在 'name1' 中指定，其余在 'name2' 中指定。\n如果名称不超过 8 个字符，将 'name2' 设为 0 或 \"\"。\n小数位数限制为 0 到 8。\n发行资产需要 150 Signa。合约执行将在此指令处暂停，直到余额足够。",
+      "params": {
+        "name1": "名称的前 8 个字符。",
+        "name2": "名称的最后 2 个字符。如果代币名称不超过 8 个字符，保持 `0`",
+        "decimals": "小数位数"
+      }
+    },
+    "mintAsset": {
+      "detail": "铸造 'quantity' 数量的 'assetId'。",
+      "documentation": "铸造 'quantity' 数量的 'assetId'。\n该资产必须由此合约发行。\n不允许负数数量；要销毁，请发送到 accountId 0。\n铸造的数量在指令执行后立即可用。",
+      "params": {
+        "quantity": "quantity' of 'assetId'.",
+        "assetId": "assetId'."
+      }
+    },
+    "distributeToHolders": {
+      "detail": "向代币持有者分配 Planck 和/或资产",
+      "documentation": "将 'amountToDistribute' Planck 和 'quantityToDistribute' 数量的 'assetToDistribute' 分配给至少持有 'holdersAssetMinQuantity' 数量 'holdersAsset' 的账户。\n如果 'amountToDistribute' 和 'quantityToDistribute' 都为零，则不进行分配。\n'amountToDistribute' 和 'quantityToDistribute' 可以在同一笔交易中分配。\n只计算可用余额，即卖单中的数量不计入。\n如果当前区块的间接交易已达上限，则不进行分配。\n如果没有持有者超过最低数量，则不进行分配。\n已配置的金库账户不参与分红。\n'assetToDistribute' 可以与 'holdersAsset' 相同，此时合约也会参与分配（待核实）。",
+      "params": {
+        "holdersAssetMinQuantity": "接收分配的代币持有者需持有的最低数量",
+        "holdersAsset": "目标资产",
+        "amountToDistribute": "要分配的金额，单位 Planck",
+        "assetToDistribute": "额外要分配的资产",
+        "quantityToDistribute": "要分配的资产数量"
+      }
+    },
+    "distributeToHoldersFx": {
+      "detail": "向代币持有者分配 Signa 和/或资产",
+      "documentation": "将 'amountToDistribute' Signa 和 'quantityToDistribute' 数量的 'assetToDistribute' 分配给至少持有 'holdersAssetMinQuantity' 数量 'holdersAsset' 的账户。\n如果 'amountToDistribute' 和 'quantityToDistribute' 都为零，则不进行分配。\n'amountToDistribute' 和 'quantityToDistribute' 可以在同一笔交易中分配。\n只计算可用余额，即卖单中的数量不计入。\n如果当前区块的间接交易已达上限，则不进行分配。\n如果没有持有者超过最低数量，则不进行分配。\n已配置的金库账户不参与分红。\n'assetToDistribute' 可以与 'holdersAsset' 相同，此时合约也会参与分配（待核实）。",
+      "params": {
+        "holdersAssetMinQuantity": "接收分配的代币持有者需持有的最低数量",
+        "holdersAsset": "目标资产",
+        "amountToDistribute": "要分配的金额，单位 Signa",
+        "assetToDistribute": "额外要分配的资产",
+        "quantityToDistribute": "要分配的资产数量"
+      }
+    },
+    "getAssetHoldersCount": {
+      "detail": "返回至少持有 'minimumQuantity' 数量 'assetId' 的持有者数量。",
+      "documentation": "返回至少持有 'minimumQuantity' 数量 'assetId' 的持有者数量。\n只计算可用余额，即卖单中的数量不计入。",
+      "params": {
+        "minimumQuantity": "minimumQuantity' of 'assetId'.",
+        "assetId": "assetId'."
+      }
+    },
+    "getAssetCirculating": {
+      "detail": "返回当前流通中的 'assetId' 数量。",
+      "documentation": "返回当前流通中的 'assetId' 数量。\n* 注意，以下数量不计入：\n  1) 金库账户中的；\n  2) 卖单中的；\n  3) accountId 为零（销毁地址）中的。",
+      "params": {
+        "assetId": "目标 assetId"
+      }
+    },
+    "getAccountBalance": {
+      "detail": "获取账户余额（Planck）",
+      "documentation": "返回 'accountId' 拥有的 Planck 余额。\n如果 accountId 不存在，返回零。\n用于查询智能合约余额时，返回的是上一区块的余额，而不是当前区块执行后的余额。\n查询合约自身余额时同理，它与 Signum API Get_Previous_Balance 相同，多数情况下没有用处。\n* 注意，以下余额部分也会计入：\n  1) Commitment。",
+      "params": {
+        "accountId": "目标账户"
+      }
+    },
+    "getAccountBalanceFx": {
+      "detail": "获取账户余额（Signa）",
+      "documentation": "返回 'accountId' 拥有的 Signa 余额。\n如果 accountId 不存在，返回零。\n用于查询智能合约余额时，返回的是上一区块的余额，而不是当前区块执行后的余额。\n查询合约自身余额时同理，它与 Signum API Get_Previous_Balance 相同，多数情况下没有用处。\n* 注意，以下余额部分也会计入：\n  1) Commitment。",
+      "params": {
+        "accountId": "目标账户"
+      }
+    },
+    "getAccountAssetQuantity": {
+      "detail": "返回 'assetId' 的数量",
+      "documentation": "返回 'accountId' 持有的 'assetId' 数量。\n用于查询智能合约余额时，返回的是上一区块的余额，而不是当前区块执行后的余额。\n* 注意，以下数量也会计入：\n  1) 卖单中的数量。",
+      "params": {
+        "accountId": "目标账户",
+        "assetId": "目标资产"
+      }
+    },
+    "mdv": {
+      "detail": "以 128 位精度（不溢出）计算 `m1` 乘以 `m2`，再将结果除以 `div`。",
+      "documentation": "以 128 位精度（不溢出）计算 `m1` 乘以 `m2`，再将结果除以 `div`。\n计算结果作为值返回。\n* 注意：\n  1) 即使没有显式声明，优化时也会使用此指令。使用这种形式可以确保使用该指令，如有疑问请检查生成的汇编代码。",
+      "params": {
+        "m1": "m1` multiplied by `m2` with 128-bit precision (no overflow) and then divides this result by `div`.",
+        "m2": "m2` with 128-bit precision (no overflow) and then divides this result by `div`.",
+        "div": "div`."
+      }
+    },
+    "pow": {
+      "detail": "计算 `base` 的 `expBy1e8` 次方，其中 expBy1e8 以 8 位小数的定点数表示（与 Signa 数值相同）。结果以 long 返回，小数部分被截断。",
+      "documentation": "计算 `base` 的 `expBy1e8` 次方，其中 expBy1e8 以 8 位小数的定点数表示（与 Signa 数值相同）。结果以 long 返回，小数部分被截断。\n* 示例：\n  * sqrt(49) = 7 :: `val = pow(49, 5000_0000);`\n  * 5 * 5 * 5 * 5 = 5^4 = 625 :: `val = pow(5, 4_0000_0000);`\n  * sqrt(48) = 6 :: `val = pow(48, 5000_0000);`\n* 注意\n  1) 如果结果在数学上无定义，pow 返回零；\n  2) 如果 base 为负数，pow 返回零；\n  3) 如果结果大于 9223372036854775807（最大正 long），pow 返回零。",
+      "params": {
+        "base": "base` to the power of `expBy1e8`, where expBy1e8 is used as fixed point representation with 8 decimals (like the values in Signa).",
+        "expBy1e8": "expBy1e8`, where expBy1e8 is used as fixed point representation with 8 decimals (like the values in Signa)."
+      }
+    },
+    "powf": {
+      "detail": "与 `pow` 相同，但指数使用定点数。",
+      "documentation": "与 `pow` 相同，但指数使用定点数。\n* 示例：\n  * sqrt(49) = 7 :: `val = powf(49, 0.5);`\n  * 5 * 5 * 5 * 5 = 5^4 = 625 :: `val = pow(5, 4.0);`\n  * sqrt(48) = 6 :: `val = pow(48, .5);`\n* 注意\n  1) 如果结果在数学上无定义，pow 返回零；\n  2) 如果 base 为负数，pow 返回零；\n  3) 如果结果大于 9223372036854775807（最大正 long），pow 返回零。",
+      "params": {
+        "base": "base is negative;\n  3) pow will return zero if result is greater than 9223372036854775807 (max positive long)."
+      }
+    },
+    "memcopy": {
+      "detail": "将二进制值从源复制到目标。便于在不经类型转换修改的情况下复制变量内容。",
+      "documentation": "将二进制值从源复制到目标。便于在不经类型转换修改的情况下复制变量内容。\n* 示例：\n  * `fixed f; long l; memcopy(&f, &l);` 这会将变量 `l` 的二进制数据原样复制到 `f`。如果 l 为 50，则 f 将为 0.00000050。",
+      "params": {
+        "destination": "目标。",
+        "source": "源到目标。"
+      }
+    },
+    "bcftol": {
+      "detail": "将 long 转换为 fixed",
+      "documentation": "从 long 值到 fixed 的二进制转换（不改变内存中的值）。\n示例：\n`fixed val; val = bcltof(5000_0000);` 结果：val 的内容为 0.5。",
+      "params": {
+        "value": "fixed 值"
+      }
+    },
+    "bcltof": {
+      "detail": "将 fixed 转换为 long",
+      "documentation": "从 long 值到 fixed 的二进制转换（不改变内存中的值）。\n示例：\n`fixed val; val = bcltof(5000_0000);` 结果：val 的内容为 0.5。",
+      "params": {
+        "value": "long 值"
+      }
+    }
+  },
+  "api": {
+    "Get_A1": {
+      "detail": "返回寄存器槽 A1 的值。",
+      "documentation": "返回寄存器槽 A1 的值。\n\nA 和 B 是机器的两个 256 位伪寄存器，各分为四个 64 位槽（A1–A4、B1–B4）。API 调用最多接受两个参数，其余数据都通过它们传递。"
+    },
+    "Set_A1": {
+      "detail": "将一个值存入寄存器槽 A1。",
+      "documentation": "将一个值存入寄存器槽 A1。\n\nA 和 B 是机器的两个 256 位伪寄存器，各分为四个 64 位槽（A1–A4、B1–B4）。API 调用最多接受两个参数，其余数据都通过它们传递。",
+      "params": {
+        "a1": "A1 的新值。"
+      }
+    },
+    "Get_A2": {
+      "detail": "返回寄存器槽 A2 的值。",
+      "documentation": "返回寄存器槽 A2 的值。\n\nA 和 B 是机器的两个 256 位伪寄存器，各分为四个 64 位槽（A1–A4、B1–B4）。API 调用最多接受两个参数，其余数据都通过它们传递。"
+    },
+    "Set_A2": {
+      "detail": "将一个值存入寄存器槽 A2。",
+      "documentation": "将一个值存入寄存器槽 A2。\n\nA 和 B 是机器的两个 256 位伪寄存器，各分为四个 64 位槽（A1–A4、B1–B4）。API 调用最多接受两个参数，其余数据都通过它们传递。",
+      "params": {
+        "a2": "A2 的新值。"
+      }
+    },
+    "Get_A3": {
+      "detail": "返回寄存器槽 A3 的值。",
+      "documentation": "返回寄存器槽 A3 的值。\n\nA 和 B 是机器的两个 256 位伪寄存器，各分为四个 64 位槽（A1–A4、B1–B4）。API 调用最多接受两个参数，其余数据都通过它们传递。"
+    },
+    "Set_A3": {
+      "detail": "将一个值存入寄存器槽 A3。",
+      "documentation": "将一个值存入寄存器槽 A3。\n\nA 和 B 是机器的两个 256 位伪寄存器，各分为四个 64 位槽（A1–A4、B1–B4）。API 调用最多接受两个参数，其余数据都通过它们传递。",
+      "params": {
+        "a3": "A3 的新值。"
+      }
+    },
+    "Get_A4": {
+      "detail": "返回寄存器槽 A4 的值。",
+      "documentation": "返回寄存器槽 A4 的值。\n\nA 和 B 是机器的两个 256 位伪寄存器，各分为四个 64 位槽（A1–A4、B1–B4）。API 调用最多接受两个参数，其余数据都通过它们传递。"
+    },
+    "Set_A4": {
+      "detail": "将一个值存入寄存器槽 A4。",
+      "documentation": "将一个值存入寄存器槽 A4。\n\nA 和 B 是机器的两个 256 位伪寄存器，各分为四个 64 位槽（A1–A4、B1–B4）。API 调用最多接受两个参数，其余数据都通过它们传递。",
+      "params": {
+        "a4": "A4 的新值。"
+      }
+    },
+    "Set_A1_A2": {
+      "detail": "用一次 API 调用将两个值存入 A1 和 A2。",
+      "documentation": "用一次 API 调用将两个值存入 A1 和 A2。\n\n成本是分别调用 `Set_A1` 和 `Set_A2` 的一半。每次 API 调用消耗 10 步，普通指令只需 1 步。",
+      "params": {
+        "a1": "A1 的新值。",
+        "a2": "A2 的新值。"
+      }
+    },
+    "Set_A3_A4": {
+      "detail": "用一次 API 调用将两个值存入 A3 和 A4。",
+      "documentation": "用一次 API 调用将两个值存入 A3 和 A4。\n\n成本是分别调用 `Set_A3` 和 `Set_A4` 的一半。每次 API 调用消耗 10 步，普通指令只需 1 步。",
+      "params": {
+        "a3": "A3 的新值。",
+        "a4": "A4 的新值。"
+      }
+    },
+    "Get_B1": {
+      "detail": "返回寄存器槽 B1 的值。",
+      "documentation": "返回寄存器槽 B1 的值。\n\nA 和 B 是机器的两个 256 位伪寄存器，各分为四个 64 位槽（A1–A4、B1–B4）。API 调用最多接受两个参数，其余数据都通过它们传递。"
+    },
+    "Set_B1": {
+      "detail": "将一个值存入寄存器槽 B1。",
+      "documentation": "将一个值存入寄存器槽 B1。\n\nA 和 B 是机器的两个 256 位伪寄存器，各分为四个 64 位槽（A1–A4、B1–B4）。API 调用最多接受两个参数，其余数据都通过它们传递。",
+      "params": {
+        "b1": "B1 的新值。"
+      }
+    },
+    "Get_B2": {
+      "detail": "返回寄存器槽 B2 的值。",
+      "documentation": "返回寄存器槽 B2 的值。\n\nA 和 B 是机器的两个 256 位伪寄存器，各分为四个 64 位槽（A1–A4、B1–B4）。API 调用最多接受两个参数，其余数据都通过它们传递。"
+    },
+    "Set_B2": {
+      "detail": "将一个值存入寄存器槽 B2。",
+      "documentation": "将一个值存入寄存器槽 B2。\n\nA 和 B 是机器的两个 256 位伪寄存器，各分为四个 64 位槽（A1–A4、B1–B4）。API 调用最多接受两个参数，其余数据都通过它们传递。",
+      "params": {
+        "b2": "B2 的新值。"
+      }
+    },
+    "Get_B3": {
+      "detail": "返回寄存器槽 B3 的值。",
+      "documentation": "返回寄存器槽 B3 的值。\n\nA 和 B 是机器的两个 256 位伪寄存器，各分为四个 64 位槽（A1–A4、B1–B4）。API 调用最多接受两个参数，其余数据都通过它们传递。"
+    },
+    "Set_B3": {
+      "detail": "将一个值存入寄存器槽 B3。",
+      "documentation": "将一个值存入寄存器槽 B3。\n\nA 和 B 是机器的两个 256 位伪寄存器，各分为四个 64 位槽（A1–A4、B1–B4）。API 调用最多接受两个参数，其余数据都通过它们传递。",
+      "params": {
+        "b3": "B3 的新值。"
+      }
+    },
+    "Get_B4": {
+      "detail": "返回寄存器槽 B4 的值。",
+      "documentation": "返回寄存器槽 B4 的值。\n\nA 和 B 是机器的两个 256 位伪寄存器，各分为四个 64 位槽（A1–A4、B1–B4）。API 调用最多接受两个参数，其余数据都通过它们传递。"
+    },
+    "Set_B4": {
+      "detail": "将一个值存入寄存器槽 B4。",
+      "documentation": "将一个值存入寄存器槽 B4。\n\nA 和 B 是机器的两个 256 位伪寄存器，各分为四个 64 位槽（A1–A4、B1–B4）。API 调用最多接受两个参数，其余数据都通过它们传递。",
+      "params": {
+        "b4": "B4 的新值。"
+      }
+    },
+    "Set_B1_B2": {
+      "detail": "用一次 API 调用将两个值存入 B1 和 B2。",
+      "documentation": "用一次 API 调用将两个值存入 B1 和 B2。\n\n成本是分别调用 `Set_B1` 和 `Set_B2` 的一半。每次 API 调用消耗 10 步，普通指令只需 1 步。",
+      "params": {
+        "b1": "B1 的新值。",
+        "b2": "B2 的新值。"
+      }
+    },
+    "Set_B3_B4": {
+      "detail": "用一次 API 调用将两个值存入 B3 和 B4。",
+      "documentation": "用一次 API 调用将两个值存入 B3 和 B4。\n\n成本是分别调用 `Set_B3` 和 `Set_B4` 的一半。每次 API 调用消耗 10 步，普通指令只需 1 步。",
+      "params": {
+        "b3": "B3 的新值。",
+        "b4": "B4 的新值。"
+      }
+    },
+    "Clear_A": {
+      "detail": "将 A 的四个槽全部置零。",
+      "documentation": "将 A 的四个槽全部置零。"
+    },
+    "Clear_B": {
+      "detail": "将 B 的四个槽全部置零。",
+      "documentation": "将 B 的四个槽全部置零。"
+    },
+    "Clear_A_And_B": {
+      "detail": "将 A 和 B 的所有槽置零。",
+      "documentation": "将 A 和 B 的所有槽置零。"
+    },
+    "Copy_A_From_B": {
+      "detail": "将 B 复制到 A（A = B）。",
+      "documentation": "将 B 复制到 A（A = B）。"
+    },
+    "Copy_B_From_A": {
+      "detail": "将 A 复制到 B（B = A）。",
+      "documentation": "将 A 复制到 B（B = A）。"
+    },
+    "Swap_A_and_B": {
+      "detail": "交换 A 和 B 的内容。",
+      "documentation": "交换 A 和 B 的内容。"
+    },
+    "Check_A_Is_Zero": {
+      "detail": "如果 A 的四个槽都为零返回 1，否则返回 0。",
+      "documentation": "如果 A 的四个槽都为零返回 1，否则返回 0。"
+    },
+    "Check_B_Is_Zero": {
+      "detail": "如果 B 的四个槽都为零返回 1，否则返回 0。",
+      "documentation": "如果 B 的四个槽都为零返回 1，否则返回 0。"
+    },
+    "Check_A_Equals_B": {
+      "detail": "如果 A 和 B 的四个值相同返回 1，否则返回 0。",
+      "documentation": "如果 A 和 B 的四个值相同返回 1，否则返回 0。"
+    },
+    "OR_A_with_B": {
+      "detail": "A = A | B，逐槽计算。",
+      "documentation": "A = A | B，逐槽计算。"
+    },
+    "OR_B_with_A": {
+      "detail": "B = B | A，逐槽计算。",
+      "documentation": "B = B | A，逐槽计算。"
+    },
+    "AND_A_with_B": {
+      "detail": "A = A & B，逐槽计算。",
+      "documentation": "A = A & B，逐槽计算。"
+    },
+    "AND_B_with_A": {
+      "detail": "B = B & A，逐槽计算。",
+      "documentation": "B = B & A，逐槽计算。"
+    },
+    "XOR_A_with_B": {
+      "detail": "A = A ^ B，逐槽计算。",
+      "documentation": "A = A ^ B，逐槽计算。"
+    },
+    "XOR_B_with_A": {
+      "detail": "B = B ^ A，逐槽计算。",
+      "documentation": "B = B ^ A，逐槽计算。"
+    },
+    "Add_A_To_B": {
+      "detail": "B = A + B，作为 256 位数。",
+      "documentation": "B = A + B，作为 256 位数。\n\n四个槽被读作一个无符号 256 位数，A1/B1 为最低有效位。"
+    },
+    "Add_B_To_A": {
+      "detail": "A = A + B，作为 256 位数。",
+      "documentation": "A = A + B，作为 256 位数。\n\n四个槽被读作一个无符号 256 位数，A1/B1 为最低有效位。"
+    },
+    "Sub_A_From_B": {
+      "detail": "B = B - A，作为 256 位数。",
+      "documentation": "B = B - A，作为 256 位数。\n\n四个槽被读作一个无符号 256 位数，A1/B1 为最低有效位。"
+    },
+    "Sub_B_From_A": {
+      "detail": "A = A - B，作为 256 位数。",
+      "documentation": "A = A - B，作为 256 位数。\n\n四个槽被读作一个无符号 256 位数，A1/B1 为最低有效位。"
+    },
+    "Mul_A_By_B": {
+      "detail": "B = A * B，作为 256 位数。",
+      "documentation": "B = A * B，作为 256 位数。\n\n四个槽被读作一个无符号 256 位数，A1/B1 为最低有效位。"
+    },
+    "Mul_B_By_A": {
+      "detail": "A = A * B，作为 256 位数。",
+      "documentation": "A = A * B，作为 256 位数。\n\n四个槽被读作一个无符号 256 位数，A1/B1 为最低有效位。"
+    },
+    "Div_A_By_B": {
+      "detail": "B = A / B，作为 256 位数。",
+      "documentation": "B = A / B，作为 256 位数。\n\n四个槽被读作一个无符号 256 位数，A1/B1 为最低有效位。如果 B 为零，则不做任何更改。"
+    },
+    "Div_B_By_A": {
+      "detail": "A = B / A，作为 256 位数。",
+      "documentation": "A = B / A，作为 256 位数。\n\n四个槽被读作一个无符号 256 位数，A1/B1 为最低有效位。如果 A 为零，则不做任何更改。"
+    },
+    "MD5_A_To_B": {
+      "detail": "用 MD5 对 A1–A2（16 字节）求哈希，并将摘要存入 B1–B2。",
+      "documentation": "用 MD5 对 A1–A2（16 字节）求哈希，并将摘要存入 B1–B2。"
+    },
+    "Check_MD5_A_With_B": {
+      "detail": "如果 A1–A2 的 MD5 等于 B1–B2 返回 1，否则返回 0。",
+      "documentation": "如果 A1–A2 的 MD5 等于 B1–B2 返回 1，否则返回 0。"
+    },
+    "HASH160_A_To_B": {
+      "detail": "用 RIPEMD-160 对 A（32 字节）求哈希，并将 20 字节摘要存入 B1、B2 和 B3 的低 32 位。",
+      "documentation": "用 RIPEMD-160 对 A（32 字节）求哈希，并将 20 字节摘要存入 B1、B2 和 B3 的低 32 位。"
+    },
+    "Check_HASH160_A_With_B": {
+      "detail": "如果 A 的 RIPEMD-160 等于 B1、B2 和 B3 的低 32 位返回 1，否则返回 0。",
+      "documentation": "如果 A 的 RIPEMD-160 等于 B1、B2 和 B3 的低 32 位返回 1，否则返回 0。"
+    },
+    "SHA256_A_To_B": {
+      "detail": "用 SHA-256 对 A（32 字节）求哈希，并将摘要存入 B。",
+      "documentation": "用 SHA-256 对 A（32 字节）求哈希，并将摘要存入 B。"
+    },
+    "Check_SHA256_A_With_B": {
+      "detail": "如果 A 的 SHA-256 等于 B 返回 1，否则返回 0。",
+      "documentation": "如果 A 的 SHA-256 等于 B 返回 1，否则返回 0。"
+    },
+    "Check_Sig_B_With_A": {
+      "detail": "验证某账户对消息的签名；有效返回 1，否则返回 0。",
+      "documentation": "验证某账户对消息的签名；有效返回 1，否则返回 0。\n\n输入：\n* A1：包含签名的交易 ID\n* A2：签名起始的消息页（签名跨越 `page` 和 `page+1`）\n* A3：签名者的账户 ID\n* B2–B4：被签名的消息（B1 不使用）\n\n内置函数 `checkSignature()` 会替你设置这些寄存器。"
+    },
+    "Get_Block_Timestamp": {
+      "detail": "返回当前区块的时间戳。",
+      "documentation": "返回当前区块的时间戳。\n\nAT 时间戳为 `blockheight << 32` 加上交易在该区块中的索引。`Get_Block_Timestamp() >> 32` 即当前区块高度。"
+    },
+    "Get_Creation_Timestamp": {
+      "detail": "返回创建此合约的区块的时间戳。",
+      "documentation": "返回创建此合约的区块的时间戳。\n\nAT 时间戳为 `blockheight << 32` 加上交易在该区块中的索引。"
+    },
+    "Get_Last_Block_Timestamp": {
+      "detail": "返回上一区块的时间戳。",
+      "documentation": "返回上一区块的时间戳。\n\nAT 时间戳为 `blockheight << 32` 加上交易在该区块中的索引。"
+    },
+    "Put_Last_Block_Hash_In_A": {
+      "detail": "将上一区块的哈希加载到 A。",
+      "documentation": "将上一区块的哈希加载到 A。"
+    },
+    "Put_Last_Block_GSig_In_A": {
+      "detail": "将上一区块的生成签名加载到 A。",
+      "documentation": "将上一区块的生成签名加载到 A。\n\n这是 `getWeakRandomNumber()` 背后的熵来源，该函数在此调用后返回 A2。区块锻造者可以影响它，因此不要在任何有价值的事情上依赖它。"
+    },
+    "Add_Minutes_To_Timestamp": {
+      "detail": "返回将 'timestamp' 向前推移 'minutes' 后的值。",
+      "documentation": "返回将 'timestamp' 向前推移 'minutes' 后的值。\n\nAT 时间戳为 `blockheight << 32` 加上交易在该区块中的索引。每个区块按 4 分钟计算，因此结果前进 `minutes / 4` 个区块。",
+      "params": {
+        "timestamp": "起始的 AT 时间戳。",
+        "minutes": "要增加的分钟数；按每块 4 分钟换算为区块。"
+      }
+    },
+    "A_To_Tx_After_Timestamp": {
+      "detail": "查找 'timestamp' 之后发往此合约的第一笔交易，并将其 ID 放入 A1。",
+      "documentation": "查找 'timestamp' 之后发往此合约的第一笔交易，并将其 ID 放入 A1。\n\nAT 时间戳为 `blockheight << 32` 加上交易在该区块中的索引。会先清空 A，因此如果没有这样的交易，A1 为 0。内置函数 `getNextTx()` 和 `getNextTxFromBlockheight()` 都建立在此调用之上。",
+      "params": {
+        "timestamp": "在其之后开始搜索的 AT 时间戳。"
+      }
+    },
+    "Get_Type_For_Tx_In_A": {
+      "detail": "返回 ID 位于 A1 的交易类型。",
+      "documentation": "返回 ID 位于 A1 的交易类型。\n\n如果 A1 不是有效交易，返回 -1。"
+    },
+    "Get_Amount_For_Tx_In_A": {
+      "detail": "返回 A1 中交易所携带的金额。",
+      "documentation": "返回 A1 中交易所携带的金额。\n\n输入：\n* A1：交易 ID\n* A2：资产 ID，Signa 则为 0\n\n对于 Signa，已扣除合约的激活金额。如果 A1 不是有效交易，返回 -1。"
+    },
+    "Get_Timestamp_For_Tx_In_A": {
+      "detail": "返回 ID 位于 A1 的交易的时间戳。",
+      "documentation": "返回 ID 位于 A1 的交易的时间戳。\n\nAT 时间戳为 `blockheight << 32` 加上交易在该区块中的索引。如果 A1 不是有效交易，返回 -1。"
+    },
+    "Get_Random_Id_For_Tx_In_A": {
+      "detail": "返回由 A1 中的交易派生的随机数。",
+      "documentation": "返回由 A1 中的交易派生的随机数。\n\n该值要在交易被打包 15 个区块后才可用。如果更早调用，合约会**休眠**到那时。如果 A1 不是有效交易，返回 -1。"
+    },
+    "Message_From_Tx_In_A_To_B": {
+      "detail": "将交易消息的一页（32 字节）加载到 B。",
+      "documentation": "将交易消息的一页（32 字节）加载到 B。\n\n输入：\n* A1：交易 ID\n* A2：页码，从 0 开始\n\n缺失的消息字节读作零；无效交易会清空 B。`readMessage()` 封装了此调用。"
+    },
+    "B_To_Address_Of_Tx_In_A": {
+      "detail": "将 A1 中交易的发送者放入 B1。",
+      "documentation": "将 A1 中交易的发送者放入 B1。\n\nB2–B4 会被清空。`getSender()` 封装了此调用。"
+    },
+    "B_To_Assets_Of_Tx_In_A": {
+      "detail": "将随 A1 中交易发送的资产 ID 放入 B1–B4。",
+      "documentation": "将随 A1 中交易发送的资产 ID 放入 B1–B4。\n\n一笔交易最多携带四种资产；未使用的槽为 0。`readAssets()` 封装了此调用。"
+    },
+    "B_To_Address_Of_Creator": {
+      "detail": "将合约的创建者放入 B1。",
+      "documentation": "将合约的创建者放入 B1。\n\n输入：B2 存放合约 ID，当前合约则为 0。B 的其他槽会被清空。`getCreator()` 和 `getCreatorOf()` 封装了此调用。"
+    },
+    "Get_Current_Balance": {
+      "detail": "返回此合约的当前余额。",
+      "documentation": "返回此合约的当前余额。\n\n输入：B2 存放资产 ID，Signa 余额（NQT）则为 0。"
+    },
+    "Get_Previous_Balance": {
+      "detail": "返回此合约在本次运行前的 Signa 余额。",
+      "documentation": "返回此合约在本次运行前的 Signa 余额。"
+    },
+    "Get_Account_Balance": {
+      "detail": "返回任意账户的余额。",
+      "documentation": "返回任意账户的余额。\n\n输入：\n* B1：账户 ID\n* B2：资产 ID，Signa（NQT）则为 0\n\n`getAccountBalance()` 和 `getAccountQuantity()` 封装了此调用。"
+    },
+    "Send_To_Address_In_B": {
+      "detail": "向 B1 中的账户发送 'amount'。",
+      "documentation": "向 B1 中的账户发送 'amount'。\n\n输入：\n* B1：收款人\n* B2：资产 ID，发送 Signa 则为 0\n* B3：发送资产时，随之发送的 Signa（NQT）\n\n超过余额的金额会被限制为余额；零或负数金额不会发送任何内容。",
+      "params": {
+        "amount": "发送 Signa 时为 NQT，否则为资产数量。"
+      }
+    },
+    "Send_All_To_Address_In_B": {
+      "detail": "将合约的全部 Signa 余额发送到 B1 中的账户。",
+      "documentation": "将合约的全部 Signa 余额发送到 B1 中的账户。"
+    },
+    "Send_Old_To_Address_In_B": {
+      "detail": "将本次运行前的 Signa 余额发送到 B1 中的账户。",
+      "documentation": "将本次运行前的 Signa 余额发送到 B1 中的账户。\n\n以当前余额为上限。"
+    },
+    "Send_A_To_Address_In_B": {
+      "detail": "将 A 中的 32 字节作为消息发送到 B1 中的账户。",
+      "documentation": "将 A 中的 32 字节作为消息发送到 B1 中的账户。\n\n同一次运行中对同一收款人的多次调用会合并为一条消息。`sendMessage()` 封装了此调用。"
+    },
+    "Get_Code_Hash_Id": {
+      "detail": "返回合约的代码哈希 ID。",
+      "documentation": "返回合约的代码哈希 ID。\n\n输入：B2 存放合约 ID，当前合约则为 0。如果合约未知，返回 0。`getCodeHashOf()` 封装了此调用。"
+    },
+    "Get_Activation_Fee": {
+      "detail": "返回合约的激活金额（NQT）。",
+      "documentation": "返回合约的激活金额（NQT）。\n\n输入：B2 存放合约 ID，当前合约则为 0。如果合约未知，返回 0。`getActivationOf()` 封装了此调用。"
+    },
+    "Get_Map_Value_Keys_In_A": {
+      "detail": "从合约的键-键-值映射中读取一个值。",
+      "documentation": "从合约的键-键-值映射中读取一个值。\n\n输入：\n* A1：key1\n* A2：key2\n* A3：合约 ID，当前合约则为 0\n\n缺失的条目返回 0。`getMapValue()` 和 `getExtMapValue()` 封装了此调用。"
+    },
+    "Set_Map_Value_Keys_In_A": {
+      "detail": "向此合约的键-键-值映射写入一个值。",
+      "documentation": "向此合约的键-键-值映射写入一个值。\n\n输入：\n* A1：key1\n* A2：key2\n* A4：值（A3 不使用）\n\n`setMapValue()` 封装了此调用。"
+    },
+    "Issue_Asset": {
+      "detail": "发行一种由此合约拥有的新资产并返回其 ID。",
+      "documentation": "发行一种由此合约拥有的新资产并返回其 ID。\n\n输入：\n* A1–A2：资产名称，最多 10 个字符\n* B1：小数位数\n\n资产初始数量为零；使用 `Mint_Asset` 铸造单位。`issueAsset()` 封装了此调用。"
+    },
+    "Mint_Asset": {
+      "detail": "为此合约发行的资产铸造新单位。",
+      "documentation": "为此合约发行的资产铸造新单位。\n\n输入：\n* B1：数量\n* B2：资产 ID\n\n对于并非此合约发行的资产不做任何操作。`mintAsset()` 封装了此调用。"
+    },
+    "Distribute_To_Asset_Holders": {
+      "detail": "按持有比例向某资产的持有者分配 Signa 和/或资产。",
+      "documentation": "按持有比例向某资产的持有者分配 Signa 和/或资产。\n\n输入：\n* B1：持有者参与所需的最低数量\n* B2：其持有者获得分配的资产\n* A1：要分配的 Signa（NQT）\n* A3：要分配的资产，无则为 0\n* A4：要分配的该资产数量\n\n金额以合约持有量为上限。`distributeToHolders()` 封装了此调用。"
+    },
+    "Get_Asset_Holders_Count": {
+      "detail": "返回至少持有某资产最低数量的账户数。",
+      "documentation": "返回至少持有某资产最低数量的账户数。\n\n输入：\n* B1：最低数量\n* B2：资产 ID\n\n`getAssetHoldersCount()` 封装了此调用。"
+    },
+    "Get_Asset_Circulating": {
+      "detail": "返回某资产的流通量。",
+      "documentation": "返回某资产的流通量。\n\n输入：B2 存放资产 ID。资产 ID 为 0 时返回 0。`getAssetCirculating()` 封装了此调用。"
+    },
+    "F_Get_A1": {
+      "detail": "以定点值返回寄存器槽 A1。",
+      "documentation": "以定点值返回寄存器槽 A1。\n\n与 `Get_A1` 相同的调用；原始值被读作 `fixed`（1.0 = 1_0000_0000）。"
+    },
+    "F_Set_A1": {
+      "detail": "将一个定点值存入寄存器槽 A1。",
+      "documentation": "将一个定点值存入寄存器槽 A1。\n\n与 `Set_A1` 相同的调用；`fixed` 值按其原始 64 位内容存储。",
+      "params": {
+        "a1": "A1 的新值。"
+      }
+    },
+    "F_Get_A2": {
+      "detail": "以定点值返回寄存器槽 A2。",
+      "documentation": "以定点值返回寄存器槽 A2。\n\n与 `Get_A2` 相同的调用；原始值被读作 `fixed`（1.0 = 1_0000_0000）。"
+    },
+    "F_Set_A2": {
+      "detail": "将一个定点值存入寄存器槽 A2。",
+      "documentation": "将一个定点值存入寄存器槽 A2。\n\n与 `Set_A2` 相同的调用；`fixed` 值按其原始 64 位内容存储。",
+      "params": {
+        "a2": "A2 的新值。"
+      }
+    },
+    "F_Get_A3": {
+      "detail": "以定点值返回寄存器槽 A3。",
+      "documentation": "以定点值返回寄存器槽 A3。\n\n与 `Get_A3` 相同的调用；原始值被读作 `fixed`（1.0 = 1_0000_0000）。"
+    },
+    "F_Set_A3": {
+      "detail": "将一个定点值存入寄存器槽 A3。",
+      "documentation": "将一个定点值存入寄存器槽 A3。\n\n与 `Set_A3` 相同的调用；`fixed` 值按其原始 64 位内容存储。",
+      "params": {
+        "a3": "A3 的新值。"
+      }
+    },
+    "F_Get_A4": {
+      "detail": "以定点值返回寄存器槽 A4。",
+      "documentation": "以定点值返回寄存器槽 A4。\n\n与 `Get_A4` 相同的调用；原始值被读作 `fixed`（1.0 = 1_0000_0000）。"
+    },
+    "F_Set_A4": {
+      "detail": "将一个定点值存入寄存器槽 A4。",
+      "documentation": "将一个定点值存入寄存器槽 A4。\n\n与 `Set_A4` 相同的调用；`fixed` 值按其原始 64 位内容存储。",
+      "params": {
+        "a4": "A4 的新值。"
+      }
+    },
+    "F_Get_B1": {
+      "detail": "以定点值返回寄存器槽 B1。",
+      "documentation": "以定点值返回寄存器槽 B1。\n\n与 `Get_B1` 相同的调用；原始值被读作 `fixed`（1.0 = 1_0000_0000）。"
+    },
+    "F_Set_B1": {
+      "detail": "将一个定点值存入寄存器槽 B1。",
+      "documentation": "将一个定点值存入寄存器槽 B1。\n\n与 `Set_B1` 相同的调用；`fixed` 值按其原始 64 位内容存储。",
+      "params": {
+        "b1": "B1 的新值。"
+      }
+    },
+    "F_Get_B2": {
+      "detail": "以定点值返回寄存器槽 B2。",
+      "documentation": "以定点值返回寄存器槽 B2。\n\n与 `Get_B2` 相同的调用；原始值被读作 `fixed`（1.0 = 1_0000_0000）。"
+    },
+    "F_Set_B2": {
+      "detail": "将一个定点值存入寄存器槽 B2。",
+      "documentation": "将一个定点值存入寄存器槽 B2。\n\n与 `Set_B2` 相同的调用；`fixed` 值按其原始 64 位内容存储。",
+      "params": {
+        "b2": "B2 的新值。"
+      }
+    },
+    "F_Get_B3": {
+      "detail": "以定点值返回寄存器槽 B3。",
+      "documentation": "以定点值返回寄存器槽 B3。\n\n与 `Get_B3` 相同的调用；原始值被读作 `fixed`（1.0 = 1_0000_0000）。"
+    },
+    "F_Set_B3": {
+      "detail": "将一个定点值存入寄存器槽 B3。",
+      "documentation": "将一个定点值存入寄存器槽 B3。\n\n与 `Set_B3` 相同的调用；`fixed` 值按其原始 64 位内容存储。",
+      "params": {
+        "b3": "B3 的新值。"
+      }
+    },
+    "F_Get_B4": {
+      "detail": "以定点值返回寄存器槽 B4。",
+      "documentation": "以定点值返回寄存器槽 B4。\n\n与 `Get_B4` 相同的调用；原始值被读作 `fixed`（1.0 = 1_0000_0000）。"
+    },
+    "F_Set_B4": {
+      "detail": "将一个定点值存入寄存器槽 B4。",
+      "documentation": "将一个定点值存入寄存器槽 B4。\n\n与 `Set_B4` 相同的调用；`fixed` 值按其原始 64 位内容存储。",
+      "params": {
+        "b4": "B4 的新值。"
+      }
+    },
+    "F_Get_Amount_For_Tx_In_A": {
+      "detail": "以 fixed 返回 A1 中交易所携带的金额。",
+      "documentation": "以 fixed 返回 A1 中交易所携带的金额。\n\n与 `Get_Amount_For_Tx_In_A` 相同的调用（A1：交易 ID，A2：资产 ID，Signa 则为 0）。"
+    },
+    "F_Get_Current_Balance": {
+      "detail": "以 fixed 返回此合约的当前余额。",
+      "documentation": "以 fixed 返回此合约的当前余额。\n\n与 `Get_Current_Balance` 相同的调用（B2：资产 ID，Signa 则为 0）。"
+    },
+    "F_Get_Previous_Balance": {
+      "detail": "以 fixed 返回此合约在本次运行前的 Signa 余额。",
+      "documentation": "以 fixed 返回此合约在本次运行前的 Signa 余额。"
+    },
+    "F_Get_Account_Balance": {
+      "detail": "以 fixed 返回任意账户的余额。",
+      "documentation": "以 fixed 返回任意账户的余额。\n\n与 `Get_Account_Balance` 相同的调用（B1：账户 ID，B2：资产 ID，Signa 则为 0）。"
+    },
+    "F_Send_To_Address_In_B": {
+      "detail": "向 B1 中的账户发送 'amount'。",
+      "documentation": "向 B1 中的账户发送 'amount'。\n\n与 `Send_To_Address_In_B` 相同的调用（B1：收款人，B2：资产 ID，Signa 则为 0，B3：随资产发送的 Signa）。",
+      "params": {
+        "amount": "Signa 金额，例如 1.5。"
+      }
+    },
+    "F_Get_Map_Value_Keys_In_A": {
+      "detail": "以 fixed 从合约的键-键-值映射中读取一个值。",
+      "documentation": "以 fixed 从合约的键-键-值映射中读取一个值。\n\n与 `Get_Map_Value_Keys_In_A` 相同的调用（A1：key1，A2：key2，A3：合约 ID 或 0）。"
+    },
+    "F_Get_Activation_Fee": {
+      "detail": "以 fixed 返回合约的激活金额。",
+      "documentation": "以 fixed 返回合约的激活金额。\n\n与 `Get_Activation_Fee` 相同的调用（B2：合约 ID，当前合约则为 0）。"
+    }
+  },
+  "keywords": {
+    "exit": {
+      "detail": "停止合约执行并重置到 main",
+      "documentation": "使合约进入 'stop' 模式，并设置程序下次从 main 函数重新开始（'finished' 模式）。在收到新交易之前合约处于非活动状态。收到交易后，将从 void main() 函数开始执行。如果未定义 main 函数，将从代码开头重新执行，再次运行所有全局语句。如果定义了 main 函数，全局语句只在合约最初的激活中执行。exit 不接受参数。如果合约激活金额为零，合约将在下一个区块继续执行（类似 sleep）"
+    },
+    "sleep": {
+      "detail": "休眠 n 个区块",
+      "documentation": "使合约进入 'sleep' 模式，并在下一个区块继续执行。也可以带一个参数表示休眠的区块数，参数可以是表达式。sleep;、sleep 0; 和 sleep 1; 这三条语句效果相同，但推荐第一种，因为指令更短。"
+    },
+    "fixed": {
+      "detail": "声明一个定点数变量",
+      "documentation": "声明一个定点数变量。所有 fixed 数都有 8 位小数，因此很适合用于 Signa 计算。支持的正值范围为 0.00000001 到 92,233,720,368.54775807，负值范围为 -0.00000001 到 -92,233,720,368.54775808。其内部是有符号 64 位数。"
+    },
+    "halt": {
+      "detail": "合约将保持非活动状态，直到下一笔交易",
+      "documentation": "使合约进入 'stop' 模式。在收到新交易之前处于非活动状态，之后从下一条指令继续执行。不接受参数。如果合约激活金额为零，合约将在下一个区块继续执行。"
+    }
+  },
+  "directives": {
+    "program": {
+      "detail": "合约元数据",
+      "documentation": "设置合约的元数据：名称、描述、激活金额、栈页数和代码哈希 ID。",
+      "properties": {
+        "name": {
+          "detail": "程序名称（部署时必需）",
+          "documentation": "设置程序名称。只允许普通字母和数字，最长 30 个字符。部署时必须提供。"
+        },
+        "description": {
+          "detail": "程序描述（可选）",
+          "documentation": "设置程序描述。不允许换行，最长 1000 个字符。可选。"
+        },
+        "activationAmount": {
+          "detail": "激活合约的最低金额（部署时必需）",
+          "documentation": "设置程序的激活金额。如果 VALUE 是定点数（例如：.34），则作为 Signa 金额。否则以 NQT 为单位设置（例如：3400_0000）。\n\n如果传入交易的金额小于此值，程序不会处理它（但金额会被收下！）。请设置一个较低的值，但要大于程序运行所需的最坏情况金额。设置过低，程序会在执行中冻结（gas 耗尽）。设置过高，执行后程序余额会偏高（未用完的余额）。编写正式程序时别忘了处理这种情况！部署时必须提供。"
+        },
+        "codeHashId": {
+          "detail": "强制编译后代码的哈希 ID（可选）",
+          "documentation": "确保编译后的程序具有完全相同的代码哈希 ID。开发期间使用 0 可在汇编输出中得到此信息。如果打算分发源代码，请使用实际数值，这样出现不一致时编译器会报错。可选。"
+        },
+        "codeStackPages": {
+          "detail": "代码栈的页数（最多 10）",
+          "documentation": "代码页在函数调用时用于存储指令指针的返回位置（也称程序计数器）。不需要时默认为零，需要时为一。每页可存储 16 个值。如果使用了大量嵌套函数或递归函数，请调整此值。最大为 10 页。"
+        },
+        "userStackPages": {
+          "detail": "用户栈的页数（最多 10）",
+          "documentation": "用户页在函数调用时用于传递参数值、存储函数返回值，或在递归调用时存储函数作用域变量。不需要时默认为零，需要时为一。如果函数参数超过 16 个或为递归函数，请调整此值。最大为 10 页。"
+        },
+        "creator": {
+          "detail": "创建者 ID — 仅限 SC-Simulator",
+          "documentation": "仅在 SC-Simulator 中有效。N 必须是十进制数。设置合约的创建者 ID，用于模拟由不同用户部署的多个合约。在生成机器码或实际部署时会被忽略。"
+        },
+        "contract": {
+          "detail": "合约 ID — 仅限 SC-Simulator",
+          "documentation": "仅在 SC-Simulator 中有效。N 必须是十进制数。设置合约 ID。部署多个合约时很有用，这样可以按任意顺序部署。在生成机器码或实际部署时会被忽略。"
+        }
+      }
+    },
+    "pragma": {
+      "detail": "编译器选项",
+      "documentation": "编译器使用的特殊功能。",
+      "properties": {
+        "maxAuxVars": {
+          "detail": "辅助变量 / 寄存器的数量（0..10，默认 3）",
+          "documentation": "告诉编译器有多少辅助变量可用（它们被用作寄存器）。默认值为 3，最小 0，最大 10。如果内存紧张，请减少到编译所需的最小值。简单合约大约使用 2 个，但这个数量取决于嵌套运算。"
+        },
+        "maxConstVars": {
+          "detail": "常量变量 'n1'..'n10' 的数量（0..10，默认 0）",
+          "documentation": "编译器会创建 1 到 maxConstVars 个变量，命名为 'n1'、'n2'……'n10'。这非常有用，因为编译器会把所有数字引用替换为这些变量并优化代码，使代码显著变小！默认值为 0（停用），最大为 10。"
+        },
+        "optimizationLevel": {
+          "detail": "代码优化器策略（0..4，默认 2）",
+          "documentation": "选择代码优化器的策略，取值为 0 到 3。\n\n* `0`：不优化。\n* `1`：非常基础的优化，只删除无意义和未使用的代码。\n* `2`：默认。安全地修改和/或删除代码以获得更好的结果。\n* `3`：使用 VM 跟踪变量内容并删除冗余代码。测试版功能，更多测试完成后将成为默认。可以很好地优化，减少 API 函数的调用次数。\n* `4`：未充分测试的危险优化。结果必须由开发者检查。"
+        },
+        "reuseAssignedVar": {
+          "detail": "将赋值左侧复用为寄存器（默认 true）",
+          "documentation": "启用后，编译器会尝试把赋值左侧的变量用作寄存器。如果该变量也出现在右侧，则不会复用。每个表达式都可能因此节省一条汇编指令！默认值为 true，强烈建议保持启用。"
+        },
+        "verboseAssembly": {
+          "detail": "在汇编输出中标注源代码行",
+          "documentation": "在汇编输出中添加包含对应行号和源代码的注释。对调试非常有用。"
+        },
+        "verboseScope": {
+          "detail": "在汇编输出中标注寄存器作用域信息",
+          "documentation": "在汇编输出中，于每个作用域开始/结束处添加空闲寄存器的注释。也会提示寄存器何时被用作另一个变量名。对调试非常有用。"
+        },
+        "version": {
+          "detail": "编写代码时所针对的编译器版本（可选）",
+          "documentation": "说明代码是针对哪个编译器版本编写的。可选，但有助于后来者。VALUE 可以是任意字符串或备注。"
+        }
+      }
+    },
+    "include": {
+      "detail": "启用底层 API 函数",
+      "documentation": "开启一组底层 API 函数：`#include APIFunctions` 或 `#include fixedAPIFunctions`。",
+      "properties": {
+        "APIFunctions": {
+          "detail": "启用底层 API 函数",
+          "documentation": "将 AT 机器的 API 调用作为 C 函数提供：`Get_A1`、`Set_B1_B2`、`Clear_A`、`SHA256_A_To_B`、`Send_To_Address_In_B`…… 它们直接操作 A 和 B 伪寄存器，用于内置函数无法覆盖的情况。可选值 `true`/`false`（默认 `true`）。"
+        },
+        "fixedAPIFunctions": {
+          "detail": "启用定点底层 API 函数",
+          "documentation": "为移动 Signa 金额的 API 调用增加 `fixed` 类型的对应版本：`F_Get_Current_Balance`、`F_Send_To_Address_In_B`、`F_Get_A1`…… 与 `#include APIFunctions` 相互独立。可选值 `true`/`false`（默认 `true`）。"
+        }
+      }
+    }
+  },
+  "asmDirectives": {
+    "program": {
+      "detail": "合约元数据",
+      "documentation": "声明一项合约元数据：`^program <property> <value>`。\n\n该指令不生成机器码——这些值随字节码一起进入部署交易。未知属性属于汇编错误，因此下列集合是完整的。",
+      "properties": {
+        "name": {
+          "detail": "程序名称（部署时必需）",
+          "documentation": "设置程序名称。只允许普通字母和数字，最长 30 个字符。部署时必须提供。"
+        },
+        "description": {
+          "detail": "程序描述（可选）",
+          "documentation": "设置程序描述。不允许换行，最长 1000 个字符。可选。"
+        },
+        "activationAmount": {
+          "detail": "激活合约的最低金额（部署时必需）",
+          "documentation": "以 NQT 为单位设置程序的激活金额（示例：`3400_0000`）。\n\n金额低于此值的传入交易仍会被接收——金额计入合约余额——但不会唤醒合约。请将其设置在单次运行的最坏成本之上：太低，合约会在执行中途冻结（gas 耗尽）；太高，会积累未用完的余额，之后需要你处理。部署时必须提供。"
+        },
+        "userStackPages": {
+          "detail": "用户栈的页数（最多 10）",
+          "documentation": "用户页构成 `PSH`/`POP` 栈，用于在调用期间保存寄存器以及递归调用的作用域变量。每页可容纳 16 个值；程序不需要时默认为零，否则为一，最多 10 页。对于深度递归的函数请调大——栈溢出会终结合约。"
+        },
+        "codeStackPages": {
+          "detail": "代码栈的页数（最多 10）",
+          "documentation": "代码页构成 `JSR`/`RET` 栈，用于存储每个嵌套调用的返回地址。每页可容纳 16 个值；程序不需要时默认为零，否则为一，最多 10 页。对于深度嵌套或递归的函数请调大。"
+        },
+        "codeHashId": {
+          "detail": "强制编译后代码的哈希 ID（可选）",
+          "documentation": "确保编译后的程序具有完全相同的代码哈希 ID。开发期间使用 `0`，该值会被写回汇编输出。分发源代码时使用真实数值，如果生成的机器码不一致，编译器会报错。可选。"
+        },
+        "creator": {
+          "detail": "创建者 ID — 仅限 SC-Simulator",
+          "documentation": "仅在 SC-Simulator 中有效：设置合约的创建者 ID，以便将多个合约模拟为由不同用户部署。汇编器接受并忽略它——它对生成的机器码或实际部署没有任何影响。"
+        },
+        "contract": {
+          "detail": "合约 ID — 仅限 SC-Simulator",
+          "documentation": "仅在 SC-Simulator 中有效：设置合约 ID，以便部署多个合约的场景可以按任意顺序部署。汇编器接受并忽略它——它对生成的机器码或实际部署没有任何影响。"
+        }
+      }
+    },
+    "declare": {
+      "detail": "变量声明",
+      "documentation": "`^declare <name>` 保留一个 64 位内存单元，并将 `<name>` 绑定到其地址。\n\n汇编中的每个 `@name` / `$name` 都引用以这种方式声明的单元，声明顺序决定地址。该指令本身不生成机器码，但每个声明的变量都会为合约的数据页增加一个单元。"
+    },
+    "const": {
+      "detail": "常量初始化",
+      "documentation": "`^const SET @<name> #<16 hex digits>` 为已声明的变量设置初始值。\n\n该值在汇编时写入合约的初始内存映像，而不是在运行时赋值，因此既不占代码字节也不耗步数。语法很严格：`SET`、`@`，以及 `#` 之后恰好 16 位小写十六进制数字。"
+    },
+    "comment": {
+      "detail": "汇编器注释",
+      "documentation": "`^comment <text>` 会被汇编器忽略，不生成任何内容。\n\nSmartC 用它来标注输出——`#pragma verboseAssembly` 以这种方式插入原始 C 源码，`#pragma verboseScope` 则添加寄存器生命周期说明。"
+    }
+  },
+  "opcodes": {
+    "JMP": {
+      "title": "跳转",
+      "group": "程序流程",
+      "documentation": "无条件跳转：将指令指针设为 `:label` 并从那里继续执行。\n\n与条件分支不同，目标以**完整的 4 字节绝对地址**存储，因此 `JMP` 可以到达代码段中的任何位置——没有范围限制。这也是分支偏移溢出时汇编器改用 `JMP` 的原因。\n\n未知标签属于汇编错误（`Unknow jump label`）。SmartC 为 `goto`、`while`/`for` 循环的回跳，以及跳过 `if` 的 `else` 分支生成 `JMP`。优化器会删除目标恰好是下一条指令的 `JMP`。"
+    },
+    "JSR": {
+      "title": "跳转到子程序",
+      "group": "程序流程",
+      "documentation": "将*下一条*指令的地址压入**代码栈**，然后跳转到 `:label`。之后的 `RET` 会弹出该地址以返回。\n\n代码栈每页可容纳 16 个条目，大小由 `#pragma codeStackPages` 设置（最多 10 页，即 160 层嵌套调用）。超出此限制会使合约以 *Code Stack buffer overflow* 中止——除非安装了 `ERR` 处理程序，此时执行会转到那里继续。\n\n代码栈上只存放返回地址。参数、返回值以及递归调用的局部变量通过 `PSH`/`POP` 放在独立的**用户栈**上，其大小由 `#pragma userStackPages` 设置。这就是 SmartC 调用用户自定义函数的方式。"
+    },
+    "RET": {
+      "title": "从子程序返回",
+      "group": "程序流程",
+      "documentation": "从**代码栈**弹出一个地址并跳转过去，从压入它的 `JSR` 返回。\n\n在空的代码栈上执行 `RET` 会使合约以 *Code Stack buffer underflow* 中止，除非设置了 `ERR` 处理程序——此时执行会跳转到那里。\n\n这是一条单字节指令，因此是离开子程序最便宜的方式。SmartC 用它结束每个用户自定义函数；`return expr;` 会编译为 `SET @r0 $expr` 再加 `RET`，因此结果通过 `r0` 寄存器而不是栈返回。"
+    },
+    "BZR": {
+      "title": "为零时分支",
+      "group": "程序流程",
+      "documentation": "当 `$var` 为零时分支到 `:label`，否则继续执行下一条指令。\n\n测试的是原始 64 位值，因此这里与符号无关——只有全零位模式才会分支。从未写入的变量读作 0，*因此会*分支。\n\n目标被编码为相对于分支指令本身的**有符号 8 位偏移**，因此必须位于 -128..+127 字节范围内。你无需手动处理：当标签超出范围时，汇编器会反转条件并插入一条跳到远处标签的 `JMP`，代价是多 5 字节和一条指令。此改写使用的反转指令是 `BNZ`。\n\n它只有 6 字节，是指令集中最小的条件指令，因此只要可能，SmartC 就优先使用 `BZR`/`BNZ`，而不是与零常量比较的分支。"
+    },
+    "BNZ": {
+      "title": "非零时分支",
+      "group": "程序流程",
+      "documentation": "当 `$var` 不为零时分支到 `:label`，否则继续执行下一条指令。\n\n测试的是原始 64 位值，因此与符号无关——任何非零位模式都会分支。从未写入的变量读作 0，*不会*分支。\n\n目标被编码为相对于分支指令本身的**有符号 8 位偏移**，因此必须位于 -128..+127 字节范围内。你无需手动处理：当标签超出范围时，汇编器会反转条件并插入一条跳到远处标签的 `JMP`，代价是多 5 字节和一条指令。此改写使用的反转指令是 `BZR`。\n\n与 `BZR` 恰好相反；优化器每次反转条件时都会互换二者。"
+    },
+    "BGT": {
+      "title": "大于时分支",
+      "group": "程序流程",
+      "documentation": "当 `$var1 > $var2` 时分支到 `:label`，否则继续执行下一条指令。\n\n两个操作数都按**有符号** 64 位整数比较，因此 `0xffffffffffffffff` 被视为 `-1`，而不是一个巨大的正数。SmartC 为 `long` 和 `fixed` 操作数的 `>` 生成它。\n\n目标被编码为相对于分支指令本身的**有符号 8 位偏移**，因此必须位于 -128..+127 字节范围内。你无需手动处理：当标签超出范围时，汇编器会反转条件并插入一条跳到远处标签的 `JMP`，代价是多 5 字节和一条指令。此改写使用的反转指令是 `BLE`。\n\n从未写入的操作数读作 0。"
+    },
+    "BLT": {
+      "title": "小于时分支",
+      "group": "程序流程",
+      "documentation": "当 `$var1 < $var2` 时分支到 `:label`，否则继续执行下一条指令。\n\n两个操作数都按**有符号** 64 位整数比较，因此 `0xffffffffffffffff` 被视为 `-1`，而不是一个巨大的正数。SmartC 为 `long` 和 `fixed` 操作数的 `<` 生成它。\n\n目标被编码为相对于分支指令本身的**有符号 8 位偏移**，因此必须位于 -128..+127 字节范围内。你无需手动处理：当标签超出范围时，汇编器会反转条件并插入一条跳到远处标签的 `JMP`，代价是多 5 字节和一条指令。此改写使用的反转指令是 `BGE`。\n\n从未写入的操作数读作 0。"
+    },
+    "BGE": {
+      "title": "大于或等于时分支",
+      "group": "程序流程",
+      "documentation": "当 `$var1 >= $var2` 时分支到 `:label`，否则继续执行下一条指令。\n\n两个操作数都按**有符号** 64 位整数比较，因此 `0xffffffffffffffff` 被视为 `-1`，而不是一个巨大的正数。SmartC 为 `>=` 生成它，当在真值情况下顺序执行更便宜时，也用它作为 `<` 的反转形式。\n\n目标被编码为相对于分支指令本身的**有符号 8 位偏移**，因此必须位于 -128..+127 字节范围内。你无需手动处理：当标签超出范围时，汇编器会反转条件并插入一条跳到远处标签的 `JMP`，代价是多 5 字节和一条指令。此改写使用的反转指令是 `BLT`。\n\n从未写入的操作数读作 0。"
+    },
+    "BLE": {
+      "title": "小于或等于时分支",
+      "group": "程序流程",
+      "documentation": "当 `$var1 <= $var2` 时分支到 `:label`，否则继续执行下一条指令。\n\n两个操作数都按**有符号** 64 位整数比较，因此 `0xffffffffffffffff` 被视为 `-1`，而不是一个巨大的正数。SmartC 为 `<=` 生成它，也用它作为 `>` 的反转形式。\n\n目标被编码为相对于分支指令本身的**有符号 8 位偏移**，因此必须位于 -128..+127 字节范围内。你无需手动处理：当标签超出范围时，汇编器会反转条件并插入一条跳到远处标签的 `JMP`，代价是多 5 字节和一条指令。此改写使用的反转指令是 `BGT`。\n\n从未写入的操作数读作 0。"
+    },
+    "BEQ": {
+      "title": "等于时分支",
+      "group": "程序流程",
+      "documentation": "当 `$var1 == $var2` 时分支到 `:label`，否则继续执行下一条指令。\n\n两个操作数都按**有符号** 64 位整数比较，因此 `0xffffffffffffffff` 被视为 `-1`，而不是一个巨大的正数。与零比较时优先使用 `BZR`，它小 4 字节且不需要第二个操作数。\n\n目标被编码为相对于分支指令本身的**有符号 8 位偏移**，因此必须位于 -128..+127 字节范围内。你无需手动处理：当标签超出范围时，汇编器会反转条件并插入一条跳到远处标签的 `JMP`，代价是多 5 字节和一条指令。此改写使用的反转指令是 `BNE`。\n\n从未写入的操作数读作 0。"
+    },
+    "BNE": {
+      "title": "不等于时分支",
+      "group": "程序流程",
+      "documentation": "当 `$var1 != $var2` 时分支到 `:label`，否则继续执行下一条指令。\n\n两个操作数都按**有符号** 64 位整数比较，因此 `0xffffffffffffffff` 被视为 `-1`，而不是一个巨大的正数。与零比较时优先使用 `BNZ`，它小 4 字节且不需要第二个操作数。\n\n目标被编码为相对于分支指令本身的**有符号 8 位偏移**，因此必须位于 -128..+127 字节范围内。你无需手动处理：当标签超出范围时，汇编器会反转条件并插入一条跳到远处标签的 `JMP`，代价是多 5 字节和一条指令。此改写使用的反转指令是 `BEQ`。\n\n从未写入的操作数读作 0。"
+    },
+    "SLP": {
+      "title": "休眠",
+      "group": "程序流程",
+      "documentation": "挂起合约，并在之后的某个区块从**下一条指令**继续。状态和指令指针都会保留，因此这是暂停，而不是重启。\n\n* `SLP` —— 在下一个区块唤醒。\n* `SLP $var` —— 在 `$var` 个区块后唤醒。该值按**有符号**读取，小于 1 的值都会被限制为 1，因此操作数为零或负数的 `SLP` 与普通的一个区块形式相同。\n\n合约最终处于*已停止但未结束*状态：它保留余额，并会在目标区块自动恢复，无需传入交易。SmartC 的 `sleep` 语句就编译为此指令。如果一个区块就够了，优先使用不带操作数的 `SLP`——它小 4 字节。"
+    },
+    "FIN": {
+      "title": "结束执行",
+      "group": "程序流程",
+      "documentation": "结束本次激活，并将合约标记为*已结束*。指令指针被重置到 **PCS** 地址（由最后一条 `PCS` 指令设置，若没有则为代码开头），因此下一次激活从那里开始，而不是从停止执行的位置开始。\n\n合约被冻结，只有在新交易到达时才会再次运行——如果激活金额为零，则在下一个区块运行。SmartC 的 `exit` 编译为此指令，程序执行到代码末尾时也会落到这里。\n\n对比 `STP`：它同样停止合约，但从*下一条*指令而不是从 PCS 恢复。"
+    },
+    "STP": {
+      "title": "停止执行",
+      "group": "程序流程",
+      "documentation": "结束本次激活，并将合约标记为*已停止但未结束*。指令指针停留在**下一条指令**，因此下一次激活会从这里原样继续。\n\n合约被冻结并等待新交易——如果激活金额为零，则在下一个区块恢复。SmartC 的 `halt` 编译为此指令。\n\n对比 `FIN`：它会把执行重置到 PCS 地址，而不是继续执行。"
+    },
+    "FIZ": {
+      "title": "为零时结束",
+      "group": "程序流程",
+      "documentation": "条件版 `FIN`：当 `$var` 为零时，合约与 `FIN` 完全一样地结束——冻结、标记为已结束、指令指针重置到 **PCS** 地址。当 `$var` 非零时，这是一条空操作，执行继续到下一条指令。\n\n测试的是原始 64 位值；从未写入的变量读作 0，因此会结束。\n\n用 5 字节表达常见的“未成功就退出”模式，而等效的 `BNZ $var :skip` / `FIN` / `skip:` 组合需要 7 字节。"
+    },
+    "STZ": {
+      "title": "为零时停止",
+      "group": "程序流程",
+      "documentation": "条件版 `STP`：当 `$var` 为零时，合约与 `STP` 一样停止——冻结、*不*标记为结束，下次激活时从下一条指令继续。当 `$var` 非零时什么也不发生，执行照常继续。\n\n注意与 `FIZ` 的不对称：无论哪种情况，指令指针都会越过 `STZ`，因为在这里停止意味着“稍后从下一条指令继续”，而不是“重启”。\n\n测试的是原始 64 位值；从未写入的变量读作 0，因此会停止。"
+    },
+    "ERR": {
+      "title": "设置错误处理程序",
+      "group": "程序流程",
+      "documentation": "将 `:label` 安装为合约的错误处理程序，并继续执行下一条指令。它**不会**立即跳转过去。\n\n设置之后，运行时错误会把控制权交给处理程序，而不是终结合约。经由它处理的错误有：\n\n* 除以零（`DIV`、`MOD`）\n* 用户栈下溢（在空栈上 `POP`）\n* 代码栈上溢 / 下溢（`JSR` 过深、`RET` 无处可返）\n* gas 耗尽及其他机器异常\n\n没有处理程序时，其中任何一种都会将合约标记为*死亡*——永久性的，余额也会被困住。目标地址以完整的 4 字节地址存储，因此处理程序可以位于代码中的任何位置。SmartC 通过 `registerError()` / 错误处理程序支持生成此指令。"
+    },
+    "PCS": {
+      "title": "设置程序计数器起点",
+      "group": "程序流程",
+      "documentation": "将**下一条**指令的地址记录为合约的重启点，然后照常继续。\n\n`FIN` 和 `FIZ` 会把指令指针重置到这个地址，因此 `PCS` 之前的内容只在最初那次激活中运行一次，之后的每次激活都从这里开始。\n\n这正是 SmartC 实现 `void main()` 的方式：全局语句生成在 `PCS` 之前，`main()` 紧随其后开始。没有 `main()` 的程序没有 `PCS`，因此重启点保持在地址 0，全局语句在每次激活时都会重新运行。"
+    },
+    "NOP": {
+      "title": "空操作",
+      "group": "程序流程",
+      "documentation": "什么也不做，前进到下一条指令。消耗 1 字节和 1 步。\n\nSmartC 从不生成 `NOP`——优化器会把它删掉。它用于手写汇编，以及需要保持地址稳定时的填充。"
+    },
+    "ADD": {
+      "title": "加法",
+      "group": "算术",
+      "documentation": "`@dest = $dest + $var`，按**有符号** 64 位整数计算。\n\n溢出会静默回绕——既不会触发错误，也不会转到 `ERR` 处理程序。如果和可能超过 `9223372036854775807`，你必须自己检查范围。\n\n由于 `fixed` 值只是按 1e8 缩放的普通整数，同一条指令也能对它们相加；只有乘法和除法需要重新缩放。\n\n从未写入的变量读作 0。"
+    },
+    "SUB": {
+      "title": "减法",
+      "group": "算术",
+      "documentation": "`@dest = $dest - $var`，按**有符号** 64 位整数计算。\n\n下溢会静默回绕。当余额被当作无符号数时就会出问题：`0 - 1` 变成 `0xffffffffffffffff`，在有符号分支指令中它被视为 `-1`，但如果之后把它传给 API 函数，就会被读成一个巨大的数。\n\n与 `ADD` 一样，`fixed` 操作数不需要重新缩放。\n\n从未写入的变量读作 0。"
+    },
+    "MUL": {
+      "title": "乘法",
+      "group": "算术",
+      "documentation": "`@dest = $dest * $var`，按**有符号** 64 位整数计算，溢出时截断为 64 位。\n\n溢出是静默的，而且很容易发生：两个约 4e9 的值就已超出范围。需要宽的中间结果时，请改用 `MDV`——它在除法前以 128 位进行乘法。\n\n对于 `fixed` 操作数，结果需要再除以 1e8 缩放回来，因此 SmartC 会在 `MUL` 之后加上 `DIV @dest $f100000000`。\n\n从未写入的变量读作 0。"
+    },
+    "DIV": {
+      "title": "除法",
+      "group": "算术",
+      "documentation": "`@dest = $dest / $var`，按**有符号** 64 位整数计算，向零截断。\n\n**除以零是致命的。**没有错误处理程序时，合约会以 *Division by zero* 被标记为死亡，余额被永久困住；安装了 `ERR :label` 处理程序时，执行会跳转到处理程序。请检查除数，或安装处理程序。\n\n从未写入的除数同样视为零，会触发同样的错误。\n\n对于 `fixed` 操作数，被除数需要先乘以 1e8，因此 SmartC 会在 `DIV` 之前生成 `MUL @dest $f100000000`——或者在可能时生成一条 `MDV`。"
+    },
+    "MOD": {
+      "title": "取模",
+      "group": "算术",
+      "documentation": "`@dest = $dest % $var`，**有符号**除法的余数，向零截断。结果的符号与被除数相同：`-7 % 3` 是 `-1`，而不是 `2`。\n\n**对零取模是致命的**，与 `DIV` 完全相同：除非安装了 `ERR :label` 处理程序，否则合约会以 *Division by zero ( mod 0 )* 死亡。从未写入的除数视为零。\n\n从未写入的变量读作 0。"
+    },
+    "POW": {
+      "title": "幂运算",
+      "group": "算术",
+      "documentation": "`@dest = $dest ^ ($var / 1e8)`，截断为整数。\n\n指数是**定点数**，不是整数：要求平方，操作数必须为 `200000000`（即 `2.0`）。这使得分数次幂——开方——成为可能：指数 `50000000`（`0.5`）即求平方根。\n\n底数按有符号整数读取。如果为零或负数，结果为 `0`。当结果不是数字或超出正 64 位范围时，结果也会被强制为 `0`，因此失败的 `POW` 是静默的——如果这很重要，请检查结果是否为零。\n\n与其他算术指令不同，这条指令内部以浮点计算，因此非常大的结果在截断前会损失精度。\n\n从未写入的变量读作 0。"
+    },
+    "MDV": {
+      "title": "先乘后除",
+      "group": "算术",
+      "documentation": "`@dest = ($dest * $var1) / $var2`，中间乘积以 **128 位**精度计算，只有最终的商被截断回 64 位。\n\n这就是 `MDV` 存在的原因：先 `MUL` 再 `DIV` 会在中间结果上溢出，而 `MDV` 不会。它是计算百分比、比例和 `fixed` 乘法的正确指令——SmartC 为 `fixed * fixed` 生成它，并以 `$f100000000` 作为除数。\n\n与 `DIV` 不同，**除数为零并不致命**：结果就是 `0`，执行继续。这在默认情况下是安全的，但也意味着错误的除数会静默失败，而不会到达你的 `ERR` 处理程序。\n\n它有 13 字节，是较大的指令之一，但仍比它所替代的 `MUL`/`DIV` 组合更小、更精确。\n\n从未写入的变量读作 0。"
+    },
+    "INC": {
+      "title": "自增",
+      "group": "算术",
+      "documentation": "`@dest = $dest + 1`，溢出时静默回绕。\n\n它只有 5 字节，比 `ADD @dest $one` 小 4 字节，而且不需要保存 1 的常量变量。\n\nSmartC 为 `long` 的 `++` 生成它。注意：`fixed` 的 `++` *不是* `INC`——对 fixed 值自增意味着加 1.0，因此编译器改为生成 `ADD @dest $f100000000`。"
+    },
+    "DEC": {
+      "title": "自减",
+      "group": "算术",
+      "documentation": "`@dest = $dest - 1`，下溢时静默回绕——对零自减得到 `0xffffffffffffffff`。\n\n它只有 5 字节，比 `SUB @dest $one` 小 4 字节，而且不需要保存 1 的常量变量。\n\nSmartC 为 `long` 的 `--` 生成它。对于 `fixed`，编译器改为生成 `SUB @dest $f100000000`，因为对 fixed 值自减意味着减去 1.0。"
+    },
+    "NOT": {
+      "title": "按位取反",
+      "group": "算术",
+      "documentation": "`@dest = ~$dest`——64 位中的每一位都被原地翻转。\n\n这是按位补码，而不是逻辑非：对 `0` 执行 `NOT` 得到 `0xffffffffffffffff`（有符号 `-1`），而不是 `1`。SmartC 为 `long` 和 `fixed` 操作数的 `~` 生成它；逻辑 `!` 则编译为分支。\n\n二进制补码取负就是 `NOT` 之后再 `INC`。"
+    },
+    "CLR": {
+      "title": "清零",
+      "group": "算术",
+      "documentation": "将 `@dest` 设为零。\n\n它只有 5 字节，是将变量清零最便宜的方式：`SET @dest #0000000000000000` 需要 13 字节，`SET @dest $zero` 需要 9 字节外加一个保存零的变量。\n\n代码生成器会把字面量 `0` 的赋值直接转换为 `CLR`，因此 `x = 0;` 永远不会经过 `SET`。"
+    },
+    "SHL": {
+      "title": "左移",
+      "group": "算术",
+      "documentation": "`@dest = $dest << $var`，作用于原始 64 位字，移出顶部的位被丢弃。\n\n移位数按**有符号**读取，然后限制在 `0..63`：负数变为 `0`（不移位），大于 63 的变为 `63`。因此与 C 不同，这里过宽的移位是明确定义的，而不是未定义行为。\n\n只要没有位从顶部移出，左移 *n* 位就相当于乘以 2ⁿ。\n\n从未写入的变量读作 0。"
+    },
+    "SHR": {
+      "title": "右移",
+      "group": "算术",
+      "documentation": "`@dest = $dest >> $var`，对原始 64 位字进行**逻辑**移位：顶部补零，不保留符号位。\n\n移位数按有符号读取并限制在 `0..63`，与 `SHL` 完全相同。\n\n由于是逻辑移位而不是算术移位，它只对按无符号解释的值相当于除以 2ⁿ。对负数右移会把它变成一个很大的正数——如果需要有符号除法，请使用 `DIV`。\n\n从未写入的变量读作 0。"
+    },
+    "BOR": {
+      "title": "按位或",
+      "group": "算术",
+      "documentation": "`@dest = $dest | $var`，对整个 64 位字逐位计算。\n\n纯按位运算——没有符号的概念，也不会溢出。注意助记符是 `BOR`，而不是 `OR`——汇编器不接受 `OR`。\n\n从未写入的变量读作 0。"
+    },
+    "AND": {
+      "title": "按位与",
+      "group": "算术",
+      "documentation": "`@dest = $dest & $var`，对整个 64 位字逐位计算。\n\n纯按位运算——没有符号的概念，也不会溢出。这是从打包字中屏蔽出若干位的常用方式；SmartC 为 `&` 和位域读取生成它。\n\n从未写入的变量读作 0。"
+    },
+    "XOR": {
+      "title": "按位异或",
+      "group": "算术",
+      "documentation": "`@dest = $dest ^ $var`，对整个 64 位字逐位计算。\n\n纯按位运算——没有符号的概念，也不会溢出。值与自身 `XOR` 可以用 9 字节将其清零，但 `CLR` 只需 5 字节。\n\n从未写入的变量读作 0。"
+    },
+    "SET": {
+      "title": "设置 / 移动数据",
+      "group": "内存",
+      "documentation": "指令集的主力：把一个值赋给内存单元。这一个助记符背后隐藏着六个不同的操作码，汇编器仅根据操作数的形式在它们之间选择。\n\n**直接**\n\n* `SET @dest #hex` —— 加载一个 64 位字面量。字面量必须恰好是 16 位小写十六进制数字。它有 13 字节，是最昂贵的形式，这正是 `#pragma maxConstVars` 存在的原因：它把常用常量放进变量，重复使用时只需 9 字节而不是 13 字节。\n* `SET @dest $var` —— 将一个变量复制到另一个变量。\n\n**通过指针读取**\n\n* `SET @dest $($ptr)` —— 从 `$ptr` 中保存的地址加载。\n* `SET @dest $($ptr + $idx)` —— 从 `$ptr + $idx` 加载，`array[i]` 和 `struct->member` 读取背后就是这种形式。\n\n**通过指针写入**\n\n* `SET @($ptr) $var` —— 将 `$var` 存到 `$ptr` 中保存的地址。\n* `SET @($ptr + $idx) $var` —— 存到 `$ptr + $idx`，`array[i] = x` 背后就是这种形式。\n\n注意语法上的不对称：`@` 标记被写入的单元，`$` 标记被读取的值，因此间接读取和间接写入的区别仅在于括号出现在哪一侧。\n\n`$ptr`/`$idx` 中的地址是**单元索引，而不是字节偏移**——每个内存单元都是一个 64 位字。\n\n四种间接形式都会进行边界检查，越界是**致命的**：有效地址小于 0 或大于 `32 × dataPages` 会以 *Variable address out of range* 终结合约，除非安装了 `ERR :label` 处理程序。因此野指针会让合约崩溃，而不是悄悄破坏相邻单元。\n\n从未写入的变量读作 0。"
+    },
+    "PSH": {
+      "title": "压入用户栈",
+      "group": "栈",
+      "documentation": "将 `$var` 的副本压入**用户栈**。\n\n用户栈与 `JSR`/`RET` 使用的代码栈是分开的，大小由 `#pragma userStackPages` 设置——每页 16 个条目，最多 10 页。\n\n值得了解：SmartC **不**通过这个栈传递参数。调用会用 `SET` 把每个参数直接赋给被调函数的参数变量，返回值则通过 `r0` 返回。真正被压入的是：\n\n* 调用方正在使用的寄存器，因为被调函数可能覆盖它们，所以在调用期间保存\n* 调用为**递归**时当前作用域的变量——正是这种情况让 `#pragma userStackPages` 变得重要\n\n从未写入的变量压入 0。"
+    },
+    "POP": {
+      "title": "从用户栈弹出",
+      "group": "栈",
+      "documentation": "从**用户栈**移除栈顶值并存入 `@dest`。\n\n从空栈弹出是一个错误：合约会以 *User Stack buffer underflow* 被标记为死亡，除非安装了 `ERR :label` 处理程序——此时执行会在处理程序处继续。手写的 `asm { }` 块压栈与弹栈次数不匹配时就会遇到这个错误。\n\n没有不移除就读取栈顶的指令，也无法按索引访问；如果需要使用两次该值，请把它弹出到变量中。"
+    },
+    "FUN": {
+      "title": "调用 API 函数",
+      "group": "API",
+      "documentation": "调用区块链的某个内置 API 函数——这是机器访问自身内存之外的唯一途径，用于读取交易、发送 Signa、计算哈希、操作资产和映射等。\n\n六个操作码共用这个助记符，依据调用是否返回值以及接受几个参数来选择。在语法中返回槽位于**最前面**，在函数名之前：\n\n* `FUN name` / `FUN name $a` / `FUN name $a $b` —— 无返回值\n* `FUN @dest name` / `FUN @dest name $a` / `FUN @dest name $a $b` —— 结果写入 `@dest`\n\n两个参数是硬性上限。需要更多数据的函数都通过 **A 和 B 寄存器**传递——各有四个 64 位字——这就是为什么大量 AT 代码都是一串 `set_A1`/`set_B2` 调用，然后才是真正的调用。以错误形式调用函数，或使用机器不认识的名称，都会终结合约。\n\n**这是昂贵的指令。**每个 `FUN` 消耗 **10 步**，而其他所有指令只需 1 步，因此 API 调用主导了典型合约的 gas 开销。把重复的 `FUN` 移出循环通常是能获得的最大收益，这也正是 `#pragma optimizationLevel 3` 要寻找的。\n\n名称在汇编时被解析为 2 字节的 API 代码；将鼠标悬停在 API 函数名上即可查看其代码。"
+    }
+  }
+}

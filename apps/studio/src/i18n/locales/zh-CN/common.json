@@ -1,0 +1,93 @@
+{
+  "actions": {
+    "cancel": "取消",
+    "close": "关闭",
+    "confirm": "确认",
+    "create": "创建",
+    "delete": "删除",
+    "disconnect": "断开连接",
+    "download": "下载",
+    "finish": "完成",
+    "next": "下一步",
+    "open": "打开",
+    "previous": "上一步",
+    "rename": "重命名",
+    "save": "保存"
+  },
+  "confirm": {
+    "title": "确认操作",
+    "description": "确定要执行此操作吗？"
+  },
+  "sidebar": {
+    "home": "首页",
+    "projects": "项目",
+    "addProject": "添加新项目",
+    "importProject": "导入项目（zip）",
+    "selectOpenedFile": "定位已打开的文件",
+    "createProject": "创建新项目",
+    "alpha": "Alpha",
+    "prerelease": "v{version} · 实验版本——可能存在粗糙之处和不兼容的变更",
+    "resize": "拖动以调整侧边栏宽度",
+    "toggle": "显示/隐藏侧边栏",
+    "mobileTitle": "侧边栏",
+    "mobileDescription": "显示移动端侧边栏。"
+  },
+  "import": {
+    "done": {
+      "other": "已导入 {count} 个文件"
+    },
+    "doneWithSkipped": {
+      "other": "已导入 {count} 个文件（跳过 {skipped} 个）"
+    }
+  },
+  "climate": {
+    "label": "配色主题"
+  },
+  "wallet": {
+    "connect": "连接钱包",
+    "connectTestnet": "连接到 Testnet",
+    "connectMainnet": "连接到 Mainnet",
+    "connectionIssue": "连接问题",
+    "expectedNetwork": "预期网络：{network}",
+    "ready": "已准备好部署合约",
+    "account": "账户",
+    "balance": "余额",
+    "testnet": "Testnet",
+    "mainnet": "Mainnet"
+  },
+  "editor": {
+    "format": "格式化文档（{hotkey}）",
+    "download": "下载此文件（{hotkey}）",
+    "unsaved": "有未保存的更改（{hotkey}）",
+    "allSaved": "已全部保存",
+    "saveAction": "保存文件",
+    "downloadAction": "下载文件",
+    "saved": "文件已保存！",
+    "saveFailed": "无法保存文件：{message}"
+  },
+  "files": {
+    "loading": "加载中…",
+    "loadError": "加载文件出错",
+    "unsupported": "已不再支持此文件类型（“{type}”）。",
+    "nameTaken": "此文件夹中已存在名为 {name} 的文件",
+    "folderNameTaken": "此处已存在名为 {name} 的文件夹",
+    "deleteRoot": "无法删除根文件夹",
+    "renameRoot": "无法重命名根文件夹"
+  },
+  "pages": {
+    "deploy": "部署",
+    "notCompiling": "合约无法编译，因此没有可发布的内容：{error}",
+    "compiling": "编译中…",
+    "simulate": "模拟",
+    "replayNote": "回放此测试发送的内容。单步执行时不会重新计算断言，且只能单步调试测试最后加载的合约。",
+    "replayScenario": "来自 {test}"
+  },
+  "debugDashboard": {
+    "block": "区块 {block}",
+    "step": "步 {step}",
+    "live": "● 实时",
+    "waiting": "等待调试会话…",
+    "contractStatus": "合约状态",
+    "ledgerStatus": "账本状态"
+  }
+}

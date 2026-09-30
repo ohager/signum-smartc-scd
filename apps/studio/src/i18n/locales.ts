@@ -28,6 +28,7 @@ export const LOCALES: LocaleEntry[] = [
   { id: "de", nativeLabel: "Deutsch", load: () => import("./locales/de") },
   { id: "ru", nativeLabel: "Русский", load: () => import("./locales/ru") },
   { id: "uk", nativeLabel: "Українська", load: () => import("./locales/uk") },
+  { id: "zh-CN", nativeLabel: "简体中文", load: () => import("./locales/zh-CN") },
 ];
 
 export const STORAGE_KEY = "studio.locale";

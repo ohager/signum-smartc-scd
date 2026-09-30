@@ -1,0 +1,41 @@
+{
+  "folder": {
+    "addFile": "添加文件",
+    "newFolder": "新建文件夹",
+    "downloadZip": "下载（zip）",
+    "uploadFiles": "上传文件…",
+    "importZip": "导入 ZIP…",
+    "importFolder": "导入文件夹…",
+    "folderName": "文件夹名称",
+    "renameTitle": "重命名文件夹",
+    "nameTaken": "已存在同名文件夹",
+    "deleteTitle": "删除文件夹",
+    "deleteConfirm": "删除此文件夹及其全部内容？此操作无法撤销。"
+  },
+  "file": {
+    "renameTitle": "重命名文件",
+    "fileName": "文件名",
+    "nameTaken": "已存在同名文件",
+    "deleteTitle": "删除文件",
+    "deleteConfirm": "确定要删除此文件吗？此操作无法撤销。"
+  },
+  "newFile": {
+    "title": "新建文件",
+    "type": "类型",
+    "name": "名称",
+    "smartc": "SmartC 合约（.smart.c）",
+    "scenario": "场景（.scenario.json）",
+    "test": "测试（.test.ts）"
+  },
+  "newProject": {
+    "title": "新建项目",
+    "createDescription": "向工作区添加一个新的智能合约项目。",
+    "inspectDescription": "创建一个智能合约审查项目",
+    "type": "项目类型",
+    "selectType": "选择项目类型",
+    "create": "创建新的智能合约",
+    "inspect": "审查智能合约",
+    "name": "名称",
+    "namePlaceholder": "我的新项目"
+  }
+}

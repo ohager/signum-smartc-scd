@@ -2,7 +2,7 @@
   "editor": {
     "deploy": "Deployen",
     "deployHint": "Diesen Contract auf der Chain veröffentlichen",
-    "handEdits": "Handänderungen werden beim nächsten Kompilieren überschrieben",
+    "handEdits": "Manuelle Änderungen werden beim nächsten Kompilieren überschrieben",
     "assembleFirst": "Assembliere die Datei, um ihre Seiten, ihren Speicher und ihre Bytes zu sehen."
   },
   "meta": {
