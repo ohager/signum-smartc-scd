@@ -1,0 +1,205 @@
+{
+  "validation": {
+    "syntax": "Error de sintaxis: {error}",
+    "empty": "El archivo está vacío",
+    "required": "Falta un campo obligatorio",
+    "type": "Se esperaba {expected}",
+    "value": "Debe ser uno de: {allowed}",
+    "pattern": "Debe ser un número decimal",
+    "unknownKey": "Campo desconocido: {keys}",
+    "enumMissing": "El enum \"{name}\" no está definido en \"enums\"",
+    "enumRequired": "El formato \"enum\" necesita un nombre de \"enum\"",
+    "other": "{message}",
+    "at": "Línea {line}: {message}"
+  },
+  "editor": {
+    "viewUi": "Inspector",
+    "viewJson": "JSON",
+    "invalid": {
+      "one": "Este archivo tiene {count} problema. Corrígelo en la vista JSON.",
+      "other": "Este archivo tiene {count} problemas. Corrígelos en la vista JSON."
+    },
+    "empty": "Aún no hay contratos. Añade uno para empezar a inspeccionar.",
+    "add": "Añadir contrato",
+    "refresh": "Actualizar",
+    "remove": "Quitar de la lista de seguimiento",
+    "select": "Selecciona un contrato a la izquierda."
+  },
+  "status": {
+    "running": "En ejecución",
+    "stopped": "Detenido",
+    "finished": "Terminado",
+    "frozen": "Congelado",
+    "dead": "Muerto"
+  },
+  "network": {
+    "mainnet": "Mainnet",
+    "testnet": "Testnet",
+    "custom": "Nodo propio"
+  },
+  "contract": {
+    "loading": "Cargando contrato…",
+    "notFound": "El contrato {id} no se encontró en {node}. Un contrato recién desplegado aparece en cuanto su transacción está en un bloque.",
+    "unreachable": "El nodo {node} no respondió: {message}",
+    "nodeError": "El nodo informó: {message}",
+    "retry": "Reintentar",
+    "noLabels": "Sin Label Map",
+    "tabs": {
+      "overview": "Resumen",
+      "data": "Pila de datos",
+      "maps": "Mapas"
+    }
+  },
+  "overview": {
+    "id": "Contrato",
+    "name": "Nombre",
+    "description": "Descripción",
+    "creator": "Creador",
+    "balance": "Saldo",
+    "status": "Estado",
+    "codeHash": "Hash del código",
+    "creationBlock": "Creado en el bloque",
+    "minActivation": "Activación mínima",
+    "labelMap": "Label Map",
+    "resolvedByHash": "asignado por hash del código",
+    "resolvedByPin": "fijado en esta lista de seguimiento",
+    "pinnedMissing": "La Label Map fijada \"{name}\" falta o no es válida.",
+    "ambiguous": "Varias Label Maps incluyen este hash del código. Elige una:",
+    "choose": "Usar esta",
+    "none": "Ninguna Label Map incluye este hash del código.",
+    "create": "Crear Label Map",
+    "addHash": "Añadir este hash a…",
+    "created": "Label Map creada",
+    "hashAdded": "Hash del código añadido a {name}"
+  },
+  "data": {
+    "length": "{bytes} bytes, {slots} ranuras",
+    "onlyLabelled": "Solo con etiqueta",
+    "search": "Buscar nombre, índice o valor",
+    "index": "#",
+    "name": "Nombre",
+    "value": "Valor",
+    "raw": "Bruto (hex LE)",
+    "outOfRange": "más allá de la pila de datos",
+    "select": "Selecciona una ranura para ver todas sus interpretaciones.",
+    "setLabel": "Poner etiqueta",
+    "editLabel": "Editar etiqueta",
+    "interpretations": "Interpretaciones",
+    "stringReversed": "string (invertido)",
+    "saved": "Etiqueta guardada"
+  },
+  "label": {
+    "title": "Etiqueta de la ranura {index}",
+    "name": "Nombre",
+    "format": "Formato",
+    "formatNone": "(mostrar todo)",
+    "enum": "Enum",
+    "length": "Longitud (ranuras)",
+    "comment": "Comentario",
+    "save": "Guardar",
+    "remove": "Quitar etiqueta"
+  },
+  "maps": {
+    "groups": "Grupos con etiqueta",
+    "free": "Consultar cualquier key1",
+    "key1": "key1",
+    "key1For": "key1 ({format})",
+    "valueFilter": "solo el valor (opcional)",
+    "load": "Cargar",
+    "loading": "Cargando…",
+    "more": "Cargar más",
+    "empty": "Sin entradas.",
+    "invalidKey": "No es una clave válida para este formato.",
+    "key2": "key2",
+    "value": "Valor",
+    "labelGroup": "Etiquetar este key1",
+    "saved": "Etiqueta de mapa guardada",
+    "noGroups": "Aún no hay grupos de mapas etiquetados. Consulta un key1 abajo y etiquétalo."
+  },
+  "group": {
+    "titleFixed": "Grupo de mapa para key1 {key1}",
+    "titlePattern": "Patrón de grupo de mapa",
+    "name": "Nombre",
+    "key1Format": "Formato de key1 (grupo patrón)",
+    "key2Format": "Formato de key2",
+    "valueFormat": "Formato del valor",
+    "enum": "Enum del valor",
+    "comment": "Comentario",
+    "save": "Guardar"
+  },
+  "add": {
+    "title": "Añadir contratos",
+    "network": "Red",
+    "customNode": "URL del nodo",
+    "customTestnet": "Este nodo sirve la testnet",
+    "tabs": {
+      "id": "Contrato",
+      "creator": "Creador",
+      "hash": "Hash del código"
+    },
+    "idLabel": "ID o dirección del contrato",
+    "creatorLabel": "ID o dirección de la cuenta creadora",
+    "myWallet": "Mi wallet",
+    "hashLabel": "Hash del código máquina",
+    "hashFilter": "Filtro por hash del código (opcional)",
+    "search": "Buscar",
+    "cancel": "Detener",
+    "more": "Cargar más",
+    "found": "{shown} de {total} mostrados",
+    "filter": "Filtrar resultados cargados",
+    "selectAll": "Seleccionar todos los mostrados",
+    "addSelected": {
+      "one": "Añadir {count} contrato",
+      "other": "Añadir {count} contratos"
+    },
+    "addOne": "Añadir",
+    "invalidId": "No es un ID ni una dirección de contrato.",
+    "notFound": "No hay ningún contrato {id} en esta red.",
+    "none": "No se encontró nada."
+  },
+  "labels": {
+    "tabs": {
+      "slots": "Ranuras",
+      "maps": "Mapas",
+      "enums": "Enums",
+      "hashes": "Hashes del código"
+    },
+    "generate": "Generar desde el código fuente…",
+    "add": "Añadir",
+    "edit": "Editar",
+    "remove": "Quitar",
+    "origin": "Origen",
+    "index": "Ranura",
+    "name": "Nombre",
+    "format": "Formato",
+    "length": "Longitud",
+    "key1": "key1",
+    "noEntries": "Aún no hay nada aquí.",
+    "enumName": "Nombre del enum",
+    "enumValues": "Uno por línea: valor = etiqueta",
+    "enumInvalid": "Cada línea debe decir \"valor = etiqueta\" con un valor decimal.",
+    "hash": "Hash",
+    "hashNetwork": "Red (nota)",
+    "hashNote": "Nota",
+    "hashInvalid": "Un hash del código es un número decimal.",
+    "saved": "Guardado"
+  },
+  "generate": {
+    "title": "Generar etiquetas desde el código SmartC",
+    "source": "Archivo fuente",
+    "noSources": "No hay ningún archivo .smart.c en el espacio de trabajo.",
+    "run": "Compilar y previsualizar",
+    "apply": "Aplicar",
+    "summary": "{slots} ranuras y {codeLabels} etiquetas de código de {file}. Hash del código {hash}.",
+    "untyped": "Tipos no disponibles: no se encontró la tabla de memoria del compilador, solo se generaron nombres.",
+    "conflicts": "Tus propias etiquetas prevalecen en estas ranuras:",
+    "conflict": "ranura {index}: se mantiene \"{manual}\", el compilador dice \"{compiler}\"",
+    "compileError": "Línea {line}: {message}",
+    "applied": "Etiquetas regeneradas"
+  },
+  "deploy": {
+    "inspect": "Inspeccionar",
+    "inspectHint": "Abrir este contrato en el inspector, con etiquetas generadas desde este código fuente",
+    "failed": "No se pudo preparar la inspección: {message}"
+  }
+}

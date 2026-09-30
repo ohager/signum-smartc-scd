@@ -410,6 +410,7 @@ export type MessageParams = {
   "asm-editor.hover.form.returnsOne": undefined;
   "asm-editor.hover.form.returnsTwo": undefined;
   "inspector.validation.syntax": { error: string | number };
+  "inspector.validation.empty": undefined;
   "inspector.validation.required": undefined;
   "inspector.validation.type": { expected: string | number };
   "inspector.validation.value": { allowed: string | number };

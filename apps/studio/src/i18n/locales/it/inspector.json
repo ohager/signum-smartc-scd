@@ -1,0 +1,205 @@
+{
+  "validation": {
+    "syntax": "Errore di sintassi: {error}",
+    "empty": "Il file è vuoto",
+    "required": "Manca un campo obbligatorio",
+    "type": "Atteso: {expected}",
+    "value": "Deve essere uno tra: {allowed}",
+    "pattern": "Deve essere un numero decimale",
+    "unknownKey": "Campo sconosciuto: {keys}",
+    "enumMissing": "L'enum \"{name}\" non è definito in \"enums\"",
+    "enumRequired": "Il formato \"enum\" richiede un nome di \"enum\"",
+    "other": "{message}",
+    "at": "Riga {line}: {message}"
+  },
+  "editor": {
+    "viewUi": "Inspector",
+    "viewJson": "JSON",
+    "invalid": {
+      "one": "Questo file ha {count} problema. Correggilo nella vista JSON.",
+      "other": "Questo file ha {count} problemi. Correggili nella vista JSON."
+    },
+    "empty": "Ancora nessun contratto. Aggiungine uno per iniziare l'ispezione.",
+    "add": "Aggiungi contratto",
+    "refresh": "Aggiorna",
+    "remove": "Rimuovi dalla watchlist",
+    "select": "Seleziona un contratto a sinistra."
+  },
+  "status": {
+    "running": "In esecuzione",
+    "stopped": "Fermato",
+    "finished": "Terminato",
+    "frozen": "Congelato",
+    "dead": "Morto"
+  },
+  "network": {
+    "mainnet": "Mainnet",
+    "testnet": "Testnet",
+    "custom": "Nodo personalizzato"
+  },
+  "contract": {
+    "loading": "Caricamento del contratto…",
+    "notFound": "Il contratto {id} non è stato trovato su {node}. Un contratto appena distribuito compare non appena la sua transazione è in un blocco.",
+    "unreachable": "Il nodo {node} non ha risposto: {message}",
+    "nodeError": "Il nodo ha segnalato: {message}",
+    "retry": "Riprova",
+    "noLabels": "Nessuna Label Map",
+    "tabs": {
+      "overview": "Panoramica",
+      "data": "Stack dei dati",
+      "maps": "Map"
+    }
+  },
+  "overview": {
+    "id": "Contratto",
+    "name": "Nome",
+    "description": "Descrizione",
+    "creator": "Creatore",
+    "balance": "Saldo",
+    "status": "Stato",
+    "codeHash": "Hash del codice",
+    "creationBlock": "Creato al blocco",
+    "minActivation": "Attivazione minima",
+    "labelMap": "Label Map",
+    "resolvedByHash": "associata tramite hash del codice",
+    "resolvedByPin": "fissata in questa watchlist",
+    "pinnedMissing": "La Label Map fissata \"{name}\" manca o non è valida.",
+    "ambiguous": "Più Label Map contengono questo hash del codice. Scegline una:",
+    "choose": "Usa questa",
+    "none": "Nessuna Label Map contiene questo hash del codice.",
+    "create": "Crea Label Map",
+    "addHash": "Aggiungi questo hash a…",
+    "created": "Label Map creata",
+    "hashAdded": "Hash del codice aggiunto a {name}"
+  },
+  "data": {
+    "length": "{bytes} byte, {slots} slot",
+    "onlyLabelled": "Solo con etichetta",
+    "search": "Cerca nome, indice o valore",
+    "index": "#",
+    "name": "Nome",
+    "value": "Valore",
+    "raw": "Grezzo (hex LE)",
+    "outOfRange": "oltre lo stack dei dati",
+    "select": "Seleziona uno slot per vederne tutte le interpretazioni.",
+    "setLabel": "Imposta etichetta",
+    "editLabel": "Modifica etichetta",
+    "interpretations": "Interpretazioni",
+    "stringReversed": "string (invertita)",
+    "saved": "Etichetta salvata"
+  },
+  "label": {
+    "title": "Etichetta per lo slot {index}",
+    "name": "Nome",
+    "format": "Formato",
+    "formatNone": "(mostra tutto)",
+    "enum": "Enum",
+    "length": "Lunghezza (slot)",
+    "comment": "Commento",
+    "save": "Salva",
+    "remove": "Rimuovi etichetta"
+  },
+  "maps": {
+    "groups": "Gruppi con etichetta",
+    "free": "Interroga un key1 qualsiasi",
+    "key1": "key1",
+    "key1For": "key1 ({format})",
+    "valueFilter": "solo il valore (facoltativo)",
+    "load": "Carica",
+    "loading": "Caricamento…",
+    "more": "Carica altri",
+    "empty": "Nessuna voce.",
+    "invalidKey": "Non è una chiave valida per questo formato.",
+    "key2": "key2",
+    "value": "Valore",
+    "labelGroup": "Etichetta questo key1",
+    "saved": "Etichetta della map salvata",
+    "noGroups": "Ancora nessun gruppo di map etichettato. Interroga un key1 qui sotto ed etichettalo."
+  },
+  "group": {
+    "titleFixed": "Gruppo di map per key1 {key1}",
+    "titlePattern": "Modello di gruppo di map",
+    "name": "Nome",
+    "key1Format": "Formato di key1 (gruppo modello)",
+    "key2Format": "Formato di key2",
+    "valueFormat": "Formato del valore",
+    "enum": "Enum del valore",
+    "comment": "Commento",
+    "save": "Salva"
+  },
+  "add": {
+    "title": "Aggiungi contratti",
+    "network": "Rete",
+    "customNode": "URL del nodo",
+    "customTestnet": "Questo nodo serve la testnet",
+    "tabs": {
+      "id": "Contratto",
+      "creator": "Creatore",
+      "hash": "Hash del codice"
+    },
+    "idLabel": "ID o indirizzo del contratto",
+    "creatorLabel": "ID o indirizzo dell'account creatore",
+    "myWallet": "Il mio wallet",
+    "hashLabel": "Hash del codice macchina",
+    "hashFilter": "Filtro per hash del codice (facoltativo)",
+    "search": "Cerca",
+    "cancel": "Ferma",
+    "more": "Carica altri",
+    "found": "{shown} di {total} mostrati",
+    "filter": "Filtra i risultati caricati",
+    "selectAll": "Seleziona tutti quelli mostrati",
+    "addSelected": {
+      "one": "Aggiungi {count} contratto",
+      "other": "Aggiungi {count} contratti"
+    },
+    "addOne": "Aggiungi",
+    "invalidId": "Non è un ID né un indirizzo di contratto.",
+    "notFound": "Nessun contratto {id} su questa rete.",
+    "none": "Nessun risultato."
+  },
+  "labels": {
+    "tabs": {
+      "slots": "Slot",
+      "maps": "Map",
+      "enums": "Enum",
+      "hashes": "Hash del codice"
+    },
+    "generate": "Genera dal sorgente…",
+    "add": "Aggiungi",
+    "edit": "Modifica",
+    "remove": "Rimuovi",
+    "origin": "Origine",
+    "index": "Slot",
+    "name": "Nome",
+    "format": "Formato",
+    "length": "Lunghezza",
+    "key1": "key1",
+    "noEntries": "Ancora niente qui.",
+    "enumName": "Nome dell'enum",
+    "enumValues": "Uno per riga: valore = etichetta",
+    "enumInvalid": "Ogni riga deve essere \"valore = etichetta\" con un valore decimale.",
+    "hash": "Hash",
+    "hashNetwork": "Rete (nota)",
+    "hashNote": "Nota",
+    "hashInvalid": "Un hash del codice è un numero decimale.",
+    "saved": "Salvato"
+  },
+  "generate": {
+    "title": "Genera etichette dal sorgente SmartC",
+    "source": "File sorgente",
+    "noSources": "Nessun file .smart.c nel workspace.",
+    "run": "Compila e mostra anteprima",
+    "apply": "Applica",
+    "summary": "{slots} slot e {codeLabels} etichette di codice da {file}. Hash del codice {hash}.",
+    "untyped": "Tipi non disponibili: la tabella di memoria del compilatore non è stata trovata, sono stati generati solo i nomi.",
+    "conflicts": "Su questi slot prevalgono le tue etichette:",
+    "conflict": "slot {index}: mantenuto \"{manual}\", il compilatore dice \"{compiler}\"",
+    "compileError": "Riga {line}: {message}",
+    "applied": "Etichette rigenerate"
+  },
+  "deploy": {
+    "inspect": "Ispeziona",
+    "inspectHint": "Apri questo contratto nell'inspector, con etichette generate da questo sorgente",
+    "failed": "Impossibile preparare l'ispezione: {message}"
+  }
+}

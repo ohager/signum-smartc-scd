@@ -16,7 +16,7 @@ import {
 
 function current(text: string): LabelMap {
   const r = parseLabelMap(text);
-  if (!r.ok) throw new Error(r.errors[0]?.message ?? "invalid Label Map");
+  if (!r.ok) throw new Error(r.errors[0]?.message ?? "invalid Label Map"); // i18n-ignore — unreachable: a failed parse always has an error
   return r.value;
 }
 

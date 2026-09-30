@@ -146,6 +146,7 @@ export function MapsTab({
                   onClick={() => setOpen((o) => ({ ...o, [id]: activeKey ? null : group.key1 }))}
                 >
                   {activeKey ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  {/* i18n-ignore — `key1` is a code term (GLOSSARY) */}
                   {group.name} <span className="font-mono text-xs text-muted-foreground">key1 {group.key1}</span>
                 </button>
                 {activeKey && (

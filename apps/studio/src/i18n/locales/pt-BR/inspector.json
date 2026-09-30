@@ -1,0 +1,205 @@
+{
+  "validation": {
+    "syntax": "Erro de sintaxe: {error}",
+    "empty": "O arquivo está vazio",
+    "required": "Campo obrigatório ausente",
+    "type": "Esperado: {expected}",
+    "value": "Deve ser um de: {allowed}",
+    "pattern": "Deve ser um número decimal",
+    "unknownKey": "Campo desconhecido: {keys}",
+    "enumMissing": "O enum \"{name}\" não está definido em \"enums\"",
+    "enumRequired": "O formato \"enum\" precisa de um nome de \"enum\"",
+    "other": "{message}",
+    "at": "Linha {line}: {message}"
+  },
+  "editor": {
+    "viewUi": "Inspetor",
+    "viewJson": "JSON",
+    "invalid": {
+      "one": "Este arquivo tem {count} problema. Corrija-o na visualização JSON.",
+      "other": "Este arquivo tem {count} problemas. Corrija-os na visualização JSON."
+    },
+    "empty": "Nenhum contrato ainda. Adicione um para começar a inspecionar.",
+    "add": "Adicionar contrato",
+    "refresh": "Atualizar",
+    "remove": "Remover da lista de observação",
+    "select": "Selecione um contrato à esquerda."
+  },
+  "status": {
+    "running": "Em execução",
+    "stopped": "Parado",
+    "finished": "Finalizado",
+    "frozen": "Congelado",
+    "dead": "Morto"
+  },
+  "network": {
+    "mainnet": "Mainnet",
+    "testnet": "Testnet",
+    "custom": "Nó personalizado"
+  },
+  "contract": {
+    "loading": "Carregando contrato…",
+    "notFound": "O contrato {id} não foi encontrado em {node}. Um contrato recém-implantado aparece assim que sua transação estiver em um bloco.",
+    "unreachable": "O nó {node} não respondeu: {message}",
+    "nodeError": "O nó informou: {message}",
+    "retry": "Tentar novamente",
+    "noLabels": "Sem Label Map",
+    "tabs": {
+      "overview": "Visão geral",
+      "data": "Pilha de dados",
+      "maps": "Mapas"
+    }
+  },
+  "overview": {
+    "id": "Contrato",
+    "name": "Nome",
+    "description": "Descrição",
+    "creator": "Criador",
+    "balance": "Saldo",
+    "status": "Status",
+    "codeHash": "Hash do código",
+    "creationBlock": "Criado no bloco",
+    "minActivation": "Ativação mínima",
+    "labelMap": "Label Map",
+    "resolvedByHash": "associada pelo hash do código",
+    "resolvedByPin": "fixada nesta lista de observação",
+    "pinnedMissing": "A Label Map fixada \"{name}\" está ausente ou é inválida.",
+    "ambiguous": "Várias Label Maps contêm este hash do código. Escolha uma:",
+    "choose": "Usar esta",
+    "none": "Nenhuma Label Map contém este hash do código.",
+    "create": "Criar Label Map",
+    "addHash": "Adicionar este hash a…",
+    "created": "Label Map criada",
+    "hashAdded": "Hash do código adicionado a {name}"
+  },
+  "data": {
+    "length": "{bytes} bytes, {slots} slots",
+    "onlyLabelled": "Somente com rótulo",
+    "search": "Buscar nome, índice ou valor",
+    "index": "#",
+    "name": "Nome",
+    "value": "Valor",
+    "raw": "Bruto (hex LE)",
+    "outOfRange": "além da pilha de dados",
+    "select": "Selecione um slot para ver todas as interpretações.",
+    "setLabel": "Definir rótulo",
+    "editLabel": "Editar rótulo",
+    "interpretations": "Interpretações",
+    "stringReversed": "string (invertida)",
+    "saved": "Rótulo salvo"
+  },
+  "label": {
+    "title": "Rótulo do slot {index}",
+    "name": "Nome",
+    "format": "Formato",
+    "formatNone": "(mostrar tudo)",
+    "enum": "Enum",
+    "length": "Comprimento (slots)",
+    "comment": "Comentário",
+    "save": "Salvar",
+    "remove": "Remover rótulo"
+  },
+  "maps": {
+    "groups": "Grupos com rótulo",
+    "free": "Consultar qualquer key1",
+    "key1": "key1",
+    "key1For": "key1 ({format})",
+    "valueFilter": "somente o valor (opcional)",
+    "load": "Carregar",
+    "loading": "Carregando…",
+    "more": "Carregar mais",
+    "empty": "Nenhuma entrada.",
+    "invalidKey": "Não é uma chave válida para este formato.",
+    "key2": "key2",
+    "value": "Valor",
+    "labelGroup": "Rotular este key1",
+    "saved": "Rótulo do mapa salvo",
+    "noGroups": "Nenhum grupo de mapa rotulado ainda. Consulte um key1 abaixo e rotule-o."
+  },
+  "group": {
+    "titleFixed": "Grupo de mapa para key1 {key1}",
+    "titlePattern": "Padrão de grupo de mapa",
+    "name": "Nome",
+    "key1Format": "Formato de key1 (grupo padrão)",
+    "key2Format": "Formato de key2",
+    "valueFormat": "Formato do valor",
+    "enum": "Enum do valor",
+    "comment": "Comentário",
+    "save": "Salvar"
+  },
+  "add": {
+    "title": "Adicionar contratos",
+    "network": "Rede",
+    "customNode": "URL do nó",
+    "customTestnet": "Este nó atende a testnet",
+    "tabs": {
+      "id": "Contrato",
+      "creator": "Criador",
+      "hash": "Hash do código"
+    },
+    "idLabel": "ID ou endereço do contrato",
+    "creatorLabel": "ID ou endereço da conta criadora",
+    "myWallet": "Minha carteira",
+    "hashLabel": "Hash do código de máquina",
+    "hashFilter": "Filtro por hash do código (opcional)",
+    "search": "Buscar",
+    "cancel": "Parar",
+    "more": "Carregar mais",
+    "found": "{shown} de {total} exibidos",
+    "filter": "Filtrar resultados carregados",
+    "selectAll": "Selecionar todos os exibidos",
+    "addSelected": {
+      "one": "Adicionar {count} contrato",
+      "other": "Adicionar {count} contratos"
+    },
+    "addOne": "Adicionar",
+    "invalidId": "Não é um ID nem um endereço de contrato.",
+    "notFound": "Nenhum contrato {id} nesta rede.",
+    "none": "Nada encontrado."
+  },
+  "labels": {
+    "tabs": {
+      "slots": "Slots",
+      "maps": "Mapas",
+      "enums": "Enums",
+      "hashes": "Hashes do código"
+    },
+    "generate": "Gerar a partir do código-fonte…",
+    "add": "Adicionar",
+    "edit": "Editar",
+    "remove": "Remover",
+    "origin": "Origem",
+    "index": "Slot",
+    "name": "Nome",
+    "format": "Formato",
+    "length": "Comprimento",
+    "key1": "key1",
+    "noEntries": "Nada aqui ainda.",
+    "enumName": "Nome do enum",
+    "enumValues": "Um por linha: valor = rótulo",
+    "enumInvalid": "Cada linha deve ser \"valor = rótulo\" com um valor decimal.",
+    "hash": "Hash",
+    "hashNetwork": "Rede (nota)",
+    "hashNote": "Nota",
+    "hashInvalid": "Um hash do código é um número decimal.",
+    "saved": "Salvo"
+  },
+  "generate": {
+    "title": "Gerar rótulos a partir do código SmartC",
+    "source": "Arquivo-fonte",
+    "noSources": "Nenhum arquivo .smart.c no espaço de trabalho.",
+    "run": "Compilar e visualizar",
+    "apply": "Aplicar",
+    "summary": "{slots} slots e {codeLabels} rótulos de código de {file}. Hash do código {hash}.",
+    "untyped": "Tipos indisponíveis: a tabela de memória do compilador não foi encontrada, apenas nomes foram gerados.",
+    "conflicts": "Seus próprios rótulos prevalecem nestes slots:",
+    "conflict": "slot {index}: mantido \"{manual}\", o compilador diz \"{compiler}\"",
+    "compileError": "Linha {line}: {message}",
+    "applied": "Rótulos regenerados"
+  },
+  "deploy": {
+    "inspect": "Inspecionar",
+    "inspectHint": "Abrir este contrato no inspetor, com rótulos gerados a partir deste código-fonte",
+    "failed": "Não foi possível preparar a inspeção: {message}"
+  }
+}

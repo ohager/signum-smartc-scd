@@ -87,9 +87,9 @@ export function parseDocument<T>(text: string, schema: z.ZodType<T>): Parsed<T> 
       errors: [
         {
           path: [],
-          message: t("inspector.validation.syntax", {
-            error: first ? printParseErrorCode(first.error) : "empty document",
-          }),
+          message: first
+            ? t("inspector.validation.syntax", { error: printParseErrorCode(first.error) })
+            : t("inspector.validation.empty"),
           ...offsetToPosition(text, offset),
         },
       ],

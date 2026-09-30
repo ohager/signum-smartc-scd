@@ -1,0 +1,205 @@
+{
+  "validation": {
+    "syntax": "Erreur de syntaxe : {error}",
+    "empty": "Le fichier est vide",
+    "required": "Champ obligatoire manquant",
+    "type": "Attendu : {expected}",
+    "value": "Doit être l’une des valeurs : {allowed}",
+    "pattern": "Doit être un nombre décimal",
+    "unknownKey": "Champ inconnu : {keys}",
+    "enumMissing": "L’enum « {name} » n’est pas défini dans « enums »",
+    "enumRequired": "Le format « enum » nécessite un nom d’« enum »",
+    "other": "{message}",
+    "at": "Ligne {line} : {message}"
+  },
+  "editor": {
+    "viewUi": "Inspecteur",
+    "viewJson": "JSON",
+    "invalid": {
+      "one": "Ce fichier comporte {count} problème. Corrigez-le dans la vue JSON.",
+      "other": "Ce fichier comporte {count} problèmes. Corrigez-les dans la vue JSON."
+    },
+    "empty": "Aucun contrat pour l’instant. Ajoutez-en un pour commencer l’inspection.",
+    "add": "Ajouter un contrat",
+    "refresh": "Actualiser",
+    "remove": "Retirer de la liste de suivi",
+    "select": "Sélectionnez un contrat à gauche."
+  },
+  "status": {
+    "running": "En cours",
+    "stopped": "Arrêté",
+    "finished": "Terminé",
+    "frozen": "Gelé",
+    "dead": "Mort"
+  },
+  "network": {
+    "mainnet": "Mainnet",
+    "testnet": "Testnet",
+    "custom": "Nœud personnalisé"
+  },
+  "contract": {
+    "loading": "Chargement du contrat…",
+    "notFound": "Le contrat {id} est introuvable sur {node}. Un contrat tout juste déployé apparaît dès que sa transaction est dans un bloc.",
+    "unreachable": "Le nœud {node} n’a pas répondu : {message}",
+    "nodeError": "Le nœud a signalé : {message}",
+    "retry": "Réessayer",
+    "noLabels": "Aucune Label Map",
+    "tabs": {
+      "overview": "Aperçu",
+      "data": "Pile de données",
+      "maps": "Maps"
+    }
+  },
+  "overview": {
+    "id": "Contrat",
+    "name": "Nom",
+    "description": "Description",
+    "creator": "Créateur",
+    "balance": "Solde",
+    "status": "Statut",
+    "codeHash": "Hash du code",
+    "creationBlock": "Créé au bloc",
+    "minActivation": "Activation minimale",
+    "labelMap": "Label Map",
+    "resolvedByHash": "associée par hash du code",
+    "resolvedByPin": "épinglée dans cette liste de suivi",
+    "pinnedMissing": "La Label Map épinglée « {name} » est absente ou invalide.",
+    "ambiguous": "Plusieurs Label Maps contiennent ce hash du code. Choisissez-en une :",
+    "choose": "Utiliser celle-ci",
+    "none": "Aucune Label Map ne contient ce hash du code.",
+    "create": "Créer une Label Map",
+    "addHash": "Ajouter ce hash à…",
+    "created": "Label Map créée",
+    "hashAdded": "Hash du code ajouté à {name}"
+  },
+  "data": {
+    "length": "{bytes} octets, {slots} emplacements",
+    "onlyLabelled": "Uniquement étiquetés",
+    "search": "Rechercher un nom, un index ou une valeur",
+    "index": "#",
+    "name": "Nom",
+    "value": "Valeur",
+    "raw": "Brut (hex LE)",
+    "outOfRange": "au-delà de la pile de données",
+    "select": "Sélectionnez un emplacement pour voir toutes ses interprétations.",
+    "setLabel": "Définir l’étiquette",
+    "editLabel": "Modifier l’étiquette",
+    "interpretations": "Interprétations",
+    "stringReversed": "string (inversé)",
+    "saved": "Étiquette enregistrée"
+  },
+  "label": {
+    "title": "Étiquette de l’emplacement {index}",
+    "name": "Nom",
+    "format": "Format",
+    "formatNone": "(tout afficher)",
+    "enum": "Enum",
+    "length": "Longueur (emplacements)",
+    "comment": "Commentaire",
+    "save": "Enregistrer",
+    "remove": "Supprimer l’étiquette"
+  },
+  "maps": {
+    "groups": "Groupes étiquetés",
+    "free": "Interroger n’importe quel key1",
+    "key1": "key1",
+    "key1For": "key1 ({format})",
+    "valueFilter": "uniquement la valeur (facultatif)",
+    "load": "Charger",
+    "loading": "Chargement…",
+    "more": "Charger plus",
+    "empty": "Aucune entrée.",
+    "invalidKey": "Ce n’est pas une clé valide pour ce format.",
+    "key2": "key2",
+    "value": "Valeur",
+    "labelGroup": "Étiqueter ce key1",
+    "saved": "Étiquette de map enregistrée",
+    "noGroups": "Aucun groupe de map étiqueté pour l’instant. Interrogez un key1 ci-dessous et étiquetez-le."
+  },
+  "group": {
+    "titleFixed": "Groupe de map pour key1 {key1}",
+    "titlePattern": "Modèle de groupe de map",
+    "name": "Nom",
+    "key1Format": "Format de key1 (groupe modèle)",
+    "key2Format": "Format de key2",
+    "valueFormat": "Format de la valeur",
+    "enum": "Enum de la valeur",
+    "comment": "Commentaire",
+    "save": "Enregistrer"
+  },
+  "add": {
+    "title": "Ajouter des contrats",
+    "network": "Réseau",
+    "customNode": "URL du nœud",
+    "customTestnet": "Ce nœud sert le testnet",
+    "tabs": {
+      "id": "Contrat",
+      "creator": "Créateur",
+      "hash": "Hash du code"
+    },
+    "idLabel": "ID ou adresse du contrat",
+    "creatorLabel": "ID ou adresse du compte créateur",
+    "myWallet": "Mon wallet",
+    "hashLabel": "Hash du code machine",
+    "hashFilter": "Filtre par hash du code (facultatif)",
+    "search": "Rechercher",
+    "cancel": "Arrêter",
+    "more": "Charger plus",
+    "found": "{shown} sur {total} affichés",
+    "filter": "Filtrer les résultats chargés",
+    "selectAll": "Tout sélectionner (affichés)",
+    "addSelected": {
+      "one": "Ajouter {count} contrat",
+      "other": "Ajouter {count} contrats"
+    },
+    "addOne": "Ajouter",
+    "invalidId": "Ce n’est ni un ID ni une adresse de contrat.",
+    "notFound": "Aucun contrat {id} sur ce réseau.",
+    "none": "Aucun résultat."
+  },
+  "labels": {
+    "tabs": {
+      "slots": "Emplacements",
+      "maps": "Maps",
+      "enums": "Enums",
+      "hashes": "Hashes du code"
+    },
+    "generate": "Générer depuis la source…",
+    "add": "Ajouter",
+    "edit": "Modifier",
+    "remove": "Supprimer",
+    "origin": "Origine",
+    "index": "Emplacement",
+    "name": "Nom",
+    "format": "Format",
+    "length": "Longueur",
+    "key1": "key1",
+    "noEntries": "Rien ici pour l’instant.",
+    "enumName": "Nom de l’enum",
+    "enumValues": "Une par ligne : valeur = étiquette",
+    "enumInvalid": "Chaque ligne doit être de la forme « valeur = étiquette » avec une valeur décimale.",
+    "hash": "Hash",
+    "hashNetwork": "Réseau (note)",
+    "hashNote": "Note",
+    "hashInvalid": "Un hash du code est un nombre décimal.",
+    "saved": "Enregistré"
+  },
+  "generate": {
+    "title": "Générer des étiquettes depuis la source SmartC",
+    "source": "Fichier source",
+    "noSources": "Aucun fichier .smart.c dans l’espace de travail.",
+    "run": "Compiler et prévisualiser",
+    "apply": "Appliquer",
+    "summary": "{slots} emplacements et {codeLabels} étiquettes de code depuis {file}. Hash du code {hash}.",
+    "untyped": "Types indisponibles : la table mémoire du compilateur est introuvable, seuls les noms ont été générés.",
+    "conflicts": "Vos propres étiquettes l’emportent sur ces emplacements :",
+    "conflict": "emplacement {index} : « {manual} » conservé, le compilateur indique « {compiler} »",
+    "compileError": "Ligne {line} : {message}",
+    "applied": "Étiquettes régénérées"
+  },
+  "deploy": {
+    "inspect": "Inspecter",
+    "inspectHint": "Ouvrir ce contrat dans l’inspecteur, avec des étiquettes générées depuis cette source",
+    "failed": "Impossible de préparer l’inspection : {message}"
+  }
+}

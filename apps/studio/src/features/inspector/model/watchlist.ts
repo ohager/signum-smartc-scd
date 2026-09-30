@@ -31,7 +31,7 @@ export function emptyWatchlist(): string {
 
 function current(text: string): Watchlist {
   const r = parseWatchlist(text);
-  if (!r.ok) throw new Error(r.errors[0]?.message ?? "invalid watchlist");
+  if (!r.ok) throw new Error(r.errors[0]?.message ?? "invalid watchlist"); // i18n-ignore — unreachable: a failed parse always has an error
   return r.value;
 }
 

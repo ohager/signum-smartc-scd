@@ -1,6 +1,7 @@
 {
   "validation": {
     "syntax": "Syntax error: {error}",
+    "empty": "The file is empty",
     "required": "Required field is missing",
     "type": "Expected {expected}",
     "value": "Must be one of: {allowed}",
