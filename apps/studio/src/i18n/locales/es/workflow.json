@@ -1,0 +1,34 @@
+{
+  "rail": {
+    "label": "Flujo de trabajo",
+    "write": "Escribir",
+    "test": "Probar",
+    "simulate": "Simular",
+    "deploy": "Desplegar",
+    "noContract": "sin contrato",
+    "needsCompile": "necesita un contrato que compile",
+    "ignoredContract": " · se ignora un segundo contrato ({name})"
+  },
+  "cells": {
+    "compiles": "compila",
+    "errors": {
+      "one": "{count} error",
+      "other": "{count} errores"
+    },
+    "noTests": "sin pruebas",
+    "failed": "{count} fallidas",
+    "green": "{count} correctas",
+    "noScenario": "sin escenario",
+    "scenarios": {
+      "one": "{count} escenario",
+      "other": "{count} escenarios"
+    },
+    "connectWallet": "Conecta una billetera para consultar la cadena",
+    "notCompiling": "El contrato aún no compila",
+    "deploying": "desplegando…",
+    "waitingBlock": "Esperando el siguiente bloque",
+    "notDeployed": "no desplegado",
+    "yours": "{count} · {mine} tuyos",
+    "deployed": "{count} desplegados"
+  }
+}

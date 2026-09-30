@@ -1,0 +1,68 @@
+{
+  "hero": {
+    "pitch": "Escribe, simula y despliega contratos inteligentes de Signum — todo en tu navegador. Nada que instalar.",
+    "tagline": "Signum · IDE en el navegador",
+    "createFirst": "Crea tu primer contrato",
+    "newProject": "Nuevo proyecto",
+    "importProject": "Importar proyecto",
+    "import": "Importar"
+  },
+  "howItWorks": {
+    "heading": "Cómo funciona",
+    "soon": "pronto",
+    "write": {
+      "title": "Escribir",
+      "blurb": "Editor SmartC con autocompletado, documentación al pasar el cursor y diagnóstico del compilador en vivo."
+    },
+    "test": {
+      "title": "Probar",
+      "blurb": "Escribe pruebas junto a tu contrato y ejecútalas en el navegador, con los valores en el propio código."
+    },
+    "simulate": {
+      "title": "Simular",
+      "blurb": "Ejecuta paso a paso con un escenario: puntos de interrupción, variables, un libro mayor simulado."
+    },
+    "deploy": {
+      "title": "Desplegar",
+      "blurb": "Conecta tu billetera y publica en la Testnet o Mainnet de Signum."
+    }
+  },
+  "learn": {
+    "heading": "Aprender",
+    "smartc-repo": {
+      "title": "Lenguaje y compilador SmartC",
+      "blurb": "Referencia de sintaxis, funciones integradas y el propio compilador."
+    },
+    "signum-docs": {
+      "title": "Documentación de Signum",
+      "blurb": "Cómo funcionan la red Signum, las cuentas y las transacciones."
+    },
+    "signum-network": {
+      "title": "Red Signum",
+      "blurb": "El proyecto, su ecosistema y su comunidad."
+    }
+  },
+  "continue": {
+    "heading": "Continúa donde lo dejaste",
+    "justNow": "ahora mismo",
+    "minutesAgo": "hace {minutes} min",
+    "hoursAgo": "hace {hours} h",
+    "yesterday": "ayer",
+    "daysAgo": {
+      "one": "hace {count} día",
+      "other": "hace {count} días"
+    }
+  },
+  "projects": {
+    "heading": "Proyectos",
+    "files": {
+      "one": "{count} archivo",
+      "other": "{count} archivos"
+    },
+    "nothingToOpen": " · aún no hay nada que abrir"
+  },
+  "smallScreen": {
+    "title": "Mejor en una pantalla grande",
+    "body": "SmartC Studio está pensado para escritorio. En pantallas pequeñas, el editor, el simulador y el despliegue no tienen espacio suficiente — cambia a un portátil o a un ordenador de escritorio."
+  }
+}
