@@ -1,0 +1,51 @@
+{
+  "editor": {
+    "run": "Executar",
+    "runHint": "Executar este arquivo de testes",
+    "runFailed": "Não foi possível executar os testes: {message}",
+    "runOneFailed": "Não foi possível executar o teste: {message}",
+    "simulate": "Simular",
+    "simulateHint": "Executar o teste selecionado e simular o cenário que ele grava",
+    "selectToSimulate": "Selecione um teste para simular seu cenário",
+    "simulateFailed": "Não foi possível simular: {message}",
+    "noContract": "\"{name}\" não carregou nenhum contrato, então não há nada para simular.",
+    "running": "executando…",
+    "showingValues": "mostrando valores de:",
+    "traceTruncated": " — rastreamento truncado, alguns valores não foram gravados",
+    "debugRun": "Execução de depuração (DevTools)",
+    "debugRunNote": "— roda na página para que o DevTools possa pausar; um contrato descontrolado vai congelar a aba",
+    "results": "Resultados",
+    "value": "Valor"
+  },
+  "results": {
+    "goToLine": "Ir para a linha {line}",
+    "duration": "{ms} ms",
+    "expected": "esperado: {value}",
+    "received": "recebido: {value}",
+    "passed": "{count} passaram",
+    "failed": "{count} falharam",
+    "skipped": "{count} ignorados",
+    "timedOut": "{count} excederam o tempo",
+    "pressRun": "Clique em Executar para rodar este arquivo de testes.",
+    "couldNotLoad": "Não foi possível carregar {file}",
+    "hookFailed": "{phase} falhou",
+    "hookFailedIn": "{phase} falhou em {suite}"
+  },
+  "value": {
+    "hint": "Clique em um valor mostrado no fim de uma linha para inspecioná-lo aqui.",
+    "fallbackName": "valor",
+    "ranTimes": "executou {count} vezes — mostrando a última",
+    "collapseAll": "Recolher tudo",
+    "expandAll": "Expandir tudo",
+    "noValue": "Esta linha concluiu uma asserção, mas não vinculou nenhum valor."
+  },
+  "devtools": {
+    "label": "Como depurar com o DevTools",
+    "title": "Depurando com o DevTools",
+    "openFirst": "Abra o DevTools primeiro — ele não consegue se conectar a uma execução já em andamento.",
+    "tick": "Marque esta caixa e clique em Executar.",
+    "find": "Encontre seu teste em Sources pelo caminho do projeto, por exemplo <code>/my-project/tests/counter.test.ts</code>.",
+    "breakpoint": "Defina um ponto de interrupção ali ou coloque uma instrução <code>debugger;</code> no teste.",
+    "freeze": "Os testes rodam na página em vez de em um worker, então um contrato em loop infinito vai congelar a aba — o watchdog não consegue interromper o loop que o está bloqueando."
+  }
+}
