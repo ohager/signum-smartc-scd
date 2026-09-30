@@ -16,10 +16,16 @@ import { Amount as AmountView } from "@/components/ui/amount.tsx";
 import { AdaptiveScrollArea } from "@/components/ui/adaptive-scroll-area.tsx";
 import { WalletConnection } from "./wallet-connection.tsx";
 import { DeploymentFlow } from "./deployment-flow.tsx";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { formatNumber, t } from "@/i18n/runtime";
 
-export function DeploymentView({ data }: { data: MachineData }) {
+export function DeploymentView({
+  data,
+  successAction,
+}: {
+  data: MachineData;
+  successAction?: (transactionId: string) => ReactNode;
+}) {
   const [minimumFee, setMinimumFee] = useState(Amount.fromPlanck(data.MinimumFeeNQT).getSigna());
   const [deadline, setDeadline] = useState(1440);
   return (
@@ -147,7 +153,7 @@ export function DeploymentView({ data }: { data: MachineData }) {
             </CardContent>
           </Card>
           <WalletConnection />
-          <DeploymentFlow data={data} fee={Amount.fromSigna(minimumFee)} deadline={deadline} initialData={[]}/>
+          <DeploymentFlow data={data} fee={Amount.fromSigna(minimumFee)} deadline={deadline} initialData={[]} successAction={successAction}/>
         </div>
       </div>
     </AdaptiveScrollArea>

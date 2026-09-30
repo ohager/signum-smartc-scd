@@ -7,6 +7,7 @@ import { useProjectFacts } from "@/features/workflow/use-project-facts";
 import { DeploymentView } from "@/features/asm-editor/deployment-view/deployment-view";
 import type { MachineData } from "@/features/asm-editor/machine-data";
 import { SmartC } from "smartc-signum-compiler";
+import { InspectDeployedButton } from "@/features/inspector/ui/inspect-deployed-button";
 import { t } from "@/i18n/runtime";
 
 /**
@@ -22,7 +23,7 @@ import { t } from "@/i18n/runtime";
 export function DeployPage() {
   const fs = useFileSystem();
   const { projectId: routeFolderId = "" } = useParams<{ projectId: string }>();
-  const { contract: choice } = useProjectFacts(routeFolderId);
+  const { contract: choice, projectId } = useProjectFacts(routeFolderId);
   const contract = choice?.contract ?? null;
 
   const [machineData, setMachineData] = useState<MachineData | null>(null);
@@ -70,7 +71,18 @@ export function DeployPage() {
           </p>
         )}
         {!error && !machineData && <p className="text-sm">{t("common.pages.compiling")}</p>}
-        {machineData && <DeploymentView data={machineData} />}
+        {machineData && (
+          <DeploymentView
+            data={machineData}
+            successAction={(transactionId) => (
+              <InspectDeployedButton
+                projectFolderId={projectId}
+                sourceFileId={contract.id}
+                contractId={transactionId}
+              />
+            )}
+          />
+        )}
       </PageContent>
     </Page>
   );

@@ -1,0 +1,209 @@
+{
+  "validation": {
+    "syntax": "Syntax error: {error}",
+    "empty": "The file is empty",
+    "required": "Required field is missing",
+    "type": "Expected {expected}",
+    "value": "Must be one of: {allowed}",
+    "pattern": "Must be a decimal number",
+    "unknownKey": "Unknown field: {keys}",
+    "enumMissing": "Enum \"{name}\" is not defined in \"enums\"",
+    "enumRequired": "Format \"enum\" needs an \"enum\" name",
+    "other": "{message}",
+    "at": "Line {line}: {message}"
+  },
+  "editor": {
+    "viewUi": "Inspector",
+    "viewJson": "JSON",
+    "invalid": {
+      "one": "This file has {count} problem. Fix it in the JSON view.",
+      "other": "This file has {count} problems. Fix it in the JSON view."
+    },
+    "empty": "No contracts yet. Add one to start inspecting.",
+    "add": "Add contract",
+    "refresh": "Refresh",
+    "remove": "Remove from watchlist",
+    "select": "Select a contract on the left."
+  },
+  "status": {
+    "running": "Running",
+    "stopped": "Stopped",
+    "finished": "Finished",
+    "frozen": "Frozen",
+    "dead": "Dead"
+  },
+  "network": {
+    "mainnet": "Mainnet",
+    "testnet": "Testnet",
+    "custom": "Custom node"
+  },
+  "contract": {
+    "loading": "Loading contract…",
+    "notFound": "Contract {id} was not found on {node}. A contract deployed moments ago appears once its transaction is in a block.",
+    "unreachable": "The node {node} did not answer: {message}",
+    "nodeError": "The node reported: {message}",
+    "retry": "Retry",
+    "noLabels": "No Label Map",
+    "tabs": {
+      "overview": "Overview",
+      "data": "Data stack",
+      "maps": "Maps"
+    },
+    "otherNode": "Choose other node",
+    "useNode": "Use this node"
+  },
+  "overview": {
+    "id": "Contract",
+    "name": "Name",
+    "description": "Description",
+    "creator": "Creator",
+    "balance": "Balance",
+    "status": "Status",
+    "codeHash": "Code hash",
+    "creationBlock": "Created at block",
+    "minActivation": "Minimum activation",
+    "labelMap": "Label Map",
+    "resolvedByHash": "matched by code hash",
+    "resolvedByPin": "pinned in this watchlist",
+    "pinnedMissing": "The pinned Label Map \"{name}\" is missing or invalid.",
+    "ambiguous": "Several Label Maps list this code hash. Choose one:",
+    "choose": "Use this one",
+    "none": "No Label Map lists this code hash.",
+    "create": "Create Label Map",
+    "addHash": "Add this hash to…",
+    "created": "Label Map created",
+    "hashAdded": "Code hash added to {name}",
+    "chooseFirst": "Several Label Maps list this code hash. Choose one in the Overview first."
+  },
+  "data": {
+    "length": "{bytes} bytes, {slots} slots",
+    "onlyLabelled": "Only labelled",
+    "search": "Search name, index or value",
+    "index": "#",
+    "name": "Name",
+    "value": "Value",
+    "raw": "Raw (LE hex)",
+    "outOfRange": "beyond the data stack",
+    "select": "Select a slot to see every interpretation.",
+    "setLabel": "Set label",
+    "editLabel": "Edit label",
+    "interpretations": "Interpretations",
+    "stringReversed": "string (reversed)",
+    "saved": "Label saved"
+  },
+  "label": {
+    "title": "Label for slot {index}",
+    "name": "Name",
+    "format": "Format",
+    "formatNone": "(show all)",
+    "enum": "Enum",
+    "length": "Length (slots)",
+    "comment": "Comment",
+    "save": "Save",
+    "remove": "Remove label"
+  },
+  "maps": {
+    "groups": "Labelled groups",
+    "free": "Query any key1",
+    "key1": "key1",
+    "key1For": "key1 ({format})",
+    "valueFilter": "only value (optional)",
+    "load": "Load",
+    "loading": "Loading…",
+    "more": "Load more",
+    "empty": "No entries.",
+    "invalidKey": "Not a valid key for this format.",
+    "key2": "key2",
+    "value": "Value",
+    "labelGroup": "Label this key1",
+    "saved": "Map label saved",
+    "noGroups": "No map groups labelled yet. Query a key1 below and label it."
+  },
+  "group": {
+    "titleFixed": "Map group for key1 {key1}",
+    "titlePattern": "Map group pattern",
+    "key1": "key1 (decimal)",
+    "name": "Name",
+    "key1Format": "key1 format (pattern group)",
+    "key2Format": "key2 format",
+    "valueFormat": "Value format",
+    "enum": "Value enum",
+    "comment": "Comment",
+    "save": "Save"
+  },
+  "add": {
+    "title": "Add contracts",
+    "network": "Network",
+    "customNode": "Node URL",
+    "customTestnet": "This node serves testnet",
+    "tabs": {
+      "id": "Contract",
+      "creator": "Creator",
+      "hash": "Code hash"
+    },
+    "idLabel": "Contract id or address",
+    "creatorLabel": "Creator account id or address",
+    "myWallet": "My wallet",
+    "hashLabel": "Machine code hash",
+    "hashFilter": "Code hash filter (optional)",
+    "search": "Search",
+    "cancel": "Stop",
+    "more": "Load more",
+    "found": "{shown} of {total} shown",
+    "filter": "Filter loaded results",
+    "selectAll": "Select all shown",
+    "addSelected": {
+      "one": "Add {count} contract",
+      "other": "Add {count} contracts"
+    },
+    "addOne": "Add",
+    "invalidId": "Not a contract id or address.",
+    "notFound": "No contract {id} on this network.",
+    "none": "Nothing found."
+  },
+  "labels": {
+    "tabs": {
+      "slots": "Slots",
+      "maps": "Maps",
+      "enums": "Enums",
+      "hashes": "Code hashes"
+    },
+    "generate": "Generate from source…",
+    "add": "Add",
+    "edit": "Edit",
+    "remove": "Remove",
+    "origin": "Origin",
+    "index": "Slot",
+    "name": "Name",
+    "format": "Format",
+    "length": "Length",
+    "key1": "key1",
+    "noEntries": "Nothing here yet.",
+    "enumName": "Enum name",
+    "enumValues": "One per line: value = label",
+    "enumInvalid": "Every line must read \"value = label\" with a decimal value.",
+    "hash": "Hash",
+    "hashNetwork": "Network (note)",
+    "hashNote": "Note",
+    "hashInvalid": "A code hash is a decimal number.",
+    "saved": "Saved"
+  },
+  "generate": {
+    "title": "Generate labels from SmartC source",
+    "source": "Source file",
+    "noSources": "No .smart.c file in the workspace.",
+    "run": "Compile and preview",
+    "apply": "Apply",
+    "summary": "{slots} slots and {codeLabels} code labels from {file}. Code hash {hash}.",
+    "untyped": "Types unavailable: the compiler's memory table was not found, only names were generated.",
+    "conflicts": "Your own labels win on these slots:",
+    "conflict": "slot {index}: kept \"{manual}\", compiler says \"{compiler}\"",
+    "compileError": "Line {line}: {message}",
+    "applied": "Labels regenerated"
+  },
+  "deploy": {
+    "inspect": "Inspect",
+    "inspectHint": "Open this contract in the inspector, with labels generated from this source",
+    "failed": "Could not prepare the inspection: {message}"
+  }
+}

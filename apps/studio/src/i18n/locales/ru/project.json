@@ -25,7 +25,9 @@
     "name": "Имя",
     "smartc": "Контракт SmartC (.smart.c)",
     "scenario": "Сценарий (.scenario.json)",
-    "test": "Тест (.test.ts)"
+    "test": "Тест (.test.ts)",
+    "watchlist": "Список наблюдения для инспекции",
+    "labelMap": "Label Map"
   },
   "newProject": {
     "title": "Новый проект",

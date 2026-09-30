@@ -60,6 +60,12 @@ export interface EditorFile {
   /** What the save button and ⌘S call: drops a pending autosave, then writes. */
   saveNow: () => Promise<void>;
   download: () => void;
+  /**
+   * Takes text written to this file from elsewhere — the inspector setting a
+   * label while this editor is open — without calling it an edit. A pending
+   * autosave is dropped: it would write the stale buffer back over the change.
+   */
+  adopt: (text: string) => void;
 }
 
 export function useEditorFile({ file, onSaved }: Options): EditorFile {
@@ -146,5 +152,15 @@ export function useEditorFile({ file, onSaved }: Options): EditorFile {
     return () => window.removeEventListener("keydown", preventBrowserSave);
   }, []);
 
-  return { text, textRef, onChange, isDirty, save, saveNow, download };
+  const adopt = useCallback(
+    (next: string) => {
+      autosave.cancel();
+      textRef.current = next;
+      setText(next);
+      setIsDirty(false);
+    },
+    [autosave],
+  );
+
+  return { text, textRef, onChange, isDirty, save, saveNow, download, adopt };
 }

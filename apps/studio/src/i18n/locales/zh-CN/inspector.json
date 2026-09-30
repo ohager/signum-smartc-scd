@@ -1,0 +1,207 @@
+{
+  "validation": {
+    "syntax": "语法错误：{error}",
+    "empty": "文件为空",
+    "required": "缺少必填字段",
+    "type": "应为 {expected}",
+    "value": "必须是以下之一：{allowed}",
+    "pattern": "必须是十进制数",
+    "unknownKey": "未知字段：{keys}",
+    "enumMissing": "枚举“{name}”未在“enums”中定义",
+    "enumRequired": "格式“enum”需要一个“enum”名称",
+    "other": "{message}",
+    "at": "第 {line} 行：{message}"
+  },
+  "editor": {
+    "viewUi": "检查器",
+    "viewJson": "JSON",
+    "invalid": {
+      "other": "此文件有 {count} 个问题。请在 JSON 视图中修复。"
+    },
+    "empty": "还没有合约。添加一个即可开始检查。",
+    "add": "添加合约",
+    "refresh": "刷新",
+    "remove": "从观察列表中移除",
+    "select": "请在左侧选择一个合约。"
+  },
+  "status": {
+    "running": "运行中",
+    "stopped": "已停止",
+    "finished": "已完成",
+    "frozen": "已冻结",
+    "dead": "已失效"
+  },
+  "network": {
+    "mainnet": "Mainnet",
+    "testnet": "Testnet",
+    "custom": "自定义节点"
+  },
+  "contract": {
+    "loading": "正在加载合约…",
+    "notFound": "在 {node} 上未找到合约 {id}。刚部署的合约会在其交易进入区块后出现。",
+    "unreachable": "节点 {node} 未响应：{message}",
+    "nodeError": "节点报告：{message}",
+    "retry": "重试",
+    "noLabels": "没有 Label Map",
+    "tabs": {
+      "overview": "概览",
+      "data": "数据栈",
+      "maps": "映射"
+    },
+    "otherNode": "选择其他节点",
+    "useNode": "使用此节点"
+  },
+  "overview": {
+    "id": "合约",
+    "name": "名称",
+    "description": "描述",
+    "creator": "创建者",
+    "balance": "余额",
+    "status": "状态",
+    "codeHash": "代码哈希",
+    "creationBlock": "创建于区块",
+    "minActivation": "最低激活金额",
+    "labelMap": "Label Map",
+    "resolvedByHash": "按代码哈希匹配",
+    "resolvedByPin": "已在此观察列表中固定",
+    "pinnedMissing": "固定的 Label Map“{name}”缺失或无效。",
+    "ambiguous": "多个 Label Map 包含此代码哈希。请选择一个：",
+    "choose": "使用此项",
+    "none": "没有 Label Map 包含此代码哈希。",
+    "create": "创建 Label Map",
+    "addHash": "将此哈希添加到…",
+    "created": "Label Map 已创建",
+    "hashAdded": "代码哈希已添加到 {name}",
+    "chooseFirst": "多个 Label Map 包含此代码哈希。请先在概览中选择一个。"
+  },
+  "data": {
+    "length": "{bytes} 字节，{slots} 个槽位",
+    "onlyLabelled": "仅显示已标注",
+    "search": "搜索名称、索引或值",
+    "index": "#",
+    "name": "名称",
+    "value": "值",
+    "raw": "原始值（LE 十六进制）",
+    "outOfRange": "超出数据栈",
+    "select": "选择一个槽位以查看所有解读。",
+    "setLabel": "设置标签",
+    "editLabel": "编辑标签",
+    "interpretations": "解读",
+    "stringReversed": "string（反转）",
+    "saved": "标签已保存"
+  },
+  "label": {
+    "title": "槽位 {index} 的标签",
+    "name": "名称",
+    "format": "格式",
+    "formatNone": "（全部显示）",
+    "enum": "枚举",
+    "length": "长度（槽位）",
+    "comment": "注释",
+    "save": "保存",
+    "remove": "移除标签"
+  },
+  "maps": {
+    "groups": "已标注的分组",
+    "free": "查询任意 key1",
+    "key1": "key1",
+    "key1For": "key1（{format}）",
+    "valueFilter": "仅限该值（可选）",
+    "load": "加载",
+    "loading": "正在加载…",
+    "more": "加载更多",
+    "empty": "没有条目。",
+    "invalidKey": "不是此格式的有效键。",
+    "key2": "key2",
+    "value": "值",
+    "labelGroup": "标注此 key1",
+    "saved": "映射标签已保存",
+    "noGroups": "还没有标注的映射分组。请在下方查询一个 key1 并标注它。"
+  },
+  "group": {
+    "titleFixed": "key1 {key1} 的映射分组",
+    "titlePattern": "映射分组模式",
+    "key1": "key1（十进制）",
+    "name": "名称",
+    "key1Format": "key1 格式（模式分组）",
+    "key2Format": "key2 格式",
+    "valueFormat": "值格式",
+    "enum": "值枚举",
+    "comment": "注释",
+    "save": "保存"
+  },
+  "add": {
+    "title": "添加合约",
+    "network": "网络",
+    "customNode": "节点 URL",
+    "customTestnet": "此节点服务于 testnet",
+    "tabs": {
+      "id": "合约",
+      "creator": "创建者",
+      "hash": "代码哈希"
+    },
+    "idLabel": "合约 ID 或地址",
+    "creatorLabel": "创建者账户 ID 或地址",
+    "myWallet": "我的钱包",
+    "hashLabel": "机器代码哈希",
+    "hashFilter": "代码哈希筛选（可选）",
+    "search": "搜索",
+    "cancel": "停止",
+    "more": "加载更多",
+    "found": "已显示 {shown} / {total}",
+    "filter": "筛选已加载的结果",
+    "selectAll": "全选已显示项",
+    "addSelected": {
+      "other": "添加 {count} 个合约"
+    },
+    "addOne": "添加",
+    "invalidId": "不是合约 ID 或地址。",
+    "notFound": "此网络上没有合约 {id}。",
+    "none": "未找到任何内容。"
+  },
+  "labels": {
+    "tabs": {
+      "slots": "槽位",
+      "maps": "映射",
+      "enums": "枚举",
+      "hashes": "代码哈希"
+    },
+    "generate": "从源代码生成…",
+    "add": "添加",
+    "edit": "编辑",
+    "remove": "移除",
+    "origin": "来源",
+    "index": "槽位",
+    "name": "名称",
+    "format": "格式",
+    "length": "长度",
+    "key1": "key1",
+    "noEntries": "这里还没有内容。",
+    "enumName": "枚举名称",
+    "enumValues": "每行一个：值 = 标签",
+    "enumInvalid": "每一行都必须是“值 = 标签”的形式，且值为十进制数。",
+    "hash": "哈希",
+    "hashNetwork": "网络（备注）",
+    "hashNote": "备注",
+    "hashInvalid": "代码哈希是一个十进制数。",
+    "saved": "已保存"
+  },
+  "generate": {
+    "title": "从 SmartC 源代码生成标签",
+    "source": "源文件",
+    "noSources": "工作区中没有 .smart.c 文件。",
+    "run": "编译并预览",
+    "apply": "应用",
+    "summary": "从 {file} 生成了 {slots} 个槽位和 {codeLabels} 个代码标签。代码哈希 {hash}。",
+    "untyped": "类型不可用：未找到编译器的内存表，仅生成了名称。",
+    "conflicts": "在这些槽位上以你自己的标签为准：",
+    "conflict": "槽位 {index}：保留“{manual}”，编译器给出“{compiler}”",
+    "compileError": "第 {line} 行：{message}",
+    "applied": "标签已重新生成"
+  },
+  "deploy": {
+    "inspect": "检查",
+    "inspectHint": "在检查器中打开此合约，并使用从此源代码生成的标签",
+    "failed": "无法准备检查：{message}"
+  }
+}

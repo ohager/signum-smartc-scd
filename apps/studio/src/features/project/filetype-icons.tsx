@@ -5,6 +5,8 @@ import {
   FileDigitIcon,
   FileIcon,
   PlayIcon,
+  ScanSearchIcon,
+  TagsIcon,
 } from "lucide-react";
 
 export enum FileTypes {
@@ -13,6 +15,8 @@ export enum FileTypes {
   Test = "test",
   Doc = "doc",
   ASM = "asm",
+  LabelMap = "labels",
+  Watchlist = "inspect",
 }
 
 export const FileTypeIcons: Record<FileTypes, any> = {
@@ -21,6 +25,8 @@ export const FileTypeIcons: Record<FileTypes, any> = {
   [FileTypes.Test]: FileBadgeIcon,
   [FileTypes.Doc]: FileTextIcon,
   [FileTypes.ASM]: FileDigitIcon,
+  [FileTypes.LabelMap]: TagsIcon,
+  [FileTypes.Watchlist]: ScanSearchIcon,
 };
 
 /**
@@ -34,13 +40,16 @@ export function getFileTypeIcon(type: string) {
 /**
  * Maps an incoming file name to the UI-supported type, or `null` to reject it.
  * Used as the `resolveType` policy for uploads/imports. Accepted: SmartC
- * (`.smart.c`), Scenario (`.scenario.json`), ASM (`.asm`), and Test
+ * (`.smart.c`), Scenario (`.scenario.json`), ASM (`.asm`), Label Map
+ * (`.labels.json`), Watchlist (`.inspect.json`), and Test
  * (`.ts` — both `.test.ts` run entries and the plain `.ts` helpers they
  * import, such as `context.ts` or `scenarios.ts`).
  */
 export function acceptedFileType(name: string): FileTypes | null {
   const lower = name.toLowerCase();
   if (lower.endsWith(".smart.c")) return FileTypes.SmartC;
+  if (lower.endsWith(".labels.json")) return FileTypes.LabelMap;
+  if (lower.endsWith(".inspect.json")) return FileTypes.Watchlist;
   if (lower.endsWith(".scenario.json")) return FileTypes.Scenario;
   if (lower.endsWith(".asm")) return FileTypes.ASM;
   // `.test.ts` files are run; plain `.ts` files are helpers they import.

@@ -7,6 +7,7 @@ import simulator from "./simulator.json";
 import testbed from "./testbed.json";
 import smartcEditor from "./smartc-editor.json";
 import asmEditor from "./asm-editor.json";
+import inspector from "./inspector.json";
 import editorDocs from "./editor-docs.json";
 
 /** 简体中文. Keys follow `../en`; anything missing falls back to English. */
@@ -19,6 +20,7 @@ const messages: Messages = {
   testbed,
   "smartc-editor": smartcEditor,
   "asm-editor": asmEditor,
+  inspector,
   "editor-docs": editorDocs,
 };
 

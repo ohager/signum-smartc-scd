@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { ContractData } from "@signumjs/contracts";
 import { Button } from "@/components/ui/button";
 import {
@@ -67,6 +67,8 @@ interface DeploymentFlowProps {
   initialData: ContractData[];
   deadline: number;
   fee: Amount;
+  /** Rendered under the success message, e.g. "Inspect" — the flow itself knows no project. */
+  successAction?: (transactionId: string) => ReactNode;
 }
 
 export function DeploymentFlow({
@@ -74,6 +76,7 @@ export function DeploymentFlow({
   initialData,
   deadline,
   fee,
+  successAction,
 }: DeploymentFlowProps) {
   const [deploymentStep, setDeploymentStep] = useState<DeploymentStep>("idle");
   const [deploymentTransaction, setDeploymentTransaction] =
@@ -116,6 +119,7 @@ export function DeploymentFlow({
         deadline={deadline}
         fee={fee}
         nodeUrl={status.ledger.service.settings.nodeHost}
+        successAction={successAction}
       />
     );
   }
@@ -236,6 +240,7 @@ export function DeploymentFlow({
             unsignedBytes={unsignedBytes}
             transaction={deploymentTransaction}
             errorMessage={errorMessage}
+            successAction={successAction}
           />
 
           <div className="flex gap-3 mt-6">
@@ -289,11 +294,13 @@ function DeploymentSteps({
   unsignedBytes,
   transaction,
   errorMessage,
+  successAction,
 }: {
   currentStep: DeploymentStep;
   unsignedBytes: string;
   transaction: ConfirmedTransaction | null;
   errorMessage: string;
+  successAction?: (transactionId: string) => ReactNode;
 }) {
   const steps = [
     {
@@ -392,6 +399,7 @@ function DeploymentSteps({
                 </ExplorerLink>
               )}
             </div>
+            {transaction && successAction && <div className="mt-3">{successAction(transaction.transactionId)}</div>}
           </AlertDescription>
         </Alert>
       )}

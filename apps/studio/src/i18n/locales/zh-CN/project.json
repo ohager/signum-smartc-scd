@@ -25,7 +25,9 @@
     "name": "名称",
     "smartc": "SmartC 合约（.smart.c）",
     "scenario": "场景（.scenario.json）",
-    "test": "测试（.test.ts）"
+    "test": "测试（.test.ts）",
+    "watchlist": "检查观察列表",
+    "labelMap": "Label Map"
   },
   "newProject": {
     "title": "新建项目",

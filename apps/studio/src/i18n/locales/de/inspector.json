@@ -1,0 +1,209 @@
+{
+  "validation": {
+    "syntax": "Syntaxfehler: {error}",
+    "empty": "Die Datei ist leer",
+    "required": "Pflichtfeld fehlt",
+    "type": "Erwartet: {expected}",
+    "value": "Erlaubt sind: {allowed}",
+    "pattern": "Muss eine Dezimalzahl sein",
+    "unknownKey": "Unbekanntes Feld: {keys}",
+    "enumMissing": "Enum \"{name}\" ist in \"enums\" nicht definiert",
+    "enumRequired": "Format \"enum\" braucht einen \"enum\"-Namen",
+    "other": "{message}",
+    "at": "Zeile {line}: {message}"
+  },
+  "editor": {
+    "viewUi": "Inspector",
+    "viewJson": "JSON",
+    "invalid": {
+      "one": "Diese Datei hat {count} Problem. Behebe es in der JSON-Ansicht.",
+      "other": "Diese Datei hat {count} Probleme. Behebe sie in der JSON-Ansicht."
+    },
+    "empty": "Noch keine Contracts. Füge einen hinzu, um mit der Inspektion zu beginnen.",
+    "add": "Contract hinzufügen",
+    "refresh": "Aktualisieren",
+    "remove": "Aus der Watchlist entfernen",
+    "select": "Wähle links einen Contract aus."
+  },
+  "status": {
+    "running": "Läuft",
+    "stopped": "Gestoppt",
+    "finished": "Beendet",
+    "frozen": "Eingefroren",
+    "dead": "Tot"
+  },
+  "network": {
+    "mainnet": "Mainnet",
+    "testnet": "Testnet",
+    "custom": "Eigener Node"
+  },
+  "contract": {
+    "loading": "Contract wird geladen…",
+    "notFound": "Contract {id} wurde auf {node} nicht gefunden. Ein gerade deployter Contract erscheint, sobald seine Transaktion in einem Block ist.",
+    "unreachable": "Der Node {node} hat nicht geantwortet: {message}",
+    "nodeError": "Der Node meldet: {message}",
+    "retry": "Erneut versuchen",
+    "noLabels": "Keine Label Map",
+    "tabs": {
+      "overview": "Übersicht",
+      "data": "Data Stack",
+      "maps": "Maps"
+    },
+    "otherNode": "Anderen Node wählen",
+    "useNode": "Diesen Node verwenden"
+  },
+  "overview": {
+    "id": "Contract",
+    "name": "Name",
+    "description": "Beschreibung",
+    "creator": "Creator",
+    "balance": "Guthaben",
+    "status": "Status",
+    "codeHash": "Code-Hash",
+    "creationBlock": "Erstellt in Block",
+    "minActivation": "Mindestaktivierung",
+    "labelMap": "Label Map",
+    "resolvedByHash": "über den Code-Hash zugeordnet",
+    "resolvedByPin": "in dieser Watchlist festgelegt",
+    "pinnedMissing": "Die festgelegte Label Map \"{name}\" fehlt oder ist ungültig.",
+    "ambiguous": "Mehrere Label Maps enthalten diesen Code-Hash. Wähle eine aus:",
+    "choose": "Diese verwenden",
+    "none": "Keine Label Map enthält diesen Code-Hash.",
+    "create": "Label Map anlegen",
+    "addHash": "Hash hinzufügen zu…",
+    "created": "Label Map angelegt",
+    "hashAdded": "Code-Hash zu {name} hinzugefügt",
+    "chooseFirst": "Mehrere Label Maps enthalten diesen Code-Hash. Wähle zuerst in der Übersicht eine aus."
+  },
+  "data": {
+    "length": "{bytes} Bytes, {slots} Slots",
+    "onlyLabelled": "Nur mit Label",
+    "search": "Name, Index oder Wert suchen",
+    "index": "#",
+    "name": "Name",
+    "value": "Wert",
+    "raw": "Roh (LE-Hex)",
+    "outOfRange": "hinter dem Data Stack",
+    "select": "Wähle einen Slot, um alle Interpretationen zu sehen.",
+    "setLabel": "Label setzen",
+    "editLabel": "Label bearbeiten",
+    "interpretations": "Interpretationen",
+    "stringReversed": "string (umgekehrt)",
+    "saved": "Label gespeichert"
+  },
+  "label": {
+    "title": "Label für Slot {index}",
+    "name": "Name",
+    "format": "Format",
+    "formatNone": "(alle anzeigen)",
+    "enum": "Enum",
+    "length": "Länge (Slots)",
+    "comment": "Kommentar",
+    "save": "Speichern",
+    "remove": "Label entfernen"
+  },
+  "maps": {
+    "groups": "Gruppen mit Label",
+    "free": "Beliebigen key1 abfragen",
+    "key1": "key1",
+    "key1For": "key1 ({format})",
+    "valueFilter": "nur Wert (optional)",
+    "load": "Laden",
+    "loading": "Wird geladen…",
+    "more": "Mehr laden",
+    "empty": "Keine Einträge.",
+    "invalidKey": "Kein gültiger Schlüssel für dieses Format.",
+    "key2": "key2",
+    "value": "Wert",
+    "labelGroup": "Diesen key1 beschriften",
+    "saved": "Map-Label gespeichert",
+    "noGroups": "Noch keine Map-Gruppen beschriftet. Frage unten einen key1 ab und beschrifte ihn."
+  },
+  "group": {
+    "titleFixed": "Map-Gruppe für key1 {key1}",
+    "titlePattern": "Map-Gruppenmuster",
+    "key1": "key1 (dezimal)",
+    "name": "Name",
+    "key1Format": "key1-Format (Mustergruppe)",
+    "key2Format": "key2-Format",
+    "valueFormat": "Wertformat",
+    "enum": "Wert-Enum",
+    "comment": "Kommentar",
+    "save": "Speichern"
+  },
+  "add": {
+    "title": "Contracts hinzufügen",
+    "network": "Netzwerk",
+    "customNode": "Node-URL",
+    "customTestnet": "Dieser Node bedient das Testnet",
+    "tabs": {
+      "id": "Contract",
+      "creator": "Creator",
+      "hash": "Code-Hash"
+    },
+    "idLabel": "Contract-ID oder -Adresse",
+    "creatorLabel": "Account-ID oder -Adresse des Creators",
+    "myWallet": "Meine Wallet",
+    "hashLabel": "Maschinencode-Hash",
+    "hashFilter": "Code-Hash-Filter (optional)",
+    "search": "Suchen",
+    "cancel": "Stoppen",
+    "more": "Mehr laden",
+    "found": "{shown} von {total} angezeigt",
+    "filter": "Geladene Ergebnisse filtern",
+    "selectAll": "Alle angezeigten auswählen",
+    "addSelected": {
+      "one": "{count} Contract hinzufügen",
+      "other": "{count} Contracts hinzufügen"
+    },
+    "addOne": "Hinzufügen",
+    "invalidId": "Keine gültige Contract-ID oder -Adresse.",
+    "notFound": "Kein Contract {id} in diesem Netzwerk.",
+    "none": "Nichts gefunden."
+  },
+  "labels": {
+    "tabs": {
+      "slots": "Slots",
+      "maps": "Maps",
+      "enums": "Enums",
+      "hashes": "Code-Hashes"
+    },
+    "generate": "Aus Quellcode generieren…",
+    "add": "Hinzufügen",
+    "edit": "Bearbeiten",
+    "remove": "Entfernen",
+    "origin": "Herkunft",
+    "index": "Slot",
+    "name": "Name",
+    "format": "Format",
+    "length": "Länge",
+    "key1": "key1",
+    "noEntries": "Hier ist noch nichts.",
+    "enumName": "Enum-Name",
+    "enumValues": "Eine Zeile pro Wert: Wert = Label",
+    "enumInvalid": "Jede Zeile muss \"Wert = Label\" mit einem Dezimalwert lauten.",
+    "hash": "Hash",
+    "hashNetwork": "Netzwerk (Notiz)",
+    "hashNote": "Notiz",
+    "hashInvalid": "Ein Code-Hash ist eine Dezimalzahl.",
+    "saved": "Gespeichert"
+  },
+  "generate": {
+    "title": "Labels aus SmartC-Quellcode generieren",
+    "source": "Quelldatei",
+    "noSources": "Keine .smart.c-Datei im Workspace.",
+    "run": "Kompilieren und Vorschau",
+    "apply": "Übernehmen",
+    "summary": "{slots} Slots und {codeLabels} Code-Labels aus {file}. Code-Hash {hash}.",
+    "untyped": "Keine Typen verfügbar: Die Speichertabelle des Compilers wurde nicht gefunden, es wurden nur Namen erzeugt.",
+    "conflicts": "Auf diesen Slots haben deine eigenen Labels Vorrang:",
+    "conflict": "Slot {index}: \"{manual}\" behalten, der Compiler sagt \"{compiler}\"",
+    "compileError": "Zeile {line}: {message}",
+    "applied": "Labels neu generiert"
+  },
+  "deploy": {
+    "inspect": "Inspizieren",
+    "inspectHint": "Diesen Contract im Inspector öffnen, mit Labels aus diesem Quellcode",
+    "failed": "Die Inspektion konnte nicht vorbereitet werden: {message}"
+  }
+}

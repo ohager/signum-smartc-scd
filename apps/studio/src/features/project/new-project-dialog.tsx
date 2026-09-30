@@ -22,6 +22,8 @@ import { useFileSystem } from "@/hooks/use-file-system.ts";
 import { FileTypes } from "@/features/project/filetype-icons.tsx";
 import { smartcStarter } from "./smartc-starter";
 import { uniqueName } from "./file-naming";
+import { useNavigate } from "react-router";
+import { emptyWatchlist } from "@/features/inspector/model/watchlist";
 import { t } from "@/i18n/runtime";
 
 type ProjectType = "create" | "inspect";
@@ -37,6 +39,7 @@ export function NewProjectDialog({ close }: Props) {
   );
 
   const fs = useFileSystem()
+  const navigate = useNavigate();
   const canSubmit = name.length > 3;
 
   const handleCreateClicked = async () => {
@@ -62,6 +65,18 @@ export function NewProjectDialog({ close }: Props) {
         FileTypes.SmartC,
         smartcStarter(baseName),
       )
+    }
+
+    if (projectType === "inspect") {
+      const watchlistId = await fs.addFile(
+        folderId,
+        `${fileName.toLowerCase()}.inspect.json`,
+        FileTypes.Watchlist,
+        emptyWatchlist(),
+      );
+      close();
+      navigate(`/projects/${folderId}/files/${watchlistId}`);
+      return;
     }
 
     close();

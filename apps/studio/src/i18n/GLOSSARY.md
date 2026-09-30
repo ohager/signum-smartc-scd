@@ -11,6 +11,8 @@ API function names (`Get_A1`, `Send_To_Address_In_B`, …) · opcodes (`JMP`, `S
 directive and pragma names (`#program`, `#pragma maxAuxVars`, `^declare`, …) ·
 file extensions (`.smart.c`, `.scenario.json`, `.test.ts`) · keyboard shortcuts ·
 scenario field names (`version`, `creator`, `accounts[…]`, `transactions[…]`, `txId`, `message`, `messageHex`) ·
+`.labels.json` · `.inspect.json` · `key1` · `key2` · value formats (`long`, `unsigned`, `fixed`, `hex`, `address`, `string`, `bool`, `enum`) ·
+Label Map field names (`codeHashes`, `slots`, `maps`, `enums`, `codeLabels`) · Label Map ·
 anything in `backticks`, and every `{placeholder}` and `<tag>`.
 
 ## Style per language
@@ -38,6 +40,12 @@ anything in `backticks`, and every `{placeholder}` and `<tag>`.
 | deploy | deployen | implantar | déployer | desplegar | distribuire | розгорнути | развернуть | 部署 |
 | deployment | Deployment | implantação | déploiement | despliegue | distribuzione | розгортання | развертывание | 部署 |
 | test (noun) | Test | teste | test | prueba | test | тест | тест | 测试 |
+| Label Map | Label Map | Label Map | Label Map | Label Map | Label Map | Label Map | Label Map | Label Map |
+| inspect | inspizieren | inspecionar | inspecter | inspeccionar | ispezionare | інспектувати | инспектировать | 检查 |
+| watchlist | Watchlist | lista de observação | liste de suivi | lista de seguimiento | watchlist | список спостереження | список наблюдения | 观察列表 |
+| data stack | Data Stack | pilha de dados | pile de données | pila de datos | stack dei dati | стек даних | стек данных | 数据栈 |
+| slot | Slot | slot | emplacement | ranura | slot | слот | слот | 槽位 |
+| code hash | Code-Hash | hash do código | hash du code | hash del código | hash del codice | хеш коду | хеш кода | 代码哈希 |
 | testbed | Testbed | testbed | banc d'essai | banco de pruebas | banco di prova | тестовий стенд | тестовый стенд | 测试台 |
 | simulator | Simulator | simulador | simulateur | simulador | simulatore | симулятор | симулятор | 模拟器 |
 | simulate | simulieren | simular | simuler | simular | simulare | симулювати | симулировать | 模拟 |

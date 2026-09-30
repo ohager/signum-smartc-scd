@@ -10,6 +10,8 @@ import { FileTypes } from "@/features/project/filetype-icons.tsx";
 import { AsmFileEditor } from "@/features/asm-editor/asm-file-editor.tsx";
 import { ScenarioEditor } from "@/features/simulator/scenario/scenario-editor.tsx";
 import { TestFileEditor } from "@/features/testbed/ui/test-file-editor";
+import { InspectorEditor } from "@/features/inspector/ui/inspector-editor";
+import { LabelMapEditor } from "@/features/inspector/ui/label-map-editor";
 import { t } from "@/i18n/runtime";
 
 type FilesPageParams = {
@@ -136,7 +138,9 @@ export function FilesPage() {
         )}
         {type === FileTypes.Scenario && <ScenarioEditor key={id} file={file!} />}
         {type === FileTypes.Test && <TestFileEditor key={id} file={file!} />}
-        {type !== FileTypes.SmartC && type !== FileTypes.ASM && type !== FileTypes.Scenario && type !== FileTypes.Test && (
+        {type === FileTypes.Watchlist && <InspectorEditor key={id} file={file!} />}
+        {type === FileTypes.LabelMap && <LabelMapEditor key={id} file={file!} />}
+        {type !== FileTypes.SmartC && type !== FileTypes.ASM && type !== FileTypes.Scenario && type !== FileTypes.Test && type !== FileTypes.Watchlist && type !== FileTypes.LabelMap && (
           <div className="p-4 text-sm text-muted-foreground">
             {t("common.files.unsupported", { type })}
           </div>
