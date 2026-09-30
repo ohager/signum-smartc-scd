@@ -128,6 +128,8 @@ export type MessageParams = {
   "project.newFile.smartc": undefined;
   "project.newFile.scenario": undefined;
   "project.newFile.test": undefined;
+  "project.newFile.watchlist": undefined;
+  "project.newFile.labelMap": undefined;
   "project.newProject.title": undefined;
   "project.newProject.createDescription": undefined;
   "project.newProject.inspectDescription": undefined;

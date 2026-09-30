@@ -25,7 +25,9 @@
     "name": "Name",
     "smartc": "SmartC contract (.smart.c)",
     "scenario": "Scenario (.scenario.json)",
-    "test": "Test (.test.ts)"
+    "test": "Test (.test.ts)",
+    "watchlist": "Inspection watchlist",
+    "labelMap": "Label Map"
   },
   "newProject": {
     "title": "New Project",

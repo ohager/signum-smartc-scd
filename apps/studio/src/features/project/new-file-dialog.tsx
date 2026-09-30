@@ -26,12 +26,16 @@ import {
   serializeScenario,
   defaultScenario,
 } from "@/features/simulator/scenario/scenario-io";
+import { emptyLabelMap } from "@/features/inspector/model/label-map";
+import { emptyWatchlist } from "@/features/inspector/model/watchlist";
 import { t } from "@/i18n/runtime";
 
 const EXT: Record<string, string> = {
   [FileTypes.SmartC]: ".smart.c",
   [FileTypes.Scenario]: ".scenario.json",
   [FileTypes.Test]: ".test.ts",
+  [FileTypes.LabelMap]: ".labels.json",
+  [FileTypes.Watchlist]: ".inspect.json",
 };
 
 interface Props {
@@ -75,7 +79,11 @@ export function NewFileDialog({
         ? serializeScenario(defaultScenario())
         : type === FileTypes.Test
           ? testStarter(finalName, contract)
-          : smartcStarter(finalName.slice(0, -ext.length));
+          : type === FileTypes.LabelMap
+            ? emptyLabelMap(base)
+            : type === FileTypes.Watchlist
+              ? emptyWatchlist()
+              : smartcStarter(finalName.slice(0, -ext.length));
     onCreate(finalName, type, content);
     onOpenChange(false);
   };
@@ -103,6 +111,8 @@ export function NewFileDialog({
                   {t("project.newFile.scenario")}
                 </SelectItem>
                 <SelectItem value={FileTypes.Test}>{t("project.newFile.test")}</SelectItem>
+                <SelectItem value={FileTypes.Watchlist}>{t("project.newFile.watchlist")}</SelectItem>
+                <SelectItem value={FileTypes.LabelMap}>{t("project.newFile.labelMap")}</SelectItem>
               </SelectContent>
             </Select>
             <Label htmlFor="new-file-name">{t("project.newFile.name")}</Label>

@@ -20,3 +20,11 @@ describe("acceptedFileType", () => {
     expect(acceptedFileType("")).toBeNull();
   });
 });
+
+describe("inspection file types", () => {
+  it("accepts labels and watchlists before any generic rule", () => {
+    expect(acceptedFileType("nft.labels.json")).toBe(FileTypes.LabelMap);
+    expect(acceptedFileType("deployments.inspect.json")).toBe(FileTypes.Watchlist);
+    expect(acceptedFileType("x.scenario.json")).toBe(FileTypes.Scenario);
+  });
+});

@@ -20,6 +20,7 @@ import {
   registerEditorFileActions,
 } from "@/components/ui/editor/file-actions.tsx";
 import { useEditorFile } from "@/components/ui/editor/use-editor-file.ts";
+import { registerStudioJson } from "@/features/inspector/monaco/register-json";
 import { t } from "@/i18n/runtime";
 
 function validationErrors(text: string): string[] {
@@ -136,15 +137,16 @@ export function ScenarioEditor({ file }: { file: File }) {
       <div className="min-h-0 flex-1 rounded">
         <Editor
           height="100%"
-          defaultLanguage="json"
+          defaultLanguage="json5"
           value={content}
           theme={monacoTheme}
           onChange={onChange}
           beforeMount={(monaco) => {
             registerClimateThemes(monaco);
-            monaco.languages.json?.jsonDefaults.setDiagnosticsOptions({
-              validate: false,
-            });
+            // Scenarios are JSON5; the `json5` language keeps them out of the
+            // JSON worker, whose options are global and now validate the
+            // inspector files. See register-json.ts.
+            registerStudioJson(monaco);
           }}
           onMount={handleEditorDidMount}
           options={{
