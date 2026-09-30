@@ -11,7 +11,8 @@
     "fixFirst": "Behebe den Fehler vor dem Kompilieren",
     "overwriteTitle": "SmartC kompilieren",
     "overwrite": "Es gibt bereits eine Assembly-Datei. Beim erneuten Kompilieren wird der bisherige Code überschrieben",
-    "recompile": "Neu kompilieren"
+    "recompile": "Neu kompilieren",
+    "genericError": "Kompilierfehler"
   },
   "completion": {
     "suggestProperties": "Eigenschaften vorschlagen"

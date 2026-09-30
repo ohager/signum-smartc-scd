@@ -26,7 +26,9 @@
       "data": "data",
       "codeStack": "code stack",
       "userStack": "user stack"
-    }
+    },
+    "copyHash": "Copy code hash",
+    "hashCopied": "Code hash copied"
   },
   "size": {
     "tooLargeTitle": "Contract Too Large",
@@ -82,7 +84,9 @@
       "broadcastingHint": "Submitting transaction to the network",
       "deployed": "Deployed",
       "deployedHint": "Contract successfully deployed"
-    }
+    },
+    "failedRetry": "{message}. Please try again.",
+    "failedGeneric": "Failed to deploy contract. Please try again."
   },
   "large": {
     "enterPassphrase": "Please enter your passphrase",

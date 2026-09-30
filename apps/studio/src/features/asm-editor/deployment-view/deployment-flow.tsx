@@ -166,8 +166,8 @@ export function DeploymentFlow({
     } catch (error) {
       setErrorMessage(
         error instanceof HttpError
-          ? `${error.message}. Please try again.`
-          : "Failed to deploy contract. Please try again.",
+          ? t("asm-editor.flow.failedRetry", { message: error.message })
+          : t("asm-editor.flow.failedGeneric"),
       );
       setDeploymentStep("error");
       console.error("Deployment failed:", error);

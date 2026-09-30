@@ -25,7 +25,9 @@
       "data": "数据",
       "codeStack": "代码栈",
       "userStack": "用户栈"
-    }
+    },
+    "copyHash": "复制代码哈希",
+    "hashCopied": "已复制代码哈希"
   },
   "size": {
     "tooLargeTitle": "合约过大",
@@ -81,7 +83,9 @@
       "broadcastingHint": "将交易提交到网络",
       "deployed": "已部署",
       "deployedHint": "合约已成功部署"
-    }
+    },
+    "failedRetry": "{message}。请重试。",
+    "failedGeneric": "合约部署失败。请重试。"
   },
   "large": {
     "enterPassphrase": "请输入助记词",

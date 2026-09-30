@@ -37,7 +37,9 @@
     "ranTimes": "运行了 {count} 次——显示最后一次",
     "collapseAll": "全部折叠",
     "expandAll": "全部展开",
-    "noValue": "此行完成了一次断言，但没有绑定数值。"
+    "noValue": "此行完成了一次断言，但没有绑定数值。",
+    "eachRun": "每次运行",
+    "eachRunLast": "每次运行，显示 {count} 次中的最后 {shown} 次"
   },
   "devtools": {
     "label": "如何使用 DevTools 调试",
@@ -47,5 +49,9 @@
     "find": "在 Sources 中按项目路径找到你的测试，例如 <code>/my-project/tests/counter.test.ts</code>。",
     "breakpoint": "在那里设置断点，或在测试中写一条 <code>debugger;</code> 语句。",
     "freeze": "测试在页面中而不是 worker 中运行，因此死循环的合约会冻结标签页——看门狗无法中断正在阻塞它的循环。"
+  },
+  "decorations": {
+    "run": "运行 {label}",
+    "runAll": "运行 {label} 中的全部"
   }
 }

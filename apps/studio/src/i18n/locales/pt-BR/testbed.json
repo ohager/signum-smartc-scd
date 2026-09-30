@@ -37,7 +37,9 @@
     "ranTimes": "executou {count} vezes — mostrando a última",
     "collapseAll": "Recolher tudo",
     "expandAll": "Expandir tudo",
-    "noValue": "Esta linha concluiu uma asserção, mas não vinculou nenhum valor."
+    "noValue": "Esta linha concluiu uma asserção, mas não vinculou nenhum valor.",
+    "eachRun": "Cada execução",
+    "eachRunLast": "Cada execução, mostrando as últimas {shown} de {count}"
   },
   "devtools": {
     "label": "Como depurar com o DevTools",
@@ -47,5 +49,9 @@
     "find": "Encontre seu teste em Sources pelo caminho do projeto, por exemplo <code>/my-project/tests/counter.test.ts</code>.",
     "breakpoint": "Defina um ponto de interrupção ali ou coloque uma instrução <code>debugger;</code> no teste.",
     "freeze": "Os testes rodam na página em vez de em um worker, então um contrato em loop infinito vai congelar a aba — o watchdog não consegue interromper o loop que o está bloqueando."
+  },
+  "decorations": {
+    "run": "Executar {label}",
+    "runAll": "Executar tudo em {label}"
   }
 }

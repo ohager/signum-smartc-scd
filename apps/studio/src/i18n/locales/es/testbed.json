@@ -37,7 +37,9 @@
     "ranTimes": "se ejecutó {count} veces — se muestra la última",
     "collapseAll": "Contraer todo",
     "expandAll": "Expandir todo",
-    "noValue": "Esta línea completó una aserción pero no enlazó ningún valor."
+    "noValue": "Esta línea completó una aserción pero no enlazó ningún valor.",
+    "eachRun": "Cada ejecución",
+    "eachRunLast": "Cada ejecución, mostrando las últimas {shown} de {count}"
   },
   "devtools": {
     "label": "Cómo depurar con DevTools",
@@ -47,5 +49,9 @@
     "find": "Busca tu prueba en Sources bajo la ruta del proyecto, p. ej. <code>/my-project/tests/counter.test.ts</code>.",
     "breakpoint": "Pon ahí un punto de interrupción, o añade una sentencia <code>debugger;</code> en la prueba.",
     "freeze": "Las pruebas se ejecutan en la página en lugar de en un worker, así que un contrato en bucle infinito congelará la pestaña — el watchdog no puede interrumpir el bucle que lo está bloqueando."
+  },
+  "decorations": {
+    "run": "Ejecutar {label}",
+    "runAll": "Ejecutar todo en {label}"
   }
 }

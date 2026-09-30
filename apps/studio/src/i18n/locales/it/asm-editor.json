@@ -26,7 +26,9 @@
       "data": "dati",
       "codeStack": "stack del codice",
       "userStack": "stack utente"
-    }
+    },
+    "copyHash": "Copia hash del codice",
+    "hashCopied": "Hash del codice copiato"
   },
   "size": {
     "tooLargeTitle": "Contratto troppo grande",
@@ -82,7 +84,9 @@
       "broadcastingHint": "Invio della transazione alla rete",
       "deployed": "Distribuito",
       "deployedHint": "Contratto distribuito correttamente"
-    }
+    },
+    "failedRetry": "{message}. Riprova.",
+    "failedGeneric": "Impossibile distribuire il contratto. Riprova."
   },
   "large": {
     "enterPassphrase": "Inserisci la tua passphrase",

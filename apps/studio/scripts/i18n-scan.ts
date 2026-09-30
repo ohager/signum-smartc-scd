@@ -12,6 +12,11 @@ const ATTRIBUTES = new Set(["title", "label", "placeholder", "aria-label", "alt"
 const PROPERTIES = new Set(["title", "label", "description", "placeholder", "tooltip", "message"]);
 /** Two letters in a row, in any script — excludes "·", "→", "42". */
 const WORDY = /\p{L}{2,}/u;
+/** Words with whitespace between them — a sentence, not a token like "bad". */
+const SENTENCE = /\p{L}+\s+\p{L}+/u;
+/** Utility-class lists (`bg-muted text-muted-foreground`), not prose. */
+const isClassList = (v: string) =>
+  v.split(/\s+/).every((w) => /^[a-z0-9\-:\[\]()=_\/.%&!*>]+$/.test(w)) && /[-:\[]/.test(v);
 /** Names that are never translated. */
 const NEVER = new Set(["SmartC", "Signum", "SIGNA", "Studio", "Nexus", "Dawn", "Solaris", "Terminal"]);
 
@@ -41,7 +46,24 @@ export function scanSource(fileName: string, text: string): Finding[] {
         ? n.head.text + n.templateSpans.map((s) => s.literal.text).join(" ")
         : undefined;
 
+  /** Literals chosen by a condition or a fallback: `a ? "x y" : "z w"`, `m || "x y"`. */
+  const branches = (node: ts.Node) => {
+    const candidates: ts.Node[] = [];
+    if (ts.isConditionalExpression(node)) candidates.push(node.whenTrue, node.whenFalse);
+    else if (
+      ts.isBinaryExpression(node) &&
+      (node.operatorToken.kind === ts.SyntaxKind.BarBarToken ||
+        node.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken)
+    )
+      candidates.push(node.right);
+    for (const c of candidates) {
+      const v = literal(c);
+      if (v !== undefined && SENTENCE.test(v) && !isClassList(v.trim())) report(c, v);
+    }
+  };
+
   const visit = (node: ts.Node) => {
+    branches(node);
     if (ts.isJsxText(node)) report(node, node.text);
     else if (ts.isJsxAttribute(node) && ATTRIBUTES.has(node.name.getText(sf))) {
       const init = node.initializer;

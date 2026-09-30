@@ -37,7 +37,9 @@
     "ranTimes": "{count}-mal ausgeführt — zeigt den letzten",
     "collapseAll": "Alle einklappen",
     "expandAll": "Alle ausklappen",
-    "noValue": "Diese Zeile hat eine Assertion erfüllt, aber keinen Wert gebunden."
+    "noValue": "Diese Zeile hat eine Assertion erfüllt, aber keinen Wert gebunden.",
+    "eachRun": "Jeder Durchlauf",
+    "eachRunLast": "Jeder Durchlauf, zeigt die letzten {shown} von {count}"
   },
   "devtools": {
     "label": "Wie man mit DevTools debuggt",
@@ -47,5 +49,9 @@
     "find": "Such deinen Test unter Sources im Projektpfad, z. B. <code>/my-project/tests/counter.test.ts</code>.",
     "breakpoint": "Setz dort einen Haltepunkt oder schreib eine <code>debugger;</code>-Anweisung in den Test.",
     "freeze": "Tests laufen in der Seite statt in einem Worker, daher friert ein Contract mit Endlosschleife den Tab ein — der Watchdog kann die blockierende Schleife nicht unterbrechen."
+  },
+  "decorations": {
+    "run": "{label} ausführen",
+    "runAll": "Alle in {label} ausführen"
   }
 }

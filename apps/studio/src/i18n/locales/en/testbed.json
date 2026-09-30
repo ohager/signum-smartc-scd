@@ -37,7 +37,9 @@
     "ranTimes": "ran {count} times — showing the last",
     "collapseAll": "Collapse all",
     "expandAll": "Expand all",
-    "noValue": "This line completed an assertion but bound no value."
+    "noValue": "This line completed an assertion but bound no value.",
+    "eachRun": "Each run",
+    "eachRunLast": "Each run, showing the last {shown} of {count}"
   },
   "devtools": {
     "label": "How to debug with DevTools",
@@ -47,5 +49,9 @@
     "find": "Find your test in Sources under its project path, e.g. <code>/my-project/tests/counter.test.ts</code>.",
     "breakpoint": "Set a breakpoint there, or put a <code>debugger;</code> statement in the test.",
     "freeze": "Tests run in the page instead of a worker, so a contract that loops forever will freeze the tab — the watchdog cannot interrupt the loop that is blocking it."
+  },
+  "decorations": {
+    "run": "Run {label}",
+    "runAll": "Run all in {label}"
   }
 }

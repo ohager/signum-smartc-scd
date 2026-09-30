@@ -11,7 +11,8 @@
     "fixFirst": "Corrija o erro antes de compilar",
     "overwriteTitle": "Compilar SmartC",
     "overwrite": "Já existe um arquivo assembly. Todo o código anterior será sobrescrito se você recompilar",
-    "recompile": "Recompilar"
+    "recompile": "Recompilar",
+    "genericError": "Erro de compilação"
   },
   "completion": {
     "suggestProperties": "Sugerir propriedades"

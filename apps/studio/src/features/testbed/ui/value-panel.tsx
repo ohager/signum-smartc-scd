@@ -164,8 +164,8 @@ export function ValuePanel() {
         <div className="max-h-40 shrink-0 overflow-auto border-t border-border px-3 py-2">
           <div className="mb-1 text-xs text-muted-foreground">
             {dropped > 0
-              ? `Each run, showing the last ${trace.values.length} of ${trace.count}`
-              : "Each run"}
+              ? t("testbed.value.eachRunLast", { shown: trace.values.length, count: trace.count })
+              : t("testbed.value.eachRun")}
           </div>
           <ol className="font-mono text-xs">
             {trace.values.map((value, index) => (

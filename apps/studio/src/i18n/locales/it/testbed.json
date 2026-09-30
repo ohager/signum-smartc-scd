@@ -37,7 +37,9 @@
     "ranTimes": "eseguito {count} volte — mostrato l'ultimo",
     "collapseAll": "Comprimi tutto",
     "expandAll": "Espandi tutto",
-    "noValue": "Questa riga ha completato un'asserzione ma non ha associato alcun valore."
+    "noValue": "Questa riga ha completato un'asserzione ma non ha associato alcun valore.",
+    "eachRun": "Ogni esecuzione",
+    "eachRunLast": "Ogni esecuzione, mostrate le ultime {shown} di {count}"
   },
   "devtools": {
     "label": "Come fare il debug con DevTools",
@@ -47,5 +49,9 @@
     "find": "Trova il tuo test in Sources sotto il percorso del progetto, ad es. <code>/my-project/tests/counter.test.ts</code>.",
     "breakpoint": "Imposta lì un punto di interruzione, oppure inserisci un'istruzione <code>debugger;</code> nel test.",
     "freeze": "I test girano nella pagina invece che in un worker, quindi un contratto in ciclo infinito bloccherà la scheda — il watchdog non può interrompere il ciclo che lo sta bloccando."
+  },
+  "decorations": {
+    "run": "Esegui {label}",
+    "runAll": "Esegui tutto in {label}"
   }
 }

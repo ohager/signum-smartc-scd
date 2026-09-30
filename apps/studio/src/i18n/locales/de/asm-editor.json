@@ -26,7 +26,9 @@
       "data": "Daten",
       "codeStack": "Code-Stack",
       "userStack": "User-Stack"
-    }
+    },
+    "copyHash": "Code-Hash kopieren",
+    "hashCopied": "Code-Hash kopiert"
   },
   "size": {
     "tooLargeTitle": "Contract zu groß",
@@ -82,7 +84,9 @@
       "broadcastingHint": "Transaktion ans Netzwerk übermitteln",
       "deployed": "Deployt",
       "deployedHint": "Contract erfolgreich deployt"
-    }
+    },
+    "failedRetry": "{message}. Bitte versuch es erneut.",
+    "failedGeneric": "Contract konnte nicht deployt werden. Bitte versuch es erneut."
   },
   "large": {
     "enterPassphrase": "Bitte gib deine Passphrase ein",

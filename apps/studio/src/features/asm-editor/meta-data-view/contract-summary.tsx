@@ -100,7 +100,7 @@ function HashId({ value }: { value: string }) {
       <button
         type="button"
         onClick={copy}
-        aria-label={copied ? "Code hash copied" : "Copy code hash"}
+        aria-label={copied ? t("asm-editor.meta.hashCopied") : t("asm-editor.meta.copyHash")}
         className="shrink-0 opacity-60 hover:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ring)]"
       >
         {copied ? (

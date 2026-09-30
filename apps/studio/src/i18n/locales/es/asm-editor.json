@@ -26,7 +26,9 @@
       "data": "datos",
       "codeStack": "pila de código",
       "userStack": "pila de usuario"
-    }
+    },
+    "copyHash": "Copiar hash del código",
+    "hashCopied": "Hash del código copiado"
   },
   "size": {
     "tooLargeTitle": "Contrato demasiado grande",
@@ -82,7 +84,9 @@
       "broadcastingHint": "Enviando la transacción a la red",
       "deployed": "Desplegado",
       "deployedHint": "Contrato desplegado correctamente"
-    }
+    },
+    "failedRetry": "{message}. Inténtalo de nuevo.",
+    "failedGeneric": "No se pudo desplegar el contrato. Inténtalo de nuevo."
   },
   "large": {
     "enterPassphrase": "Introduce tu frase de contraseña",

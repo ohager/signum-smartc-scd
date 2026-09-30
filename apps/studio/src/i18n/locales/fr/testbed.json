@@ -37,7 +37,9 @@
     "ranTimes": "exécuté {count} fois — affichage de la dernière",
     "collapseAll": "Tout replier",
     "expandAll": "Tout déplier",
-    "noValue": "Cette ligne a validé une assertion mais n'a lié aucune valeur."
+    "noValue": "Cette ligne a validé une assertion mais n'a lié aucune valeur.",
+    "eachRun": "Chaque exécution",
+    "eachRunLast": "Chaque exécution, affichage des {shown} dernières sur {count}"
   },
   "devtools": {
     "label": "Comment déboguer avec DevTools",
@@ -47,5 +49,9 @@
     "find": "Retrouvez votre test dans Sources sous le chemin du projet, par ex. <code>/my-project/tests/counter.test.ts</code>.",
     "breakpoint": "Placez-y un point d'arrêt, ou ajoutez une instruction <code>debugger;</code> dans le test.",
     "freeze": "Les tests s'exécutent dans la page et non dans un worker : un contrat qui boucle indéfiniment figera donc l'onglet — le watchdog ne peut pas interrompre la boucle qui le bloque."
+  },
+  "decorations": {
+    "run": "Exécuter {label}",
+    "runAll": "Tout exécuter dans {label}"
   }
 }

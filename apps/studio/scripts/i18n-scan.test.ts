@@ -29,4 +29,23 @@ describe("scanSource", () => {
     ].join("\n");
     expect(scanSource("b.tsx", src)).toEqual([]);
   });
+
+  it("finds literals inside conditionals and fallbacks", () => {
+    const src = [
+      `export function C() {`,
+      `  const a = ok ? "Code hash copied" : "Copy code hash";`,
+      `  const b = err?.message || "Failed to deploy contract";`,
+      `  return <div aria-label={copied ? "Hash copied" : "Copy hash"}>{n > 1 ? \`Each run of \${n}\` : "Each run"}</div>;`,
+      `}`,
+    ].join("\n");
+    expect(scanSource("c.tsx", src).map((f) => f.text)).toEqual([
+      "Code hash copied",
+      "Copy code hash",
+      "Failed to deploy contract",
+      "Hash copied",
+      "Copy hash",
+      "Each run of",
+      "Each run",
+    ]);
+  });
 });

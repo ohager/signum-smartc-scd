@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import type * as Monaco from "monaco-editor";
 import type { TestRow } from "../test-run-model";
 import type { FoundTest } from "../instrument/find-tests";
+import { t } from "@/i18n/runtime";
 
 const CLASS_FOR_STATUS: Record<string, string> = {
   pending: "test-glyph-pending",
@@ -58,7 +59,6 @@ export function useTestDecorations(
       const outcome = row
         ? ` — ${row.status}${row.durationMs !== undefined ? ` (${row.durationMs}ms)` : ""}`
         : "";
-      const what = entry.kind === "suite" ? "Run all in " : "Run ";
 
       decorations.push({
         range: new monaco.Range(entry.line, 1, entry.line, 1),
@@ -66,7 +66,11 @@ export function useTestDecorations(
           isWholeLine: false,
           glyphMarginClassName: `${statusClass}${canRun ? " test-glyph-runnable" : ""}`,
           glyphMarginHoverMessage: {
-            value: canRun ? `${what}${label}${outcome}` : `${label} — ${entry.mode}`,
+            value: canRun
+              ? (entry.kind === "suite"
+                  ? t("testbed.decorations.runAll", { label })
+                  : t("testbed.decorations.run", { label })) + outcome
+              : `${label} — ${entry.mode}`,
           },
         },
       });

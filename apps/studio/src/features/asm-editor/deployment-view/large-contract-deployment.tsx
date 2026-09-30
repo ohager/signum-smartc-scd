@@ -137,7 +137,7 @@ export function LargeContractDeployment({
       toast.success(t("asm-editor.large.deployed"));
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "Failed to deploy contract"
+        error instanceof Error ? error.message : t("asm-editor.large.failed")
       );
       setDeploymentStep("error");
       console.error("Large contract deployment failed:", error);

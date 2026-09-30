@@ -46,7 +46,8 @@ export function validateScenario(value: unknown): ValidationResult {
 export function parseScenario(json: string): ScenarioFile {
   const parsed = JSON5.parse(json); // JSON5: comments, trailing commas, unquoted keys
   const r = validateScenario(parsed);
-  if (!r.valid) throw new Error("Invalid scenario: " + r.errors.join("; "));
+  // The caller already says the scenario is invalid; the message is only the reasons.
+  if (!r.valid) throw new Error(r.errors.join("; "));
   return r.scenario;
 }
 

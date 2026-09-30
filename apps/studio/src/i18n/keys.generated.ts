@@ -261,6 +261,8 @@ export type MessageParams = {
   "testbed.value.collapseAll": undefined;
   "testbed.value.expandAll": undefined;
   "testbed.value.noValue": undefined;
+  "testbed.value.eachRun": undefined;
+  "testbed.value.eachRunLast": { count: string | number; shown: string | number };
   "testbed.devtools.label": undefined;
   "testbed.devtools.title": undefined;
   "testbed.devtools.openFirst": undefined;
@@ -268,6 +270,8 @@ export type MessageParams = {
   "testbed.devtools.find": undefined;
   "testbed.devtools.breakpoint": undefined;
   "testbed.devtools.freeze": undefined;
+  "testbed.decorations.run": { label: string | number };
+  "testbed.decorations.runAll": { label: string | number };
   "smartc-editor.compile.created": undefined;
   "smartc-editor.compile.createFailed": { message: string | number };
   "smartc-editor.compile.updated": undefined;
@@ -280,6 +284,7 @@ export type MessageParams = {
   "smartc-editor.compile.overwriteTitle": undefined;
   "smartc-editor.compile.overwrite": undefined;
   "smartc-editor.compile.recompile": undefined;
+  "smartc-editor.compile.genericError": undefined;
   "smartc-editor.completion.suggestProperties": undefined;
   "smartc-editor.hover.function": undefined;
   "smartc-editor.hover.apiFunction": { include: string | number };
@@ -306,6 +311,8 @@ export type MessageParams = {
   "asm-editor.meta.pages.data": undefined;
   "asm-editor.meta.pages.codeStack": undefined;
   "asm-editor.meta.pages.userStack": undefined;
+  "asm-editor.meta.copyHash": undefined;
+  "asm-editor.meta.hashCopied": undefined;
   "asm-editor.size.tooLargeTitle": undefined;
   "asm-editor.size.cannotDeploy": undefined;
   "asm-editor.size.exceedsTitle": undefined;
@@ -354,6 +361,8 @@ export type MessageParams = {
   "asm-editor.flow.steps.broadcastingHint": undefined;
   "asm-editor.flow.steps.deployed": undefined;
   "asm-editor.flow.steps.deployedHint": undefined;
+  "asm-editor.flow.failedRetry": { message: string | number };
+  "asm-editor.flow.failedGeneric": undefined;
   "asm-editor.large.enterPassphrase": undefined;
   "asm-editor.large.deployed": undefined;
   "asm-editor.large.failed": undefined;

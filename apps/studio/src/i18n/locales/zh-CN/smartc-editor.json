@@ -11,7 +11,8 @@
     "fixFirst": "请先修复错误再编译",
     "overwriteTitle": "编译 SmartC",
     "overwrite": "汇编文件已存在。重新编译将覆盖之前的全部代码",
-    "recompile": "重新编译"
+    "recompile": "重新编译",
+    "genericError": "编译错误"
   },
   "completion": {
     "suggestProperties": "建议属性"
