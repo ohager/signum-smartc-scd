@@ -10,5 +10,65 @@
     "enumRequired": "Format \"enum\" needs an \"enum\" name",
     "other": "{message}",
     "at": "Line {line}: {message}"
+  },
+  "editor": {
+    "viewUi": "Inspector",
+    "viewJson": "JSON",
+    "invalid": {
+      "one": "This file has {count} problem. Fix it in the JSON view.",
+      "other": "This file has {count} problems. Fix it in the JSON view."
+    },
+    "empty": "No contracts yet. Add one to start inspecting.",
+    "add": "Add contract",
+    "refresh": "Refresh",
+    "remove": "Remove from watchlist",
+    "select": "Select a contract on the left."
+  },
+  "status": {
+    "running": "Running",
+    "stopped": "Stopped",
+    "finished": "Finished",
+    "frozen": "Frozen",
+    "dead": "Dead"
+  },
+  "network": {
+    "mainnet": "Mainnet",
+    "testnet": "Testnet",
+    "custom": "Custom node"
+  },
+  "contract": {
+    "loading": "Loading contract…",
+    "notFound": "Contract {id} was not found on {node}. A contract deployed moments ago appears once its transaction is in a block.",
+    "unreachable": "The node {node} did not answer: {message}",
+    "nodeError": "The node reported: {message}",
+    "retry": "Retry",
+    "noLabels": "No Label Map",
+    "tabs": {
+      "overview": "Overview",
+      "data": "Data stack",
+      "maps": "Maps"
+    }
+  },
+  "overview": {
+    "id": "Contract",
+    "name": "Name",
+    "description": "Description",
+    "creator": "Creator",
+    "balance": "Balance",
+    "status": "Status",
+    "codeHash": "Code hash",
+    "creationBlock": "Created at block",
+    "minActivation": "Minimum activation",
+    "labelMap": "Label Map",
+    "resolvedByHash": "matched by code hash",
+    "resolvedByPin": "pinned in this watchlist",
+    "pinnedMissing": "The pinned Label Map \"{name}\" is missing or invalid.",
+    "ambiguous": "Several Label Maps list this code hash. Choose one:",
+    "choose": "Use this one",
+    "none": "No Label Map lists this code hash.",
+    "create": "Create Label Map",
+    "addHash": "Add this hash to…",
+    "created": "Label Map created",
+    "hashAdded": "Code hash added to {name}"
   }
 }
