@@ -20,6 +20,7 @@ import { registerAsmLanguage } from "./language-definitions/asm-language-definit
 import { type File } from "@/lib/file-system";
 import type { MachineData } from "@/features/asm-editor/machine-data.ts";
 import { tryAssemble } from "../lib/try-assemble.ts";
+import { EDITOR_SCROLLBAR } from "@/theme/monaco-themes";
 import { t } from "@/i18n/runtime";
 
 interface Props {
@@ -126,6 +127,7 @@ function AsmCodeEditor({ file, onSave }: Props) {
           onValidate={handleValidate}
           options={{
             minimap: { enabled: true },
+            scrollbar: EDITOR_SCROLLBAR,
             scrollBeyondLastLine: false,
             fontSize: 14,
             wordWrap: "on",

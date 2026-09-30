@@ -215,6 +215,36 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /*
+   * One scrollbar everywhere: thin, a slider tinted with the climate's accent,
+   * no track. Monaco draws its own and takes the same tint from its theme
+   * (theme/monaco-themes.ts), the Radix ScrollArea from scroll-area.tsx.
+   */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--accent-2) 35%, transparent)
+      transparent;
+  }
+  /*
+   * Safari lacks scrollbar-color. Only there, because in Chromium a
+   * ::-webkit-scrollbar rule would override the standard properties above.
+   */
+  @supports not (scrollbar-color: auto) {
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track,
+    ::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: color-mix(in srgb, var(--accent-2) 35%, transparent);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: color-mix(in srgb, var(--accent-2) 65%, transparent);
+    }
+  }
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body, "Exo 2", ui-sans-serif, system-ui, sans-serif);

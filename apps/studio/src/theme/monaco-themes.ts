@@ -44,6 +44,13 @@ export function jsonThemeName(id: ClimateId): string {
   return `json-${id}`;
 }
 
+/** Editor option: Monaco's scrollbars as thin as the page's. Spread into every editor's `scrollbar`. */
+export const EDITOR_SCROLLBAR = {
+  verticalScrollbarSize: 6,
+  horizontalScrollbarSize: 6,
+  useShadows: false,
+} as const;
+
 /** Monaco takes alpha as two trailing hex digits. */
 function withAlpha(hex: string, alpha: string): string {
   return `${hex}${alpha}`;
@@ -68,6 +75,11 @@ function groundColours(climate: Climate): Record<string, string> {
     "editorSuggestWidget.background": climate.editor.code,
     "editorSuggestWidget.border": climate.accent2,
     "editorIndentGuide.background1": withAlpha(climate.editor.gutter, "55"),
+    // Same thin, accent-tinted slider as the page scrollbars (styles/globals.css).
+    "scrollbar.shadow": "#00000000",
+    "scrollbarSlider.background": withAlpha(climate.accent2, "33"),
+    "scrollbarSlider.hoverBackground": withAlpha(climate.accent2, "66"),
+    "scrollbarSlider.activeBackground": withAlpha(climate.accent2, "99"),
   };
 }
 
