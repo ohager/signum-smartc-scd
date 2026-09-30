@@ -1,0 +1,14 @@
+{
+  "validation": {
+    "syntax": "Syntax error: {error}",
+    "required": "Required field is missing",
+    "type": "Expected {expected}",
+    "value": "Must be one of: {allowed}",
+    "pattern": "Must be a decimal number",
+    "unknownKey": "Unknown field: {keys}",
+    "enumMissing": "Enum \"{name}\" is not defined in \"enums\"",
+    "enumRequired": "Format \"enum\" needs an \"enum\" name",
+    "other": "{message}",
+    "at": "Line {line}: {message}"
+  }
+}

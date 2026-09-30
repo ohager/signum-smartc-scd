@@ -407,6 +407,16 @@ export type MessageParams = {
   "asm-editor.hover.form.returns": undefined;
   "asm-editor.hover.form.returnsOne": undefined;
   "asm-editor.hover.form.returnsTwo": undefined;
+  "inspector.validation.syntax": { error: string | number };
+  "inspector.validation.required": undefined;
+  "inspector.validation.type": { expected: string | number };
+  "inspector.validation.value": { allowed: string | number };
+  "inspector.validation.pattern": undefined;
+  "inspector.validation.unknownKey": { keys: string | number };
+  "inspector.validation.enumMissing": { name: string | number };
+  "inspector.validation.enumRequired": undefined;
+  "inspector.validation.other": { message: string | number };
+  "inspector.validation.at": { line: string | number; message: string | number };
 };
 
 export type MessageKey = keyof MessageParams;
