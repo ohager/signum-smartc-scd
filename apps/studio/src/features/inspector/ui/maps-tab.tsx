@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import { t } from "@/i18n/runtime";
 import type { InspectorClient } from "../chain/inspector-client";
+import { createLatest } from "../chain/latest";
 import { decimalToBigInt, formatValue } from "../model/decode";
 import { isFixedGroup, type MapGroup } from "../model/label-map";
 import { upsertMapGroup } from "../model/label-map-edits";
@@ -27,6 +28,7 @@ function KeyValues({
   group,
   ctx,
   valueFilter,
+  revision,
 }: {
   client: InspectorClient;
   contractId: string;
@@ -34,8 +36,11 @@ function KeyValues({
   group: MapGroup | null;
   ctx: { prefix: "S" | "TS"; enums: Record<string, Record<string, string>> };
   valueFilter?: string;
+  /** Bumped by the contract's Refresh; a new value reloads from page 0. */
+  revision: number;
 }) {
   const [rows, setRows] = useState<Rows | null>(null);
+  const [latest] = useState(createLatest);
   const [page, setPage] = useState(0);
   const [more, setMore] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -43,7 +48,9 @@ function KeyValues({
   const load = async (next: number) => {
     setBusy(true);
     try {
-      const got = await client.getMapByKey1(contractId, key1, next, PAGE, valueFilter);
+      const answer = await latest(client.getMapByKey1(contractId, key1, next, PAGE, valueFilter));
+      if (!answer.current) return;
+      const got = answer.value;
       setRows((r) => [...(next === 0 ? [] : (r ?? [])), ...got]);
       setPage(next);
       setMore(got.length === PAGE);
@@ -57,7 +64,7 @@ function KeyValues({
   useEffect(() => {
     void load(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contractId, key1, valueFilter]);
+  }, [contractId, key1, valueFilter, revision]);
 
   if (rows === null) return <p className="px-6 py-1 text-xs text-muted-foreground">{t("inspector.maps.loading")}</p>;
   if (rows.length === 0) return <p className="px-6 py-1 text-xs text-muted-foreground">{t("inspector.maps.empty")}</p>;
@@ -103,12 +110,14 @@ export function MapsTab({
   labelMap,
   prefix,
   ensureLabelMap,
+  revision,
 }: {
   contract: Contract;
   client: InspectorClient;
   labelMap: IndexedLabelMap | null;
   prefix: "S" | "TS";
   ensureLabelMap: () => Promise<string | null>;
+  revision: number;
 }) {
   const fs = useFileSystem();
   const groups = labelMap?.map?.maps ?? [];
@@ -150,7 +159,7 @@ export function MapsTab({
                   {group.name} <span className="font-mono text-xs text-muted-foreground">key1 {group.key1}</span>
                 </button>
                 {activeKey && (
-                  <KeyValues client={client} contractId={contract.at} key1={group.key1} group={group} ctx={ctx} />
+                  <KeyValues client={client} contractId={contract.at} key1={group.key1} group={group} ctx={ctx} revision={revision} />
                 )}
               </div>
             );
@@ -176,7 +185,7 @@ export function MapsTab({
                 </Button>
               </div>
               {activeKey && (
-                <KeyValues key={activeKey} client={client} contractId={contract.at} key1={activeKey} group={group} ctx={ctx} />
+                <KeyValues key={activeKey} client={client} contractId={contract.at} key1={activeKey} group={group} ctx={ctx} revision={revision} />
               )}
             </div>
           );
@@ -232,6 +241,7 @@ export function MapsTab({
             group={null}
             ctx={ctx}
             valueFilter={free.active.value}
+            revision={revision}
           />
         )}
       </section>

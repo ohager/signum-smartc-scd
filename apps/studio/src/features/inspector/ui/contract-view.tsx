@@ -32,7 +32,7 @@ export function ContractView({
 }) {
   const fs = useFileSystem();
   const labelMaps = useLabelMaps();
-  const { state, contract, error, refresh, client } = useContract(entry);
+  const { state, contract, error, refresh, client, revision } = useContract(entry);
   const resolution = useMemo(
     () => resolveLabelMap(contract?.machineCodeHashId ?? "", entry.labelMap, labelMaps),
     [contract?.machineCodeHashId, entry.labelMap, labelMaps],
@@ -110,7 +110,7 @@ export function ContractView({
             <DataStackTab contract={contract} labelMap={active} prefix={prefix} ensureLabelMap={createMap} />
           </TabsContent>
           <TabsContent value="maps" className="min-h-0 flex-1 overflow-auto">
-            <MapsTab contract={contract} client={client} labelMap={active} prefix={prefix} ensureLabelMap={createMap} />
+            <MapsTab contract={contract} client={client} labelMap={active} prefix={prefix} ensureLabelMap={createMap} revision={revision} />
           </TabsContent>
         </Tabs>
       )}

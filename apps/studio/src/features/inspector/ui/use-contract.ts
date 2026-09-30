@@ -44,5 +44,5 @@ export function useContract(entry: WatchEntry | null) {
   }, [key, revision]);
 
   const refresh = useCallback(() => setRevision((r) => r + 1), []);
-  return { ...result, refresh, client };
+  return { ...result, refresh, client, revision };
 }
