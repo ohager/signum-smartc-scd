@@ -568,6 +568,9 @@ export type MessageParams = {
   "inspector.generate.conflict": { compiler: string | number; index: string | number; manual: string | number };
   "inspector.generate.compileError": { line: string | number; message: string | number };
   "inspector.generate.applied": undefined;
+  "inspector.deploy.inspect": undefined;
+  "inspector.deploy.inspectHint": undefined;
+  "inspector.deploy.failed": { message: string | number };
 };
 
 export type MessageKey = keyof MessageParams;

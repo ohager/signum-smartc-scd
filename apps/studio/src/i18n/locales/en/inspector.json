@@ -195,5 +195,10 @@
     "conflict": "slot {index}: kept \"{manual}\", compiler says \"{compiler}\"",
     "compileError": "Line {line}: {message}",
     "applied": "Labels regenerated"
+  },
+  "deploy": {
+    "inspect": "Inspect",
+    "inspectHint": "Open this contract in the inspector, with labels generated from this source",
+    "failed": "Could not prepare the inspection: {message}"
   }
 }

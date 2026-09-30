@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { ContractData } from "@signumjs/contracts";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,6 +54,8 @@ interface LargeContractDeploymentProps {
   deadline: number;
   fee: Amount;
   nodeUrl: string;
+  /** Rendered under the success message, e.g. "Inspect" — the flow itself knows no project. */
+  successAction?: (transactionId: string) => ReactNode;
 }
 
 export function LargeContractDeployment({
@@ -61,6 +63,7 @@ export function LargeContractDeployment({
   deadline,
   fee,
   nodeUrl,
+  successAction,
 }: LargeContractDeploymentProps) {
   const [deploymentStep, setDeploymentStep] = useState<DeploymentStep>("idle");
   const [passphrase, setPassphrase] = useState("");
@@ -331,6 +334,7 @@ export function LargeContractDeployment({
                     </Button>
                   </ExplorerLink>
                 </div>
+                {transactionId && successAction && <div className="mt-3">{successAction(transactionId)}</div>}
               </AlertDescription>
             </Alert>
           )}

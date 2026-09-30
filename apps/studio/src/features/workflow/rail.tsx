@@ -11,6 +11,7 @@ import {
 import { useProjectFacts } from "./use-project-facts";
 import { useCompileVerdict } from "./use-compile-verdict";
 import { useDeploymentCount } from "./use-deployment-count";
+import { showsRail } from "./rail-visibility";
 import { t } from "@/i18n/runtime";
 
 interface Cell {
@@ -66,6 +67,9 @@ export function WorkflowRail() {
     status.compile,
   );
   const deployment = useDeploymentCount(contract);
+
+  // After every hook, so the hook order never depends on the folder.
+  if (!showsRail(files, !!contract)) return null;
 
   const cells: Cell[] = [
     {
