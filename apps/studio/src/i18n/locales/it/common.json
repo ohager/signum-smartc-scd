@@ -91,5 +91,12 @@
     "waiting": "in attesa di una sessione di debug…",
     "contractStatus": "Stato del contratto",
     "ledgerStatus": "Stato del registro"
+  },
+  "locale": {
+    "label": "Lingua: {language}"
+  },
+  "boot": {
+    "failed": "Impossibile caricare Studio. Controlla la connessione e ricarica la pagina.",
+    "reload": "Ricarica"
   }
 }

@@ -91,5 +91,12 @@
     "waiting": "waiting for a debug session…",
     "contractStatus": "Contract Status",
     "ledgerStatus": "Ledger Status"
+  },
+  "locale": {
+    "label": "Language: {language}"
+  },
+  "boot": {
+    "failed": "Studio could not be loaded. Check your connection and reload the page.",
+    "reload": "Reload"
   }
 }

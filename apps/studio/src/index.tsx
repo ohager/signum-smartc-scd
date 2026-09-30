@@ -14,28 +14,33 @@ import { StrictMode } from "react";
 import { Crypto } from "@signumjs/crypto";
 import { WebCryptoAdapter } from "@signumjs/crypto/adapters";
 import { boot } from "./i18n/boot";
+import { startApp } from "./start-app";
 
 Crypto.init(new WebCryptoAdapter());
 
 async function start() {
   await boot();
-  const { App } = await import("./App");
-
   const elem = document.getElementById("root")!;
-  const app = (
-    <StrictMode>
-      <App />
-    </StrictMode>
-  );
 
-  if (import.meta.hot) {
-    // With hot module reloading, `import.meta.hot.data` is persisted.
-    const root = (import.meta.hot.data.root ??= createRoot(elem));
-    root.render(app);
-  } else {
-    // The hot module reloading API is not available in production.
-    createRoot(elem).render(app);
-  }
+  await startApp({
+    root: elem,
+    importApp: () => import("./App"),
+    render: (App) => {
+      const app = (
+        <StrictMode>
+          <App />
+        </StrictMode>
+      );
+      if (import.meta.hot) {
+        // With hot module reloading, `import.meta.hot.data` is persisted.
+        const root = (import.meta.hot.data.root ??= createRoot(elem));
+        root.render(app);
+      } else {
+        // The hot module reloading API is not available in production.
+        createRoot(elem).render(app);
+      }
+    },
+  });
 }
 
 void start();

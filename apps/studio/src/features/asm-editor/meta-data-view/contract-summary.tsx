@@ -1,10 +1,9 @@
 import { useState, type ReactNode } from "react";
-import { formatNumber } from "@/i18n/runtime";
+import { formatNumber, t } from "@/i18n/runtime";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import { Amount } from "@/components/ui/amount.tsx";
 import type { MachineData } from "@/features/asm-editor/machine-data.ts";
 import { pageBudget, type PageKind } from "./machine-image.ts";
-import { t } from "@/i18n/runtime";
 
 type Swatch = { color: string; opacity: number };
 type Ribbon = PageKind & Swatch;
@@ -156,7 +155,7 @@ export function ContractSummary({ data }: { data: MachineData }) {
           />
         </Fact>
         <Fact label={t("asm-editor.meta.machineCode")}>
-          <span className="font-mono">{t("asm-editor.meta.bytes", { count: codeBytes })}</span>
+          <span className="font-mono">{t("asm-editor.meta.bytes", { count: codeBytes, n: formatNumber(codeBytes) })}</span>
         </Fact>
         <Fact label={t("asm-editor.meta.codeHash")}>
           <HashId value={data.MachineCodeHashId} />

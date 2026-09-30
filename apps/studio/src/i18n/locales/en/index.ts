@@ -7,9 +7,13 @@ import simulator from "./simulator.json";
 import testbed from "./testbed.json";
 import smartcEditor from "./smartc-editor.json";
 import asmEditor from "./asm-editor.json";
-import editorDocs from "./editor-docs.json";
 
-/** English is the source of every key, and the fallback for every locale. */
+/**
+ * English is the source of every key, and the fallback for every locale.
+ * The editor documentation is not in here: its English lives in the language
+ * definitions and is never looked up at runtime, so bundling it would only
+ * weigh down the boot chunk. Tooling uses `./complete` instead.
+ */
 const en = {
   common,
   home,
@@ -19,7 +23,6 @@ const en = {
   testbed,
   "smartc-editor": smartcEditor,
   "asm-editor": asmEditor,
-  "editor-docs": editorDocs,
 } satisfies Messages;
 
 export default en;

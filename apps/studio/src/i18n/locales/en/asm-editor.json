@@ -11,8 +11,8 @@
     "activation": "Activation",
     "machineCode": "Machine code",
     "bytes": {
-      "one": "{count} byte",
-      "other": "{count} bytes"
+      "one": "{n} byte",
+      "other": "{n} bytes"
     },
     "codeHash": "Code hash",
     "noCode": "This contract assembles to no code.",

@@ -11,7 +11,7 @@
     "activation": "激活",
     "machineCode": "机器码",
     "bytes": {
-      "other": "{count} 字节"
+      "other": "{n} 字节"
     },
     "codeHash": "代码哈希",
     "noCode": "此合约汇编后没有代码。",
