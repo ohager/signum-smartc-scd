@@ -62,3 +62,31 @@ describe("applyMerge", () => {
     expect(back.ok && back.value.enums).toEqual({ e: { "0": "zero" } });
   });
 });
+
+describe("applyMerge keeps comments the user wrote inside the merged collections", () => {
+  it("keeps a comment on a hash and above a manual slot", () => {
+    const text = `{
+  "version": 1, "name": "M",
+  "codeHashes": [
+    { "hash": "2" } // mainnet build, OWNER=S-X
+  ],
+  "slots": [
+    { "index": 0, "name": "old", "origin": "compiler" },
+    // mine, do not touch
+    { "index": 1, "name": "mine", "origin": "manual" }
+  ]
+}`;
+    const r = parseLabelMap(text);
+    if (!r.ok) throw new Error("fixture");
+    const merged = mergeGenerated(r.value, generated, { sourceFile: "c.smart.c", now: new Date(0) }).map;
+    const out = applyMerge(text, merged);
+    expect(out).toContain("// mainnet build, OWNER=S-X");
+    expect(out).toContain("// mine, do not touch");
+    const back = parseLabelMap(out);
+    if (!back.ok) throw new Error(JSON.stringify(back.errors));
+    expect(back.value.slots.map((s) => `${s.index}:${s.name}`)).toEqual(["0:counter", "1:mine", "2:rate"]);
+    expect(back.value.codeHashes.map((h) => h.hash)).toEqual(["2"]);
+    expect(back.value.codeLabels).toEqual(generated.codeLabels);
+    expect(back.value.source?.file).toBe("c.smart.c");
+  });
+});

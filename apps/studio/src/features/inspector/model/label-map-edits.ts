@@ -4,6 +4,7 @@ import {
   isFixedGroup,
   parseLabelMap,
   type CodeHashEntry,
+  type CodeLabel,
   type LabelMap,
   type MapGroup,
   type SlotLabel,
@@ -85,4 +86,8 @@ export function setEnum(text: string, name: string, values: Record<string, strin
 export function removeEnum(text: string, name: string): string {
   current(text);
   return editDocument(text, ["enums", name], undefined);
+}
+
+export function appendCodeLabel(text: string, label: CodeLabel): string {
+  return insertAt(text, "codeLabels", current(text).codeLabels.length, label);
 }

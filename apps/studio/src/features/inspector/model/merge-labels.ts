@@ -1,4 +1,6 @@
 import { editDocument } from "./jsonc";
+import { parseLabelMap } from "./label-map";
+import { addCodeHash, appendCodeLabel, upsertSlot } from "./label-map-edits";
 import type { CodeLabel, LabelMap, SlotLabel } from "./label-map";
 
 /**
@@ -58,14 +60,45 @@ export function mergeGenerated(
 }
 
 /**
- * Writes a merge back. Only the four collections a merge changes are
- * replaced; comments inside them go with them, comments anywhere else stay.
+ * Writes a merge back as single-node edits: compiler entries out, new
+ * compiler entries in, a hash only if it is missing, `source` in place.
+ * Replacing the collections wholesale would be shorter and would delete every
+ * comment the user wrote beside a hash or above a manual slot — on every
+ * "Inspect" after a deploy.
  */
 export function applyMerge(text: string, merged: LabelMap): string {
+  const current = (t: string): LabelMap => {
+    const r = parseLabelMap(t);
+    if (!r.ok) throw new Error(r.errors[0]?.message ?? "invalid Label Map"); // i18n-ignore — unreachable: a failed parse always has an error
+    return r.value;
+  };
   let out = text;
-  out = editDocument(out, ["codeHashes"], merged.codeHashes);
-  out = editDocument(out, ["source"], merged.source);
-  out = editDocument(out, ["slots"], merged.slots);
-  out = editDocument(out, ["codeLabels"], merged.codeLabels);
-  return out;
+
+  // An entry the compiler still produces is replaced where it stands; only
+  // entries it no longer produces are removed, back to front so the positions
+  // still to visit stay valid. Removing and re-inserting everything would also
+  // take the comments between the entries with it.
+  const freshSlots = new Map(merged.slots.filter(fromCompiler).map((s) => [s.index, s]));
+  const slots = current(out).slots;
+  for (let i = slots.length - 1; i >= 0; i--) {
+    const slot = slots[i]!;
+    if (!fromCompiler(slot)) continue;
+    const fresh = freshSlots.get(slot.index);
+    out = editDocument(out, ["slots", i], fresh);
+    freshSlots.delete(slot.index);
+  }
+  for (const slot of freshSlots.values()) out = upsertSlot(out, slot);
+
+  const freshLabels = new Map(merged.codeLabels.filter(fromCompiler).map((c) => [c.address, c]));
+  const labels = current(out).codeLabels;
+  for (let i = labels.length - 1; i >= 0; i--) {
+    const label = labels[i]!;
+    if (!fromCompiler(label)) continue;
+    out = editDocument(out, ["codeLabels", i], freshLabels.get(label.address));
+    freshLabels.delete(label.address);
+  }
+  for (const label of freshLabels.values()) out = appendCodeLabel(out, label);
+
+  for (const hash of merged.codeHashes) out = addCodeHash(out, hash);
+  return editDocument(out, ["source"], merged.source);
 }
