@@ -17,7 +17,7 @@ import { AdaptiveScrollArea } from "@/components/ui/adaptive-scroll-area.tsx";
 import { WalletConnection } from "./wallet-connection.tsx";
 import { DeploymentFlow } from "./deployment-flow.tsx";
 import { useState } from "react";
-import { t } from "@/i18n/runtime";
+import { formatNumber, t } from "@/i18n/runtime";
 
 export function DeploymentView({ data }: { data: MachineData }) {
   const [minimumFee, setMinimumFee] = useState(Amount.fromPlanck(data.MinimumFeeNQT).getSigna());
@@ -75,7 +75,10 @@ export function DeploymentView({ data }: { data: MachineData }) {
                       {t("asm-editor.deploy.codeSize")}
                     </h4>
                     <p className="font-medium">
-                      {t("asm-editor.meta.bytes", { count: data.ByteCode.length / 2 })}
+                      {t("asm-editor.meta.bytes", {
+                        count: data.ByteCode.length / 2,
+                        n: formatNumber(data.ByteCode.length / 2),
+                      })}
                     </p>
                   </div>
                   <div>

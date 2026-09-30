@@ -69,6 +69,9 @@ export type MessageParams = {
   "common.debugDashboard.waiting": undefined;
   "common.debugDashboard.contractStatus": undefined;
   "common.debugDashboard.ledgerStatus": undefined;
+  "common.locale.label": { language: string | number };
+  "common.boot.failed": undefined;
+  "common.boot.reload": undefined;
   "home.hero.pitch": undefined;
   "home.hero.tagline": undefined;
   "home.hero.createFirst": undefined;
@@ -299,7 +302,7 @@ export type MessageParams = {
   "asm-editor.meta.minimumFee": undefined;
   "asm-editor.meta.activation": undefined;
   "asm-editor.meta.machineCode": undefined;
-  "asm-editor.meta.bytes": { count: number };
+  "asm-editor.meta.bytes": { count: number; n: string | number };
   "asm-editor.meta.codeHash": undefined;
   "asm-editor.meta.noCode": undefined;
   "asm-editor.meta.noVariables": undefined;

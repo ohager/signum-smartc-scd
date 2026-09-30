@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /** Per locale: translated keys out of English's, per namespace. `--missing <id>` lists the gaps. */
-import en from "../src/i18n/locales/en";
+import en from "../src/i18n/locales/en/complete";
 import { compareLocale, loadLocaleDirs } from "../src/i18n/consistency";
 import { flattenMessages } from "../src/i18n/flatten";
 

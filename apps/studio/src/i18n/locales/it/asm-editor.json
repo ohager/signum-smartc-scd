@@ -11,8 +11,8 @@
     "activation": "Attivazione",
     "machineCode": "Codice macchina",
     "bytes": {
-      "one": "{count} byte",
-      "other": "{count} byte"
+      "one": "{n} byte",
+      "other": "{n} byte"
     },
     "codeHash": "Hash del codice",
     "noCode": "Questo contratto non produce codice all'assemblaggio.",

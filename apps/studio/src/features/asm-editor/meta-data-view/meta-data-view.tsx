@@ -1,11 +1,10 @@
 import { useState, type ReactNode } from "react";
-import { formatNumber } from "@/i18n/runtime";
+import { formatNumber, t } from "@/i18n/runtime";
 import { PanelTabs } from "@/components/ui/panel.tsx";
 import type { MachineData } from "@/features/asm-editor/machine-data.ts";
 import { ContractSummary } from "./contract-summary.tsx";
 import { HexDump } from "./hex-dump.tsx";
 import { LabelList, MemoryMap } from "./lists.tsx";
-import { t } from "@/i18n/runtime";
 
 interface Props {
   machineData: MachineData;

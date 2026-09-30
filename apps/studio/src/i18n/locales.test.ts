@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import en from "./locales/en";
+import en from "./locales/en/complete";
 import { compareLocale, loadLocaleDirs } from "./consistency";
 import { LOCALES } from "./locales";
 
@@ -13,7 +13,7 @@ describe("locale files", () => {
   for (const [id, messages] of dirs) {
     if (id === "en") continue;
     it(`${id} matches English's keys, placeholders, tags and code`, () => {
-      const p = compareLocale(en, messages);
+      const p = compareLocale(en, messages, id);
       if (p.missing.length) console.info(`[i18n] ${id}: ${p.missing.length} keys fall back to English`);
       expect({ ...p, missing: [] }).toEqual({ extra: [], placeholders: [], tags: [], code: [], plural: [], missing: [] });
     });

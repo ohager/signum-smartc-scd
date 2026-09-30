@@ -11,8 +11,8 @@
     "activation": "Aktivierung",
     "machineCode": "Maschinencode",
     "bytes": {
-      "one": "{count} Byte",
-      "other": "{count} Bytes"
+      "one": "{n} Byte",
+      "other": "{n} Bytes"
     },
     "codeHash": "Code-Hash",
     "noCode": "Dieser Contract ergibt beim Assemblieren keinen Code.",

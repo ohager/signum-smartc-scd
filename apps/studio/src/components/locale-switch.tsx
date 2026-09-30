@@ -6,7 +6,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LOCALES } from "@/i18n/locales";
-import { activeLocale } from "@/i18n/runtime";
+import { activeLocale, t } from "@/i18n/runtime";
 import { switchLocale } from "@/i18n/switch";
 
 /**
@@ -22,7 +22,9 @@ export function LocaleSwitch() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          aria-label={LOCALES.find((l) => l.id === current)?.nativeLabel}
+          aria-label={t("common.locale.label", {
+            language: LOCALES.find((l) => l.id === current)?.nativeLabel ?? current,
+          })}
           className="motion-control flex h-5 cursor-pointer items-center gap-1 border border-[var(--border-1)] px-1.5 text-[10px] font-semibold uppercase tracking-wider hover:border-[var(--accent-2)]"
         >
           <Languages className="h-3 w-3" aria-hidden />

@@ -11,8 +11,8 @@
     "activation": "Ativação",
     "machineCode": "Código de máquina",
     "bytes": {
-      "one": "{count} byte",
-      "other": "{count} bytes"
+      "one": "{n} byte",
+      "other": "{n} bytes"
     },
     "codeHash": "Hash do código",
     "noCode": "Este contrato não gera código ao ser montado.",

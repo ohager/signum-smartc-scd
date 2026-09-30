@@ -89,5 +89,12 @@
     "waiting": "等待调试会话…",
     "contractStatus": "合约状态",
     "ledgerStatus": "账本状态"
+  },
+  "locale": {
+    "label": "语言：{language}"
+  },
+  "boot": {
+    "failed": "无法加载 Studio。请检查网络连接并重新加载页面。",
+    "reload": "重新加载"
   }
 }

@@ -29,7 +29,19 @@ const CATEGORIES = ["zero", "one", "two", "few", "many", "other"];
  * What is wrong with `target` measured against `source` (English). Everything
  * but `missing` is an error; missing keys fall back to English at runtime.
  */
-export function compareLocale(source: Messages, target: Messages): LocaleProblems {
+/**
+ * The plural categories a locale really uses for everyday counts. French,
+ * Spanish, Italian and Portuguese have a "many" that only applies from a
+ * million up, so it is not demanded; Russian's "many" (5 файлов) is.
+ */
+export function requiredCategories(localeId: string): string[] {
+  const rules = new Intl.PluralRules(localeId);
+  const used = new Set<string>(["other"]);
+  for (let n = 0; n <= 200; n++) used.add(rules.select(n));
+  return [...used].sort();
+}
+
+export function compareLocale(source: Messages, target: Messages, localeId?: string): LocaleProblems {
   const src = flattenMessages(source);
   const dst = flattenMessages(target);
   const p: LocaleProblems = { extra: [], placeholders: [], tags: [], code: [], plural: [], missing: [] };
@@ -56,6 +68,9 @@ export function compareLocale(source: Messages, target: Messages): LocaleProblem
     if (typeof ref !== typeof leaf) {
       p.plural.push(key);
       continue;
+    }
+    if (localeId && typeof leaf !== "string" && requiredCategories(localeId).some((c) => !(c in leaf))) {
+      p.plural.push(key);
     }
     if (!same(sortedMatches(ref, PLACEHOLDER), sortedMatches(leaf, PLACEHOLDER))) p.placeholders.push(key);
     if (!same(sortedMatches(ref, TAG), sortedMatches(leaf, TAG))) p.tags.push(key);

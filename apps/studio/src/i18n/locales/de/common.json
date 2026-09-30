@@ -91,5 +91,12 @@
     "waiting": "Warte auf eine Debug-Sitzung…",
     "contractStatus": "Contract-Status",
     "ledgerStatus": "Ledger-Status"
+  },
+  "locale": {
+    "label": "Sprache: {language}"
+  },
+  "boot": {
+    "failed": "Studio konnte nicht geladen werden. Prüf deine Verbindung und lade die Seite neu.",
+    "reload": "Neu laden"
   }
 }

@@ -91,5 +91,12 @@
     "waiting": "aguardando uma sessão de depuração…",
     "contractStatus": "Estado do contrato",
     "ledgerStatus": "Estado do ledger"
+  },
+  "locale": {
+    "label": "Idioma: {language}"
+  },
+  "boot": {
+    "failed": "Não foi possível carregar o Studio. Verifique sua conexão e recarregue a página.",
+    "reload": "Recarregar"
   }
 }
