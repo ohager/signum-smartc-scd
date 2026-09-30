@@ -8,7 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useWalletStatus } from "@/hooks/use-wallet-status.ts";
 import { t } from "@/i18n/runtime";
 import { createInspectorClient, filterSummaries, type ContractSummary } from "../chain/inspector-client";
-import { createPagedSearch, type PagedSearch } from "../chain/paged-search";
+import type { PagedSearch } from "../chain/paged-search";
+import { searchByCodeHash, searchByCreator, verifyContract, type SearchResult } from "../chain/add-flows";
 import { parseContractId } from "../model/contract-input";
 import { networkFromWallet, type Network } from "../model/networks";
 import type { WatchEntry } from "../model/watchlist";
@@ -91,9 +92,9 @@ export function AddContractDialog({
     const id = parseContractId(input);
     if (tab === "id") {
       if (!id) return setError(t("inspector.add.invalidId"));
-      return run(async () => {
+      return run(async (signal) => {
         try {
-          await client.getContract(id);
+          await verifyContract(client, id, signal);
         } catch (e) {
           if ((e as { kind?: string }).kind === "not-found") throw new Error(t("inspector.add.notFound", { id }));
           throw e;
@@ -102,27 +103,21 @@ export function AddContractDialog({
         onOpenChange(false);
       });
     }
+    const show = (result: SearchResult) => {
+      search.current = result.search;
+      setTotal(result.total);
+      setRows(result.search.rows);
+      setDone(result.search.done);
+    };
     if (tab === "creator") {
       if (!id) return setError(t("inspector.add.invalidId"));
-      return run(async () => {
-        const all = await client.listByCreator(id, { codeHash: hashFilter.trim() || undefined });
-        setTotal(all.length);
-        search.current = createPagedSearch(async (page) => all.slice(page * PAGE, (page + 1) * PAGE), PAGE, all.length);
-        await search.current.loadNext(abort.current!.signal);
-        setRows(search.current.rows);
-        setDone(search.current.done);
-      });
+      return run(async (signal) =>
+        show(await searchByCreator(client, id, hashFilter.trim() || undefined, PAGE, signal)),
+      );
     }
     const hash = input.trim();
     if (!/^\d+$/.test(hash)) return setError(t("inspector.add.invalidId"));
-    return run(async (signal) => {
-      const count = await client.countByCodeHash(hash);
-      setTotal(count);
-      search.current = createPagedSearch((page) => client.listByCodeHash(hash, page, PAGE), PAGE, count);
-      await search.current.loadNext(signal);
-      setRows(search.current.rows);
-      setDone(search.current.done);
-    });
+    return run(async (signal) => show(await searchByCodeHash(client, hash, PAGE, signal)));
   };
 
   const shown = filterSummaries(rows, filter);
