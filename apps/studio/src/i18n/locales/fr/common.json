@@ -1,0 +1,95 @@
+{
+  "actions": {
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "create": "Créer",
+    "delete": "Supprimer",
+    "disconnect": "Déconnecter",
+    "download": "Télécharger",
+    "finish": "Terminer",
+    "next": "Suivant",
+    "open": "Ouvrir",
+    "previous": "Précédent",
+    "rename": "Renommer",
+    "save": "Enregistrer"
+  },
+  "confirm": {
+    "title": "Confirmer l'action",
+    "description": "Voulez-vous vraiment faire cela ?"
+  },
+  "sidebar": {
+    "home": "Accueil",
+    "projects": "Projets",
+    "addProject": "Ajouter un projet",
+    "importProject": "Importer un projet (zip)",
+    "selectOpenedFile": "Sélectionner le fichier ouvert",
+    "createProject": "Créer un projet",
+    "alpha": "Alpha",
+    "prerelease": "v{version} · expérimental — attendez-vous à des imperfections et à des changements incompatibles",
+    "resize": "Faites glisser pour redimensionner la barre latérale",
+    "toggle": "Afficher/masquer la barre latérale",
+    "mobileTitle": "Barre latérale",
+    "mobileDescription": "Affiche la barre latérale mobile."
+  },
+  "import": {
+    "done": {
+      "one": "{count} fichier importé",
+      "other": "{count} fichiers importés"
+    },
+    "doneWithSkipped": {
+      "one": "{count} fichier importé ({skipped} ignoré(s))",
+      "other": "{count} fichiers importés ({skipped} ignoré(s))"
+    }
+  },
+  "climate": {
+    "label": "Thème de couleurs"
+  },
+  "wallet": {
+    "connect": "Connecter le portefeuille",
+    "connectTestnet": "Se connecter au Testnet",
+    "connectMainnet": "Se connecter au Mainnet",
+    "connectionIssue": "Problème de connexion",
+    "expectedNetwork": "Réseau attendu : {network}",
+    "ready": "Prêt à déployer des contrats",
+    "account": "Compte",
+    "balance": "Solde",
+    "testnet": "Testnet",
+    "mainnet": "Mainnet"
+  },
+  "editor": {
+    "format": "Formater le document ({hotkey})",
+    "download": "Télécharger ce fichier ({hotkey})",
+    "unsaved": "Modifications non enregistrées ({hotkey})",
+    "allSaved": "Tout est enregistré",
+    "saveAction": "Enregistrer le fichier",
+    "downloadAction": "Télécharger le fichier",
+    "saved": "Fichier enregistré !",
+    "saveFailed": "Impossible d'enregistrer le fichier : {message}"
+  },
+  "files": {
+    "loading": "Chargement…",
+    "loadError": "Erreur lors du chargement du fichier",
+    "unsupported": "Ce type de fichier (« {type} ») n'est plus pris en charge.",
+    "nameTaken": "Un fichier nommé {name} existe déjà dans ce dossier",
+    "folderNameTaken": "Un dossier nommé {name} existe déjà ici",
+    "deleteRoot": "Impossible de supprimer le dossier racine",
+    "renameRoot": "Impossible de renommer le dossier racine"
+  },
+  "pages": {
+    "deploy": "Déployer",
+    "notCompiling": "Le contrat ne compile pas, il n'y a donc rien à publier : {error}",
+    "compiling": "Compilation…",
+    "simulate": "Simuler",
+    "replayNote": "Rejoue ce que ce test a envoyé. Les assertions ne sont pas réévaluées pendant l'exécution pas à pas, et seul le dernier contrat chargé par le test peut être parcouru pas à pas.",
+    "replayScenario": "depuis {test}"
+  },
+  "debugDashboard": {
+    "block": "bloc {block}",
+    "step": "pas {step}",
+    "live": "● en direct",
+    "waiting": "en attente d'une session de débogage…",
+    "contractStatus": "État du contrat",
+    "ledgerStatus": "État du registre"
+  }
+}

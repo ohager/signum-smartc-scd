@@ -1,0 +1,93 @@
+{
+  "status": {
+    "ready": "prêt",
+    "running": "en cours",
+    "stopped": "arrêté",
+    "finished": "terminé",
+    "error": "erreur"
+  },
+  "toolbar": {
+    "start": "Démarrer",
+    "continue": "Continuer",
+    "step": "Pas",
+    "stepHint": "Avancer d'une ligne de source",
+    "stepInstruction": "Pas d'instruction",
+    "stepInstructionHint": "Avancer d'une instruction AT",
+    "nextBlock": "⛏ Bloc suivant",
+    "nextBlockHint": "Forger le bloc suivant et livrer ses transactions programmées",
+    "reset": "⟳ Réinitialiser",
+    "resetHint": "Recommencer ce scénario",
+    "scenario": "Scénario",
+    "builtInDefault": "(par défaut intégré)",
+    "newScenario": "+ Nouveau",
+    "newScenarioHint": "Créer un scénario d'exécution pour ce contrat",
+    "block": "bloc",
+    "stepCount": "pas",
+    "line": "ligne",
+    "popOut": "Ouvrir un tableau de bord de débogage en direct dans un autre onglet",
+    "close": "Fermer le simulateur"
+  },
+  "transport": {
+    "halted": "Le contrat s'est arrêté. Réinitialisez pour recommencer.",
+    "roundOver": "Ce tour est terminé — forgez le bloc suivant pour le relancer."
+  },
+  "help": {
+    "title": "Comment fonctionne le simulateur",
+    "model": {
+      "chain": "Votre contrat s'exécute ici dans une chaîne Signum inventée.",
+      "scenario": "Un scénario fournit les transactions qui le déclenchent.",
+      "blocks": "Les blocs n'existent que lorsque vous les forgez — c'est ce que fait « Bloc suivant ».",
+      "breakpoints": "Placez des points d'arrêt dans la marge ; « Pas » avance d'une ligne de source."
+    },
+    "noScenario": "Aucun scénario pour l'instant",
+    "createFirst": "Créer le premier scénario",
+    "useDefault": "Parcourir le scénario intégré par défaut"
+  },
+  "panels": {
+    "variables": "Variables",
+    "registers": "Registres",
+    "watch": "Surveiller",
+    "breakpoints": "Points d'arrêt",
+    "emitted": "Émises",
+    "emittedTxs": "Transactions émises",
+    "none": "— aucune —",
+    "showInternals": "afficher les internes",
+    "variableName": "nom de variable",
+    "addWatch": "— ajoutez une variable à surveiller —",
+    "line": "ligne {line}",
+    "contractStatus": "État du contrat",
+    "ledgerStatus": "État du registre"
+  },
+  "ledger": {
+    "title": "Registre · bloc {block}",
+    "noLedger": "— aucun registre —",
+    "accounts": "Comptes",
+    "transactions": "Transactions"
+  },
+  "scenario": {
+    "formatterUnavailable": "Le formateur n'est pas encore disponible — réessayez dans un instant",
+    "formatFailed": "Impossible de formater : {message}",
+    "simulateFailed": "Impossible de simuler : {message}",
+    "simulate": "Simuler",
+    "simulateHint": "Exécuter le contrat pas à pas avec ce scénario",
+    "fixFirst": "Corrigez le scénario avant de le simuler",
+    "errors": "{count} erreurs : {first}",
+    "invalid": {
+      "notObject": "n'est pas un objet",
+      "version": "version doit valoir 2",
+      "creator": "creator doit être un identifiant de compte numérique",
+      "accounts": "accounts doit être un tableau",
+      "account": "accounts[{i}] nécessite un id et un balance numériques",
+      "transactions": "transactions doit être un tableau",
+      "block": "transactions[{i}] nécessite un block entier >= 1",
+      "senderAmount": "transactions[{i}] nécessite un sender et un amount numériques",
+      "txId": "transactions[{i}] txId doit être numérique",
+      "message": "transactions[{i}] message doit être une chaîne",
+      "messageHex": "transactions[{i}] messageHex doit être une chaîne"
+    }
+  },
+  "debug": {
+    "invalidScenario": "Scénario invalide, utilisation du scénario intégré par défaut : {message}",
+    "cannotStart": "Impossible de démarrer le débogage : {message}"
+  }
+}

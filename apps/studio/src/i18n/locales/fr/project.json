@@ -1,0 +1,41 @@
+{
+  "folder": {
+    "addFile": "Ajouter un fichier",
+    "newFolder": "Nouveau dossier",
+    "downloadZip": "Télécharger (zip)",
+    "uploadFiles": "Téléverser des fichiers…",
+    "importZip": "Importer un ZIP…",
+    "importFolder": "Importer un dossier…",
+    "folderName": "Nom du dossier",
+    "renameTitle": "Renommer le dossier",
+    "nameTaken": "Un dossier portant ce nom existe déjà",
+    "deleteTitle": "Supprimer le dossier",
+    "deleteConfirm": "Supprimer ce dossier et tout son contenu ? Cette action est irréversible."
+  },
+  "file": {
+    "renameTitle": "Renommer le fichier",
+    "fileName": "Nom du fichier",
+    "nameTaken": "Un fichier portant ce nom existe déjà",
+    "deleteTitle": "Supprimer le fichier",
+    "deleteConfirm": "Voulez-vous vraiment supprimer ce fichier ? Cette action est irréversible."
+  },
+  "newFile": {
+    "title": "Nouveau fichier",
+    "type": "Type",
+    "name": "Nom",
+    "smartc": "Contrat SmartC (.smart.c)",
+    "scenario": "Scénario (.scenario.json)",
+    "test": "Test (.test.ts)"
+  },
+  "newProject": {
+    "title": "Nouveau projet",
+    "createDescription": "Ajoutez un nouveau projet de contrat intelligent à votre espace de travail.",
+    "inspectDescription": "Créer un projet d'inspection de contrats intelligents",
+    "type": "Type de projet",
+    "selectType": "Choisir le type de projet",
+    "create": "Créer un contrat intelligent",
+    "inspect": "Inspecter des contrats intelligents",
+    "name": "Nom",
+    "namePlaceholder": "Mon nouveau projet"
+  }
+}
