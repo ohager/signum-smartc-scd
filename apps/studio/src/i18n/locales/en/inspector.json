@@ -70,5 +70,32 @@
     "addHash": "Add this hash to…",
     "created": "Label Map created",
     "hashAdded": "Code hash added to {name}"
+  },
+  "data": {
+    "length": "{bytes} bytes, {slots} slots",
+    "onlyLabelled": "Only labelled",
+    "search": "Search name, index or value",
+    "index": "#",
+    "name": "Name",
+    "value": "Value",
+    "raw": "Raw (LE hex)",
+    "outOfRange": "beyond the data stack",
+    "select": "Select a slot to see every interpretation.",
+    "setLabel": "Set label",
+    "editLabel": "Edit label",
+    "interpretations": "Interpretations",
+    "stringReversed": "string (reversed)",
+    "saved": "Label saved"
+  },
+  "label": {
+    "title": "Label for slot {index}",
+    "name": "Name",
+    "format": "Format",
+    "formatNone": "(show all)",
+    "enum": "Enum",
+    "length": "Length (slots)",
+    "comment": "Comment",
+    "save": "Save",
+    "remove": "Remove label"
   }
 }
