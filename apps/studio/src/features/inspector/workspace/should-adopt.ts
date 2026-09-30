@@ -17,3 +17,13 @@ export function shouldAdopt(args: {
     args.stored !== args.current
   );
 }
+
+/**
+ * The events after which an open buffer re-reads its file. Another tab's
+ * write does not arrive as `file:updated` — that tab replaces the whole
+ * workspace, and this one hears `fs:reloaded`.
+ */
+export function reloadsOn(type: string, detail: { id?: string } | undefined, fileId: string): boolean {
+  if (type === "fs:reloaded") return true;
+  return type === "file:updated" && detail?.id === fileId;
+}

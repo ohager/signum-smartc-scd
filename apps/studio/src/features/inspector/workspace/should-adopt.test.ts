@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { shouldAdopt } from "./should-adopt";
+import { reloadsOn, shouldAdopt } from "./should-adopt";
 
 describe("shouldAdopt", () => {
   const base = { fileId: "f", eventFileId: "f", isDirty: false, current: "old", stored: "new" };
@@ -16,5 +16,14 @@ describe("shouldAdopt", () => {
     expect(shouldAdopt({ ...base, eventFileId: "g" })).toBe(false);
     expect(shouldAdopt({ ...base, stored: "old" })).toBe(false);
     expect(shouldAdopt({ ...base, stored: undefined })).toBe(false);
+  });
+});
+
+describe("reloadsOn", () => {
+  it("reloads for its own file's updates and for a workspace another tab replaced", () => {
+    expect(reloadsOn("file:updated", { id: "f" }, "f")).toBe(true);
+    expect(reloadsOn("file:updated", { id: "g" }, "f")).toBe(false);
+    expect(reloadsOn("fs:reloaded", undefined, "f")).toBe(true);
+    expect(reloadsOn("file:renamed", { id: "f" }, "f")).toBe(false);
   });
 });
