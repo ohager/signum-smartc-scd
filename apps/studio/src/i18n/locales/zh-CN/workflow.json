@@ -1,0 +1,32 @@
+{
+  "rail": {
+    "label": "工作流",
+    "write": "编写",
+    "test": "测试",
+    "simulate": "模拟",
+    "deploy": "部署",
+    "noContract": "无合约",
+    "needsCompile": "需要可编译的合约",
+    "ignoredContract": " · 第二个合约（{name}）已被忽略"
+  },
+  "cells": {
+    "compiles": "可编译",
+    "errors": {
+      "other": "{count} 个错误"
+    },
+    "noTests": "无测试",
+    "failed": "{count} 个失败",
+    "green": "{count} 个通过",
+    "noScenario": "无场景",
+    "scenarios": {
+      "other": "{count} 个场景"
+    },
+    "connectWallet": "连接钱包以查询链上数据",
+    "notCompiling": "合约尚无法编译",
+    "deploying": "部署中…",
+    "waitingBlock": "等待下一个区块",
+    "notDeployed": "未部署",
+    "yours": "{count} · 你的 {mine} 个",
+    "deployed": "已部署 {count} 个"
+  }
+}

@@ -1,0 +1,145 @@
+{
+  "editor": {
+    "deploy": "Desplegar",
+    "deployHint": "Publicar este contrato en la cadena",
+    "handEdits": "Las ediciones manuales se sobrescriben en la siguiente compilación",
+    "assembleFirst": "Ensambla el archivo para ver sus páginas, su memoria y sus bytes."
+  },
+  "meta": {
+    "unnamed": "Contrato sin nombre",
+    "minimumFee": "Comisión mínima",
+    "activation": "Activación",
+    "machineCode": "Código máquina",
+    "bytes": {
+      "one": "{count} byte",
+      "other": "{count} bytes"
+    },
+    "codeHash": "Hash del código",
+    "noCode": "Este contrato no genera código al ensamblarse.",
+    "noVariables": "Este contrato no declara variables.",
+    "noLabels": "Este contrato no tiene destinos de salto.",
+    "memory": "Memoria",
+    "labels": "Etiquetas",
+    "bytesTab": "Bytes",
+    "pages": {
+      "code": "código",
+      "data": "datos",
+      "codeStack": "pila de código",
+      "userStack": "pila de usuario"
+    },
+    "copyHash": "Copiar hash del código",
+    "hashCopied": "Hash del código copiado"
+  },
+  "size": {
+    "tooLargeTitle": "Contrato demasiado grande",
+    "cannotDeploy": "Este contrato no se puede desplegar",
+    "exceedsTitle": "El contrato supera el tamaño máximo",
+    "exceeds": "Tu contrato ocupa {size}, lo que supera el límite de despliegue de 10 KiB (10240 bytes). Optimiza el código del contrato para reducir su tamaño antes de desplegarlo.",
+    "largeTitle": "Contrato grande detectado ({size})",
+    "large": "Este contrato es demasiado grande (>8KiB) para el despliegue estándar. XT Wallet no puede firmar contratos grandes. Debes proporcionar tu frase de contraseña para enviarlo directamente al nodo."
+  },
+  "deploy": {
+    "title": "Desplegar contrato inteligente",
+    "noteTitle": "Nota importante",
+    "note": "Desplegar un contrato inteligente es irreversible. Prueba tu contrato a fondo antes de desplegarlo.",
+    "summary": "Resumen del contrato",
+    "summaryHint": "Revisa tu contrato antes del despliegue",
+    "name": "Nombre del contrato",
+    "activationAmount": "Importe de activación",
+    "description": "Descripción",
+    "codeSize": "Tamaño del código",
+    "minimumFee": "Comisión mínima",
+    "settings": "Ajustes de despliegue",
+    "settingsHint": "Configura los parámetros del despliegue",
+    "activationSigna": "Importe de activación (SIGNA)",
+    "feeSigna": "Comisión de la transacción (SIGNA)",
+    "minimum": "Mínimo:",
+    "deadline": "Plazo (minutos)",
+    "deadlineHint": "Plazo de la transacción en minutos (máx.: 1440)"
+  },
+  "flow": {
+    "connectWallet": "Conecta una billetera para desplegar tu contrato",
+    "title": "Despliegue del contrato",
+    "subtitle": "Despliega tu contrato inteligente en la cadena de bloques Signum",
+    "inProgress": "En curso",
+    "progress": "Progreso del despliegue",
+    "connectFirst": "Conecta primero la billetera",
+    "deploy": "Desplegar contrato",
+    "deployed": "¡Desplegado!",
+    "broadcasting": "Transmitiendo…",
+    "reset": "Restablecer",
+    "failed": "Falló el despliegue",
+    "success": "¡Despliegue completado!",
+    "successBody": "Tu contrato inteligente se desplegó correctamente.",
+    "checkWallet": "Revisa XT Wallet",
+    "unsignedBytes": "Bytes sin firmar:",
+    "walletAction": "Se requiere una acción en XT Wallet",
+    "walletActionBody": "Revisa la extensión XT Wallet. Debería haberse abierto un cuadro de confirmación. Revisa los detalles de la transacción y confirma para continuar con el despliegue.",
+    "steps": {
+      "preparing": "Preparando la transacción",
+      "preparingHint": "Obteniendo los bytes sin firmar del libro mayor de Signum",
+      "confirm": "Confirmación en la billetera",
+      "confirmHint": "Esperando la confirmación de XT Wallet",
+      "broadcasting": "Transmitiendo",
+      "broadcastingHint": "Enviando la transacción a la red",
+      "deployed": "Desplegado",
+      "deployedHint": "Contrato desplegado correctamente"
+    },
+    "failedRetry": "{message}. Inténtalo de nuevo.",
+    "failedGeneric": "No se pudo desplegar el contrato. Inténtalo de nuevo."
+  },
+  "large": {
+    "enterPassphrase": "Introduce tu frase de contraseña",
+    "deployed": "¡Contrato desplegado correctamente!",
+    "failed": "Falló el despliegue",
+    "noTxId": "El nodo no devolvió ningún ID de transacción",
+    "title": "Despliegue de contrato grande",
+    "subtitle": "Desplegar mediante Form POST (requiere frase de contraseña)",
+    "passphraseTitle": "Se requiere frase de contraseña",
+    "passphraseBody": "Tu frase de contraseña se usará para firmar directamente la transacción. No se guardará y se borrará de la memoria después del despliegue.",
+    "passphraseLabel": "Frase de contraseña de la cuenta",
+    "passphrasePlaceholder": "Introduce tu frase de contraseña de 12 palabras",
+    "submittingTitle": "Enviando la transacción",
+    "submittingBody": "Enviando el contrato al nodo de Signum mediante Form POST…",
+    "successBody": "Tu contrato inteligente grande se desplegó correctamente.",
+    "copied": "¡ID de transacción copiado!",
+    "deployLarge": "Desplegar contrato grande",
+    "submitting": "Enviando…",
+    "deployAnother": "Desplegar otro",
+    "tryAgain": "Intentar de nuevo"
+  },
+  "wallet": {
+    "title": "Conexión de la billetera",
+    "subtitle": "Conecta XT Wallet para desplegar tu contrato",
+    "connected": "Billetera conectada",
+    "connectedBody": "Tu XT Wallet está conectada y lista para desplegar.",
+    "openExplorer": "Abrir en el explorador"
+  },
+  "completion": {
+    "void": "Función sin retorno",
+    "one": "Función de un parámetro",
+    "two": "Función de dos parámetros",
+    "returns": "Función con valor de retorno",
+    "special": "Función especial",
+    "unknown": "Tipo de función desconocido"
+  },
+  "hover": {
+    "steps": {
+      "one": "{count} paso",
+      "other": "{count} pasos"
+    },
+    "formTable": "| Forma | Opcode | Bytes |",
+    "apiFunction": "Función de API",
+    "apiBody": "Función de API integrada de la cadena de bloques, invocada mediante la instrucción `FUN`.",
+    "apiTable": "| Código de API | Instrucción | Argumentos |",
+    "opcode": "opcode {hex}",
+    "form": {
+      "none": "sin argumentos, sin valor de retorno",
+      "one": "un argumento",
+      "two": "dos argumentos",
+      "returns": "devuelve un valor",
+      "returnsOne": "devuelve un valor, un argumento",
+      "returnsTwo": "devuelve un valor, dos argumentos"
+    }
+  }
+}

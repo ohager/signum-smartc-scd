@@ -1,6 +1,7 @@
 import { useCallback, useRef } from "react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { ResizeGrip } from "@/components/ui/resize-grip";
+import { t } from "@/i18n/runtime";
 
 interface Props {
   /** Called once on drag end with the final width (e.g. "320px"). */
@@ -67,7 +68,7 @@ export function SidebarResizer({ onCommit, min = 180, max = 520 }: Props) {
       onMouseDown={onMouseDown}
       style={{ left: "var(--sidebar-width)" }}
       className="group/grip fixed inset-y-0 z-20 flex w-3 -translate-x-1/2 cursor-col-resize items-center justify-center"
-      title="Drag to resize sidebar"
+      title={t("common.sidebar.resize")}
     >
       <span
         aria-hidden

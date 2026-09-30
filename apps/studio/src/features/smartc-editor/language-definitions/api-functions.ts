@@ -1,3 +1,4 @@
+import { localizeDocs } from "@/i18n/doc-walk";
 import type { FunctionDeclaration } from "./functions";
 
 /**
@@ -123,7 +124,7 @@ function fixedRegisterAccessors(): Record<string, ApiFunctionDeclaration> {
 }
 
 /** Enabled with `#include APIFunctions`. */
-export const SmartCApiFunctions: Record<string, ApiFunctionDeclaration> = {
+export const SmartCApiFunctions: Record<string, ApiFunctionDeclaration> = localizeDocs("editor-docs.api", {
   ...registerAccessors(),
 
   // ---- Register housekeeping ----
@@ -401,10 +402,10 @@ export const SmartCApiFunctions: Record<string, ApiFunctionDeclaration> = {
     "Returns the circulating supply of an asset.",
     "Input: B2 holds the asset id. Returns 0 for asset id 0. `getAssetCirculating()` wraps this call.",
   ),
-};
+});
 
 /** Enabled with `#include fixedAPIFunctions`: `fixed`-typed twins of the calls that move Signa amounts. */
-export const SmartCFixedApiFunctions: Record<string, ApiFunctionDeclaration> = {
+export const SmartCFixedApiFunctions: Record<string, ApiFunctionDeclaration> = localizeDocs("editor-docs.api", {
   ...fixedRegisterAccessors(),
   F_Get_Amount_For_Tx_In_A: fixedApi(
     "fixed F_Get_Amount_For_Tx_In_A()",
@@ -441,7 +442,7 @@ export const SmartCFixedApiFunctions: Record<string, ApiFunctionDeclaration> = {
     "Returns the activation amount of a contract, as fixed.",
     "Same call as `Get_Activation_Fee` (B2: contract id, or 0 for this contract).",
   ),
-};
+});
 
 /** Every low-level function, regardless of include — for hover and signature help. */
 export const AllSmartCApiFunctions: Record<string, ApiFunctionDeclaration> = {

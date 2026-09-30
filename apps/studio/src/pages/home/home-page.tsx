@@ -12,6 +12,7 @@ import { acceptedFileType } from "@/features/project/filetype-icons";
 import { uniqueName } from "@/features/project/file-naming";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { t } from "@/i18n/runtime";
 
 export function HomePage() {
   const fs = useFileSystem();
@@ -44,7 +45,9 @@ export function HomePage() {
         const bytes = new Uint8Array(await file.arrayBuffer());
         const res = await fs.transfer.importZip(folderId, bytes, acceptedFileType);
         toast.success(
-          `Imported ${res.imported} file(s)` + (res.skipped ? ` (${res.skipped} skipped)` : ""),
+          res.skipped
+            ? t("common.import.doneWithSkipped", { count: res.imported, skipped: res.skipped })
+            : t("common.import.done", { count: res.imported }),
         );
       }
     } catch (err: any) {

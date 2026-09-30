@@ -1,0 +1,145 @@
+{
+  "editor": {
+    "deploy": "Deployen",
+    "deployHint": "Diesen Contract auf der Chain veröffentlichen",
+    "handEdits": "Manuelle Änderungen werden beim nächsten Kompilieren überschrieben",
+    "assembleFirst": "Assembliere die Datei, um ihre Seiten, ihren Speicher und ihre Bytes zu sehen."
+  },
+  "meta": {
+    "unnamed": "Unbenannter Contract",
+    "minimumFee": "Mindestgebühr",
+    "activation": "Aktivierung",
+    "machineCode": "Maschinencode",
+    "bytes": {
+      "one": "{count} Byte",
+      "other": "{count} Bytes"
+    },
+    "codeHash": "Code-Hash",
+    "noCode": "Dieser Contract ergibt beim Assemblieren keinen Code.",
+    "noVariables": "Dieser Contract deklariert keine Variablen.",
+    "noLabels": "Dieser Contract hat keine Sprungziele.",
+    "memory": "Speicher",
+    "labels": "Labels",
+    "bytesTab": "Bytes",
+    "pages": {
+      "code": "Code",
+      "data": "Daten",
+      "codeStack": "Code-Stack",
+      "userStack": "User-Stack"
+    },
+    "copyHash": "Code-Hash kopieren",
+    "hashCopied": "Code-Hash kopiert"
+  },
+  "size": {
+    "tooLargeTitle": "Contract zu groß",
+    "cannotDeploy": "Dieser Contract kann nicht deployt werden",
+    "exceedsTitle": "Contract überschreitet die Maximalgröße",
+    "exceeds": "Dein Contract ist {size} groß und überschreitet damit das Deployment-Limit von 10 KiB (10240 Bytes). Bitte optimiere den Code, um ihn vor dem Deployment zu verkleinern.",
+    "largeTitle": "Großer Contract erkannt ({size})",
+    "large": "Dieser Contract ist für ein normales Deployment zu groß (>8KiB). XT Wallet kann große Contracts nicht signieren. Du musst deine Passphrase angeben, damit er direkt an den Node übermittelt wird."
+  },
+  "deploy": {
+    "title": "Smart Contract deployen",
+    "noteTitle": "Wichtiger Hinweis",
+    "note": "Ein Deployment lässt sich nicht rückgängig machen. Teste deinen Contract gründlich, bevor du ihn deployst.",
+    "summary": "Contract-Übersicht",
+    "summaryHint": "Prüf deinen Contract vor dem Deployment",
+    "name": "Contract-Name",
+    "activationAmount": "Aktivierungsbetrag",
+    "description": "Beschreibung",
+    "codeSize": "Codegröße",
+    "minimumFee": "Mindestgebühr",
+    "settings": "Deployment-Einstellungen",
+    "settingsHint": "Lege die Parameter für das Deployment fest",
+    "activationSigna": "Aktivierungsbetrag (SIGNA)",
+    "feeSigna": "Transaktionsgebühr (SIGNA)",
+    "minimum": "Minimum:",
+    "deadline": "Frist (Minuten)",
+    "deadlineHint": "Frist der Transaktion in Minuten (max.: 1440)"
+  },
+  "flow": {
+    "connectWallet": "Bitte verbinde ein Wallet, um deinen Contract zu deployen",
+    "title": "Contract-Deployment",
+    "subtitle": "Deploye deinen Smart Contract auf die Signum-Blockchain",
+    "inProgress": "Läuft",
+    "progress": "Fortschritt",
+    "connectFirst": "Zuerst Wallet verbinden",
+    "deploy": "Contract deployen",
+    "deployed": "Deployt!",
+    "broadcasting": "Wird gesendet…",
+    "reset": "Zurücksetzen",
+    "failed": "Deployment fehlgeschlagen",
+    "success": "Deployment erfolgreich!",
+    "successBody": "Dein Smart Contract wurde erfolgreich deployt.",
+    "checkWallet": "XT Wallet prüfen",
+    "unsignedBytes": "Unsignierte Bytes:",
+    "walletAction": "Aktion in XT Wallet nötig",
+    "walletActionBody": "Bitte schau in deine XT-Wallet-Erweiterung. Dort sollte sich ein Bestätigungsdialog geöffnet haben. Prüf die Transaktionsdetails und bestätige, um mit dem Deployment fortzufahren.",
+    "steps": {
+      "preparing": "Transaktion vorbereiten",
+      "preparingHint": "Unsignierte Bytes vom Signum-Ledger holen",
+      "confirm": "Wallet-Bestätigung",
+      "confirmHint": "Warte auf die Bestätigung in XT Wallet",
+      "broadcasting": "Senden",
+      "broadcastingHint": "Transaktion ans Netzwerk übermitteln",
+      "deployed": "Deployt",
+      "deployedHint": "Contract erfolgreich deployt"
+    },
+    "failedRetry": "{message}. Bitte versuch es erneut.",
+    "failedGeneric": "Contract konnte nicht deployt werden. Bitte versuch es erneut."
+  },
+  "large": {
+    "enterPassphrase": "Bitte gib deine Passphrase ein",
+    "deployed": "Contract erfolgreich deployt!",
+    "failed": "Deployment fehlgeschlagen",
+    "noTxId": "Der Node hat keine Transaktions-ID zurückgegeben",
+    "title": "Deployment eines großen Contracts",
+    "subtitle": "Deployment per Form-POST (Passphrase erforderlich)",
+    "passphraseTitle": "Passphrase erforderlich",
+    "passphraseBody": "Deine Passphrase wird verwendet, um die Transaktion direkt zu signieren. Sie wird nicht gespeichert und nach dem Deployment aus dem Speicher gelöscht.",
+    "passphraseLabel": "Konto-Passphrase",
+    "passphrasePlaceholder": "Gib deine 12-Wörter-Passphrase ein",
+    "submittingTitle": "Transaktion wird übermittelt",
+    "submittingBody": "Contract wird per Form-POST an den Signum-Node gesendet…",
+    "successBody": "Dein großer Smart Contract wurde erfolgreich deployt.",
+    "copied": "Transaktions-ID kopiert!",
+    "deployLarge": "Großen Contract deployen",
+    "submitting": "Wird übermittelt…",
+    "deployAnother": "Weiteren deployen",
+    "tryAgain": "Erneut versuchen"
+  },
+  "wallet": {
+    "title": "Wallet-Verbindung",
+    "subtitle": "Verbinde XT Wallet, um deinen Contract zu deployen",
+    "connected": "Wallet verbunden",
+    "connectedBody": "Dein XT Wallet ist verbunden und bereit zum Deployen.",
+    "openExplorer": "Im Explorer öffnen"
+  },
+  "completion": {
+    "void": "Funktion ohne Rückgabe",
+    "one": "Funktion mit einem Parameter",
+    "two": "Funktion mit zwei Parametern",
+    "returns": "Funktion mit Rückgabewert",
+    "special": "Spezialfunktion",
+    "unknown": "Unbekannter Funktionstyp"
+  },
+  "hover": {
+    "steps": {
+      "one": "{count} Schritt",
+      "other": "{count} Schritte"
+    },
+    "formTable": "| Form | Opcode | Bytes |",
+    "apiFunction": "API-Funktion",
+    "apiBody": "Eingebaute Blockchain-API-Funktion, aufgerufen über die `FUN`-Instruktion.",
+    "apiTable": "| API-Code | Instruktion | Argumente |",
+    "opcode": "Opcode {hex}",
+    "form": {
+      "none": "keine Argumente, kein Rückgabewert",
+      "one": "ein Argument",
+      "two": "zwei Argumente",
+      "returns": "liefert einen Wert",
+      "returnsOne": "liefert einen Wert, ein Argument",
+      "returnsTwo": "liefert einen Wert, zwei Argumente"
+    }
+  }
+}

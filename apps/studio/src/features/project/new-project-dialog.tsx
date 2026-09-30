@@ -22,6 +22,7 @@ import { useFileSystem } from "@/hooks/use-file-system.ts";
 import { FileTypes } from "@/features/project/filetype-icons.tsx";
 import { smartcStarter } from "./smartc-starter";
 import { uniqueName } from "./file-naming";
+import { t } from "@/i18n/runtime";
 
 type ProjectType = "create" | "inspect";
 
@@ -67,43 +68,43 @@ export function NewProjectDialog({ close }: Props) {
   };
 
   const description = projectType === "create"
-    ? "Add a new Smart Contract project to your workspace."
-    : "Create a Smart Contract inspection project";
+    ? t("project.newProject.createDescription")
+    : t("project.newProject.inspectDescription");
 
   return (
     <DialogContent className="sm:max-w-[425px]">
       <SubmitOnEnter onSubmit={handleCreateClicked} isEnabled={canSubmit}>
         <DialogHeader>
-          <DialogTitle>New Project</DialogTitle>
+          <DialogTitle>{t("project.newProject.title")}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <section className="flex flex-col gap-y-2 my-4">
-          <Label htmlFor="type">Project Type</Label>
+          <Label htmlFor="type">{t("project.newProject.type")}</Label>
           <Select name="type" value={projectType} onValueChange={setProjectType}>
             <SelectTrigger>
-              <SelectValue placeholder="Select Project Type" />
+              <SelectValue placeholder={t("project.newProject.selectType")} />
             </SelectTrigger>
             <SelectContent>
                 <SelectItem value={"create"}>
-                  Create new Smart Contract
+                  {t("project.newProject.create")}
                 </SelectItem>
                 <SelectItem value={"inspect"}>
-                  Inspect Smart Contract(s)
+                  {t("project.newProject.inspect")}
                 </SelectItem>
             </SelectContent>
           </Select>
           <div className="flex flex-col gap-y-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">{t("project.newProject.name")}</Label>
             <Input
               id="name"
-              placeholder="My new project"
+              placeholder={t("project.newProject.namePlaceholder")}
               className="col-span-3"
               onChange={(e) => setName(e.target.value)}
             />
           </div>
         </section>
         <DialogFooter className="mt-4">
-          <Button onClick={handleCreateClicked}>Create</Button>
+          <Button onClick={handleCreateClicked}>{t("common.actions.create")}</Button>
         </DialogFooter>
       </SubmitOnEnter>
     </DialogContent>

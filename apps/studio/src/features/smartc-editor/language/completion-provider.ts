@@ -11,6 +11,7 @@ import {
   matchDirectiveContext,
   type DirectiveContext,
 } from "./directive-context";
+import { t } from "@/i18n/runtime";
 
 export function createCompletionProvider(
   monaco: typeof Monaco,
@@ -189,7 +190,7 @@ function directiveSuggestions(
       // Chain straight into the property list.
       command: {
         id: "editor.action.triggerSuggest",
-        title: "Suggest properties",
+        title: t("smartc-editor.completion.suggestProperties"),
       },
     }));
   }

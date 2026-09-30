@@ -1,0 +1,145 @@
+{
+  "editor": {
+    "deploy": "Déployer",
+    "deployHint": "Publier ce contrat sur la chaîne",
+    "handEdits": "Les modifications manuelles sont écrasées à la prochaine compilation",
+    "assembleFirst": "Assemblez le fichier pour voir ses pages, sa mémoire et ses octets."
+  },
+  "meta": {
+    "unnamed": "Contrat sans nom",
+    "minimumFee": "Frais minimum",
+    "activation": "Activation",
+    "machineCode": "Code machine",
+    "bytes": {
+      "one": "{count} octet",
+      "other": "{count} octets"
+    },
+    "codeHash": "Hash du code",
+    "noCode": "Ce contrat ne produit aucun code à l'assemblage.",
+    "noVariables": "Ce contrat ne déclare aucune variable.",
+    "noLabels": "Ce contrat n'a aucune cible de saut.",
+    "memory": "Mémoire",
+    "labels": "Étiquettes",
+    "bytesTab": "Octets",
+    "pages": {
+      "code": "code",
+      "data": "données",
+      "codeStack": "pile de code",
+      "userStack": "pile utilisateur"
+    },
+    "copyHash": "Copier le hash du code",
+    "hashCopied": "Hash du code copié"
+  },
+  "size": {
+    "tooLargeTitle": "Contrat trop volumineux",
+    "cannotDeploy": "Ce contrat ne peut pas être déployé",
+    "exceedsTitle": "Le contrat dépasse la taille maximale",
+    "exceeds": "La taille de votre contrat est de {size}, ce qui dépasse la limite de déploiement de 10 KiB (10240 octets). Optimisez le code de votre contrat pour le réduire avant le déploiement.",
+    "largeTitle": "Contrat volumineux détecté ({size})",
+    "large": "Ce contrat est trop volumineux (>8KiB) pour un déploiement standard. XT Wallet ne sait pas signer les contrats volumineux. Vous devez fournir votre phrase secrète pour un envoi direct au nœud."
+  },
+  "deploy": {
+    "title": "Déployer un contrat intelligent",
+    "noteTitle": "Remarque importante",
+    "note": "Le déploiement d'un contrat intelligent est irréversible. Testez soigneusement votre contrat avant de le déployer.",
+    "summary": "Récapitulatif du contrat",
+    "summaryHint": "Vérifiez votre contrat avant le déploiement",
+    "name": "Nom du contrat",
+    "activationAmount": "Montant d'activation",
+    "description": "Description",
+    "codeSize": "Taille du code",
+    "minimumFee": "Frais minimum",
+    "settings": "Paramètres de déploiement",
+    "settingsHint": "Configurez les paramètres du déploiement",
+    "activationSigna": "Montant d'activation (SIGNA)",
+    "feeSigna": "Frais de transaction (SIGNA)",
+    "minimum": "Minimum :",
+    "deadline": "Échéance (minutes)",
+    "deadlineHint": "Échéance de la transaction en minutes (max. : 1440)"
+  },
+  "flow": {
+    "connectWallet": "Connectez un portefeuille pour déployer votre contrat",
+    "title": "Déploiement du contrat",
+    "subtitle": "Déployez votre contrat intelligent sur la blockchain Signum",
+    "inProgress": "En cours",
+    "progress": "Progression du déploiement",
+    "connectFirst": "Connectez d'abord le portefeuille",
+    "deploy": "Déployer le contrat",
+    "deployed": "Déployé !",
+    "broadcasting": "Diffusion…",
+    "reset": "Réinitialiser",
+    "failed": "Échec du déploiement",
+    "success": "Déploiement réussi !",
+    "successBody": "Votre contrat intelligent a été déployé avec succès.",
+    "checkWallet": "Vérifiez XT Wallet",
+    "unsignedBytes": "Octets non signés :",
+    "walletAction": "Action requise dans XT Wallet",
+    "walletActionBody": "Vérifiez votre extension XT Wallet. Une boîte de dialogue de confirmation devrait s'être ouverte. Vérifiez les détails de la transaction et confirmez pour poursuivre le déploiement.",
+    "steps": {
+      "preparing": "Préparation de la transaction",
+      "preparingHint": "Récupération des octets non signés auprès du registre Signum",
+      "confirm": "Confirmation dans le portefeuille",
+      "confirmHint": "En attente de la confirmation dans XT Wallet",
+      "broadcasting": "Diffusion",
+      "broadcastingHint": "Envoi de la transaction au réseau",
+      "deployed": "Déployé",
+      "deployedHint": "Contrat déployé avec succès"
+    },
+    "failedRetry": "{message}. Veuillez réessayer.",
+    "failedGeneric": "Échec du déploiement du contrat. Veuillez réessayer."
+  },
+  "large": {
+    "enterPassphrase": "Saisissez votre phrase secrète",
+    "deployed": "Contrat déployé avec succès !",
+    "failed": "Échec du déploiement",
+    "noTxId": "Le nœud n'a renvoyé aucun identifiant de transaction",
+    "title": "Déploiement d'un contrat volumineux",
+    "subtitle": "Déployer via Form POST (phrase secrète requise)",
+    "passphraseTitle": "Phrase secrète requise",
+    "passphraseBody": "Votre phrase secrète sert à signer directement la transaction. Elle n'est pas conservée et sera effacée de la mémoire après le déploiement.",
+    "passphraseLabel": "Phrase secrète du compte",
+    "passphrasePlaceholder": "Saisissez votre phrase secrète de 12 mots",
+    "submittingTitle": "Envoi de la transaction",
+    "submittingBody": "Envoi du contrat au nœud Signum via Form POST…",
+    "successBody": "Votre contrat intelligent volumineux a été déployé avec succès.",
+    "copied": "Identifiant de transaction copié !",
+    "deployLarge": "Déployer le contrat volumineux",
+    "submitting": "Envoi…",
+    "deployAnother": "En déployer un autre",
+    "tryAgain": "Réessayer"
+  },
+  "wallet": {
+    "title": "Connexion du portefeuille",
+    "subtitle": "Connectez XT Wallet pour déployer votre contrat",
+    "connected": "Portefeuille connecté",
+    "connectedBody": "Votre XT Wallet est connecté et prêt à déployer.",
+    "openExplorer": "Ouvrir dans l'explorateur"
+  },
+  "completion": {
+    "void": "Fonction sans retour",
+    "one": "Fonction à un paramètre",
+    "two": "Fonction à deux paramètres",
+    "returns": "Fonction avec valeur de retour",
+    "special": "Fonction spéciale",
+    "unknown": "Type de fonction inconnu"
+  },
+  "hover": {
+    "steps": {
+      "one": "{count} pas",
+      "other": "{count} pas"
+    },
+    "formTable": "| Forme | Opcode | Octets |",
+    "apiFunction": "Fonction d'API",
+    "apiBody": "Fonction d'API intégrée de la blockchain, appelée via l'instruction `FUN`.",
+    "apiTable": "| Code API | Instruction | Arguments |",
+    "opcode": "opcode {hex}",
+    "form": {
+      "none": "aucun argument, aucune valeur de retour",
+      "one": "un argument",
+      "two": "deux arguments",
+      "returns": "renvoie une valeur",
+      "returnsOne": "renvoie une valeur, un argument",
+      "returnsTwo": "renvoie une valeur, deux arguments"
+    }
+  }
+}

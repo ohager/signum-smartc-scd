@@ -1,0 +1,34 @@
+{
+  "rail": {
+    "label": "Flux de travail",
+    "write": "Écrire",
+    "test": "Tester",
+    "simulate": "Simuler",
+    "deploy": "Déployer",
+    "noContract": "aucun contrat",
+    "needsCompile": "nécessite un contrat qui compile",
+    "ignoredContract": " · un second contrat ({name}) est ignoré"
+  },
+  "cells": {
+    "compiles": "compile",
+    "errors": {
+      "one": "{count} erreur",
+      "other": "{count} erreurs"
+    },
+    "noTests": "aucun test",
+    "failed": "{count} en échec",
+    "green": "{count} réussis",
+    "noScenario": "aucun scénario",
+    "scenarios": {
+      "one": "{count} scénario",
+      "other": "{count} scénarios"
+    },
+    "connectWallet": "Connectez un portefeuille pour interroger la blockchain",
+    "notCompiling": "Le contrat ne compile pas encore",
+    "deploying": "déploiement…",
+    "waitingBlock": "En attente du prochain bloc",
+    "notDeployed": "non déployé",
+    "yours": "{count} · {mine} à vous",
+    "deployed": "{count} déployés"
+  }
+}

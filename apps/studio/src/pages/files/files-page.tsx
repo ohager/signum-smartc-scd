@@ -10,6 +10,7 @@ import { FileTypes } from "@/features/project/filetype-icons.tsx";
 import { AsmFileEditor } from "@/features/asm-editor/asm-file-editor.tsx";
 import { ScenarioEditor } from "@/features/simulator/scenario/scenario-editor.tsx";
 import { TestFileEditor } from "@/features/testbed/ui/test-file-editor";
+import { t } from "@/i18n/runtime";
 
 type FilesPageParams = {
   projectId: string;
@@ -102,7 +103,7 @@ export function FilesPage() {
 
   if (!file && isLoading) {
     // to do loading screen
-    return <div>Loading...</div>;
+    return <div>{t("common.files.loading")}</div>;
   }
 
   if (!file && !isLoading) {
@@ -111,7 +112,7 @@ export function FilesPage() {
 
   if (error) {
     toast.error(error.message);
-    return <div>Error loading file</div>;
+    return <div>{t("common.files.loadError")}</div>;
   }
 
   const {name, type, id} = file!.metadata
@@ -137,7 +138,7 @@ export function FilesPage() {
         {type === FileTypes.Test && <TestFileEditor key={id} file={file!} />}
         {type !== FileTypes.SmartC && type !== FileTypes.ASM && type !== FileTypes.Scenario && type !== FileTypes.Test && (
           <div className="p-4 text-sm text-muted-foreground">
-            This file type ("{type}") is no longer supported.
+            {t("common.files.unsupported", { type })}
           </div>
         )}
       </PageContent>

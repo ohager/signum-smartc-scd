@@ -1,6 +1,7 @@
 import { ChainValue } from "@signumjs/util";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils.ts";
+import { formatNumber } from "@/i18n/runtime";
 
 interface Props {
   suffix?: string;
@@ -29,9 +30,7 @@ export function Amount({
   return (
     <div className="flex flex-row items-baseline gap-x-0.5">
       <span className={cn("font-medium text-lg", className)}>
-        {new Intl.NumberFormat(navigator.language, {
-          maximumFractionDigits: cutoff,
-        }).format(parseFloat(value))}
+        {formatNumber(parseFloat(value), { maximumFractionDigits: cutoff })}
       </span>
       <small className="text-xs opacity-70">{suffix?.toUpperCase()}</small>
     </div>

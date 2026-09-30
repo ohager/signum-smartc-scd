@@ -1,0 +1,143 @@
+{
+  "editor": {
+    "deploy": "部署",
+    "deployHint": "将此合约发布到链上",
+    "handEdits": "手动修改会在下次编译时被覆盖",
+    "assembleFirst": "汇编此文件以查看其页面、内存和字节。"
+  },
+  "meta": {
+    "unnamed": "未命名合约",
+    "minimumFee": "最低手续费",
+    "activation": "激活",
+    "machineCode": "机器码",
+    "bytes": {
+      "other": "{count} 字节"
+    },
+    "codeHash": "代码哈希",
+    "noCode": "此合约汇编后没有代码。",
+    "noVariables": "此合约未声明任何变量。",
+    "noLabels": "此合约没有跳转目标。",
+    "memory": "内存",
+    "labels": "标签",
+    "bytesTab": "字节",
+    "pages": {
+      "code": "代码",
+      "data": "数据",
+      "codeStack": "代码栈",
+      "userStack": "用户栈"
+    },
+    "copyHash": "复制代码哈希",
+    "hashCopied": "已复制代码哈希"
+  },
+  "size": {
+    "tooLargeTitle": "合约过大",
+    "cannotDeploy": "此合约无法部署",
+    "exceedsTitle": "合约超出最大大小",
+    "exceeds": "你的合约大小为 {size}，超出了 10 KiB（10240 字节）的部署上限。请在部署前优化合约代码以减小其大小。",
+    "largeTitle": "检测到大型合约（{size}）",
+    "large": "此合约过大（>8KiB），无法进行标准部署。XT Wallet 不支持为大型合约签名。你必须提供助记词，以便直接提交到节点。"
+  },
+  "deploy": {
+    "title": "部署智能合约",
+    "noteTitle": "重要提示",
+    "note": "部署智能合约是不可逆的。部署前请确保已充分测试合约。",
+    "summary": "合约概要",
+    "summaryHint": "部署前检查你的合约",
+    "name": "合约名称",
+    "activationAmount": "激活金额",
+    "description": "描述",
+    "codeSize": "代码大小",
+    "minimumFee": "最低手续费",
+    "settings": "部署设置",
+    "settingsHint": "配置部署参数",
+    "activationSigna": "激活金额（SIGNA）",
+    "feeSigna": "交易手续费（SIGNA）",
+    "minimum": "最低：",
+    "deadline": "期限（分钟）",
+    "deadlineHint": "交易期限，单位为分钟（最大：1440）"
+  },
+  "flow": {
+    "connectWallet": "请连接钱包以部署合约",
+    "title": "合约部署",
+    "subtitle": "将你的智能合约部署到 Signum 区块链",
+    "inProgress": "进行中",
+    "progress": "部署进度",
+    "connectFirst": "请先连接钱包",
+    "deploy": "部署合约",
+    "deployed": "已部署！",
+    "broadcasting": "广播中…",
+    "reset": "重置",
+    "failed": "部署失败",
+    "success": "部署成功！",
+    "successBody": "你的智能合约已成功部署。",
+    "checkWallet": "请查看 XT Wallet",
+    "unsignedBytes": "未签名字节：",
+    "walletAction": "需要在 XT Wallet 中操作",
+    "walletActionBody": "请查看 XT Wallet 扩展程序，应该已弹出确认对话框。核对交易详情并确认以继续部署。",
+    "steps": {
+      "preparing": "准备交易",
+      "preparingHint": "从 Signum 账本获取未签名字节",
+      "confirm": "钱包确认",
+      "confirmHint": "等待 XT Wallet 确认",
+      "broadcasting": "广播",
+      "broadcastingHint": "将交易提交到网络",
+      "deployed": "已部署",
+      "deployedHint": "合约已成功部署"
+    },
+    "failedRetry": "{message}。请重试。",
+    "failedGeneric": "合约部署失败。请重试。"
+  },
+  "large": {
+    "enterPassphrase": "请输入助记词",
+    "deployed": "合约部署成功！",
+    "failed": "部署失败",
+    "noTxId": "节点未返回交易 ID",
+    "title": "大型合约部署",
+    "subtitle": "使用 Form POST 方式部署（需要助记词）",
+    "passphraseTitle": "需要助记词",
+    "passphraseBody": "你的助记词将用于直接为交易签名。它不会被保存，并会在部署后从内存中清除。",
+    "passphraseLabel": "账户助记词",
+    "passphrasePlaceholder": "输入你的 12 个单词的助记词",
+    "submittingTitle": "正在提交交易",
+    "submittingBody": "正在通过 Form POST 将合约发送到 Signum 节点…",
+    "successBody": "你的大型智能合约已成功部署。",
+    "copied": "已复制交易 ID！",
+    "deployLarge": "部署大型合约",
+    "submitting": "提交中…",
+    "deployAnother": "部署另一个",
+    "tryAgain": "重试"
+  },
+  "wallet": {
+    "title": "钱包连接",
+    "subtitle": "连接 XT Wallet 以部署你的合约",
+    "connected": "钱包已连接",
+    "connectedBody": "你的 XT Wallet 已连接，可以部署。",
+    "openExplorer": "在区块浏览器中打开"
+  },
+  "completion": {
+    "void": "无返回值函数",
+    "one": "单参数函数",
+    "two": "双参数函数",
+    "returns": "有返回值函数",
+    "special": "特殊函数",
+    "unknown": "未知函数类型"
+  },
+  "hover": {
+    "steps": {
+      "other": "{count} 步"
+    },
+    "formTable": "| 形式 | 操作码 | 字节 |",
+    "apiFunction": "API 函数",
+    "apiBody": "内置区块链 API 函数，通过 `FUN` 指令调用。",
+    "apiTable": "| API 代码 | 指令 | 参数 |",
+    "opcode": "操作码 {hex}",
+    "form": {
+      "none": "无参数，无返回值",
+      "one": "一个参数",
+      "two": "两个参数",
+      "returns": "返回一个值",
+      "returnsOne": "返回一个值，一个参数",
+      "returnsTwo": "返回一个值，两个参数"
+    }
+  }
+}

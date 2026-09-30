@@ -1,0 +1,57 @@
+{
+  "editor": {
+    "run": "Exécuter",
+    "runHint": "Exécuter ce fichier de tests",
+    "runFailed": "Impossible d'exécuter les tests : {message}",
+    "runOneFailed": "Impossible d'exécuter le test : {message}",
+    "simulate": "Simuler",
+    "simulateHint": "Exécuter le test sélectionné et simuler le scénario qu'il enregistre",
+    "selectToSimulate": "Sélectionnez un test pour simuler son scénario",
+    "simulateFailed": "Impossible de simuler : {message}",
+    "noContract": "« {name} » n'a chargé aucun contrat, il n'y a donc rien à simuler.",
+    "running": "en cours…",
+    "showingValues": "valeurs de :",
+    "traceTruncated": " — trace tronquée, certaines valeurs n'ont pas été enregistrées",
+    "debugRun": "Exécution de débogage (DevTools)",
+    "debugRunNote": "— s'exécute dans la page pour que DevTools puisse s'arrêter ; un contrat incontrôlé figera l'onglet",
+    "results": "Résultats",
+    "value": "Valeur"
+  },
+  "results": {
+    "goToLine": "Aller à la ligne {line}",
+    "duration": "{ms} ms",
+    "expected": "attendu : {value}",
+    "received": "reçu : {value}",
+    "passed": "{count} réussis",
+    "failed": "{count} en échec",
+    "skipped": "{count} ignorés",
+    "timedOut": "{count} expirés",
+    "pressRun": "Cliquez sur Exécuter pour lancer ce fichier de tests.",
+    "couldNotLoad": "Impossible de charger {file}",
+    "hookFailed": "{phase} a échoué",
+    "hookFailedIn": "{phase} a échoué dans {suite}"
+  },
+  "value": {
+    "hint": "Cliquez sur une valeur affichée en fin de ligne pour l'inspecter ici.",
+    "fallbackName": "valeur",
+    "ranTimes": "exécuté {count} fois — affichage de la dernière",
+    "collapseAll": "Tout replier",
+    "expandAll": "Tout déplier",
+    "noValue": "Cette ligne a validé une assertion mais n'a lié aucune valeur.",
+    "eachRun": "Chaque exécution",
+    "eachRunLast": "Chaque exécution, affichage des {shown} dernières sur {count}"
+  },
+  "devtools": {
+    "label": "Comment déboguer avec DevTools",
+    "title": "Déboguer avec DevTools",
+    "openFirst": "Ouvrez d'abord DevTools — il ne peut pas s'attacher à une exécution déjà lancée.",
+    "tick": "Cochez cette case, puis cliquez sur Exécuter.",
+    "find": "Retrouvez votre test dans Sources sous le chemin du projet, par ex. <code>/my-project/tests/counter.test.ts</code>.",
+    "breakpoint": "Placez-y un point d'arrêt, ou ajoutez une instruction <code>debugger;</code> dans le test.",
+    "freeze": "Les tests s'exécutent dans la page et non dans un worker : un contrat qui boucle indéfiniment figera donc l'onglet — le watchdog ne peut pas interrompre la boucle qui le bloque."
+  },
+  "decorations": {
+    "run": "Exécuter {label}",
+    "runAll": "Tout exécuter dans {label}"
+  }
+}

@@ -21,6 +21,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAtom } from "jotai";
 import { revealFileRequestAtom } from "@/stores/project-tree-atoms";
 import { toast } from "sonner";
+import { t } from "@/i18n/runtime";
 
 /** MIME key used when dragging a file onto a folder to move it. */
 export const FILE_DND_MIME = "application/x-smartc-fileid";
@@ -98,14 +99,14 @@ export function FileSidebarItem({ file, projectId }: Props) {
           <DropdownMenuContent align="end" className="w-[160px]">
             <DropdownMenuItem onClick={onDownload}>
               <DownloadIcon className="h-4 w-4" />
-              Download
+              {t("common.actions.download")}
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setShowRename(true)}>Rename</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setShowRename(true)}>{t("common.actions.rename")}</DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setShowDelete(true)}
               className="text-destructive focus:text-destructive"
             >
-              Delete
+              {t("common.actions.delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -114,11 +115,11 @@ export function FileSidebarItem({ file, projectId }: Props) {
       <NameInputDialog
         open={showRename}
         onOpenChange={setShowRename}
-        title="Rename File"
-        label="File name"
+        title={t("project.file.renameTitle")}
+        label={t("project.file.fileName")}
         initialValue={file.name}
-        submitLabel="Rename"
-        validate={(n) => (siblingNames.has(n) ? "A file with this name already exists" : null)}
+        submitLabel={t("common.actions.rename")}
+        validate={(n) => (siblingNames.has(n) ? t("project.file.nameTaken") : null)}
         onSubmit={async (n) => {
           try {
             await fs.renameFile(file.id, n);
@@ -132,10 +133,10 @@ export function FileSidebarItem({ file, projectId }: Props) {
         open={showDelete}
         onOpenChange={setShowDelete}
         onConfirm={() => fs.deleteFile(file.id)}
-        title="Delete File"
-        description="Are you sure you want to delete this file? This action cannot be undone."
-        confirmText="Delete"
-        cancelText="Cancel"
+        title={t("project.file.deleteTitle")}
+        description={t("project.file.deleteConfirm")}
+        confirmText={t("common.actions.delete")}
+        cancelText={t("common.actions.cancel")}
         variant="destructive"
       />
     </SidebarMenuSubItem>

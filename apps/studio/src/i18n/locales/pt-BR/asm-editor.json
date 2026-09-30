@@ -1,0 +1,145 @@
+{
+  "editor": {
+    "deploy": "Implantar",
+    "deployHint": "Publicar este contrato na blockchain",
+    "handEdits": "Edições manuais são sobrescritas na próxima compilação",
+    "assembleFirst": "Monte o arquivo para ver suas páginas, memória e bytes."
+  },
+  "meta": {
+    "unnamed": "Contrato sem nome",
+    "minimumFee": "Taxa mínima",
+    "activation": "Ativação",
+    "machineCode": "Código de máquina",
+    "bytes": {
+      "one": "{count} byte",
+      "other": "{count} bytes"
+    },
+    "codeHash": "Hash do código",
+    "noCode": "Este contrato não gera código ao ser montado.",
+    "noVariables": "Este contrato não declara variáveis.",
+    "noLabels": "Este contrato não tem destinos de salto.",
+    "memory": "Memória",
+    "labels": "Rótulos",
+    "bytesTab": "Bytes",
+    "pages": {
+      "code": "código",
+      "data": "dados",
+      "codeStack": "pilha de código",
+      "userStack": "pilha de usuário"
+    },
+    "copyHash": "Copiar hash do código",
+    "hashCopied": "Hash do código copiado"
+  },
+  "size": {
+    "tooLargeTitle": "Contrato grande demais",
+    "cannotDeploy": "Este contrato não pode ser implantado",
+    "exceedsTitle": "O contrato excede o tamanho máximo",
+    "exceeds": "O tamanho do seu contrato é {size}, o que excede o limite de implantação de 10 KiB (10240 bytes). Otimize o código do contrato para reduzir seu tamanho antes da implantação.",
+    "largeTitle": "Contrato grande detectado ({size})",
+    "large": "Este contrato é grande demais (>8KiB) para a implantação padrão. A XT Wallet não assina contratos grandes. Você precisa informar sua frase secreta para envio direto ao nó."
+  },
+  "deploy": {
+    "title": "Implantar contrato inteligente",
+    "noteTitle": "Observação importante",
+    "note": "Implantar um contrato inteligente é irreversível. Teste seu contrato a fundo antes de implantá-lo.",
+    "summary": "Resumo do contrato",
+    "summaryHint": "Revise seu contrato antes da implantação",
+    "name": "Nome do contrato",
+    "activationAmount": "Valor de ativação",
+    "description": "Descrição",
+    "codeSize": "Tamanho do código",
+    "minimumFee": "Taxa mínima",
+    "settings": "Configurações de implantação",
+    "settingsHint": "Configure os parâmetros da implantação",
+    "activationSigna": "Valor de ativação (SIGNA)",
+    "feeSigna": "Taxa da transação (SIGNA)",
+    "minimum": "Mínimo:",
+    "deadline": "Prazo (minutos)",
+    "deadlineHint": "Prazo da transação em minutos (máx.: 1440)"
+  },
+  "flow": {
+    "connectWallet": "Conecte uma carteira para implantar seu contrato",
+    "title": "Implantação do contrato",
+    "subtitle": "Implante seu contrato inteligente na blockchain Signum",
+    "inProgress": "Em andamento",
+    "progress": "Progresso da implantação",
+    "connectFirst": "Conecte a carteira primeiro",
+    "deploy": "Implantar contrato",
+    "deployed": "Implantado!",
+    "broadcasting": "Transmitindo…",
+    "reset": "Redefinir",
+    "failed": "Falha na implantação",
+    "success": "Implantação concluída!",
+    "successBody": "Seu contrato inteligente foi implantado com sucesso.",
+    "checkWallet": "Verifique a XT Wallet",
+    "unsignedBytes": "Bytes não assinados:",
+    "walletAction": "Ação necessária na XT Wallet",
+    "walletActionBody": "Verifique a extensão da XT Wallet. Uma caixa de confirmação deve ter aberto. Revise os detalhes da transação e confirme para prosseguir com a implantação.",
+    "steps": {
+      "preparing": "Preparando a transação",
+      "preparingHint": "Obtendo bytes não assinados do ledger Signum",
+      "confirm": "Confirmação na carteira",
+      "confirmHint": "Aguardando confirmação da XT Wallet",
+      "broadcasting": "Transmitindo",
+      "broadcastingHint": "Enviando a transação para a rede",
+      "deployed": "Implantado",
+      "deployedHint": "Contrato implantado com sucesso"
+    },
+    "failedRetry": "{message}. Tente novamente.",
+    "failedGeneric": "Falha ao implantar o contrato. Tente novamente."
+  },
+  "large": {
+    "enterPassphrase": "Digite sua frase secreta",
+    "deployed": "Contrato implantado com sucesso!",
+    "failed": "Falha na implantação",
+    "noTxId": "O nó não retornou um ID de transação",
+    "title": "Implantação de contrato grande",
+    "subtitle": "Implantar usando Form POST (requer frase secreta)",
+    "passphraseTitle": "Frase secreta necessária",
+    "passphraseBody": "Sua frase secreta será usada para assinar a transação diretamente. Ela não será armazenada e será apagada da memória após a implantação.",
+    "passphraseLabel": "Frase secreta da conta",
+    "passphrasePlaceholder": "Digite sua frase secreta de 12 palavras",
+    "submittingTitle": "Enviando transação",
+    "submittingBody": "Enviando o contrato ao nó Signum via Form POST…",
+    "successBody": "Seu contrato inteligente grande foi implantado com sucesso.",
+    "copied": "ID da transação copiado!",
+    "deployLarge": "Implantar contrato grande",
+    "submitting": "Enviando…",
+    "deployAnother": "Implantar outro",
+    "tryAgain": "Tentar novamente"
+  },
+  "wallet": {
+    "title": "Conexão da carteira",
+    "subtitle": "Conecte a XT Wallet para implantar seu contrato",
+    "connected": "Carteira conectada",
+    "connectedBody": "Sua XT Wallet está conectada e pronta para implantar.",
+    "openExplorer": "Abrir no explorador"
+  },
+  "completion": {
+    "void": "Função sem retorno",
+    "one": "Função de um parâmetro",
+    "two": "Função de dois parâmetros",
+    "returns": "Função com valor de retorno",
+    "special": "Função especial",
+    "unknown": "Tipo de função desconhecido"
+  },
+  "hover": {
+    "steps": {
+      "one": "{count} passo",
+      "other": "{count} passos"
+    },
+    "formTable": "| Forma | Opcode | Bytes |",
+    "apiFunction": "Função de API",
+    "apiBody": "Função de API embutida da blockchain, chamada pela instrução `FUN`.",
+    "apiTable": "| Código da API | Instrução | Argumentos |",
+    "opcode": "opcode {hex}",
+    "form": {
+      "none": "sem argumentos, sem valor de retorno",
+      "one": "um argumento",
+      "two": "dois argumentos",
+      "returns": "retorna um valor",
+      "returnsOne": "retorna um valor, um argumento",
+      "returnsTwo": "retorna um valor, dois argumentos"
+    }
+  }
+}

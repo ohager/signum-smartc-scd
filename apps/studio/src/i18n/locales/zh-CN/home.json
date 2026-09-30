@@ -1,0 +1,66 @@
+{
+  "hero": {
+    "pitch": "在浏览器中编写、模拟和部署 Signum 智能合约，无需安装任何软件。",
+    "tagline": "Signum · 浏览器 IDE",
+    "createFirst": "创建你的第一个合约",
+    "newProject": "新建项目",
+    "importProject": "导入项目",
+    "import": "导入"
+  },
+  "howItWorks": {
+    "heading": "工作方式",
+    "soon": "即将推出",
+    "write": {
+      "title": "编写",
+      "blurb": "SmartC 编辑器，支持自动补全、悬停文档和实时编译诊断。"
+    },
+    "test": {
+      "title": "测试",
+      "blurb": "在合约旁编写测试并在浏览器中运行，数值直接显示在代码中。"
+    },
+    "simulate": {
+      "title": "模拟",
+      "blurb": "按场景单步执行：断点、变量、模拟账本。"
+    },
+    "deploy": {
+      "title": "部署",
+      "blurb": "连接钱包，发布到 Signum Testnet 或 Mainnet。"
+    }
+  },
+  "learn": {
+    "heading": "学习",
+    "smartc-repo": {
+      "title": "SmartC 语言与编译器",
+      "blurb": "语法参考、内置函数以及编译器本身。"
+    },
+    "signum-docs": {
+      "title": "Signum 文档",
+      "blurb": "Signum 网络、账户和交易如何运作。"
+    },
+    "signum-network": {
+      "title": "Signum 网络",
+      "blurb": "项目、生态系统和社区。"
+    }
+  },
+  "continue": {
+    "heading": "从上次离开的地方继续",
+    "justNow": "刚刚",
+    "minutesAgo": "{minutes} 分钟前",
+    "hoursAgo": "{hours} 小时前",
+    "yesterday": "昨天",
+    "daysAgo": {
+      "other": "{count} 天前"
+    }
+  },
+  "projects": {
+    "heading": "项目",
+    "files": {
+      "other": "{count} 个文件"
+    },
+    "nothingToOpen": " · 暂无可打开的内容"
+  },
+  "smallScreen": {
+    "title": "更适合大屏幕",
+    "body": "SmartC Studio 专为桌面使用而设计。在小屏幕上，编辑器、模拟器和部署视图空间不足——请切换到笔记本电脑或台式机。"
+  }
+}

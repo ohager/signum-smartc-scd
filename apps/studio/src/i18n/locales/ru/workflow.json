@@ -1,0 +1,38 @@
+{
+  "rail": {
+    "label": "Рабочий процесс",
+    "write": "Написать",
+    "test": "Тест",
+    "simulate": "Симуляция",
+    "deploy": "Развертывание",
+    "noContract": "нет контракта",
+    "needsCompile": "нужен компилирующийся контракт",
+    "ignoredContract": " · второй контракт ({name}) игнорируется"
+  },
+  "cells": {
+    "compiles": "компилируется",
+    "errors": {
+      "one": "{count} ошибка",
+      "few": "{count} ошибки",
+      "many": "{count} ошибок",
+      "other": "{count} ошибки"
+    },
+    "noTests": "нет тестов",
+    "failed": "не пройдено: {count}",
+    "green": "пройдено: {count}",
+    "noScenario": "нет сценария",
+    "scenarios": {
+      "one": "{count} сценарий",
+      "few": "{count} сценария",
+      "many": "{count} сценариев",
+      "other": "{count} сценария"
+    },
+    "connectWallet": "Подключите кошелёк, чтобы запросить блокчейн",
+    "notCompiling": "Контракт пока не компилируется",
+    "deploying": "развертывание…",
+    "waitingBlock": "Ожидание следующего блока",
+    "notDeployed": "не развернут",
+    "yours": "{count} · ваших: {mine}",
+    "deployed": "развернуто: {count}"
+  }
+}

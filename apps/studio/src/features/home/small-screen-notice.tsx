@@ -1,5 +1,6 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { MonitorIcon } from "lucide-react";
+import { t } from "@/i18n/runtime";
 
 /**
  * The studio is a multi-pane IDE (sidebar, editor, simulator, deploy rail) and
@@ -11,11 +12,10 @@ export function SmallScreenNotice() {
     <div className="px-6 pt-4 lg:hidden">
       <Alert>
         <MonitorIcon />
-        <AlertTitle>Best on a larger screen</AlertTitle>
+        <AlertTitle>{t("home.smallScreen.title")}</AlertTitle>
         <AlertDescription>
           <p>
-            SmartC Studio is built for desktop use. On small screens the editor, simulator and
-            deployment views won't have enough room — please switch to a laptop or desktop.
+            {t("home.smallScreen.body")}
           </p>
         </AlertDescription>
       </Alert>

@@ -33,6 +33,7 @@ import type { StandardLedger } from "@signumjs/core";
 import { HttpError } from "@signumjs/http";
 import { isLargeContract, isTooLarge, calculateContractSize, formatContractSize } from "./contract-size-helper";
 import { LargeContractDeployment } from "./large-contract-deployment";
+import { t } from "@/i18n/runtime";
 
 async function waitForBroadcastedTx(
   txId: string,
@@ -41,7 +42,7 @@ async function waitForBroadcastedTx(
 ) {
   const { unconfirmedTransactions } =
     await ledger.transaction.getUnconfirmedTransactions();
-  if (unconfirmedTransactions.find((t) => t.transaction === txId)) {
+  if (unconfirmedTransactions.find((tx) => tx.transaction === txId)) {
     return;
   }
   if (timeout === 0) {
@@ -87,20 +88,19 @@ export function DeploymentFlow({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Contract Too Large</CardTitle>
+          <CardTitle className="text-lg">{t("asm-editor.size.tooLargeTitle")}</CardTitle>
           <CardDescription>
-            This contract cannot be deployed
+            {t("asm-editor.size.cannotDeploy")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Alert className="border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950">
             <AlertCircle className="h-4 w-4 text-[var(--mag)]" />
             <AlertTitle className="text-red-800 dark:text-red-200">
-              Contract Exceeds Maximum Size
+              {t("asm-editor.size.exceedsTitle")}
             </AlertTitle>
             <AlertDescription className="text-red-700 dark:text-red-300">
-              Your contract size is {formatContractSize(contractSize)}, which exceeds the maximum deployment limit of 10 KiB (10240 bytes).
-              Please optimize your contract code to reduce its size before deployment.
+              {t("asm-editor.size.exceeds", { size: formatContractSize(contractSize) })}
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -122,7 +122,7 @@ export function DeploymentFlow({
 
   const handleDeploy = async () => {
     if (!status) {
-      toast.warning("Please connect to a wallet to deploy your contract");
+      toast.warning(t("asm-editor.flow.connectWallet"));
       return;
     }
     try {
@@ -166,8 +166,8 @@ export function DeploymentFlow({
     } catch (error) {
       setErrorMessage(
         error instanceof HttpError
-          ? `${error.message}. Please try again.`
-          : "Failed to deploy contract. Please try again.",
+          ? t("asm-editor.flow.failedRetry", { message: error.message })
+          : t("asm-editor.flow.failedGeneric"),
       );
       setDeploymentStep("error");
       console.error("Deployment failed:", error);
@@ -206,14 +206,14 @@ export function DeploymentFlow({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg">Contract Deployment</CardTitle>
+              <CardTitle className="text-lg">{t("asm-editor.flow.title")}</CardTitle>
               <CardDescription>
-                Deploy your smart contract to the Signum blockchain
+                {t("asm-editor.flow.subtitle")}
               </CardDescription>
             </div>
             {deploymentStep !== "idle" && deploymentStep !== "error" && (
               <Badge variant="outline" className="animate-pulse">
-                In Progress
+                {t("asm-editor.flow.inProgress")}
               </Badge>
             )}
           </div>
@@ -222,7 +222,7 @@ export function DeploymentFlow({
           {deploymentStep !== "idle" && deploymentStep !== "error" && (
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Deployment Progress</span>
+                <span className="text-sm font-medium">{t("asm-editor.flow.progress")}</span>
                 <span className="text-sm text-muted-foreground">
                   {progress}%
                 </span>
@@ -241,7 +241,7 @@ export function DeploymentFlow({
           <div className="flex gap-3 mt-6">
             {status === null ? (
               <div className="flex items-center gap-2 w-full justify-center text-muted-foreground">
-                Connect Wallet First
+                {t("asm-editor.flow.connectFirst")}
               </div>
             ) : (
               <Button
@@ -254,19 +254,19 @@ export function DeploymentFlow({
                 { progress === 0 && (
                   <>
                     <Zap className="h-4 w-4 mr-2" />
-                    Deploy Contract
+                    {t("asm-editor.flow.deploy")}
                   </>
                 )}
                 {progress === 100 && (
                   <>
                   <CheckCircle className="h-4 w-4 mr-2" />
-                    Deployed!
+                    {t("asm-editor.flow.deployed")}
                   </>
                 )}
                 {progress > 0 && progress < 100 && (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Broadcasting...
+                    {t("asm-editor.flow.broadcasting")}
                   </>
                 )}
               </Button>
@@ -274,7 +274,7 @@ export function DeploymentFlow({
 
             {(deploymentStep === "error" || deploymentStep === "success") && (
               <Button variant="outline" onClick={resetDeployment}>
-                Reset
+                {t("asm-editor.flow.reset")}
               </Button>
             )}
           </div>
@@ -298,26 +298,26 @@ function DeploymentSteps({
   const steps = [
     {
       id: "preparing",
-      title: "Preparing Transaction",
-      description: "Getting unsigned bytes from Signum ledger",
+      title: t("asm-editor.flow.steps.preparing"),
+      description: t("asm-editor.flow.steps.preparingHint"),
       icon: <Clock className="h-4 w-4" />,
     },
     {
       id: "wallet_confirmation",
-      title: "Wallet Confirmation",
-      description: "Waiting for XT Wallet confirmation",
+      title: t("asm-editor.flow.steps.confirm"),
+      description: t("asm-editor.flow.steps.confirmHint"),
       icon: <Wallet className="h-4 w-4" />,
     },
     {
       id: "broadcasting",
-      title: "Broadcasting",
-      description: "Submitting transaction to the network",
+      title: t("asm-editor.flow.steps.broadcasting"),
+      description: t("asm-editor.flow.steps.broadcastingHint"),
       icon: <Zap className="h-4 w-4" />,
     },
     {
       id: "success",
-      title: "Deployed",
-      description: "Contract successfully deployed",
+      title: t("asm-editor.flow.steps.deployed"),
+      description: t("asm-editor.flow.steps.deployedHint"),
       icon: <CheckCircle className="h-4 w-4" />,
     },
   ];
@@ -358,7 +358,7 @@ function DeploymentSteps({
         <Alert className="border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950">
           <AlertCircle className="h-4 w-4 text-[var(--mag)]" />
           <AlertTitle className="text-red-800 dark:text-red-200">
-            Deployment Failed
+            {t("asm-editor.flow.failed")}
           </AlertTitle>
           <AlertDescription className="text-red-700 dark:text-red-300">
             {errorMessage}
@@ -370,10 +370,10 @@ function DeploymentSteps({
         <Alert className="border-[var(--green)] bg-[color-mix(in_srgb,var(--green)_10%,transparent)]">
           <CheckCircle className="h-4 w-4 text-[var(--green)]" />
           <AlertTitle className="text-green-800 dark:text-green-200">
-            Deployment Successful!
+            {t("asm-editor.flow.success")}
           </AlertTitle>
           <AlertDescription className="text-green-700 dark:text-green-300">
-            Your smart contract has been deployed successfully.
+            {t("asm-editor.flow.successBody")}
             <div className="flex items-center gap-2 mt-2">
               <span className="font-mono text-xs">
                 {transaction?.transactionId}
@@ -421,7 +421,7 @@ function DeploymentSteps({
                   </h4>
                   {status === "active" && step.id === "wallet_confirmation" && (
                     <Badge variant="outline" className="text-xs animate-pulse">
-                      Check XT Wallet
+                      {t("asm-editor.flow.checkWallet")}
                     </Badge>
                   )}
                 </div>
@@ -436,7 +436,7 @@ function DeploymentSteps({
                     <div className="mt-2 p-2 bg-[var(--bg2)] text-xs font-mono">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-muted-foreground">
-                          Unsigned Bytes:
+                          {t("asm-editor.flow.unsignedBytes")}
                         </span>
                         <Button variant="ghost" size="icon" className="h-5 w-5">
                           <Copy className="h-3 w-3" />
@@ -457,13 +457,11 @@ function DeploymentSteps({
           <div className="flex items-center gap-2 mb-2">
             <Wallet className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
-              XT Wallet Action Required
+              {t("asm-editor.flow.walletAction")}
             </span>
           </div>
           <p className="text-xs text-blue-700 dark:text-blue-300">
-            Please check your XT Wallet extension. A confirmation dialog should
-            have opened. Review the transaction details and confirm to proceed
-            with the deployment.
+            {t("asm-editor.flow.walletActionBody")}
           </p>
         </div>
       )}

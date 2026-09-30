@@ -1,0 +1,95 @@
+{
+  "actions": {
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "create": "Crear",
+    "delete": "Eliminar",
+    "disconnect": "Desconectar",
+    "download": "Descargar",
+    "finish": "Finalizar",
+    "next": "Siguiente",
+    "open": "Abrir",
+    "previous": "Anterior",
+    "rename": "Renombrar",
+    "save": "Guardar"
+  },
+  "confirm": {
+    "title": "Confirmar acción",
+    "description": "¿De verdad quieres hacer esto?"
+  },
+  "sidebar": {
+    "home": "Inicio",
+    "projects": "Proyectos",
+    "addProject": "Añadir nuevo proyecto",
+    "importProject": "Importar proyecto (zip)",
+    "selectOpenedFile": "Seleccionar archivo abierto",
+    "createProject": "Crear nuevo proyecto",
+    "alpha": "Alfa",
+    "prerelease": "v{version} · experimental — espera asperezas y cambios incompatibles",
+    "resize": "Arrastra para cambiar el tamaño de la barra lateral",
+    "toggle": "Mostrar/ocultar barra lateral",
+    "mobileTitle": "Barra lateral",
+    "mobileDescription": "Muestra la barra lateral para móvil."
+  },
+  "import": {
+    "done": {
+      "one": "{count} archivo importado",
+      "other": "{count} archivos importados"
+    },
+    "doneWithSkipped": {
+      "one": "{count} archivo importado ({skipped} omitido(s))",
+      "other": "{count} archivos importados ({skipped} omitido(s))"
+    }
+  },
+  "climate": {
+    "label": "Tema de color"
+  },
+  "wallet": {
+    "connect": "Conectar billetera",
+    "connectTestnet": "Conectar a Testnet",
+    "connectMainnet": "Conectar a Mainnet",
+    "connectionIssue": "Problema de conexión",
+    "expectedNetwork": "Red esperada: {network}",
+    "ready": "Listo para desplegar contratos",
+    "account": "Cuenta",
+    "balance": "Saldo",
+    "testnet": "Testnet",
+    "mainnet": "Mainnet"
+  },
+  "editor": {
+    "format": "Formatear documento ({hotkey})",
+    "download": "Descargar este archivo ({hotkey})",
+    "unsaved": "Cambios sin guardar ({hotkey})",
+    "allSaved": "Todo guardado",
+    "saveAction": "Guardar archivo",
+    "downloadAction": "Descargar archivo",
+    "saved": "¡Archivo guardado!",
+    "saveFailed": "No se pudo guardar el archivo: {message}"
+  },
+  "files": {
+    "loading": "Cargando…",
+    "loadError": "Error al cargar el archivo",
+    "unsupported": "Este tipo de archivo («{type}») ya no es compatible.",
+    "nameTaken": "Ya existe un archivo llamado {name} en esta carpeta",
+    "folderNameTaken": "Ya existe una carpeta llamada {name} aquí",
+    "deleteRoot": "No se puede eliminar la carpeta raíz",
+    "renameRoot": "No se puede renombrar la carpeta raíz"
+  },
+  "pages": {
+    "deploy": "Desplegar",
+    "notCompiling": "El contrato no compila, así que no hay nada que publicar: {error}",
+    "compiling": "Compilando…",
+    "simulate": "Simular",
+    "replayNote": "Reproduce lo que envió esta prueba. Las aserciones no se reevalúan mientras avanzas paso a paso, y solo se puede recorrer paso a paso el último contrato que cargó la prueba.",
+    "replayScenario": "de {test}"
+  },
+  "debugDashboard": {
+    "block": "bloque {block}",
+    "step": "paso {step}",
+    "live": "● en vivo",
+    "waiting": "esperando una sesión de depuración…",
+    "contractStatus": "Estado del contrato",
+    "ledgerStatus": "Estado del libro mayor"
+  }
+}

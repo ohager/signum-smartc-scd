@@ -7,6 +7,7 @@ import { revealFileRequestAtom } from "@/stores/project-tree-atoms";
 import { useSetAtom } from "jotai";
 import { FolderIcon } from "lucide-react";
 import { useNavigate } from "react-router";
+import { t } from "@/i18n/runtime";
 
 interface Props {
   projects: ProjectSummary[];
@@ -29,7 +30,7 @@ export function ProjectGrid({ projects }: Props) {
   return (
     <section className="px-6 py-6">
       <h2 className="mb-4 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-        Projects
+        {t("home.projects.heading")}
         <span className="h-px flex-1 bg-border" />
       </h2>
 
@@ -47,8 +48,8 @@ export function ProjectGrid({ projects }: Props) {
                 </div>
 
                 <p className="font-mono text-[11px] tabular-nums text-muted-foreground">
-                  {project.fileCount === 1 ? "1 file" : `${project.fileCount} files`}
-                  {project.mainFileId ? "" : " · nothing to open yet"}
+                  {t("home.projects.files", { count: project.fileCount })}
+                  {project.mainFileId ? "" : t("home.projects.nothingToOpen")}
                 </p>
 
                 <Button
@@ -58,7 +59,7 @@ export function ProjectGrid({ projects }: Props) {
                   disabled={!project.mainFileId}
                   onClick={() => open(project)}
                 >
-                  Open
+                  {t("common.actions.open")}
                 </Button>
               </div>
             </Panel>

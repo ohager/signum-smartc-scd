@@ -9,13 +9,15 @@
  * will render those kinds without changing this shape.
  */
 
+import type { PlainKey } from "@/i18n/runtime";
+
 export type LearnKind = "video" | "link" | "guide" | "example";
 
 export interface LearnEntry {
   id: string;
   kind: LearnKind;
-  title: string;
-  blurb?: string;
+  titleKey: PlainKey;
+  blurbKey?: PlainKey;
   /** Outbound URL — used by `link` entries. */
   href?: string;
   /** YouTube video id — required for `video` entries. */
@@ -26,29 +28,30 @@ export const MAX_RAIL_VIDEOS = 3;
 export const MAX_RAIL_LINKS = 5;
 
 /**
- * Videos are added here as they are published. Each needs a `youtubeId` (the
+ * Videos are added here as they are published, their text in
+ * each locale's `home.json` under `learn.<id>`. Each needs a `youtubeId` (the
  * `v=` parameter of the watch URL); `learn-content.test.ts` enforces that.
  */
 export const LEARN_CONTENT: LearnEntry[] = [
   {
     id: "smartc-repo",
     kind: "link",
-    title: "SmartC language & compiler",
-    blurb: "Syntax reference, built-in functions and the compiler itself.",
+    titleKey: "home.learn.smartc-repo.title",
+    blurbKey: "home.learn.smartc-repo.blurb",
     href: "https://github.com/deleterium/SmartC",
   },
   {
     id: "signum-docs",
     kind: "link",
-    title: "Signum documentation",
-    blurb: "How the Signum network, accounts and transactions work.",
+    titleKey: "home.learn.signum-docs.title",
+    blurbKey: "home.learn.signum-docs.blurb",
     href: "https://docs.signum.network/signum",
   },
   {
     id: "signum-network",
     kind: "link",
-    title: "Signum network",
-    blurb: "The project, its ecosystem and community.",
+    titleKey: "home.learn.signum-network.title",
+    blurbKey: "home.learn.signum-network.blurb",
     href: "https://signum.network",
   },
 ];

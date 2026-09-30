@@ -7,6 +7,7 @@ import { useProjectFacts } from "@/features/workflow/use-project-facts";
 import { DeploymentView } from "@/features/asm-editor/deployment-view/deployment-view";
 import type { MachineData } from "@/features/asm-editor/machine-data";
 import { SmartC } from "smartc-signum-compiler";
+import { t } from "@/i18n/runtime";
 
 /**
  * Publishing the project's contract.
@@ -56,7 +57,7 @@ export function DeployPage() {
   return (
     <Page>
       <PageHeader>
-        <h1 className="text-sm font-semibold">Deploy</h1>
+        <h1 className="text-sm font-semibold">{t("common.pages.deploy")}</h1>
         <Badge variant="secondary">Signum</Badge>
       </PageHeader>
       {/* No `overflow-auto` here: `DeploymentView` wraps itself in an
@@ -65,10 +66,10 @@ export function DeployPage() {
         {error && (
           <p className="text-sm" style={{ color: "var(--mag)" }}>
             <span aria-hidden>● </span>
-            The contract does not compile, so there is nothing to publish: {error}
+            {t("common.pages.notCompiling", { error })}
           </p>
         )}
-        {!error && !machineData && <p className="text-sm">Compiling…</p>}
+        {!error && !machineData && <p className="text-sm">{t("common.pages.compiling")}</p>}
         {machineData && <DeploymentView data={machineData} />}
       </PageContent>
     </Page>

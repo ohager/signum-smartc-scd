@@ -1,3 +1,5 @@
+import { localizeDocs } from "@/i18n/doc-walk";
+
 export type FunctionDeclaration = {
   documentation: string;
   detail: string;
@@ -5,7 +7,7 @@ export type FunctionDeclaration = {
   params: { name: string; documentation: string }[];
 };
 
-export const SmartCFunctions: Record<string, FunctionDeclaration> = {
+export const SmartCFunctions: Record<string, FunctionDeclaration> = localizeDocs("editor-docs.builtins", {
   getNextTx: {
     signature: "long getNextTx()",
     detail:
@@ -961,4 +963,4 @@ export const SmartCFunctions: Record<string, FunctionDeclaration> = {
       }
     ]
   }
-};
+});

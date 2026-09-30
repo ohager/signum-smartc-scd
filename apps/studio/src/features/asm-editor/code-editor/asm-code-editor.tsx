@@ -21,6 +21,7 @@ import { type File } from "@/lib/file-system";
 import type { MachineData } from "@/features/asm-editor/machine-data.ts";
 import { tryAssemble } from "../lib/try-assemble.ts";
 import { EDITOR_SCROLLBAR } from "@/theme/monaco-themes";
+import { t } from "@/i18n/runtime";
 
 interface Props {
   file: File;
@@ -85,10 +86,10 @@ function AsmCodeEditor({ file, onSave }: Props) {
               projectId && navigate(`/projects/${projectId}/deploy`)
             }
             disabled={!projectId}
-            title="Publish this contract to the chain"
+            title={t("asm-editor.editor.deployHint")}
           >
             <Rocket className="h-4 w-4" />
-            Deploy
+            {t("asm-editor.editor.deploy")}
           </ToolbarButton>
         }
         context={
@@ -102,7 +103,7 @@ function AsmCodeEditor({ file, onSave }: Props) {
                 One line in the interface's voice, where the old prose was a
                 shouted parenthesis. */}
             <ToolbarDiagnostic tone="warning">
-              Hand edits are overwritten by the next compile
+              {t("asm-editor.editor.handEdits")}
             </ToolbarDiagnostic>
           </>
         }
@@ -143,11 +144,11 @@ function AsmCodeEditor({ file, onSave }: Props) {
       <ConfirmationDialog
         open={showConfirmDialog}
         onOpenChange={setShowConfirmDialog}
-        onConfirm={() => console.log("Re-Compile")}
-        title="Compile SmartC"
-        description="An assembly file already exists. All previous code will be overwritten if you re-compile"
-        confirmText="Re-Compile"
-        cancelText="Cancel"
+        onConfirm={() => console.log("Re-Compile")} // i18n-ignore — log line
+        title={t("smartc-editor.compile.overwriteTitle")}
+        description={t("smartc-editor.compile.overwrite")}
+        confirmText={t("smartc-editor.compile.recompile")}
+        cancelText={t("common.actions.cancel")}
         variant="destructive"
       />
     </div>
