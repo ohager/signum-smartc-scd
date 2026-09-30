@@ -41,7 +41,7 @@
     },
     "noScenario": "Noch kein Szenario",
     "createFirst": "Erstes Szenario anlegen",
-    "useDefault": "Einbauten Standard verwenden"
+    "useDefault": "Eingebauten Standard verwenden"
   },
   "panels": {
     "variables": "Variablen",
