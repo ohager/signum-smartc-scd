@@ -48,7 +48,9 @@
       "overview": "Visão geral",
       "data": "Pilha de dados",
       "maps": "Mapas"
-    }
+    },
+    "otherNode": "Escolher outro nó",
+    "useNode": "Usar este nó"
   },
   "overview": {
     "id": "Contrato",

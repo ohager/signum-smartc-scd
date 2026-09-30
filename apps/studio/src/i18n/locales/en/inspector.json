@@ -48,7 +48,9 @@
       "overview": "Overview",
       "data": "Data stack",
       "maps": "Maps"
-    }
+    },
+    "otherNode": "Choose other node",
+    "useNode": "Use this node"
   },
   "overview": {
     "id": "Contract",

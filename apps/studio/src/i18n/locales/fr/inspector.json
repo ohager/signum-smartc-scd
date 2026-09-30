@@ -48,7 +48,9 @@
       "overview": "Aperçu",
       "data": "Pile de données",
       "maps": "Maps"
-    }
+    },
+    "otherNode": "Choisir un autre nœud",
+    "useNode": "Utiliser ce nœud"
   },
   "overview": {
     "id": "Contrat",

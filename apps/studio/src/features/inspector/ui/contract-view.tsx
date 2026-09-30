@@ -6,7 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SurfaceToolbar, ToolbarButton, ToolbarDiagnostic } from "@/components/ui/surface-toolbar";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import { t } from "@/i18n/runtime";
-import { addressPrefixOf, networkKey } from "../model/networks";
+import { addressPrefixOf, networkKey, type Network } from "../model/networks";
+import { NetworkPicker } from "./network-picker";
 import { labelTarget, resolveLabelMap, type IndexedLabelMap } from "../model/resolve-label-map";
 import type { WatchEntry } from "../model/watchlist";
 import { useLabelMaps } from "../workspace/use-label-maps";
@@ -25,10 +26,13 @@ export function ContractView({
   entry,
   folderId,
   onPin,
+  onMoveNetwork,
 }: {
   entry: WatchEntry;
   folderId: string;
   onPin: (path: string) => void;
+  /** Reads the same contract through another node — the way out when a node is down. */
+  onMoveNetwork: (to: Network) => void;
 }) {
   const fs = useFileSystem();
   const labelMaps = useLabelMaps();
@@ -55,6 +59,7 @@ export function ContractView({
   };
 
   const [tab, setTab] = useState("data");
+  const [nodeDraft, setNodeDraft] = useState<Network | null>(null);
 
   /** The file a new label is written to; see `labelTarget` for why ambiguity never creates one. */
   const ensureLabelMap = async (): Promise<string | null> => {
@@ -95,6 +100,18 @@ export function ContractView({
           <Button size="sm" variant="outline" className="self-start" onClick={refresh}>
             {t("inspector.contract.retry")}
           </Button>
+          {nodeDraft === null ? (
+            <Button size="sm" variant="ghost" className="self-start" onClick={() => setNodeDraft(entry.network)}>
+              {t("inspector.contract.otherNode")}
+            </Button>
+          ) : (
+            <div className="flex max-w-md flex-col gap-2">
+              <NetworkPicker value={nodeDraft} onChange={setNodeDraft} />
+              <Button size="sm" className="self-start" onClick={() => onMoveNetwork(nodeDraft)}>
+                {t("inspector.contract.useNode")}
+              </Button>
+            </div>
+          )}
         </div>
       )}
       {contract && client && (

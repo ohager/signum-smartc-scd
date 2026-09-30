@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { addContracts, emptyWatchlist, parseWatchlist, removeContract, updateContract } from "./watchlist";
+import { addContracts, emptyWatchlist, moveContract, parseWatchlist, removeContract, updateContract } from "./watchlist";
 
 const text = `{
   "version": 1,
@@ -46,5 +46,13 @@ describe("watchlist", () => {
 
   it("creates an empty watchlist", () => {
     expect(value(emptyWatchlist()).contracts).toEqual([]);
+  });
+});
+
+describe("moveContract", () => {
+  it("moves an entry to another node and keeps its alias and comments", () => {
+    const out = moveContract(text, "1", "testnet", { node: "https://n.example", testnet: true });
+    expect(value(out).contracts[0]).toEqual({ id: "1", network: { node: "https://n.example", testnet: true }, alias: "one" });
+    expect(out).toContain("// first");
   });
 });

@@ -445,6 +445,8 @@ export type MessageParams = {
   "inspector.contract.tabs.overview": undefined;
   "inspector.contract.tabs.data": undefined;
   "inspector.contract.tabs.maps": undefined;
+  "inspector.contract.otherNode": undefined;
+  "inspector.contract.useNode": undefined;
   "inspector.overview.id": undefined;
   "inspector.overview.name": undefined;
   "inspector.overview.description": undefined;

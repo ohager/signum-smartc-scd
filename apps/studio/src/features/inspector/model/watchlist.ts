@@ -67,3 +67,9 @@ export function removeContract(text: string, id: string, network: Network): stri
   const at = indexOf(current(text), id, network);
   return at < 0 ? text : editDocument(text, ["contracts", at], undefined);
 }
+
+/** The same contract read through another node, e.g. when its default node is down. */
+export function moveContract(text: string, id: string, from: Network, to: Network): string {
+  const at = indexOf(current(text), id, from);
+  return at < 0 ? text : editDocument(text, ["contracts", at, "network"], to);
+}

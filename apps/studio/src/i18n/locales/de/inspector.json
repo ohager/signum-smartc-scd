@@ -48,7 +48,9 @@
       "overview": "Übersicht",
       "data": "Data Stack",
       "maps": "Maps"
-    }
+    },
+    "otherNode": "Anderen Node wählen",
+    "useNode": "Diesen Node verwenden"
   },
   "overview": {
     "id": "Contract",

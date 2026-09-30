@@ -5,7 +5,7 @@ import { SurfaceToolbar, ToolbarButton, ToolbarDiagnostic } from "@/components/u
 import { EditorFileActions } from "@/components/ui/editor/file-actions.tsx";
 import type { File } from "@/lib/file-system";
 import { t } from "@/i18n/runtime";
-import { addContracts, parseWatchlist, removeContract, updateContract, type WatchEntry } from "../model/watchlist";
+import { addContracts, moveContract, parseWatchlist, removeContract, updateContract, type WatchEntry } from "../model/watchlist";
 import { useFollowedFile } from "../workspace/use-followed-file";
 import { JsoncSourceEditor } from "./jsonc-source-editor";
 import { writeThrough } from "./write-through";
@@ -86,6 +86,10 @@ export function InspectorEditor({ file }: { file: File }) {
               entry={selected}
               folderId={file.metadata.folderId}
               onPin={(path) => write((text) => updateContract(text, selected.id, selected.network, { labelMap: path }))}
+              onMoveNetwork={(to) => {
+                write((text) => moveContract(text, selected.id, selected.network, to));
+                select(entryKey({ ...selected, network: to }));
+              }}
             />
           ) : (
             <p className="p-4 text-sm text-muted-foreground">{t("inspector.editor.select")}</p>

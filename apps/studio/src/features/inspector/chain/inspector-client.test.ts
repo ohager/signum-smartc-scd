@@ -81,3 +81,10 @@ describe("filterSummaries", () => {
     expect(filterSummaries(rows, "").length).toBe(2);
   });
 });
+
+describe("filterSummaries by balance", () => {
+  it("matches the balance in SIGNA as shown", () => {
+    const rows = [toSummary(contract({ balanceNQT: "250000000" })), toSummary(contract({ at: "2", balanceNQT: "0" }))];
+    expect(filterSummaries(rows, "2.5").map((r) => r.id)).toEqual(["1"]);
+  });
+});

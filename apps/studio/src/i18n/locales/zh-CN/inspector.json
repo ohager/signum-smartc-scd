@@ -47,7 +47,9 @@
       "overview": "概览",
       "data": "数据栈",
       "maps": "映射"
-    }
+    },
+    "otherNode": "选择其他节点",
+    "useNode": "使用此节点"
   },
   "overview": {
     "id": "合约",

@@ -1,6 +1,7 @@
 import { createClient } from "@signumjs/core/createClient";
 import type { ContractApi } from "@signumjs/core";
 import type { Contract } from "@signumjs/contracts";
+import { Amount } from "@signumjs/util";
 import { nodeHostOf, type Network } from "../model/networks";
 
 /**
@@ -81,11 +82,20 @@ export function toSummary(c: Contract): ContractSummary {
   };
 }
 
+/** Balance as the list shows it, so a filter for "2.5" finds 2.5 SIGNA. */
+function signa(planck: string): string {
+  try {
+    return Amount.fromPlanck(planck).getSigna();
+  } catch {
+    return planck;
+  }
+}
+
 export function filterSummaries(rows: ContractSummary[], query: string): ContractSummary[] {
   const q = query.trim().toLowerCase();
   if (!q) return rows;
   return rows.filter((r) =>
-    [r.id, r.name, r.description, r.status].some((field) => field.toLowerCase().includes(q)),
+    [r.id, r.name, r.description, r.status, signa(r.balance)].some((field) => field.toLowerCase().includes(q)),
   );
 }
 
