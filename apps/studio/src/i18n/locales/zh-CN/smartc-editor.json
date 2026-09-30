@@ -1,0 +1,27 @@
+{
+  "compile": {
+    "created": "智能合约编译成功——已创建汇编文件！",
+    "createFailed": "无法创建汇编文件：{message}",
+    "updated": "智能合约编译成功——已更新汇编文件！",
+    "updateFailed": "无法更新汇编文件：{message}",
+    "noAsmFile": "找不到现有文件",
+    "action": "编译 SmartC",
+    "button": "编译",
+    "hint": "编译此合约（{hotkey}）",
+    "fixFirst": "请先修复错误再编译",
+    "overwriteTitle": "编译 SmartC",
+    "overwrite": "汇编文件已存在。重新编译将覆盖之前的全部代码",
+    "recompile": "重新编译",
+    "genericError": "编译错误"
+  },
+  "completion": {
+    "suggestProperties": "建议属性"
+  },
+  "hover": {
+    "function": "**SmartC 函数**",
+    "apiFunction": "**SmartC API 函数**（需要 `#include {include}`）",
+    "keyword": "**SmartC 关键字**",
+    "variable": "SmartC 变量（第 {line} 行）",
+    "userFunction": "SmartC 函数"
+  }
+}

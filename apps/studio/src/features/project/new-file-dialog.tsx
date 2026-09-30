@@ -26,6 +26,7 @@ import {
   serializeScenario,
   defaultScenario,
 } from "@/features/simulator/scenario/scenario-io";
+import { t } from "@/i18n/runtime";
 
 const EXT: Record<string, string> = {
   [FileTypes.SmartC]: ".smart.c",
@@ -84,10 +85,10 @@ export function NewFileDialog({
       <DialogContent className="sm:max-w-[425px]">
         <SubmitOnEnter onSubmit={submit} isEnabled={canSubmit}>
           <DialogHeader>
-            <DialogTitle>New File</DialogTitle>
+            <DialogTitle>{t("project.newFile.title")}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-y-2 my-4">
-            <Label htmlFor="new-file-type">Type</Label>
+            <Label htmlFor="new-file-type">{t("project.newFile.type")}</Label>
             <Select value={type} onValueChange={(v) => setType(v as FileTypes)}>
               <SelectTrigger id="new-file-type">
                 <SelectValue />
@@ -95,27 +96,27 @@ export function NewFileDialog({
               <SelectContent>
                 {!hasContract && (
                   <SelectItem value={FileTypes.SmartC}>
-                    SmartC contract (.smart.c)
+                    {t("project.newFile.smartc")}
                   </SelectItem>
                 )}
                 <SelectItem value={FileTypes.Scenario}>
-                  Scenario (.scenario.json)
+                  {t("project.newFile.scenario")}
                 </SelectItem>
-                <SelectItem value={FileTypes.Test}>Test (.test.ts)</SelectItem>
+                <SelectItem value={FileTypes.Test}>{t("project.newFile.test")}</SelectItem>
               </SelectContent>
             </Select>
-            <Label htmlFor="new-file-name">Name</Label>
+            <Label htmlFor="new-file-name">{t("project.newFile.name")}</Label>
             <Input
               id="new-file-name"
               autoFocus
-              placeholder="my-contract"
+              placeholder="my-contract" // i18n-ignore — an example file name
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </div>
           <DialogFooter>
             <Button onClick={submit} disabled={!canSubmit}>
-              Create
+              {t("common.actions.create")}
             </Button>
           </DialogFooter>
         </SubmitOnEnter>

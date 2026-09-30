@@ -7,6 +7,7 @@ import { registerClimateThemes } from "@/theme/monaco-themes";
 import { ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import { inspectedValueAtom } from "../test-trace-store";
 import { toSourceText } from "../value-node";
+import { t } from "@/i18n/runtime";
 
 /**
  * The full value behind an inline annotation, in a read-only editor.
@@ -66,7 +67,7 @@ export function ValuePanel() {
   if (!inspected) {
     return (
       <p className="p-4 text-sm text-muted-foreground">
-        Click a value shown at the end of a line to inspect it here.
+        {t("testbed.value.hint")}
       </p>
     );
   }
@@ -79,10 +80,10 @@ export function ValuePanel() {
       <div className="flex shrink-0 items-start gap-2 border-b border-border px-3 py-2">
         <div className="min-w-0 flex-1">
           <div className="font-mono text-sm">
-            {trace.name ?? "value"}
+            {trace.name ?? t("testbed.value.fallbackName")}
             {trace.count > 1 && (
               <span className="ml-2 text-xs text-muted-foreground">
-                ran {trace.count} times — showing the last
+                {t("testbed.value.ranTimes", { count: trace.count })}
               </span>
             )}
           </div>
@@ -96,8 +97,8 @@ export function ValuePanel() {
             <button
               type="button"
               onClick={() => fold("editor.foldAll")}
-              title="Collapse all"
-              aria-label="Collapse all"
+              title={t("testbed.value.collapseAll")}
+              aria-label={t("testbed.value.collapseAll")}
               className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
             >
               <ChevronsDownUp className="h-4 w-4" />
@@ -105,8 +106,8 @@ export function ValuePanel() {
             <button
               type="button"
               onClick={() => fold("editor.unfoldAll")}
-              title="Expand all"
-              aria-label="Expand all"
+              title={t("testbed.value.expandAll")}
+              aria-label={t("testbed.value.expandAll")}
               className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
             >
               <ChevronsUpDown className="h-4 w-4" />
@@ -154,7 +155,7 @@ export function ValuePanel() {
           />
         ) : (
           <p className="p-4 text-sm text-muted-foreground">
-            This line completed an assertion but bound no value.
+            {t("testbed.value.noValue")}
           </p>
         )}
       </div>
@@ -163,8 +164,8 @@ export function ValuePanel() {
         <div className="max-h-40 shrink-0 overflow-auto border-t border-border px-3 py-2">
           <div className="mb-1 text-xs text-muted-foreground">
             {dropped > 0
-              ? `Each run, showing the last ${trace.values.length} of ${trace.count}`
-              : "Each run"}
+              ? t("testbed.value.eachRunLast", { shown: trace.values.length, count: trace.count })
+              : t("testbed.value.eachRun")}
           </div>
           <ol className="font-mono text-xs">
             {trace.values.map((value, index) => (

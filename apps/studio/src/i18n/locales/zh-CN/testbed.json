@@ -1,0 +1,57 @@
+{
+  "editor": {
+    "run": "运行",
+    "runHint": "运行此测试文件",
+    "runFailed": "无法运行测试：{message}",
+    "runOneFailed": "无法运行测试：{message}",
+    "simulate": "模拟",
+    "simulateHint": "运行所选测试并模拟其记录的场景",
+    "selectToSimulate": "选择一个测试以模拟其场景",
+    "simulateFailed": "无法模拟：{message}",
+    "noContract": "“{name}”未加载任何合约，因此没有可模拟的内容。",
+    "running": "运行中…",
+    "showingValues": "显示以下来源的数值：",
+    "traceTruncated": " — 跟踪已截断，部分数值未被记录",
+    "debugRun": "调试运行（DevTools）",
+    "debugRunNote": "— 在页面中运行，以便 DevTools 可以中断；失控的合约会冻结标签页",
+    "results": "结果",
+    "value": "数值"
+  },
+  "results": {
+    "goToLine": "跳转到第 {line} 行",
+    "duration": "{ms} 毫秒",
+    "expected": "预期：{value}",
+    "received": "实际：{value}",
+    "passed": "{count} 个通过",
+    "failed": "{count} 个失败",
+    "skipped": "{count} 个跳过",
+    "timedOut": "{count} 个超时",
+    "pressRun": "点击“运行”以执行此测试文件。",
+    "couldNotLoad": "无法加载 {file}",
+    "hookFailed": "{phase} 失败",
+    "hookFailedIn": "{phase} 在 {suite} 中失败"
+  },
+  "value": {
+    "hint": "点击行尾显示的数值，在此处查看。",
+    "fallbackName": "数值",
+    "ranTimes": "运行了 {count} 次——显示最后一次",
+    "collapseAll": "全部折叠",
+    "expandAll": "全部展开",
+    "noValue": "此行完成了一次断言，但没有绑定数值。",
+    "eachRun": "每次运行",
+    "eachRunLast": "每次运行，显示 {count} 次中的最后 {shown} 次"
+  },
+  "devtools": {
+    "label": "如何使用 DevTools 调试",
+    "title": "使用 DevTools 调试",
+    "openFirst": "请先打开 DevTools——它无法附加到已在进行的运行。",
+    "tick": "勾选此框，然后点击“运行”。",
+    "find": "在 Sources 中按项目路径找到你的测试，例如 <code>/my-project/tests/counter.test.ts</code>。",
+    "breakpoint": "在那里设置断点，或在测试中写一条 <code>debugger;</code> 语句。",
+    "freeze": "测试在页面中而不是 worker 中运行，因此死循环的合约会冻结标签页——看门狗无法中断正在阻塞它的循环。"
+  },
+  "decorations": {
+    "run": "运行 {label}",
+    "runAll": "运行 {label} 中的全部"
+  }
+}

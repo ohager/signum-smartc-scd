@@ -1,4 +1,5 @@
 import type { DebugStatus } from "../engine/engine.types";
+import { t } from "@/i18n/runtime";
 
 export interface Transport {
   /** The primary verb. The first move of a round starts it; later ones resume. */
@@ -39,7 +40,7 @@ export function transportFor(
       canStep: false,
       // Forging another block will not revive a halted contract.
       emphasise: "run",
-      note: "The contract halted. Reset to start over.",
+      note: t("simulator.transport.halted"),
     };
   }
 
@@ -49,7 +50,7 @@ export function transportFor(
       runDisabled: true,
       canStep: false,
       emphasise: "forge",
-      note: "This round is over — forge the next block to run it again.",
+      note: t("simulator.transport.roundOver"),
     };
   }
 

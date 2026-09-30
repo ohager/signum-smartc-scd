@@ -27,6 +27,7 @@ import {
   setDebugMemory,
   clearDebugMemory,
 } from "@/features/smartc-editor/language/debug-memory";
+import { t } from "@/i18n/runtime";
 
 export interface ScenarioEntry {
   name: string;
@@ -84,7 +85,7 @@ export function DebugView({
     try {
       return parseScenario(entry.json);
     } catch (e: any) {
-      toast.error("Invalid scenario, using built-in default: " + e.message);
+      toast.error(t("simulator.debug.invalidScenario", { message: e.message }));
       return defaultScenario();
     }
   }, [scenarios, selectedName]);
@@ -188,7 +189,7 @@ function DebugSession({
       setAssembly(controller.getAssembly());
     } catch (e: any) {
       controllerRef.current = null;
-      toast.error("Cannot start debug: " + e.message);
+      toast.error(t("simulator.debug.cannotStart", { message: e.message }));
     }
     editor.onMouseDown((e) => {
       if (

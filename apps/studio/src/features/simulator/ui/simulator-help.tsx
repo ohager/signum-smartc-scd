@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Panel } from "@/components/ui/panel.tsx";
 import { ToolbarButton } from "@/components/ui/surface-toolbar.tsx";
+import { t } from "@/i18n/runtime";
 
 /**
  * How this thing works, in four sentences.
@@ -16,11 +17,11 @@ import { ToolbarButton } from "@/components/ui/surface-toolbar.tsx";
  * the empty state is gone.
  */
 export const SIMULATOR_MODEL = [
-  "Your contract runs here in an invented Signum chain.",
-  "A scenario supplies the transactions that poke it.",
-  "Blocks only exist when you forge them — that is what “Next block” does.",
-  "Set breakpoints in the margin; “Step” advances one source line.",
-];
+  "simulator.help.model.chain",
+  "simulator.help.model.scenario",
+  "simulator.help.model.blocks",
+  "simulator.help.model.breakpoints",
+] as const;
 
 /**
  * The same trigger shape as `testbed/ui/devtools-help.tsx`, so the two helps in
@@ -32,17 +33,17 @@ export function SimulatorHelp() {
       <TooltipTrigger asChild>
         <button
           type="button"
-          aria-label="How the simulator works"
+          aria-label={t("simulator.help.title")}
           className="shrink-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ring)]"
         >
           <HelpCircle className="h-4 w-4 text-[var(--dim)] hover:text-[var(--text)]" />
         </button>
       </TooltipTrigger>
       <TooltipContent className="max-w-sm space-y-1 text-xs">
-        <p className="font-medium">How the simulator works</p>
+        <p className="font-medium">{t("simulator.help.title")}</p>
         <ul className="space-y-0.5">
-          {SIMULATOR_MODEL.map((line) => (
-            <li key={line}>{line}</li>
+          {SIMULATOR_MODEL.map((key) => (
+            <li key={key}>{t(key)}</li>
           ))}
         </ul>
       </TooltipContent>
@@ -68,20 +69,20 @@ export function SimulatorInvitation({
   return (
     <div className="flex h-full items-center justify-center p-6">
       <Panel variant="bracketed" className="max-w-[460px] p-5">
-        <h2 className="mb-2 text-sm font-medium">No scenario yet</h2>
+        <h2 className="mb-2 text-sm font-medium">{t("simulator.help.noScenario")}</h2>
         <ul className="mb-4 space-y-1.5 text-xs text-[var(--dim)]">
-          {SIMULATOR_MODEL.map((line) => (
-            <li key={line}>{line}</li>
+          {SIMULATOR_MODEL.map((key) => (
+            <li key={key}>{t(key)}</li>
           ))}
         </ul>
         <div className="flex items-center gap-2">
           {onCreate && (
             <ToolbarButton weight="primary" onClick={onCreate}>
-              Create the first scenario
+              {t("simulator.help.createFirst")}
             </ToolbarButton>
           )}
           <ToolbarButton onClick={onUseDefault}>
-            Step through the built-in default
+            {t("simulator.help.useDefault")}
           </ToolbarButton>
         </div>
       </Panel>

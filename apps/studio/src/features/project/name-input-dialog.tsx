@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { SubmitOnEnter } from "@/components/ui/submit-on-enter";
+import { t } from "@/i18n/runtime";
 
 interface Props {
   open: boolean;
@@ -28,7 +29,7 @@ export function NameInputDialog({
   title,
   label,
   initialValue = "",
-  submitLabel = "Save",
+  submitLabel = t("common.actions.save"),
   validate,
   onSubmit,
 }: Props) {

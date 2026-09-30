@@ -6,6 +6,7 @@ import { SmartCDirectives } from "../language-definitions/directives";
 import { getSymbols } from "./symbol-cache";
 import { getDebugMemory } from "./debug-memory";
 import { matchDirectiveContext } from "./directive-context";
+import { t } from "@/i18n/runtime";
 
 /**
  * If the hovered word is a struct member (`prefix.word`), build the compiler's
@@ -100,7 +101,7 @@ export function createHoverProvider(
       if (fn) {
         return {
           contents: [
-            { value: `\`${fn.signature}\` - **SmartC Function**` },
+            { value: `\`${fn.signature}\` - ${t("smartc-editor.hover.function")}` },
             { value: fn.documentation },
           ],
         };
@@ -110,7 +111,7 @@ export function createHoverProvider(
       if (api) {
         return {
           contents: [
-            { value: `\`${api.signature}\` - **SmartC API Function** (requires \`#include ${api.include}\`)` },
+            { value: `\`${api.signature}\` - ${t("smartc-editor.hover.apiFunction", { include: api.include })}` },
             { value: api.documentation },
           ],
         };
@@ -119,7 +120,7 @@ export function createHoverProvider(
       if (kw) {
         return {
           contents: [
-            { value: `\`${word.word}\` - **SmartC Keyword**` },
+            { value: `\`${word.word}\` - ${t("smartc-editor.hover.keyword")}` },
             { value: kw.documentation },
           ],
         };
@@ -131,7 +132,7 @@ export function createHoverProvider(
         const contents: { value: string }[] = [];
         if (debugValue !== undefined) contents.push({ value: `**${debugName} = ${debugValue}**` });
         contents.push({
-          value: `\`${v.declaration}${v.isPointer ? " *" : ""} ${v.name}\` — SmartC variable (line ${v.line})`,
+          value: `\`${v.declaration}${v.isPointer ? " *" : ""} ${v.name}\` — ${t("smartc-editor.hover.variable", { line: v.line })}`,
         });
         return { contents };
       }
@@ -149,7 +150,7 @@ export function createHoverProvider(
         return {
           contents: [
             {
-              value: `\`${f.returnType} ${f.name}(${f.params.map((p) => `${p.type} ${p.name}`).join(", ")})\` — SmartC function`,
+              value: `\`${f.returnType} ${f.name}(${f.params.map((p) => `${p.type} ${p.name}`).join(", ")})\` — ${t("smartc-editor.hover.userFunction")}`,
             },
           ],
         };

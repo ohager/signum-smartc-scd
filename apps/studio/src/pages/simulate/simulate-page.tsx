@@ -16,6 +16,7 @@ import {
 } from "@/features/simulator/scenario/scenario-io";
 import { useProjectFacts } from "@/features/workflow/use-project-facts";
 import { DebugView } from "@/features/simulator/ui/debug-view";
+import { t } from "@/i18n/runtime";
 
 /**
  * A recording handed over by the test editor, carried in the history entry.
@@ -121,12 +122,12 @@ export function SimulatePage() {
   // hydrates synchronously from localStorage, so this is not a race with load.
   if (!replay && (!contract || missing)) return <Navigate to="/" replace />;
   if (!replay && source === null)
-    return <div className="p-4 text-sm">Loading…</div>;
+    return <div className="p-4 text-sm">{t("common.files.loading")}</div>;
 
   return (
     <Page>
       <PageHeader>
-        <h1 className="text-sm font-semibold">Simulate</h1>
+        <h1 className="text-sm font-semibold">{t("common.pages.simulate")}</h1>
         <Badge variant="secondary">
           {replay ? replay.testName : "SC-Simulator"}
         </Badge>
@@ -134,15 +135,14 @@ export function SimulatePage() {
       <PageContent className="overflow-hidden">
         {replay && (
           <p className="shrink-0 border-b border-[var(--border-1)] px-3 py-1 text-xs text-[var(--dim)]">
-            Replays what this test sent. Assertions do not re-evaluate while you
-            step, and only the last contract the test loaded is steppable.
+            {t("common.pages.replayNote")}
           </p>
         )}
         <DebugView
           source={replay ? replay.source : source!}
           scenarios={
             replay
-              ? [{ name: `from ${replay.testName}`, json: replay.scenario }]
+              ? [{ name: t("common.pages.replayScenario", { test: replay.testName }), json: replay.scenario }]
               : scenarios
           }
           sourceLabel={replay ? `recording · ${replay.testName}` : undefined}

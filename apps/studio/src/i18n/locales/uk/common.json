@@ -1,0 +1,99 @@
+{
+  "actions": {
+    "cancel": "Скасувати",
+    "close": "Закрити",
+    "confirm": "Підтвердити",
+    "create": "Створити",
+    "delete": "Видалити",
+    "disconnect": "Від'єднати",
+    "download": "Завантажити",
+    "finish": "Готово",
+    "next": "Далі",
+    "open": "Відкрити",
+    "previous": "Назад",
+    "rename": "Перейменувати",
+    "save": "Зберегти"
+  },
+  "confirm": {
+    "title": "Підтвердьте дію",
+    "description": "Ви справді хочете це зробити?"
+  },
+  "sidebar": {
+    "home": "Головна",
+    "projects": "Проєкти",
+    "addProject": "Додати проєкт",
+    "importProject": "Імпортувати проєкт (zip)",
+    "selectOpenedFile": "Виділити відкритий файл",
+    "createProject": "Створити проєкт",
+    "alpha": "Альфа",
+    "prerelease": "v{version} · експериментальна версія — можливі шорсткості та несумісні зміни",
+    "resize": "Перетягніть, щоб змінити ширину панелі",
+    "toggle": "Показати/сховати бічну панель",
+    "mobileTitle": "Бічна панель",
+    "mobileDescription": "Показує мобільну бічну панель."
+  },
+  "import": {
+    "done": {
+      "one": "Імпортовано {count} файл",
+      "few": "Імпортовано {count} файли",
+      "many": "Імпортовано {count} файлів",
+      "other": "Імпортовано {count} файли"
+    },
+    "doneWithSkipped": {
+      "one": "Імпортовано {count} файл (пропущено: {skipped})",
+      "few": "Імпортовано {count} файли (пропущено: {skipped})",
+      "many": "Імпортовано {count} файлів (пропущено: {skipped})",
+      "other": "Імпортовано {count} файли (пропущено: {skipped})"
+    }
+  },
+  "climate": {
+    "label": "Кольорова тема"
+  },
+  "wallet": {
+    "connect": "Під'єднати гаманець",
+    "connectTestnet": "Під'єднатися до Testnet",
+    "connectMainnet": "Під'єднатися до Mainnet",
+    "connectionIssue": "Проблема з під'єднанням",
+    "expectedNetwork": "Очікувана мережа: {network}",
+    "ready": "Готово до розгортання контрактів",
+    "account": "Обліковий запис",
+    "balance": "Баланс",
+    "testnet": "Testnet",
+    "mainnet": "Mainnet"
+  },
+  "editor": {
+    "format": "Форматувати документ ({hotkey})",
+    "download": "Завантажити цей файл ({hotkey})",
+    "unsaved": "Незбережені зміни ({hotkey})",
+    "allSaved": "Усе збережено",
+    "saveAction": "Зберегти файл",
+    "downloadAction": "Завантажити файл",
+    "saved": "Файл збережено!",
+    "saveFailed": "Не вдалося зберегти файл: {message}"
+  },
+  "files": {
+    "loading": "Завантаження…",
+    "loadError": "Помилка завантаження файлу",
+    "unsupported": "Цей тип файлу («{type}») більше не підтримується.",
+    "nameTaken": "У цій теці вже є файл з назвою {name}",
+    "folderNameTaken": "Тут уже є тека з назвою {name}",
+    "deleteRoot": "Не можна видалити кореневу теку",
+    "renameRoot": "Не можна перейменувати кореневу теку"
+  },
+  "pages": {
+    "deploy": "Розгортання",
+    "notCompiling": "Контракт не компілюється, тож публікувати нічого: {error}",
+    "compiling": "Компіляція…",
+    "simulate": "Симуляція",
+    "replayNote": "Відтворює те, що надіслав цей тест. Перевірки не переобчислюються під час покрокового виконання, і покроково можна пройти лише останній контракт, завантажений тестом.",
+    "replayScenario": "з {test}"
+  },
+  "debugDashboard": {
+    "block": "блок {block}",
+    "step": "крок {step}",
+    "live": "● наживо",
+    "waiting": "очікування сеансу налагодження…",
+    "contractStatus": "Стан контракту",
+    "ledgerStatus": "Стан реєстру"
+  }
+}

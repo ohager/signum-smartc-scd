@@ -1,0 +1,27 @@
+{
+  "compile": {
+    "created": "Contrato inteligente compilado — ¡archivo ensamblador creado!",
+    "createFailed": "No se pudo crear el archivo ensamblador: {message}",
+    "updated": "Contrato inteligente compilado — ¡archivo ensamblador actualizado!",
+    "updateFailed": "No se pudo actualizar el archivo ensamblador: {message}",
+    "noAsmFile": "No se encontró el archivo existente",
+    "action": "Compilar SmartC",
+    "button": "Compilar",
+    "hint": "Compilar este contrato ({hotkey})",
+    "fixFirst": "Corrige el error antes de compilar",
+    "overwriteTitle": "Compilar SmartC",
+    "overwrite": "Ya existe un archivo ensamblador. Todo el código anterior se sobrescribirá si vuelves a compilar",
+    "recompile": "Recompilar",
+    "genericError": "Error de compilación"
+  },
+  "completion": {
+    "suggestProperties": "Sugerir propiedades"
+  },
+  "hover": {
+    "function": "**Función SmartC**",
+    "apiFunction": "**Función de API de SmartC** (requiere `#include {include}`)",
+    "keyword": "**Palabra clave de SmartC**",
+    "variable": "Variable SmartC (línea {line})",
+    "userFunction": "Función SmartC"
+  }
+}

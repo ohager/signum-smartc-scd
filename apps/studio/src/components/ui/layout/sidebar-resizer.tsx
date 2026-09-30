@@ -1,5 +1,6 @@
 import { useCallback, useRef } from "react";
 import { useSidebar } from "@/components/ui/sidebar";
+import { t } from "@/i18n/runtime";
 
 interface Props {
   /** Called once on drag end with the final width (e.g. "320px"). */
@@ -64,7 +65,7 @@ export function SidebarResizer({ onCommit, min = 180, max = 520 }: Props) {
       onMouseDown={onMouseDown}
       style={{ left: "var(--sidebar-width)" }}
       className="fixed inset-y-0 z-20 w-1.5 -translate-x-1/2 cursor-col-resize bg-transparent transition-colors hover:bg-[color-mix(in_srgb,var(--accent-2)_40%,transparent)]"
-      title="Drag to resize sidebar"
+      title={t("common.sidebar.resize")}
     />
   );
 }

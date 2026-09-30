@@ -1,0 +1,41 @@
+{
+  "folder": {
+    "addFile": "Adicionar arquivo",
+    "newFolder": "Nova pasta",
+    "downloadZip": "Baixar (zip)",
+    "uploadFiles": "Enviar arquivo(s)…",
+    "importZip": "Importar ZIP…",
+    "importFolder": "Importar pasta…",
+    "folderName": "Nome da pasta",
+    "renameTitle": "Renomear pasta",
+    "nameTaken": "Já existe uma pasta com este nome",
+    "deleteTitle": "Excluir pasta",
+    "deleteConfirm": "Excluir esta pasta e todo o seu conteúdo? Esta ação não pode ser desfeita."
+  },
+  "file": {
+    "renameTitle": "Renomear arquivo",
+    "fileName": "Nome do arquivo",
+    "nameTaken": "Já existe um arquivo com este nome",
+    "deleteTitle": "Excluir arquivo",
+    "deleteConfirm": "Tem certeza de que quer excluir este arquivo? Esta ação não pode ser desfeita."
+  },
+  "newFile": {
+    "title": "Novo arquivo",
+    "type": "Tipo",
+    "name": "Nome",
+    "smartc": "Contrato SmartC (.smart.c)",
+    "scenario": "Cenário (.scenario.json)",
+    "test": "Teste (.test.ts)"
+  },
+  "newProject": {
+    "title": "Novo projeto",
+    "createDescription": "Adicione um novo projeto de contrato inteligente ao seu espaço de trabalho.",
+    "inspectDescription": "Criar um projeto de inspeção de contratos inteligentes",
+    "type": "Tipo de projeto",
+    "selectType": "Selecione o tipo de projeto",
+    "create": "Criar novo contrato inteligente",
+    "inspect": "Inspecionar contrato(s) inteligente(s)",
+    "name": "Nome",
+    "namePlaceholder": "Meu novo projeto"
+  }
+}

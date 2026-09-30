@@ -6,6 +6,7 @@ import {
 } from "@/features/home/learn-content";
 import { ArrowUpRightIcon, PlayIcon } from "lucide-react";
 import { useState } from "react";
+import { t } from "@/i18n/runtime";
 
 function VideoCard({ youtubeId, title }: { youtubeId: string; title: string }) {
   const [thumbnailFailed, setThumbnailFailed] = useState(false);
@@ -46,14 +47,14 @@ export function LearnRail() {
   return (
     <aside className="w-full shrink-0 border-t px-6 py-6 lg:w-72 lg:border-l lg:border-t-0">
       <h2 className="mb-4 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-        Learn
+        {t("home.learn.heading")}
         <span className="h-px flex-1 bg-border lg:hidden" />
       </h2>
 
       {videos.length > 0 && (
         <div className="mb-5 flex flex-col gap-2.5">
           {videos.map((video) => (
-            <VideoCard key={video.id} youtubeId={video.youtubeId!} title={video.title} />
+            <VideoCard key={video.id} youtubeId={video.youtubeId!} title={t(video.titleKey)} />
           ))}
         </div>
       )}
@@ -68,12 +69,12 @@ export function LearnRail() {
               className="group block rounded-md border border-transparent px-2 py-1.5 -mx-2 transition-colors hover:border-border hover:bg-muted/60"
             >
               <span className="flex items-center gap-1.5 text-xs font-medium">
-                {link.title}
+                {t(link.titleKey)}
                 <ArrowUpRightIcon className="h-3 w-3 shrink-0 text-muted-foreground transition-all group-hover:-translate-y-px group-hover:translate-x-px group-hover:text-[var(--accent-2)]" />
               </span>
-              {link.blurb && (
+              {link.blurbKey && (
                 <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">
-                  {link.blurb}
+                  {t(link.blurbKey)}
                 </span>
               )}
             </a>

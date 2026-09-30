@@ -17,6 +17,7 @@ import { AdaptiveScrollArea } from "@/components/ui/adaptive-scroll-area.tsx";
 import { WalletConnection } from "./wallet-connection.tsx";
 import { DeploymentFlow } from "./deployment-flow.tsx";
 import { useState } from "react";
+import { t } from "@/i18n/runtime";
 
 export function DeploymentView({ data }: { data: MachineData }) {
   const [minimumFee, setMinimumFee] = useState(Amount.fromPlanck(data.MinimumFeeNQT).getSigna());
@@ -24,21 +25,20 @@ export function DeploymentView({ data }: { data: MachineData }) {
   return (
     <AdaptiveScrollArea>
       <div className="max-w-3xl mx-auto">
-        <h2 className="text-2xl font-bold">Deploy Smart Contract</h2>
+        <h2 className="text-2xl font-bold">{t("asm-editor.deploy.title")}</h2>
         <Alert className="my-4">
           <AlertCircle className="h-4 w-4" color="red" />
-          <AlertTitle>Important Note</AlertTitle>
+          <AlertTitle>{t("asm-editor.deploy.noteTitle")}</AlertTitle>
           <AlertDescription>
-            Deploying a smart contract is irreversible. Make sure you have
-            tested your contract thoroughly before deployment.
+            {t("asm-editor.deploy.note")}
           </AlertDescription>
         </Alert>
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Contract Summary</CardTitle>
+              <CardTitle className="text-lg">{t("asm-editor.deploy.summary")}</CardTitle>
               <CardDescription>
-                Review your contract before deployment
+                {t("asm-editor.deploy.summaryHint")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -46,13 +46,13 @@ export function DeploymentView({ data }: { data: MachineData }) {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <h4 className="text-sm font-medium text-muted-foreground mb-1">
-                      Contract Name
+                      {t("asm-editor.deploy.name")}
                     </h4>
                     <p className="font-medium">{data.PName}</p>
                   </div>
                   <div>
                     <h4 className="text-sm font-medium text-muted-foreground mb-1">
-                      Activation Amount
+                      {t("asm-editor.deploy.activationAmount")}
                     </h4>
                     <p className="font-medium">
                       <AmountView amount={data.PActivationAmount} isAtomic />
@@ -62,7 +62,7 @@ export function DeploymentView({ data }: { data: MachineData }) {
 
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground mb-1">
-                    Description
+                    {t("asm-editor.deploy.description")}
                   </h4>
                   <p>{data.PDescription}</p>
                 </div>
@@ -72,15 +72,15 @@ export function DeploymentView({ data }: { data: MachineData }) {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <h4 className="text-sm font-medium text-muted-foreground mb-1">
-                      Code Size
+                      {t("asm-editor.deploy.codeSize")}
                     </h4>
                     <p className="font-medium">
-                      {data.ByteCode.length / 2} bytes
+                      {t("asm-editor.meta.bytes", { count: data.ByteCode.length / 2 })}
                     </p>
                   </div>
                   <div>
                     <h4 className="text-sm font-medium text-muted-foreground mb-1">
-                      Minimum Fee
+                      {t("asm-editor.deploy.minimumFee")}
                     </h4>
                     <p className="font-medium">
                       <AmountView amount={data.MinimumFeeNQT ?? 0} isAtomic />
@@ -93,9 +93,9 @@ export function DeploymentView({ data }: { data: MachineData }) {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Deployment Settings</CardTitle>
+              <CardTitle className="text-lg">{t("asm-editor.deploy.settings")}</CardTitle>
               <CardDescription>
-                Configure your deployment parameters
+                {t("asm-editor.deploy.settingsHint")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -103,12 +103,12 @@ export function DeploymentView({ data }: { data: MachineData }) {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="activation-amount">
-                      Activation Amount (SIGNA)
+                      {t("asm-editor.deploy.activationSigna")}
                     </Label>
                     <AmountView amount={data.PActivationAmount} isAtomic />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="fee">Transaction Fee (SIGNA)</Label>
+                    <Label htmlFor="fee">{t("asm-editor.deploy.feeSigna")}</Label>
                     <Input
                       id="fee"
                       type="number"
@@ -119,14 +119,14 @@ export function DeploymentView({ data }: { data: MachineData }) {
                       value={minimumFee}
                     />
                     <p className="text-xs text-muted-foreground">
-                      Minimum:{" "}
+                      {t("asm-editor.deploy.minimum")}{" "}
                       <AmountView amount={data.MinimumFeeNQT} isAtomic />
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="deadline">Deadline (minutes)</Label>
+                  <Label htmlFor="deadline">{t("asm-editor.deploy.deadline")}</Label>
                   <Input
                     id="deadline"
                     type="number"
@@ -137,7 +137,7 @@ export function DeploymentView({ data }: { data: MachineData }) {
                     max="1440"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Transaction deadline in minutes (max: 1440)
+                    {t("asm-editor.deploy.deadlineHint")}
                   </p>
                 </div>
               </div>

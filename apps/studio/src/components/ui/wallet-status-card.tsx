@@ -18,6 +18,7 @@ import { WalletConnectButton } from "@/components/ui/wallet-connect-button.tsx";
 import { useAccountBalance } from "@/hooks/use-account-balance.ts";
 import { AccountAddress } from "@/components/ui/accountAddress.tsx";
 import { ExplorerLink } from "@/components/ui/explorer-link.tsx";
+import { t } from "@/i18n/runtime";
 
 export function WalletStatusCard() {
   const status = useWalletStatus();
@@ -39,26 +40,27 @@ export function WalletStatusCard() {
             <CardTitle className="text-sm flex justify-between items-center gap-2">
               <div className="flex items-center gap-1">
                 <Wallet className="h-4 w-4" />
+                {/* i18n-ignore — product name */}
                 XT Wallet
               </div>
               <Badge className="bg-[color-mix(in_srgb,var(--green)_15%,transparent)] text-[var(--green)]">
-                {status.network === "TestNet" ? "Testnet" : "Mainnet"}
+                {status.network === "TestNet" ? t("common.wallet.testnet") : t("common.wallet.mainnet")}
               </Badge>
             </CardTitle>
           </div>
           <CardDescription className="text-xs">
-            Ready to deploy contracts
+            {t("common.wallet.ready")}
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="space-y-3">
             <div>
-              <span className="text-xs text-muted-foreground">Account</span>
+              <span className="text-xs text-muted-foreground">{t("common.wallet.account")}</span>
               <AccountAddress />
             </div>
 
             <div className="flex flex-col justify-between">
-              <span className="text-xs text-muted-foreground">Balance</span>
+              <span className="text-xs text-muted-foreground">{t("common.wallet.balance")}</span>
               <span className="font-medium text-sm">
                 {accountBalance.isLoading ? (
                   <Loader2 className="h-6 w-6 animate-spin text-[var(--accent-2)] mb-2" />
@@ -82,12 +84,12 @@ export function WalletStatusCard() {
                 onClick={() => disconnectWallet()}
               >
                 <UnplugIcon className="h-3 w-3 mr-1" />
-                Disconnect
+                {t("common.actions.disconnect")}
               </Button>
               <ExplorerLink type="address" identifier={status.accountId ?? ""}>
                 <Button variant="ghost" size="sm">
                   <ExternalLink className="h-3 w-3 mr-1" />
-                  Open
+                  {t("common.actions.open")}
                 </Button>
               </ExplorerLink>
             </div>

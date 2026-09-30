@@ -1,3 +1,4 @@
+import { t } from "@/i18n/runtime";
 
 interface AsmFunction {
   apiCode: number;
@@ -118,12 +119,12 @@ export function createApiFunctionCompletionItems(range: any, monaco: any) {
     // Create description for the function based on opCode
     let functionType = "";
     switch (details.opCode) {
-      case 0x32: functionType = "Void function"; break;
-      case 0x33: functionType = "One parameter function"; break;
-      case 0x34: functionType = "Two parameter function"; break;
-      case 0x35: functionType = "Return value function"; break;
-      case 0x37: functionType = "Special function"; break;
-      default: functionType = "Unknown function type";
+      case 0x32: functionType = t("asm-editor.completion.void"); break;
+      case 0x33: functionType = t("asm-editor.completion.one"); break;
+      case 0x34: functionType = t("asm-editor.completion.two"); break;
+      case 0x35: functionType = t("asm-editor.completion.returns"); break;
+      case 0x37: functionType = t("asm-editor.completion.special"); break;
+      default: functionType = t("asm-editor.completion.unknown");
     }
 
     // Build placeholder text for the function call in the detail

@@ -1,0 +1,93 @@
+{
+  "status": {
+    "ready": "listo",
+    "running": "en ejecución",
+    "stopped": "detenido",
+    "finished": "finalizado",
+    "error": "error"
+  },
+  "toolbar": {
+    "start": "Iniciar",
+    "continue": "Continuar",
+    "step": "Paso",
+    "stepHint": "Avanzar una línea de código fuente",
+    "stepInstruction": "Paso de instrucción",
+    "stepInstructionHint": "Avanzar una instrucción AT",
+    "nextBlock": "⛏ Siguiente bloque",
+    "nextBlockHint": "Forjar el siguiente bloque y entregar sus transacciones programadas",
+    "reset": "⟳ Restablecer",
+    "resetHint": "Volver a empezar este escenario",
+    "scenario": "Escenario",
+    "builtInDefault": "(predeterminado integrado)",
+    "newScenario": "+ Nuevo",
+    "newScenarioHint": "Crear un escenario de ejecución para este contrato",
+    "block": "bloque",
+    "stepCount": "paso",
+    "line": "línea",
+    "popOut": "Abrir un panel de depuración en vivo en otra pestaña",
+    "close": "Cerrar el simulador"
+  },
+  "transport": {
+    "halted": "El contrato se detuvo. Restablécelo para empezar de nuevo.",
+    "roundOver": "Esta ronda terminó — forja el siguiente bloque para ejecutarlo de nuevo."
+  },
+  "help": {
+    "title": "Cómo funciona el simulador",
+    "model": {
+      "chain": "Tu contrato se ejecuta aquí en una cadena Signum inventada.",
+      "scenario": "Un escenario aporta las transacciones que lo activan.",
+      "blocks": "Los bloques solo existen cuando los forjas — eso es lo que hace «Siguiente bloque».",
+      "breakpoints": "Pon puntos de interrupción en el margen; «Paso» avanza una línea de código fuente."
+    },
+    "noScenario": "Aún no hay escenario",
+    "createFirst": "Crear el primer escenario",
+    "useDefault": "Recorrer paso a paso el predeterminado integrado"
+  },
+  "panels": {
+    "variables": "Variables",
+    "registers": "Registros",
+    "watch": "Vigilar",
+    "breakpoints": "Puntos de interrupción",
+    "emitted": "Emitidas",
+    "emittedTxs": "Transacciones emitidas",
+    "none": "— ninguno —",
+    "showInternals": "mostrar internas",
+    "variableName": "nombre de variable",
+    "addWatch": "— añade una variable para vigilar —",
+    "line": "línea {line}",
+    "contractStatus": "Estado del contrato",
+    "ledgerStatus": "Estado del libro mayor"
+  },
+  "ledger": {
+    "title": "Libro mayor · bloque {block}",
+    "noLedger": "— sin libro mayor —",
+    "accounts": "Cuentas",
+    "transactions": "Transacciones"
+  },
+  "scenario": {
+    "formatterUnavailable": "El formateador aún no está disponible — inténtalo de nuevo en un momento",
+    "formatFailed": "No se pudo formatear: {message}",
+    "simulateFailed": "No se pudo simular: {message}",
+    "simulate": "Simular",
+    "simulateHint": "Recorrer el contrato paso a paso con este escenario",
+    "fixFirst": "Corrige el escenario antes de simularlo",
+    "errors": "{count} errores: {first}",
+    "invalid": {
+      "notObject": "no es un objeto",
+      "version": "version debe ser 2",
+      "creator": "creator debe ser un ID de cuenta numérico",
+      "accounts": "accounts debe ser un array",
+      "account": "accounts[{i}] necesita id y balance numéricos",
+      "transactions": "transactions debe ser un array",
+      "block": "transactions[{i}] necesita un block entero >= 1",
+      "senderAmount": "transactions[{i}] necesita sender y amount numéricos",
+      "txId": "transactions[{i}] txId debe ser numérico",
+      "message": "transactions[{i}] message debe ser una cadena",
+      "messageHex": "transactions[{i}] messageHex debe ser una cadena"
+    }
+  },
+  "debug": {
+    "invalidScenario": "Escenario no válido, se usa el predeterminado integrado: {message}",
+    "cannotStart": "No se pudo iniciar la depuración: {message}"
+  }
+}

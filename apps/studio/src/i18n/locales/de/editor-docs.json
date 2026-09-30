@@ -1,0 +1,1241 @@
+{
+  "builtins": {
+    "getNextTx": {
+      "detail": "Verfolgt eingehende Transaktionen und liefert die ID der nächsten Transaktion.",
+      "documentation": "Verfolgt eingehende Transaktionen und liefert die ID der nächsten Transaktion.\nGibt es keine neue Transaktion, wird null zurückgegeben.\nDie interne Variable '_counterTimestamp' speichert die zuletzt empfangene Transaktion und wird von dieser Funktion aktualisiert.\n* Hinweis:\nMuss man später zu einer bestimmten Transaktion zurückkehren, kann man den Inhalt des Auto-Zählers minus eins in einer anderen Variablen sichern. Später überschreibt man einfach den Auto-Zähler und ruft `getNextTx` auf. So lassen sich alle Nachrichten ab diesem Punkt erneut durchlaufen. Beispiel:\n```c\n// Save current loop point\ncurrrentTransaction = getNextTx();\nrewindPoint = _counterTimestamp - 1;\n// ...\n\n// Restore loop point\n_counterTimestamp = rewindPoint;\ncurrrentTransaction = getNextTx();\n// currrentTransaction will be the same from save point\n// and all messages after that one can be visited again.\n```"
+    },
+    "getNextTxFromBlockheight": {
+      "detail": "Liefert die Transaktions-ID der ersten Transaktion, die ab Block 'blockheight' empfangen wurde.",
+      "documentation": "Liefert die Transaktions-ID der ersten Transaktion, die ab Block 'blockheight' empfangen wurde.\nGibt es keine Transaktion, wird null zurückgegeben.\nDiese Funktion setzt außerdem die interne Variable '_counterTimestamp' und lässt sich zusammen mit `getNextTx` verwenden."
+    },
+    "getBlockheight": {
+      "detail": "Liefert die Blockhöhe von 'transaction'.",
+      "documentation": "Liefert die Blockhöhe von 'transaction'.\nIst die Transaktion ungültig, wird 4294967295 zurückgegeben.",
+      "params": {
+        "transaction": "transaction'."
+      }
+    },
+    "getAmount": {
+      "documentation": "Liefert den Signa-Betrag von 'transaction'.\nDer Wert ist der ursprünglich gesendete Betrag abzüglich des Aktivierungsbetrags des Contracts.\nIst die Transaktion ungültig, wird -1 zurückgegeben (-0.00000001 bei fixed)."
+    },
+    "getAmountFx": {
+      "documentation": "Liefert den Signa-Betrag von 'transaction'.\nDer Wert ist der ursprünglich gesendete Betrag abzüglich des Aktivierungsbetrags des Contracts.\nIst die Transaktion ungültig, wird -1 zurückgegeben (-0.00000001 bei fixed)."
+    },
+    "getSender": {
+      "detail": "Liefert die ID des Absenders von 'transaction'.",
+      "documentation": "Liefert die ID des Absenders von 'transaction'.\nIst die Transaktion ungültig, wird 0 zurückgegeben."
+    },
+    "getType": {
+      "detail": "Liefert den Typ von 'transaction'.",
+      "documentation": "Liefert den Typ von 'transaction'.\nAlle Transaktionstypen lassen sich über die HTTP-API [getConstants](https://europe.signum.network/api-doc?requestTag=INFO) abfragen.\nIst die Transaktion ungültig, wird -1 zurückgegeben.",
+      "params": {
+        "transaction": "transaction'."
+      }
+    },
+    "readMessage": {
+      "detail": "Liest die eingehende Nachricht von 'transaction' auf Seite 'page' und speichert sie in 'buffer'.",
+      "documentation": "Liest die eingehende Nachricht von 'transaction' auf Seite 'page' und speichert sie in 'buffer'.\nJede Seite hat 32 Bytes (4 longs), der Puffer muss also mindestens 4 longs groß sein, sonst läuft er über.\nDie erste Seite ist 0, und es gibt keine Angabe zur Nachrichtenlänge. Prüfe das Nachrichtenende anhand der Nullen danach.\nIst 'page' kleiner als null oder größer als 32, wird der Puffer mit Nullen gefüllt.\nIst 'transaction' ungültig oder hängt keine Nachricht an, wird der Puffer mit Nullen gefüllt.\n",
+      "params": {
+        "transaction": "transaction' at 'page' and store it at 'buffer'.",
+        "page": "page' and store it at 'buffer'."
+      }
+    },
+    "readShortMessage": {
+      "detail": "Liest die ersten 'length' longs aus der Nachricht von 'transaction' und speichert sie in 'buffer'.",
+      "documentation": "Liest die ersten 'length' longs aus der Nachricht von 'transaction' und speichert sie in 'buffer'.\nDiese Funktion liest nur Seite null der Nachricht.\nStell sicher, dass 'buffer' mindestens 'length' longs groß ist, sonst läuft er über.\nIst 'transaction' ungültig oder hängt keine Nachricht an, wird der Puffer mit Nullen gefüllt.\nGrenzen: 0 <= length <= 4.",
+      "params": {
+        "transaction": "transaction' and store it at 'buffer'.",
+        "length": "'length' longs from message of 'transaction' and store it at 'buffer'."
+      }
+    },
+    "readAssets": {
+      "detail": "Liest alle Asset-IDs (bis zu 4) von 'transaction' und speichert sie in 'buffer'.",
+      "documentation": "Liest alle Asset-IDs (bis zu 4) von 'transaction' und speichert sie in 'buffer'.\nEs werden vier Werte gelesen, der Puffer muss also mindestens 4 longs groß sein, sonst läuft er über.\nIst 'transaction' ungültig oder werden keine Assets gefunden, wird der Puffer mit Nullen gefüllt.\nWerden weniger als 4 Assets gefunden, stehen die Asset-IDs vorn und der Rest ist null.\n",
+      "params": {
+        "transaction": "transaction' and store them at 'buffer'.",
+        "buffer": "buffer'."
+      }
+    },
+    "getQuantity": {
+      "detail": "Liefert die Menge (QNT) von 'assetId', die in 'transaction' übertragen wurde.",
+      "documentation": "Liefert die Menge (QNT) von 'assetId', die in 'transaction' übertragen wurde.\nIst die Transaktion ungültig, wird -1 zurückgegeben.\nIst die Transaktion gültig, enthält aber keine Übertragung von 'assetId', wird null zurückgegeben.",
+      "params": {
+        "transaction": "transaction'.",
+        "assetId": "assetId' transfered in 'transaction'."
+      }
+    },
+    "sendAmount": {
+      "documentation": "Stellt eine Transaktion ein, die 'amount' Signa an 'accountId' sendet.\nFür Signa und Nachrichten wird pro Block nur eine Transaktion gesendet; die Beträge werden addiert.\nIst 'amount' größer als das aktuelle Guthaben des Contracts, wird das gesamte Guthaben gesendet und der Contract hält an (kein Gas).\nLeere Transaktionen werden nicht gesendet; sie müssen mindestens 1 NQT (bzw. 0.00000001 Signa) übertragen.\n",
+      "params": {
+        "amount": "Betrag in NQT/Planck",
+        "accountId": "Die Adresse des Empfängers"
+      }
+    },
+    "sendAmountFx": {
+      "documentation": "Stellt eine Transaktion ein, die 'amount' Signa an 'accountId' sendet.\nFür Signa und Nachrichten wird pro Block nur eine Transaktion gesendet; die Beträge werden addiert.\nIst 'amount' größer als das aktuelle Guthaben des Contracts, wird das gesamte Guthaben gesendet und der Contract hält an (kein Gas).\nLeere Transaktionen werden nicht gesendet; sie müssen mindestens 1 NQT (bzw. 0.00000001 Signa) übertragen.\n",
+      "params": {
+        "amount": "Betrag in Signa",
+        "accountId": "Die Adresse des Empfängers"
+      }
+    },
+    "sendMessage": {
+      "detail": "Stellt eine Transaktion ein, die den Inhalt von 'buffer' als eine Nachrichtenseite (32 Bytes bzw. 4 longs) an 'accountId' sendet.",
+      "documentation": "Stellt eine Transaktion ein, die den Inhalt von 'buffer' als eine Nachrichtenseite (32 Bytes bzw. 4 longs) an 'accountId' sendet.\nDer Puffer muss mindestens 4 longs groß sein, sonst liest die Funktion über sein Ende hinaus.\nWird die Funktion mehrmals in einem Block aufgerufen, werden die Nachrichten bis 992 Bytes (31 Seiten) aneinandergehängt.\nWird eine 32. Seite gesendet, werden die ersten 31 Seiten verworfen und es beginnt von vorn.\nZU PRÜFEN: Wird die Transaktion mit leerer Nachricht gesendet? Eine leere Nachricht enthält nur Nullen.",
+      "params": {
+        "buffer": "buffer' as one message page (32 bytes or 4 longs) to 'accountId'.",
+        "accountId": "Die Adresse des Empfängers'."
+      }
+    },
+    "sendShortMessage": {
+      "detail": "Stellt eine Transaktion ein, die den Inhalt von 'buffer' mit 'length' als eine Nachrichtenseite (32 Bytes bzw. 4 longs) an 'accountId' sendet.",
+      "documentation": "Stellt eine Transaktion ein, die den Inhalt von 'buffer' mit 'length' als eine Nachrichtenseite (32 Bytes bzw. 4 longs) an 'accountId' sendet.\nIst 'length' 3 oder kleiner, werden die übrigen longs mit Nullen gefüllt.\nFür die Gesamtgröße gilt dieselbe Grenze wie bei SendMessage.\nGrenzen: 0 <= length <= 4.",
+      "params": {
+        "buffer": "buffer' with 'length' as one message page (32 bytes or 4 longs) to 'accountId'.",
+        "length": "length' as one message page (32 bytes or 4 longs) to 'accountId'.",
+        "accountId": "Die Adresse des Empfängers'."
+      }
+    },
+    "sendAmountAndMessage": {
+      "detail": "Kurzform für `sendAmount` und `sendMessage` (optimierter Code). Es gelten dieselben Einschränkungen.",
+      "documentation": "Kurzform für `sendAmount` und `sendMessage` (optimierter Code). Es gelten dieselben Einschränkungen.",
+      "params": {
+        "amount": "Der Betrag in Planck",
+        "buffer": "Die zu sendende Nachricht",
+        "accountId": "Die Adresse des Empfängers'."
+      }
+    },
+    "sendAmountAndMessageFx": {
+      "detail": "Kurzform für `sendAmount` und `sendMessage` (optimierter Code). Es gelten dieselben Einschränkungen.",
+      "documentation": "Kurzform für `sendAmount` und `sendMessage` (optimierter Code). Es gelten dieselben Einschränkungen.",
+      "params": {
+        "amount": "Der Betrag in Signa",
+        "buffer": "Die zu sendende Nachricht",
+        "accountId": "Die Adresse des Empfängers'."
+      }
+    },
+    "sendBalance": {
+      "detail": "Stellt eine Transaktion ein, die das gesamte aktuelle Guthaben (Signa) an 'accountId' sendet.",
+      "documentation": "Stellt eine Transaktion ein, die das gesamte aktuelle Guthaben (Signa) an 'accountId' sendet.\nEs gelten dieselben Einschränkungen wie bei `sendAmount`.\nDer Contract hält danach an (kein Gas).",
+      "params": {
+        "accountId": "Die Adresse des Empfängers'."
+      }
+    },
+    "sendQuantity": {
+      "detail": "Überträgt 'quantity' von 'assetId' an 'accountId'.",
+      "documentation": "Sendet eine Transaktion, die 'quantity' von 'assetId' an 'accountId' überträgt.\nIst das Guthaben des Contracts an 'assetId' kleiner als 'quantity', wird das gesamte Guthaben von 'assetId' gesendet.\nWird dasselbe Asset im selben Block zweimal übertragen, werden die Mengen addiert und nur eine Transaktion gesendet.\nTransaktionen von Smart Contracts können nur ein Asset übertragen. Werden zwei verschiedene Assets im selben Block übertragen, gehen zwei Transaktionen hinaus.\nLeere Transaktionen werden nicht gesendet; sie müssen mindestens 1 QNT eines Assets übertragen.",
+      "params": {
+        "quantity": "quantity' of 'assetId' to 'accountId'.",
+        "assetId": "assetId des zu sendenden Assets.",
+        "accountId": "Die Adresse des Empfängers'."
+      }
+    },
+    "sendQuantityAndAmount": {
+      "detail": "Überträgt 'quantity' von 'assetId' und 'amount' NQT an 'accountId'",
+      "documentation": "Sendet eine Transaktion, die 'quantity' von 'assetId' und 'amount' NQT/Planck an 'accountId' überträgt.\nDiese Funktion stellt sicher, dass Asset und Signa in derselben Transaktion und mit optimiertem Code gesendet werden.\nIst 'quantity' null, wird keine Transaktion gesendet, auch wenn 'amount' größer als null ist.\nIst das Guthaben des Contracts an 'assetId' kleiner als 'quantity', wird das gesamte Guthaben von 'assetId' gesendet.\nIst das Guthaben des Contracts kleiner als 'amount', wird das gesamte Signa-Guthaben gesendet.\nTransaktionen, die Assets übertragen, können keine Nachrichten enthalten.\nWird dasselbe Asset im selben Block zweimal übertragen, werden die Mengen addiert und nur eine Transaktion gesendet.\nTransaktionen von Smart Contracts können nur ein Asset übertragen. Werden zwei verschiedene Assets im selben Block übertragen, gehen zwei Transaktionen hinaus.",
+      "params": {
+        "quantity": "Zu sendende Asset-Menge",
+        "assetId": "Asset-ID des zu sendenden Assets.",
+        "amount": "Zu sendender Betrag in NQT/Planck",
+        "accountId": "Die Adresse des Empfängers'."
+      }
+    },
+    "sendQuantityAndAmountFx": {
+      "detail": "Überträgt 'quantity' von 'assetId' und 'amount' Signa an 'accountId'",
+      "documentation": "Sendet eine Transaktion, die 'quantity' von 'assetId' und 'amount' Signa an 'accountId' überträgt.\nDiese Funktion stellt sicher, dass Asset und Signa in derselben Transaktion und mit optimiertem Code gesendet werden.\nIst 'quantity' null, wird keine Transaktion gesendet, auch wenn 'amount' größer als null ist.\nIst das Guthaben des Contracts an 'assetId' kleiner als 'quantity', wird das gesamte Guthaben von 'assetId' gesendet.\nIst das Guthaben des Contracts kleiner als 'amount', wird das gesamte Signa-Guthaben gesendet.\nTransaktionen, die Assets übertragen, können keine Nachrichten enthalten.\nWird dasselbe Asset im selben Block zweimal übertragen, werden die Mengen addiert und nur eine Transaktion gesendet.\nTransaktionen von Smart Contracts können nur ein Asset übertragen. Werden zwei verschiedene Assets im selben Block übertragen, gehen zwei Transaktionen hinaus.",
+      "params": {
+        "quantity": "Zu sendende Asset-Menge",
+        "assetId": "Asset-ID des zu sendenden Assets.",
+        "amount": "Zu sendender Betrag in Signa",
+        "accountId": "Die Adresse des Empfängers'."
+      }
+    },
+    "getCurrentBlockheight": {
+      "detail": "Liefert die aktuelle Blockhöhe zum Zeitpunkt der Ausführung.",
+      "documentation": "Liefert die aktuelle Blockhöhe zum Zeitpunkt der Ausführung."
+    },
+    "getWeakRandomNumber": {
+      "detail": "Liefert eine einfache Zufallszahl auf Basis der Signatur des letzten Blocks.",
+      "documentation": "Liefert eine einfache Zufallszahl auf Basis der Signatur des letzten Blocks.\nEs ist sehr unwahrscheinlich, dass jemand diese Zahl manipuliert, theoretisch ist es aber möglich.\nVorsicht bei Contracts, die mit großen Beträgen umgehen.\nDer Rückgabewert kann negativ sein, und eine negative Zahl MOD einer positiven ergibt eine negative Zahl. Tipp: Mit einem Rechtsshift werden negative Werte vermieden: `positiveRnd = getWeakRandomNumber() >> 1;`."
+    },
+    "getCreator": {
+      "detail": "Liefert die Konto-ID des Erstellers dieses Contracts.",
+      "documentation": "Liefert die Konto-ID des Erstellers dieses Contracts."
+    },
+    "getCreatorOf": {
+      "detail": "Liefert die Konto-ID des Erstellers von 'contractId'.",
+      "documentation": "Liefert die Konto-ID des Erstellers von 'contractId'.\nIst 'contractId' kein Contract, wird null zurückgegeben.",
+      "params": {
+        "contractId": "contractId'."
+      }
+    },
+    "getCodeHashOf": {
+      "detail": "Liefert die Code-Hash-ID von 'contractId'.",
+      "documentation": "Liefert die Code-Hash-ID von 'contractId'.\nIst 'contractId' null, wird der Code-Hash dieses Contracts zurückgegeben.\nIst 'contractId' kein Contract, wird null zurückgegeben.",
+      "params": {
+        "contractId": "contractId'."
+      }
+    },
+    "getActivationOf": {
+      "detail": "Liefert den Mindestbetrag in NQT/Planck, um 'contractId' zu aktivieren",
+      "documentation": "Liefert den Mindestbetrag in NQT/Planck, um 'contractId' zu aktivieren.\nIst 'contractId' null, wird der Mindest-Aktivierungsbetrag dieses Contracts zurückgegeben.\nIst 'contractId' kein Contract, wird null zurückgegeben.",
+      "params": {
+        "contractId": "Der Ziel-Contract"
+      }
+    },
+    "getActivationOfFx": {
+      "detail": "Liefert den Mindestbetrag in Signa, um 'contractId' zu aktivieren",
+      "documentation": "Liefert den Mindestbetrag in Signa, um 'contractId' zu aktivieren.\nIst 'contractId' null, wird der Mindest-Aktivierungsbetrag dieses Contracts zurückgegeben.\nIst 'contractId' kein Contract, wird null zurückgegeben.",
+      "params": {
+        "contractId": "Der Ziel-Contract"
+      }
+    },
+    "getCurrentBalance": {
+      "detail": "Liefert das aktuelle Guthaben",
+      "documentation": "Liefert das Guthaben des Contracts (NQT/Planck) zum Zeitpunkt der Ausführung."
+    },
+    "getCurrentBalanceFx": {
+      "detail": "Liefert das aktuelle Guthaben",
+      "documentation": "Liefert das Guthaben des Contracts (Signa) zum Zeitpunkt der Ausführung."
+    },
+    "getAssetBalance": {
+      "detail": "Liefert das Guthaben des Contracts an 'assetId' zum Zeitpunkt der Ausführung.",
+      "documentation": "Liefert das Guthaben des Contracts an 'assetId' zum Zeitpunkt der Ausführung.\nIst 'assetId' null, ist der Rückgabewert derselbe wie bei `getCurrentBalance`.",
+      "params": {
+        "assetId": "assetId' at the time the instruction is executed."
+      }
+    },
+    "setMapValue": {
+      "detail": "Setzt die Map an 'currentContract[key1][key2]' auf 'value'",
+      "documentation": "Setzt die Map an 'currentContract[key1][key2]' auf 'value'\n\nMaps bieten 'unbegrenzten' Platz zum Speichern von Werten. Jeder gespeicherte Wert (64-Bit long oder fixed) wird über zwei Schlüssel (64-Bit longs) gelesen oder geschrieben.\nJeder noch nicht gesetzte Eintrag hat den Wert null. Löschen ist nicht möglich; setz den Wert bei Bedarf auf null.",
+      "params": {
+        "key1": "Erster Schlüssel",
+        "key2": "Zweiter Schlüssel",
+        "value": "Wert"
+      }
+    },
+    "setMapValueFx": {
+      "detail": "Setzt die Map an 'currentContract[key1][key2]' auf 'value'",
+      "documentation": "Setzt die Map an 'currentContract[key1][key2]' auf 'value'\n\nMaps bieten 'unbegrenzten' Platz zum Speichern von Werten. Jeder gespeicherte Wert (64-Bit long oder fixed) wird über zwei Schlüssel (64-Bit longs) gelesen oder geschrieben.\nJeder noch nicht gesetzte Eintrag hat den Wert null. Löschen ist nicht möglich; setz den Wert bei Bedarf auf null.",
+      "params": {
+        "key1": "Erster Schlüssel",
+        "key2": "Zweiter Schlüssel",
+        "value": "Wert als Signa-fixed-Wert"
+      }
+    },
+    "getMapValue": {
+      "detail": "Liest 'value' aus der Map an 'currentContract[key1][key2]'",
+      "documentation": "Setzt die Map an 'currentContract[key1][key2]' auf 'value'\n\nMaps bieten 'unbegrenzten' Platz zum Speichern von Werten. Jeder gespeicherte Wert (64-Bit long oder fixed) wird über zwei Schlüssel (64-Bit longs) gelesen oder geschrieben.\nJeder noch nicht gesetzte Eintrag hat den Wert null. Löschen ist nicht möglich; setz den Wert bei Bedarf auf null.",
+      "params": {
+        "key1": "Erster Schlüssel",
+        "key2": "Zweiter Schlüssel"
+      }
+    },
+    "getMapValueFx": {
+      "detail": "Liest 'value' aus der Map an 'currentContract[key1][key2]' im fixed-Format",
+      "documentation": "Setzt die Map an 'currentContract[key1][key2]' auf 'value'\n\nMaps bieten 'unbegrenzten' Platz zum Speichern von Werten. Jeder gespeicherte Wert (64-Bit long oder fixed) wird über zwei Schlüssel (64-Bit longs) gelesen oder geschrieben.\nJeder noch nicht gesetzte Eintrag hat den Wert null. Löschen ist nicht möglich; setz den Wert bei Bedarf auf null.",
+      "params": {
+        "key1": "Erster Schlüssel",
+        "key2": "Zweiter Schlüssel"
+      }
+    },
+    "getExtMapValue": {
+      "detail": "Liest die Map des externen Contracts an 'contractId[key1][key2]'",
+      "documentation": "Liest die Map des externen Contracts an 'contractId[key1][key2]'.\nHat der Contract keine Map oder ist 'contractId' kein Contract, wird null zurückgegeben.\nAnders als der Contract-Speicher lassen sich Map-Werte anderer Contracts mit dieser Funktion abrufen.\n\nMaps bieten 'unbegrenzten' Platz zum Speichern von Werten. Jeder gespeicherte Wert (64-Bit long oder fixed) wird über zwei Schlüssel (64-Bit longs) gelesen oder geschrieben.\nJeder noch nicht gesetzte Eintrag hat den Wert null. Löschen ist nicht möglich; setz den Wert bei Bedarf auf null.",
+      "params": {
+        "key1": "Erster Schlüssel",
+        "key2": "Zweiter Schlüssel",
+        "contractId": "Die ID des externen Contracts"
+      }
+    },
+    "getExtMapValueFx": {
+      "detail": "Liest die Map des externen Contracts an 'contractId[key1][key2]' als fixed-Wert",
+      "documentation": "Liest die Map des externen Contracts an 'contractId[key1][key2]'.\nHat der Contract keine Map oder ist 'contractId' kein Contract, wird null zurückgegeben.\nAnders als der Contract-Speicher lassen sich Map-Werte anderer Contracts mit dieser Funktion abrufen.\n\nMaps bieten 'unbegrenzten' Platz zum Speichern von Werten. Jeder gespeicherte Wert (64-Bit long oder fixed) wird über zwei Schlüssel (64-Bit longs) gelesen oder geschrieben.\nJeder noch nicht gesetzte Eintrag hat den Wert null. Löschen ist nicht möglich; setz den Wert bei Bedarf auf null.",
+      "params": {
+        "key1": "Erster Schlüssel",
+        "key2": "Zweiter Schlüssel",
+        "contractId": "Die ID des externen Contracts"
+      }
+    },
+    "checkSignature": {
+      "detail": "Prüft, ob die Signatur von 'accountId' in 'transaction' auf 'page' und 'page+1' zu 'message2..4' passt.",
+      "documentation": "Prüft, ob die Signatur von 'accountId' in 'transaction' auf 'page' und 'page+1' zu 'message2..4' passt.\nLiefert 1 (wahr), wenn die Signatur gültig ist, sonst 0.",
+      "params": {
+        "transaction": "transaction' at 'page' and 'page+1' matches for the given 'message2.",
+        "page": "page' and 'page+1' matches for the given 'message2.",
+        "accountId": "accountId' in 'transaction' at 'page' and 'page+1' matches for the given 'message2."
+      }
+    },
+    "issueAsset": {
+      "detail": "Gibt ein neues Asset aus und liefert seine ID.",
+      "documentation": "Gibt ein neues Asset aus und liefert seine ID.\nDer Asset-Name muss 3 bis 10 Zeichen lang sein. Erlaubt sind nur Groß- und Kleinbuchstaben sowie Ziffern.\nDie ersten 8 Zeichen stehen in 'name1', der Rest in 'name2'.\nSetz 'name2' auf 0 oder \"\", wenn der Name 8 Zeichen oder kürzer ist.\nErlaubt sind 0 bis 8 Dezimalstellen.\nEin Asset auszugeben kostet 150 Signa. Die Ausführung des Contracts hält an dieser Instruktion an, bis das Guthaben erreicht ist.",
+      "params": {
+        "name1": "Die ersten 8 Zeichen des Namens.",
+        "name2": "Die letzten 2 Zeichen des Namens. Bei Namen mit höchstens 8 Zeichen `0` lassen",
+        "decimals": "Anzahl der Dezimalstellen"
+      }
+    },
+    "mintAsset": {
+      "detail": "Erzeugt 'quantity' Einheiten von 'assetId'.",
+      "documentation": "Erzeugt 'quantity' Einheiten von 'assetId'.\nDas Asset muss vom Contract ausgegeben worden sein.\nNegative Mengen sind nicht erlaubt; zum Verbrennen an accountId 0 senden.\nDie erzeugte Menge ist direkt nach der Instruktion verfügbar.",
+      "params": {
+        "quantity": "quantity' of 'assetId'.",
+        "assetId": "assetId'."
+      }
+    },
+    "distributeToHolders": {
+      "detail": "Planck und/oder Assets an Token-Halter verteilen",
+      "documentation": "Verteilt 'amountToDistribute' Planck und 'quantityToDistribute' von 'assetToDistribute' an Konten, die mindestens 'holdersAssetMinQuantity' von 'holdersAsset' halten.\nSind 'amountToDistribute' und 'quantityToDistribute' null, wird nichts verteilt.\n'amountToDistribute' und 'quantityToDistribute' können in derselben Transaktion verteilt werden.\nNur das freie Guthaben zählt; Mengen in Verkaufsorders werden also nicht berücksichtigt.\nHat der aktuelle Block bereits die maximale Zahl indirekter Transaktionen, wird nichts verteilt.\nHält kein Konto mehr als die Mindestmenge, wird nichts verteilt.\nKonfigurierte Treasury-Konten nehmen an der Ausschüttung nicht teil.\n'assetToDistribute' darf dasselbe wie 'holdersAsset' sein; dann nimmt der Contract selbst an der Verteilung teil (zu prüfen).",
+      "params": {
+        "holdersAssetMinQuantity": "Mindestmenge, die ein empfangender Token-Halter halten muss",
+        "holdersAsset": "Das Ziel-Asset",
+        "amountToDistribute": "Zu verteilender Betrag in Planck",
+        "assetToDistribute": "Zusätzlich zu verteilendes Asset",
+        "quantityToDistribute": "Zu verteilende Asset-Menge"
+      }
+    },
+    "distributeToHoldersFx": {
+      "detail": "Signa und/oder Assets an Token-Halter verteilen",
+      "documentation": "Verteilt 'amountToDistribute' Signa und 'quantityToDistribute' von 'assetToDistribute' an Konten, die mindestens 'holdersAssetMinQuantity' von 'holdersAsset' halten.\nSind 'amountToDistribute' und 'quantityToDistribute' null, wird nichts verteilt.\n'amountToDistribute' und 'quantityToDistribute' können in derselben Transaktion verteilt werden.\nNur das freie Guthaben zählt; Mengen in Verkaufsorders werden also nicht berücksichtigt.\nHat der aktuelle Block bereits die maximale Zahl indirekter Transaktionen, wird nichts verteilt.\nHält kein Konto mehr als die Mindestmenge, wird nichts verteilt.\nKonfigurierte Treasury-Konten nehmen an der Ausschüttung nicht teil.\n'assetToDistribute' darf dasselbe wie 'holdersAsset' sein; dann nimmt der Contract selbst an der Verteilung teil (zu prüfen).",
+      "params": {
+        "holdersAssetMinQuantity": "Mindestmenge, die ein empfangender Token-Halter halten muss",
+        "holdersAsset": "Das Ziel-Asset",
+        "amountToDistribute": "Zu verteilender Betrag in Signa",
+        "assetToDistribute": "Zusätzlich zu verteilendes Asset",
+        "quantityToDistribute": "Zu verteilende Asset-Menge"
+      }
+    },
+    "getAssetHoldersCount": {
+      "detail": "Liefert die Anzahl der Halter, die mindestens 'minimumQuantity' von 'assetId' besitzen.",
+      "documentation": "Liefert die Anzahl der Halter, die mindestens 'minimumQuantity' von 'assetId' besitzen.\nNur das freie Guthaben zählt; Mengen in Verkaufsorders werden also nicht berücksichtigt.",
+      "params": {
+        "minimumQuantity": "minimumQuantity' of 'assetId'.",
+        "assetId": "assetId'."
+      }
+    },
+    "getAssetCirculating": {
+      "detail": "Liefert die Menge von 'assetId', die sich aktuell im Umlauf befindet.",
+      "documentation": "Liefert die Menge von 'assetId', die sich aktuell im Umlauf befindet.\n* Folgende Mengen werden nicht mitgezählt:\n  1) in Treasury-Konten;\n  2) in Verkaufsorders;\n  3) bei accountId null (Burn-Adresse).",
+      "params": {
+        "assetId": "Ziel-assetId"
+      }
+    },
+    "getAccountBalance": {
+      "detail": "Kontoguthaben in Planck abfragen",
+      "documentation": "Liefert das Planck-Guthaben von 'accountId'.\nGibt es die accountId nicht, wird null zurückgegeben.\nFür Smart Contracts wird das Guthaben des letzten Blocks geliefert, nicht das nach der Ausführung im aktuellen Block.\nDas gilt auch für das eigene Guthaben des Contracts; es entspricht dann der Signum-API Get_Previous_Balance und ist meist nicht hilfreich.\n* Folgende Teile des Guthabens werden mitgezählt:\n  1) Commitment.",
+      "params": {
+        "accountId": "Ziel-Konto"
+      }
+    },
+    "getAccountBalanceFx": {
+      "detail": "Kontoguthaben in Signa abfragen",
+      "documentation": "Liefert das Signa-Guthaben von 'accountId'.\nGibt es die accountId nicht, wird null zurückgegeben.\nFür Smart Contracts wird das Guthaben des letzten Blocks geliefert, nicht das nach der Ausführung im aktuellen Block.\nDas gilt auch für das eigene Guthaben des Contracts; es entspricht dann der Signum-API Get_Previous_Balance und ist meist nicht hilfreich.\n* Folgende Teile des Guthabens werden mitgezählt:\n  1) Commitment.",
+      "params": {
+        "accountId": "Ziel-Konto"
+      }
+    },
+    "getAccountAssetQuantity": {
+      "detail": "Liefert die Menge von 'assetId'",
+      "documentation": "Liefert die Menge von 'assetId' im Besitz von 'accountId'.\nFür Smart Contracts wird das Guthaben des letzten Blocks geliefert, nicht das nach der Ausführung im aktuellen Block.\n* Folgende Mengen werden mitgezählt:\n  1) in Verkaufsorders.",
+      "params": {
+        "accountId": "Ziel-Konto",
+        "assetId": "Ziel-Asset"
+      }
+    },
+    "mdv": {
+      "detail": "Berechnet `m1` mal `m2` mit 128-Bit-Genauigkeit (kein Überlauf) und teilt das Ergebnis durch `div`.",
+      "documentation": "Berechnet `m1` mal `m2` mit 128-Bit-Genauigkeit (kein Überlauf) und teilt das Ergebnis durch `div`.\nDas Ergebnis wird als Wert zurückgegeben.\n* Hinweise:\n  1) Diese Instruktion wird bei Optimierungen auch ohne expliziten Aufruf verwendet. Nutze diese Form, um die Instruktion sicher zu bekommen, oder prüfe im Zweifel den erzeugten Assembly-Code.",
+      "params": {
+        "m1": "m1` multiplied by `m2` with 128-bit precision (no overflow) and then divides this result by `div`.",
+        "m2": "m2` with 128-bit precision (no overflow) and then divides this result by `div`.",
+        "div": "div`."
+      }
+    },
+    "pow": {
+      "detail": "Berechnet `base` hoch `expBy1e8`, wobei expBy1e8 als Festkommazahl mit 8 Dezimalstellen dargestellt wird (wie Signa-Werte). Das Ergebnis ist ein long, Nachkommastellen werden abgeschnitten.",
+      "documentation": "Berechnet `base` hoch `expBy1e8`, wobei expBy1e8 als Festkommazahl mit 8 Dezimalstellen dargestellt wird (wie Signa-Werte). Das Ergebnis ist ein long, Nachkommastellen werden abgeschnitten.\n* Beispiele:\n  * sqrt(49) = 7 :: `val = pow(49, 5000_0000);`\n  * 5 * 5 * 5 * 5 = 5^4 = 625 :: `val = pow(5, 4_0000_0000);`\n  * sqrt(48) = 6 :: `val = pow(48, 5000_0000);`\n* Hinweise\n  1) pow liefert null, wenn das Ergebnis mathematisch undefiniert ist;\n  2) pow liefert null, wenn base negativ ist;\n  3) pow liefert null, wenn das Ergebnis größer als 9223372036854775807 (größter positiver long) ist.",
+      "params": {
+        "base": "base` to the power of `expBy1e8`, where expBy1e8 is used as fixed point representation with 8 decimals (like the values in Signa).",
+        "expBy1e8": "expBy1e8`, where expBy1e8 is used as fixed point representation with 8 decimals (like the values in Signa)."
+      }
+    },
+    "powf": {
+      "detail": "Wie `pow`, aber mit einer Festkommazahl als Exponent.",
+      "documentation": "Wie `pow`, aber mit einer Festkommazahl als Exponent.\n* Beispiele:\n  * sqrt(49) = 7 :: `val = powf(49, 0.5);`\n  * 5 * 5 * 5 * 5 = 5^4 = 625 :: `val = pow(5, 4.0);`\n  * sqrt(48) = 6 :: `val = pow(48, .5);`\n* Hinweise\n  1) pow liefert null, wenn das Ergebnis mathematisch undefiniert ist;\n  2) pow liefert null, wenn base negativ ist;\n  3) pow liefert null, wenn das Ergebnis größer als 9223372036854775807 (größter positiver long) ist.",
+      "params": {
+        "base": "base is negative;\n  3) pow will return zero if result is greater than 9223372036854775807 (max positive long)."
+      }
+    },
+    "memcopy": {
+      "detail": "Kopiert den Binärwert von der Quelle ins Ziel. Praktisch, um Variableninhalte ohne verändernde Typumwandlung zu kopieren.",
+      "documentation": "Kopiert den Binärwert von der Quelle ins Ziel. Praktisch, um Variableninhalte ohne verändernde Typumwandlung zu kopieren.\n* Beispiel:\n  * `fixed f; long l; memcopy(&f, &l);` Kopiert die Binärdaten von `l` unverändert nach `f`. Ist l gleich 50, wird f zu 0.00000050.",
+      "params": {
+        "destination": "Ziel.",
+        "source": "Quelle nach Ziel."
+      }
+    },
+    "bcftol": {
+      "detail": "Wandelt long in fixed um",
+      "documentation": "Erzeugt einen binären Cast (ändert die Werte im Speicher nicht) von einem long-Wert nach fixed.\nBeispiele:\n`fixed val; val = bcltof(5000_0000);` Ergebnis: val enthält 0.5.",
+      "params": {
+        "value": "Fixed-Wert"
+      }
+    },
+    "bcltof": {
+      "detail": "Wandelt fixed in long um",
+      "documentation": "Erzeugt einen binären Cast (ändert die Werte im Speicher nicht) von einem long-Wert nach fixed.\nBeispiele:\n`fixed val; val = bcltof(5000_0000);` Ergebnis: val enthält 0.5.",
+      "params": {
+        "value": "Long-Wert"
+      }
+    }
+  },
+  "api": {
+    "Get_A1": {
+      "detail": "Liefert den Wert des Registerslots A1.",
+      "documentation": "Liefert den Wert des Registerslots A1.\n\nA und B sind die beiden 256-Bit-Pseudoregister der Maschine, jeweils in vier 64-Bit-Slots aufgeteilt (A1–A4, B1–B4). API-Aufrufe nehmen höchstens zwei Argumente, alles Weitere wird über sie übergeben."
+    },
+    "Set_A1": {
+      "detail": "Speichert einen Wert im Registerslot A1.",
+      "documentation": "Speichert einen Wert im Registerslot A1.\n\nA und B sind die beiden 256-Bit-Pseudoregister der Maschine, jeweils in vier 64-Bit-Slots aufgeteilt (A1–A4, B1–B4). API-Aufrufe nehmen höchstens zwei Argumente, alles Weitere wird über sie übergeben.",
+      "params": {
+        "a1": "Neuer Wert für A1."
+      }
+    },
+    "Get_A2": {
+      "detail": "Liefert den Wert des Registerslots A2.",
+      "documentation": "Liefert den Wert des Registerslots A2.\n\nA und B sind die beiden 256-Bit-Pseudoregister der Maschine, jeweils in vier 64-Bit-Slots aufgeteilt (A1–A4, B1–B4). API-Aufrufe nehmen höchstens zwei Argumente, alles Weitere wird über sie übergeben."
+    },
+    "Set_A2": {
+      "detail": "Speichert einen Wert im Registerslot A2.",
+      "documentation": "Speichert einen Wert im Registerslot A2.\n\nA und B sind die beiden 256-Bit-Pseudoregister der Maschine, jeweils in vier 64-Bit-Slots aufgeteilt (A1–A4, B1–B4). API-Aufrufe nehmen höchstens zwei Argumente, alles Weitere wird über sie übergeben.",
+      "params": {
+        "a2": "Neuer Wert für A2."
+      }
+    },
+    "Get_A3": {
+      "detail": "Liefert den Wert des Registerslots A3.",
+      "documentation": "Liefert den Wert des Registerslots A3.\n\nA und B sind die beiden 256-Bit-Pseudoregister der Maschine, jeweils in vier 64-Bit-Slots aufgeteilt (A1–A4, B1–B4). API-Aufrufe nehmen höchstens zwei Argumente, alles Weitere wird über sie übergeben."
+    },
+    "Set_A3": {
+      "detail": "Speichert einen Wert im Registerslot A3.",
+      "documentation": "Speichert einen Wert im Registerslot A3.\n\nA und B sind die beiden 256-Bit-Pseudoregister der Maschine, jeweils in vier 64-Bit-Slots aufgeteilt (A1–A4, B1–B4). API-Aufrufe nehmen höchstens zwei Argumente, alles Weitere wird über sie übergeben.",
+      "params": {
+        "a3": "Neuer Wert für A3."
+      }
+    },
+    "Get_A4": {
+      "detail": "Liefert den Wert des Registerslots A4.",
+      "documentation": "Liefert den Wert des Registerslots A4.\n\nA und B sind die beiden 256-Bit-Pseudoregister der Maschine, jeweils in vier 64-Bit-Slots aufgeteilt (A1–A4, B1–B4). API-Aufrufe nehmen höchstens zwei Argumente, alles Weitere wird über sie übergeben."
+    },
+    "Set_A4": {
+      "detail": "Speichert einen Wert im Registerslot A4.",
+      "documentation": "Speichert einen Wert im Registerslot A4.\n\nA und B sind die beiden 256-Bit-Pseudoregister der Maschine, jeweils in vier 64-Bit-Slots aufgeteilt (A1–A4, B1–B4). API-Aufrufe nehmen höchstens zwei Argumente, alles Weitere wird über sie übergeben.",
+      "params": {
+        "a4": "Neuer Wert für A4."
+      }
+    },
+    "Set_A1_A2": {
+      "detail": "Speichert zwei Werte in A1 und A2 mit einem einzigen API-Aufruf.",
+      "documentation": "Speichert zwei Werte in A1 und A2 mit einem einzigen API-Aufruf.\n\nHalb so teuer, wie `Set_A1` und `Set_A2` einzeln aufzurufen. Jeder API-Aufruf kostet 10 Schritte, eine normale Instruktion 1.",
+      "params": {
+        "a1": "Neuer Wert für A1.",
+        "a2": "Neuer Wert für A2."
+      }
+    },
+    "Set_A3_A4": {
+      "detail": "Speichert zwei Werte in A3 und A4 mit einem einzigen API-Aufruf.",
+      "documentation": "Speichert zwei Werte in A3 und A4 mit einem einzigen API-Aufruf.\n\nHalb so teuer, wie `Set_A3` und `Set_A4` einzeln aufzurufen. Jeder API-Aufruf kostet 10 Schritte, eine normale Instruktion 1.",
+      "params": {
+        "a3": "Neuer Wert für A3.",
+        "a4": "Neuer Wert für A4."
+      }
+    },
+    "Get_B1": {
+      "detail": "Liefert den Wert des Registerslots B1.",
+      "documentation": "Liefert den Wert des Registerslots B1.\n\nA und B sind die beiden 256-Bit-Pseudoregister der Maschine, jeweils in vier 64-Bit-Slots aufgeteilt (A1–A4, B1–B4). API-Aufrufe nehmen höchstens zwei Argumente, alles Weitere wird über sie übergeben."
+    },
+    "Set_B1": {
+      "detail": "Speichert einen Wert im Registerslot B1.",
+      "documentation": "Speichert einen Wert im Registerslot B1.\n\nA und B sind die beiden 256-Bit-Pseudoregister der Maschine, jeweils in vier 64-Bit-Slots aufgeteilt (A1–A4, B1–B4). API-Aufrufe nehmen höchstens zwei Argumente, alles Weitere wird über sie übergeben.",
+      "params": {
+        "b1": "Neuer Wert für B1."
+      }
+    },
+    "Get_B2": {
+      "detail": "Liefert den Wert des Registerslots B2.",
+      "documentation": "Liefert den Wert des Registerslots B2.\n\nA und B sind die beiden 256-Bit-Pseudoregister der Maschine, jeweils in vier 64-Bit-Slots aufgeteilt (A1–A4, B1–B4). API-Aufrufe nehmen höchstens zwei Argumente, alles Weitere wird über sie übergeben."
+    },
+    "Set_B2": {
+      "detail": "Speichert einen Wert im Registerslot B2.",
+      "documentation": "Speichert einen Wert im Registerslot B2.\n\nA und B sind die beiden 256-Bit-Pseudoregister der Maschine, jeweils in vier 64-Bit-Slots aufgeteilt (A1–A4, B1–B4). API-Aufrufe nehmen höchstens zwei Argumente, alles Weitere wird über sie übergeben.",
+      "params": {
+        "b2": "Neuer Wert für B2."
+      }
+    },
+    "Get_B3": {
+      "detail": "Liefert den Wert des Registerslots B3.",
+      "documentation": "Liefert den Wert des Registerslots B3.\n\nA und B sind die beiden 256-Bit-Pseudoregister der Maschine, jeweils in vier 64-Bit-Slots aufgeteilt (A1–A4, B1–B4). API-Aufrufe nehmen höchstens zwei Argumente, alles Weitere wird über sie übergeben."
+    },
+    "Set_B3": {
+      "detail": "Speichert einen Wert im Registerslot B3.",
+      "documentation": "Speichert einen Wert im Registerslot B3.\n\nA und B sind die beiden 256-Bit-Pseudoregister der Maschine, jeweils in vier 64-Bit-Slots aufgeteilt (A1–A4, B1–B4). API-Aufrufe nehmen höchstens zwei Argumente, alles Weitere wird über sie übergeben.",
+      "params": {
+        "b3": "Neuer Wert für B3."
+      }
+    },
+    "Get_B4": {
+      "detail": "Liefert den Wert des Registerslots B4.",
+      "documentation": "Liefert den Wert des Registerslots B4.\n\nA und B sind die beiden 256-Bit-Pseudoregister der Maschine, jeweils in vier 64-Bit-Slots aufgeteilt (A1–A4, B1–B4). API-Aufrufe nehmen höchstens zwei Argumente, alles Weitere wird über sie übergeben."
+    },
+    "Set_B4": {
+      "detail": "Speichert einen Wert im Registerslot B4.",
+      "documentation": "Speichert einen Wert im Registerslot B4.\n\nA und B sind die beiden 256-Bit-Pseudoregister der Maschine, jeweils in vier 64-Bit-Slots aufgeteilt (A1–A4, B1–B4). API-Aufrufe nehmen höchstens zwei Argumente, alles Weitere wird über sie übergeben.",
+      "params": {
+        "b4": "Neuer Wert für B4."
+      }
+    },
+    "Set_B1_B2": {
+      "detail": "Speichert zwei Werte in B1 und B2 mit einem einzigen API-Aufruf.",
+      "documentation": "Speichert zwei Werte in B1 und B2 mit einem einzigen API-Aufruf.\n\nHalb so teuer, wie `Set_B1` und `Set_B2` einzeln aufzurufen. Jeder API-Aufruf kostet 10 Schritte, eine normale Instruktion 1.",
+      "params": {
+        "b1": "Neuer Wert für B1.",
+        "b2": "Neuer Wert für B2."
+      }
+    },
+    "Set_B3_B4": {
+      "detail": "Speichert zwei Werte in B3 und B4 mit einem einzigen API-Aufruf.",
+      "documentation": "Speichert zwei Werte in B3 und B4 mit einem einzigen API-Aufruf.\n\nHalb so teuer, wie `Set_B3` und `Set_B4` einzeln aufzurufen. Jeder API-Aufruf kostet 10 Schritte, eine normale Instruktion 1.",
+      "params": {
+        "b3": "Neuer Wert für B3.",
+        "b4": "Neuer Wert für B4."
+      }
+    },
+    "Clear_A": {
+      "detail": "Setzt alle vier Slots von A auf null.",
+      "documentation": "Setzt alle vier Slots von A auf null."
+    },
+    "Clear_B": {
+      "detail": "Setzt alle vier Slots von B auf null.",
+      "documentation": "Setzt alle vier Slots von B auf null."
+    },
+    "Clear_A_And_B": {
+      "detail": "Setzt alle Slots von A und B auf null.",
+      "documentation": "Setzt alle Slots von A und B auf null."
+    },
+    "Copy_A_From_B": {
+      "detail": "Kopiert B nach A (A = B).",
+      "documentation": "Kopiert B nach A (A = B)."
+    },
+    "Copy_B_From_A": {
+      "detail": "Kopiert A nach B (B = A).",
+      "documentation": "Kopiert A nach B (B = A)."
+    },
+    "Swap_A_and_B": {
+      "detail": "Tauscht die Inhalte von A und B.",
+      "documentation": "Tauscht die Inhalte von A und B."
+    },
+    "Check_A_Is_Zero": {
+      "detail": "Liefert 1, wenn alle vier Slots von A null sind, sonst 0.",
+      "documentation": "Liefert 1, wenn alle vier Slots von A null sind, sonst 0."
+    },
+    "Check_B_Is_Zero": {
+      "detail": "Liefert 1, wenn alle vier Slots von B null sind, sonst 0.",
+      "documentation": "Liefert 1, wenn alle vier Slots von B null sind, sonst 0."
+    },
+    "Check_A_Equals_B": {
+      "detail": "Liefert 1, wenn A und B dieselben vier Werte enthalten, sonst 0.",
+      "documentation": "Liefert 1, wenn A und B dieselben vier Werte enthalten, sonst 0."
+    },
+    "OR_A_with_B": {
+      "detail": "A = A | B, Slot für Slot.",
+      "documentation": "A = A | B, Slot für Slot."
+    },
+    "OR_B_with_A": {
+      "detail": "B = B | A, Slot für Slot.",
+      "documentation": "B = B | A, Slot für Slot."
+    },
+    "AND_A_with_B": {
+      "detail": "A = A & B, Slot für Slot.",
+      "documentation": "A = A & B, Slot für Slot."
+    },
+    "AND_B_with_A": {
+      "detail": "B = B & A, Slot für Slot.",
+      "documentation": "B = B & A, Slot für Slot."
+    },
+    "XOR_A_with_B": {
+      "detail": "A = A ^ B, Slot für Slot.",
+      "documentation": "A = A ^ B, Slot für Slot."
+    },
+    "XOR_B_with_A": {
+      "detail": "B = B ^ A, Slot für Slot.",
+      "documentation": "B = B ^ A, Slot für Slot."
+    },
+    "Add_A_To_B": {
+      "detail": "B = A + B, als 256-Bit-Zahlen.",
+      "documentation": "B = A + B, als 256-Bit-Zahlen.\n\nDie vier Slots werden als eine vorzeichenlose 256-Bit-Zahl gelesen, A1/B1 ist der niederwertigste."
+    },
+    "Add_B_To_A": {
+      "detail": "A = A + B, als 256-Bit-Zahlen.",
+      "documentation": "A = A + B, als 256-Bit-Zahlen.\n\nDie vier Slots werden als eine vorzeichenlose 256-Bit-Zahl gelesen, A1/B1 ist der niederwertigste."
+    },
+    "Sub_A_From_B": {
+      "detail": "B = B - A, als 256-Bit-Zahlen.",
+      "documentation": "B = B - A, als 256-Bit-Zahlen.\n\nDie vier Slots werden als eine vorzeichenlose 256-Bit-Zahl gelesen, A1/B1 ist der niederwertigste."
+    },
+    "Sub_B_From_A": {
+      "detail": "A = A - B, als 256-Bit-Zahlen.",
+      "documentation": "A = A - B, als 256-Bit-Zahlen.\n\nDie vier Slots werden als eine vorzeichenlose 256-Bit-Zahl gelesen, A1/B1 ist der niederwertigste."
+    },
+    "Mul_A_By_B": {
+      "detail": "B = A * B, als 256-Bit-Zahlen.",
+      "documentation": "B = A * B, als 256-Bit-Zahlen.\n\nDie vier Slots werden als eine vorzeichenlose 256-Bit-Zahl gelesen, A1/B1 ist der niederwertigste."
+    },
+    "Mul_B_By_A": {
+      "detail": "A = A * B, als 256-Bit-Zahlen.",
+      "documentation": "A = A * B, als 256-Bit-Zahlen.\n\nDie vier Slots werden als eine vorzeichenlose 256-Bit-Zahl gelesen, A1/B1 ist der niederwertigste."
+    },
+    "Div_A_By_B": {
+      "detail": "B = A / B, als 256-Bit-Zahlen.",
+      "documentation": "B = A / B, als 256-Bit-Zahlen.\n\nDie vier Slots werden als eine vorzeichenlose 256-Bit-Zahl gelesen, A1/B1 ist der niederwertigste. Ist B null, ändert sich nichts."
+    },
+    "Div_B_By_A": {
+      "detail": "A = B / A, als 256-Bit-Zahlen.",
+      "documentation": "A = B / A, als 256-Bit-Zahlen.\n\nDie vier Slots werden als eine vorzeichenlose 256-Bit-Zahl gelesen, A1/B1 ist der niederwertigste. Ist A null, ändert sich nichts."
+    },
+    "MD5_A_To_B": {
+      "detail": "Hasht A1–A2 (16 Bytes) mit MD5 und speichert den Digest in B1–B2.",
+      "documentation": "Hasht A1–A2 (16 Bytes) mit MD5 und speichert den Digest in B1–B2."
+    },
+    "Check_MD5_A_With_B": {
+      "detail": "Liefert 1, wenn der MD5 von A1–A2 gleich B1–B2 ist, sonst 0.",
+      "documentation": "Liefert 1, wenn der MD5 von A1–A2 gleich B1–B2 ist, sonst 0."
+    },
+    "HASH160_A_To_B": {
+      "detail": "Hasht A (32 Bytes) mit RIPEMD-160 und speichert den 20-Byte-Digest in B1, B2 und den unteren 32 Bits von B3.",
+      "documentation": "Hasht A (32 Bytes) mit RIPEMD-160 und speichert den 20-Byte-Digest in B1, B2 und den unteren 32 Bits von B3."
+    },
+    "Check_HASH160_A_With_B": {
+      "detail": "Liefert 1, wenn der RIPEMD-160 von A gleich B1, B2 und den unteren 32 Bits von B3 ist, sonst 0.",
+      "documentation": "Liefert 1, wenn der RIPEMD-160 von A gleich B1, B2 und den unteren 32 Bits von B3 ist, sonst 0."
+    },
+    "SHA256_A_To_B": {
+      "detail": "Hasht A (32 Bytes) mit SHA-256 und speichert den Digest in B.",
+      "documentation": "Hasht A (32 Bytes) mit SHA-256 und speichert den Digest in B."
+    },
+    "Check_SHA256_A_With_B": {
+      "detail": "Liefert 1, wenn der SHA-256 von A gleich B ist, sonst 0.",
+      "documentation": "Liefert 1, wenn der SHA-256 von A gleich B ist, sonst 0."
+    },
+    "Check_Sig_B_With_A": {
+      "detail": "Prüft die Signatur eines Kontos über eine Nachricht; liefert 1, wenn sie gültig ist, sonst 0.",
+      "documentation": "Prüft die Signatur eines Kontos über eine Nachricht; liefert 1, wenn sie gültig ist, sonst 0.\n\nEingaben:\n* A1: Transaktions-ID mit der Signatur\n* A2: Nachrichtenseite, auf der die Signatur beginnt (sie umfasst `page` und `page+1`)\n* A3: Konto-ID des Unterzeichners\n* B2–B4: die signierte Nachricht (B1 wird nicht verwendet)\n\nDie eingebaute Funktion `checkSignature()` setzt diese Register für dich."
+    },
+    "Get_Block_Timestamp": {
+      "detail": "Liefert den Zeitstempel des aktuellen Blocks.",
+      "documentation": "Liefert den Zeitstempel des aktuellen Blocks.\n\nEin AT-Zeitstempel ist `blockheight << 32` plus der Index der Transaktion in diesem Block. `Get_Block_Timestamp() >> 32` ist die aktuelle Blockhöhe."
+    },
+    "Get_Creation_Timestamp": {
+      "detail": "Liefert den Zeitstempel des Blocks, in dem dieser Contract erstellt wurde.",
+      "documentation": "Liefert den Zeitstempel des Blocks, in dem dieser Contract erstellt wurde.\n\nEin AT-Zeitstempel ist `blockheight << 32` plus der Index der Transaktion in diesem Block."
+    },
+    "Get_Last_Block_Timestamp": {
+      "detail": "Liefert den Zeitstempel des vorherigen Blocks.",
+      "documentation": "Liefert den Zeitstempel des vorherigen Blocks.\n\nEin AT-Zeitstempel ist `blockheight << 32` plus der Index der Transaktion in diesem Block."
+    },
+    "Put_Last_Block_Hash_In_A": {
+      "detail": "Lädt den Hash des vorherigen Blocks nach A.",
+      "documentation": "Lädt den Hash des vorherigen Blocks nach A."
+    },
+    "Put_Last_Block_GSig_In_A": {
+      "detail": "Lädt die Generierungssignatur des vorherigen Blocks nach A.",
+      "documentation": "Lädt die Generierungssignatur des vorherigen Blocks nach A.\n\nDas ist die Entropie hinter `getWeakRandomNumber()`, die nach diesem Aufruf A2 zurückgibt. Block-Forger können sie beeinflussen, verlass dich also bei nichts Wertvollem darauf."
+    },
+    "Add_Minutes_To_Timestamp": {
+      "detail": "Liefert 'timestamp', um 'minutes' vorgerückt.",
+      "documentation": "Liefert 'timestamp', um 'minutes' vorgerückt.\n\nEin AT-Zeitstempel ist `blockheight << 32` plus der Index der Transaktion in diesem Block. Blöcke zählen als je 4 Minuten, das Ergebnis rückt also um `minutes / 4` Blöcke vor.",
+      "params": {
+        "timestamp": "AT-Zeitstempel, von dem aus gerechnet wird.",
+        "minutes": "Hinzuzufügende Minuten; werden in Blöcke zu 4 Minuten umgerechnet."
+      }
+    },
+    "A_To_Tx_After_Timestamp": {
+      "detail": "Sucht die erste Transaktion an diesen Contract nach 'timestamp' und legt ihre ID in A1 ab.",
+      "documentation": "Sucht die erste Transaktion an diesen Contract nach 'timestamp' und legt ihre ID in A1 ab.\n\nEin AT-Zeitstempel ist `blockheight << 32` plus der Index der Transaktion in diesem Block. A wird zuerst geleert, A1 ist also 0, wenn es keine solche Transaktion gibt. Die eingebauten Funktionen `getNextTx()` und `getNextTxFromBlockheight()` bauen auf diesem Aufruf auf.",
+      "params": {
+        "timestamp": "AT-Zeitstempel, nach dem gesucht wird."
+      }
+    },
+    "Get_Type_For_Tx_In_A": {
+      "detail": "Liefert den Typ der Transaktion, deren ID in A1 steht.",
+      "documentation": "Liefert den Typ der Transaktion, deren ID in A1 steht.\n\nLiefert -1, wenn A1 keine gültige Transaktion ist."
+    },
+    "Get_Amount_For_Tx_In_A": {
+      "detail": "Liefert den Betrag, den die Transaktion in A1 trägt.",
+      "documentation": "Liefert den Betrag, den die Transaktion in A1 trägt.\n\nEingaben:\n* A1: Transaktions-ID\n* A2: Asset-ID oder 0 für Signa\n\nBei Signa ist der Aktivierungsbetrag des Contracts bereits abgezogen. Liefert -1, wenn A1 keine gültige Transaktion ist."
+    },
+    "Get_Timestamp_For_Tx_In_A": {
+      "detail": "Liefert den Zeitstempel der Transaktion, deren ID in A1 steht.",
+      "documentation": "Liefert den Zeitstempel der Transaktion, deren ID in A1 steht.\n\nEin AT-Zeitstempel ist `blockheight << 32` plus der Index der Transaktion in diesem Block. Liefert -1, wenn A1 keine gültige Transaktion ist."
+    },
+    "Get_Random_Id_For_Tx_In_A": {
+      "detail": "Liefert eine Zufallszahl, die aus der Transaktion in A1 abgeleitet wird.",
+      "documentation": "Liefert eine Zufallszahl, die aus der Transaktion in A1 abgeleitet wird.\n\nDer Wert steht erst 15 Blöcke nach Aufnahme der Transaktion zur Verfügung. Wird früher aufgerufen, **schläft** der Contract bis dahin. Liefert -1, wenn A1 keine gültige Transaktion ist."
+    },
+    "Message_From_Tx_In_A_To_B": {
+      "detail": "Lädt eine 32-Byte-Seite der Nachricht der Transaktion nach B.",
+      "documentation": "Lädt eine 32-Byte-Seite der Nachricht der Transaktion nach B.\n\nEingaben:\n* A1: Transaktions-ID\n* A2: Seitennummer, beginnend bei 0\n\nFehlende Nachrichtenbytes werden als null gelesen; eine ungültige Transaktion leert B. `readMessage()` kapselt diesen Aufruf."
+    },
+    "B_To_Address_Of_Tx_In_A": {
+      "detail": "Legt den Absender der Transaktion in A1 in B1 ab.",
+      "documentation": "Legt den Absender der Transaktion in A1 in B1 ab.\n\nB2–B4 werden geleert. `getSender()` kapselt diesen Aufruf."
+    },
+    "B_To_Assets_Of_Tx_In_A": {
+      "detail": "Legt die IDs der mit der Transaktion in A1 gesendeten Assets in B1–B4 ab.",
+      "documentation": "Legt die IDs der mit der Transaktion in A1 gesendeten Assets in B1–B4 ab.\n\nEine Transaktion trägt höchstens vier Assets; unbenutzte Slots sind 0. `readAssets()` kapselt diesen Aufruf."
+    },
+    "B_To_Address_Of_Creator": {
+      "detail": "Legt den Ersteller eines Contracts in B1 ab.",
+      "documentation": "Legt den Ersteller eines Contracts in B1 ab.\n\nEingabe: B2 enthält die Contract-ID oder 0 für diesen Contract. Die übrigen Slots von B werden geleert. `getCreator()` und `getCreatorOf()` kapseln diesen Aufruf."
+    },
+    "Get_Current_Balance": {
+      "detail": "Liefert das aktuelle Guthaben dieses Contracts.",
+      "documentation": "Liefert das aktuelle Guthaben dieses Contracts.\n\nEingabe: B2 enthält eine Asset-ID oder 0 für das Signa-Guthaben (in NQT)."
+    },
+    "Get_Previous_Balance": {
+      "detail": "Liefert das Signa-Guthaben dieses Contracts vor dem aktuellen Lauf.",
+      "documentation": "Liefert das Signa-Guthaben dieses Contracts vor dem aktuellen Lauf."
+    },
+    "Get_Account_Balance": {
+      "detail": "Liefert das Guthaben eines beliebigen Kontos.",
+      "documentation": "Liefert das Guthaben eines beliebigen Kontos.\n\nEingaben:\n* B1: Konto-ID\n* B2: Asset-ID oder 0 für Signa (in NQT)\n\n`getAccountBalance()` und `getAccountQuantity()` kapseln diesen Aufruf."
+    },
+    "Send_To_Address_In_B": {
+      "detail": "Sendet 'amount' an das Konto in B1.",
+      "documentation": "Sendet 'amount' an das Konto in B1.\n\nEingaben:\n* B1: Empfänger\n* B2: Asset-ID oder 0, um Signa zu senden\n* B3: beim Senden eines Assets die mitzusendenden Signa (NQT)\n\nBeträge über dem Guthaben werden darauf begrenzt; null oder negative Beträge senden nichts.",
+      "params": {
+        "amount": "NQT beim Senden von Signa, sonst die Asset-Menge."
+      }
+    },
+    "Send_All_To_Address_In_B": {
+      "detail": "Sendet das gesamte Signa-Guthaben des Contracts an das Konto in B1.",
+      "documentation": "Sendet das gesamte Signa-Guthaben des Contracts an das Konto in B1."
+    },
+    "Send_Old_To_Address_In_B": {
+      "detail": "Sendet das Signa-Guthaben von vor dem aktuellen Lauf an das Konto in B1.",
+      "documentation": "Sendet das Signa-Guthaben von vor dem aktuellen Lauf an das Konto in B1.\n\nAuf das aktuelle Guthaben begrenzt."
+    },
+    "Send_A_To_Address_In_B": {
+      "detail": "Sendet die 32 Bytes in A als Nachricht an das Konto in B1.",
+      "documentation": "Sendet die 32 Bytes in A als Nachricht an das Konto in B1.\n\nMehrere Aufrufe an denselben Empfänger in einem Lauf werden zu einer Nachricht zusammengefasst. `sendMessage()` kapselt diesen Aufruf."
+    },
+    "Get_Code_Hash_Id": {
+      "detail": "Liefert die Code-Hash-ID eines Contracts.",
+      "documentation": "Liefert die Code-Hash-ID eines Contracts.\n\nEingabe: B2 enthält die Contract-ID oder 0 für diesen Contract. Liefert 0, wenn der Contract unbekannt ist. `getCodeHashOf()` kapselt diesen Aufruf."
+    },
+    "Get_Activation_Fee": {
+      "detail": "Liefert den Aktivierungsbetrag (NQT) eines Contracts.",
+      "documentation": "Liefert den Aktivierungsbetrag (NQT) eines Contracts.\n\nEingabe: B2 enthält die Contract-ID oder 0 für diesen Contract. Liefert 0, wenn der Contract unbekannt ist. `getActivationOf()` kapselt diesen Aufruf."
+    },
+    "Get_Map_Value_Keys_In_A": {
+      "detail": "Liest einen Wert aus der Schlüssel-Schlüssel-Wert-Map eines Contracts.",
+      "documentation": "Liest einen Wert aus der Schlüssel-Schlüssel-Wert-Map eines Contracts.\n\nEingaben:\n* A1: key1\n* A2: key2\n* A3: Contract-ID oder 0 für diesen Contract\n\nLiefert 0 für einen fehlenden Eintrag. `getMapValue()` und `getExtMapValue()` kapseln diesen Aufruf."
+    },
+    "Set_Map_Value_Keys_In_A": {
+      "detail": "Schreibt einen Wert in die Schlüssel-Schlüssel-Wert-Map dieses Contracts.",
+      "documentation": "Schreibt einen Wert in die Schlüssel-Schlüssel-Wert-Map dieses Contracts.\n\nEingaben:\n* A1: key1\n* A2: key2\n* A4: Wert (A3 wird nicht verwendet)\n\n`setMapValue()` kapselt diesen Aufruf."
+    },
+    "Issue_Asset": {
+      "detail": "Gibt ein neues Asset im Besitz dieses Contracts aus und liefert seine ID.",
+      "documentation": "Gibt ein neues Asset im Besitz dieses Contracts aus und liefert seine ID.\n\nEingaben:\n* A1–A2: Asset-Name, bis zu 10 Zeichen\n* B1: Anzahl der Dezimalstellen\n\nDas Asset startet mit der Menge null; erzeuge Einheiten mit `Mint_Asset`. `issueAsset()` kapselt diesen Aufruf."
+    },
+    "Mint_Asset": {
+      "detail": "Erzeugt neue Einheiten eines von diesem Contract ausgegebenen Assets.",
+      "documentation": "Erzeugt neue Einheiten eines von diesem Contract ausgegebenen Assets.\n\nEingaben:\n* B1: Menge\n* B2: Asset-ID\n\nBewirkt nichts bei einem Asset, das dieser Contract nicht ausgegeben hat. `mintAsset()` kapselt diesen Aufruf."
+    },
+    "Distribute_To_Asset_Holders": {
+      "detail": "Verteilt Signa und/oder ein Asset an die Halter eines Assets, anteilig zu ihrem Bestand.",
+      "documentation": "Verteilt Signa und/oder ein Asset an die Halter eines Assets, anteilig zu ihrem Bestand.\n\nEingaben:\n* B1: Mindestmenge, die ein Halter zur Teilnahme braucht\n* B2: Asset, dessen Halter die Ausschüttung erhalten\n* A1: zu verteilende Signa (NQT)\n* A3: zu verteilendes Asset oder 0 für keines\n* A4: zu verteilende Menge dieses Assets\n\nBeträge werden auf den Bestand des Contracts begrenzt. `distributeToHolders()` kapselt diesen Aufruf."
+    },
+    "Get_Asset_Holders_Count": {
+      "detail": "Liefert, wie viele Konten mindestens eine Mindestmenge eines Assets halten.",
+      "documentation": "Liefert, wie viele Konten mindestens eine Mindestmenge eines Assets halten.\n\nEingaben:\n* B1: Mindestmenge\n* B2: Asset-ID\n\n`getAssetHoldersCount()` kapselt diesen Aufruf."
+    },
+    "Get_Asset_Circulating": {
+      "detail": "Liefert die Umlaufmenge eines Assets.",
+      "documentation": "Liefert die Umlaufmenge eines Assets.\n\nEingabe: B2 enthält die Asset-ID. Liefert 0 für die Asset-ID 0. `getAssetCirculating()` kapselt diesen Aufruf."
+    },
+    "F_Get_A1": {
+      "detail": "Liefert den Registerslot A1 als Festkommawert.",
+      "documentation": "Liefert den Registerslot A1 als Festkommawert.\n\nDerselbe Aufruf wie `Get_A1`; der Rohwert wird als `fixed` gelesen (1.0 = 1_0000_0000)."
+    },
+    "F_Set_A1": {
+      "detail": "Speichert einen Festkommawert im Registerslot A1.",
+      "documentation": "Speichert einen Festkommawert im Registerslot A1.\n\nDerselbe Aufruf wie `Set_A1`; der `fixed`-Wert wird als roher 64-Bit-Inhalt gespeichert.",
+      "params": {
+        "a1": "Neuer Wert für A1."
+      }
+    },
+    "F_Get_A2": {
+      "detail": "Liefert den Registerslot A2 als Festkommawert.",
+      "documentation": "Liefert den Registerslot A2 als Festkommawert.\n\nDerselbe Aufruf wie `Get_A2`; der Rohwert wird als `fixed` gelesen (1.0 = 1_0000_0000)."
+    },
+    "F_Set_A2": {
+      "detail": "Speichert einen Festkommawert im Registerslot A2.",
+      "documentation": "Speichert einen Festkommawert im Registerslot A2.\n\nDerselbe Aufruf wie `Set_A2`; der `fixed`-Wert wird als roher 64-Bit-Inhalt gespeichert.",
+      "params": {
+        "a2": "Neuer Wert für A2."
+      }
+    },
+    "F_Get_A3": {
+      "detail": "Liefert den Registerslot A3 als Festkommawert.",
+      "documentation": "Liefert den Registerslot A3 als Festkommawert.\n\nDerselbe Aufruf wie `Get_A3`; der Rohwert wird als `fixed` gelesen (1.0 = 1_0000_0000)."
+    },
+    "F_Set_A3": {
+      "detail": "Speichert einen Festkommawert im Registerslot A3.",
+      "documentation": "Speichert einen Festkommawert im Registerslot A3.\n\nDerselbe Aufruf wie `Set_A3`; der `fixed`-Wert wird als roher 64-Bit-Inhalt gespeichert.",
+      "params": {
+        "a3": "Neuer Wert für A3."
+      }
+    },
+    "F_Get_A4": {
+      "detail": "Liefert den Registerslot A4 als Festkommawert.",
+      "documentation": "Liefert den Registerslot A4 als Festkommawert.\n\nDerselbe Aufruf wie `Get_A4`; der Rohwert wird als `fixed` gelesen (1.0 = 1_0000_0000)."
+    },
+    "F_Set_A4": {
+      "detail": "Speichert einen Festkommawert im Registerslot A4.",
+      "documentation": "Speichert einen Festkommawert im Registerslot A4.\n\nDerselbe Aufruf wie `Set_A4`; der `fixed`-Wert wird als roher 64-Bit-Inhalt gespeichert.",
+      "params": {
+        "a4": "Neuer Wert für A4."
+      }
+    },
+    "F_Get_B1": {
+      "detail": "Liefert den Registerslot B1 als Festkommawert.",
+      "documentation": "Liefert den Registerslot B1 als Festkommawert.\n\nDerselbe Aufruf wie `Get_B1`; der Rohwert wird als `fixed` gelesen (1.0 = 1_0000_0000)."
+    },
+    "F_Set_B1": {
+      "detail": "Speichert einen Festkommawert im Registerslot B1.",
+      "documentation": "Speichert einen Festkommawert im Registerslot B1.\n\nDerselbe Aufruf wie `Set_B1`; der `fixed`-Wert wird als roher 64-Bit-Inhalt gespeichert.",
+      "params": {
+        "b1": "Neuer Wert für B1."
+      }
+    },
+    "F_Get_B2": {
+      "detail": "Liefert den Registerslot B2 als Festkommawert.",
+      "documentation": "Liefert den Registerslot B2 als Festkommawert.\n\nDerselbe Aufruf wie `Get_B2`; der Rohwert wird als `fixed` gelesen (1.0 = 1_0000_0000)."
+    },
+    "F_Set_B2": {
+      "detail": "Speichert einen Festkommawert im Registerslot B2.",
+      "documentation": "Speichert einen Festkommawert im Registerslot B2.\n\nDerselbe Aufruf wie `Set_B2`; der `fixed`-Wert wird als roher 64-Bit-Inhalt gespeichert.",
+      "params": {
+        "b2": "Neuer Wert für B2."
+      }
+    },
+    "F_Get_B3": {
+      "detail": "Liefert den Registerslot B3 als Festkommawert.",
+      "documentation": "Liefert den Registerslot B3 als Festkommawert.\n\nDerselbe Aufruf wie `Get_B3`; der Rohwert wird als `fixed` gelesen (1.0 = 1_0000_0000)."
+    },
+    "F_Set_B3": {
+      "detail": "Speichert einen Festkommawert im Registerslot B3.",
+      "documentation": "Speichert einen Festkommawert im Registerslot B3.\n\nDerselbe Aufruf wie `Set_B3`; der `fixed`-Wert wird als roher 64-Bit-Inhalt gespeichert.",
+      "params": {
+        "b3": "Neuer Wert für B3."
+      }
+    },
+    "F_Get_B4": {
+      "detail": "Liefert den Registerslot B4 als Festkommawert.",
+      "documentation": "Liefert den Registerslot B4 als Festkommawert.\n\nDerselbe Aufruf wie `Get_B4`; der Rohwert wird als `fixed` gelesen (1.0 = 1_0000_0000)."
+    },
+    "F_Set_B4": {
+      "detail": "Speichert einen Festkommawert im Registerslot B4.",
+      "documentation": "Speichert einen Festkommawert im Registerslot B4.\n\nDerselbe Aufruf wie `Set_B4`; der `fixed`-Wert wird als roher 64-Bit-Inhalt gespeichert.",
+      "params": {
+        "b4": "Neuer Wert für B4."
+      }
+    },
+    "F_Get_Amount_For_Tx_In_A": {
+      "detail": "Liefert den Betrag, den die Transaktion in A1 trägt, als fixed.",
+      "documentation": "Liefert den Betrag, den die Transaktion in A1 trägt, als fixed.\n\nDerselbe Aufruf wie `Get_Amount_For_Tx_In_A` (A1: Transaktions-ID, A2: Asset-ID oder 0 für Signa)."
+    },
+    "F_Get_Current_Balance": {
+      "detail": "Liefert das aktuelle Guthaben dieses Contracts als fixed.",
+      "documentation": "Liefert das aktuelle Guthaben dieses Contracts als fixed.\n\nDerselbe Aufruf wie `Get_Current_Balance` (B2: Asset-ID oder 0 für Signa)."
+    },
+    "F_Get_Previous_Balance": {
+      "detail": "Liefert das Signa-Guthaben dieses Contracts vor dem aktuellen Lauf als fixed.",
+      "documentation": "Liefert das Signa-Guthaben dieses Contracts vor dem aktuellen Lauf als fixed."
+    },
+    "F_Get_Account_Balance": {
+      "detail": "Liefert das Guthaben eines beliebigen Kontos als fixed.",
+      "documentation": "Liefert das Guthaben eines beliebigen Kontos als fixed.\n\nDerselbe Aufruf wie `Get_Account_Balance` (B1: Konto-ID, B2: Asset-ID oder 0 für Signa)."
+    },
+    "F_Send_To_Address_In_B": {
+      "detail": "Sendet 'amount' an das Konto in B1.",
+      "documentation": "Sendet 'amount' an das Konto in B1.\n\nDerselbe Aufruf wie `Send_To_Address_In_B` (B1: Empfänger, B2: Asset-ID oder 0 für Signa, B3: mit einem Asset gesendete Signa).",
+      "params": {
+        "amount": "Signa-Betrag, z. B. 1.5."
+      }
+    },
+    "F_Get_Map_Value_Keys_In_A": {
+      "detail": "Liest einen Wert aus der Schlüssel-Schlüssel-Wert-Map eines Contracts als fixed.",
+      "documentation": "Liest einen Wert aus der Schlüssel-Schlüssel-Wert-Map eines Contracts als fixed.\n\nDerselbe Aufruf wie `Get_Map_Value_Keys_In_A` (A1: key1, A2: key2, A3: Contract-ID oder 0)."
+    },
+    "F_Get_Activation_Fee": {
+      "detail": "Liefert den Aktivierungsbetrag eines Contracts als fixed.",
+      "documentation": "Liefert den Aktivierungsbetrag eines Contracts als fixed.\n\nDerselbe Aufruf wie `Get_Activation_Fee` (B2: Contract-ID oder 0 für diesen Contract)."
+    }
+  },
+  "keywords": {
+    "exit": {
+      "detail": "Beendet die Ausführung des Contracts und setzt auf main zurück",
+      "documentation": "Versetzt den Contract in den 'stop'-Modus und lässt das Programm beim nächsten Mal in der main-Funktion beginnen ('finished'-Modus). Er bleibt inaktiv, bis eine neue Transaktion eingeht. Dann startet die Ausführung in der Funktion void main(). Ist keine main-Funktion definiert, beginnt die Ausführung wieder am Anfang des Codes und führt alle globalen Anweisungen erneut aus. Ist main definiert, werden die globalen Anweisungen nur bei den ersten Aktivierungen des Contracts ausgeführt. exit nimmt kein Argument. Ist der Aktivierungsbetrag des Contracts null, läuft er im nächsten Block weiter (ähnlich wie sleep)"
+    },
+    "sleep": {
+      "detail": "Schläft n Blöcke",
+      "documentation": "Versetzt den Contract in den 'sleep'-Modus und setzt die Ausführung im nächsten Block fort. Optional gibt ein Argument die Anzahl der zu schlafenden Blöcke an; das Argument darf ein Ausdruck sein. Die drei Anweisungen sleep;, sleep 0; und sleep 1; bewirken dasselbe, die erste ist aber vorzuziehen, weil die Instruktion kleiner ist."
+    },
+    "fixed": {
+      "detail": "Deklariert eine Variable als Festkommazahl",
+      "documentation": "Deklariert eine Variable als Festkommazahl. Alle fixed-Zahlen haben 8 Dezimalstellen, sie eignen sich also gut für Signa-Berechnungen. Unterstützt werden positive Werte von 0.00000001 bis 92,233,720,368.54775807 und negative von -0.00000001 bis -92,233,720,368.54775808. Intern sind sie vorzeichenbehaftete 64-Bit-Zahlen."
+    },
+    "halt": {
+      "detail": "Der Contract bleibt bis zur nächsten Transaktion inaktiv",
+      "documentation": "Versetzt den Contract in den 'stop'-Modus. Er bleibt inaktiv, bis eine neue Transaktion eingeht, und setzt die Ausführung dann bei der nächsten Instruktion fort. Nimmt kein Argument. Ist der Aktivierungsbetrag des Contracts null, läuft er im nächsten Block weiter."
+    }
+  },
+  "directives": {
+    "program": {
+      "detail": "Contract-Metadaten",
+      "documentation": "Setzt die Metadaten des Contracts: Name, Beschreibung, Aktivierungsbetrag, Stack-Seiten und Code-Hash-ID.",
+      "properties": {
+        "name": {
+          "detail": "Programmname (für das Deployment erforderlich)",
+          "documentation": "Setzt den Namen des Programms. Nur normale Buchstaben und Ziffern, höchstens 30 Zeichen. Für das Deployment ist ein Wert erforderlich."
+        },
+        "description": {
+          "detail": "Programmbeschreibung (optional)",
+          "documentation": "Setzt die Beschreibung des Programms. Keine Zeilenumbrüche, höchstens 1000 Zeichen. Optional."
+        },
+        "activationAmount": {
+          "detail": "Mindestbetrag zur Aktivierung des Contracts (für das Deployment erforderlich)",
+          "documentation": "Setzt den Aktivierungsbetrag des Programms. Ist VALUE eine Festkommazahl (Beispiel: .34), gilt sie als Signa-Betrag. Andernfalls wird der Wert in NQT gesetzt (Beispiel: 3400_0000).\n\nHat eine eingehende Transaktion einen kleineren Betrag als diesen, wird sie vom Programm nicht verarbeitet (der Betrag wird aber empfangen!). Wähle einen niedrigen Wert, der aber größer ist als der ungünstigste Betrag, den dein Programm zum Laufen braucht. Ist er zu niedrig, friert dein Programm während der Ausführung ein (kein Gas mehr). Ist er zu hoch, bleibt nach der Ausführung ein hohes Guthaben übrig (nicht verbraucht). Denk bei ernsthaften Programmen daran, diesen Fall zu behandeln! Für das Deployment ist ein Wert erforderlich."
+        },
+        "codeHashId": {
+          "detail": "Code-Hash-ID des kompilierten Codes erzwingen (optional)",
+          "documentation": "Stellt sicher, dass das kompilierte Programm genau diese Code-Hash-ID hat. Mit 0 steht die Information in der Assembly-Ausgabe zur Verfügung (während der Entwicklung). Trag die tatsächliche Zahl ein, wenn du den Quellcode verteilen willst; dann meldet der Compiler bei Abweichungen einen Fehler. Optional."
+        },
+        "codeStackPages": {
+          "detail": "Seiten für den Code-Stack (max. 10)",
+          "documentation": "Code-Seiten werden bei Funktionsaufrufen genutzt, um die Rücksprungposition des Instruktionszeigers (auch Program Counter) zu speichern. Der Standardwert ist null, wenn nicht benötigt, sonst eins. Jede Seite speichert 16 Werte. Pass den Wert an, wenn du viele verschachtelte oder rekursive Funktionen verwendest. Höchstwert sind 10 Seiten."
+        },
+        "userStackPages": {
+          "detail": "Seiten für den User-Stack (max. 10)",
+          "documentation": "User-Seiten werden bei Funktionsaufrufen genutzt, um Argumentwerte zu übergeben, Rückgabewerte zu speichern oder bei rekursiven Aufrufen lokale Variablen abzulegen. Der Standardwert ist null, wenn nicht benötigt, sonst eins. Pass den Wert an, wenn Funktionen mehr als 16 Argumente haben oder rekursiv sind. Höchstwert sind 10 Seiten."
+        },
+        "creator": {
+          "detail": "Ersteller-ID — nur SC-Simulator",
+          "documentation": "Gilt nur im SC-Simulator. N muss eine Dezimalzahl sein. Setzt die Ersteller-ID des Contracts. Nützlich, um viele Contracts verschiedener Nutzer zu simulieren. Wird bei der Erzeugung des Maschinencodes und beim echten Deployment ignoriert."
+        },
+        "contract": {
+          "detail": "Contract-ID — nur SC-Simulator",
+          "documentation": "Gilt nur im SC-Simulator. N muss eine Dezimalzahl sein. Setzt die Contract-ID. Nützlich beim Deployen vieler Contracts, deren Reihenfolge dann beliebig ist. Wird bei der Erzeugung des Maschinencodes und beim echten Deployment ignoriert."
+        }
+      }
+    },
+    "pragma": {
+      "detail": "Compiler-Optionen",
+      "documentation": "Besondere Funktionen des Compilers.",
+      "properties": {
+        "maxAuxVars": {
+          "detail": "Anzahl der Hilfsvariablen / Register (0..10, Standard 3)",
+          "documentation": "Legt fest, wie viele Hilfsvariablen dem Compiler zur Verfügung stehen (sie dienen als Register). Standard ist 3, Minimum 0, Maximum 10. Wird der Speicher knapp, reduziere auf das zum Kompilieren nötige Minimum. Einfache Contracts brauchen etwa 2, die Zahl hängt aber von verschachtelten Operationen ab."
+        },
+        "maxConstVars": {
+          "detail": "Anzahl der Konstantenvariablen 'n1'..'n10' (0..10, Standard 0)",
+          "documentation": "Der Compiler legt Variablen von 1 bis maxConstVars an, benannt 'n1', 'n2', … 'n10'. Das lohnt sich sehr, denn der Compiler ersetzt alle Zahlenreferenzen durch diese Variablen und optimiert den Code, der dadurch deutlich kleiner wird! Standard ist 0 (deaktiviert), Maximum 10."
+        },
+        "optimizationLevel": {
+          "detail": "Strategie des Code-Optimierers (0..4, Standard 2)",
+          "documentation": "Wählt die Strategie des Code-Optimierers. Sie kann zwischen 0 und 3 liegen.\n\n* `0`: Keine Optimierung.\n* `1`: Sehr einfache Optimierung, entfernt nur unsinnigen und ungenutzten Code.\n* `2`: Standard. Ändert und/oder löscht Code sicher für ein besseres Ergebnis.\n* `3`: Verfolgt Variableninhalte mit einer VM und entfernt redundanten Code. Beta-Funktion, wird nach weiteren Tests Standard. Kann gut optimieren und die Zahl der API-Aufrufe senken.\n* `4`: Riskante, kaum getestete Optimierungen. Das Ergebnis muss vom Entwickler geprüft werden."
+        },
+        "reuseAssignedVar": {
+          "detail": "Die linke Seite einer Zuweisung als Register wiederverwenden (Standard true)",
+          "documentation": "Ist das gesetzt, versucht der Compiler, die Variable links einer Zuweisung als Register zu nutzen. Kommt die Variable auch rechts vor, wird sie nicht wiederverwendet. Das kann pro Ausdruck eine Assembly-Instruktion sparen! Standard ist true, und es wird dringend empfohlen, es aktiv zu lassen."
+        },
+        "verboseAssembly": {
+          "detail": "Assembly-Ausgabe mit Quellzeilen annotieren",
+          "documentation": "Fügt der Assembly-Ausgabe einen Kommentar mit der Zeilennummer und dem Quellcode hinzu. Sehr nützlich zum Debuggen."
+        },
+        "verboseScope": {
+          "detail": "Assembly-Ausgabe mit Register-Scope-Infos annotieren",
+          "documentation": "Fügt der Assembly-Ausgabe an jedem Scope-Anfang und -Ende einen Kommentar mit den freien Registern hinzu. Zeigt auch, wenn ein Register als anderer Variablenname verwendet wird. Sehr nützlich zum Debuggen."
+        },
+        "version": {
+          "detail": "Compiler-Version, für die der Code entwickelt wurde (optional)",
+          "documentation": "Gibt an, für welche Compiler-Version der Code entwickelt wurde. Optional, kann aber späteren Generationen helfen. VALUE kann ein beliebiger Text oder Hinweis sein."
+        }
+      }
+    },
+    "include": {
+      "detail": "Low-Level-API-Funktionen aktivieren",
+      "documentation": "Schaltet eine Tabelle von Low-Level-API-Funktionen ein: `#include APIFunctions` oder `#include fixedAPIFunctions`.",
+      "properties": {
+        "APIFunctions": {
+          "detail": "Die Low-Level-API-Funktionen aktivieren",
+          "documentation": "Macht die API-Aufrufe der AT-Maschine als C-Funktionen verfügbar: `Get_A1`, `Set_B1_B2`, `Clear_A`, `SHA256_A_To_B`, `Send_To_Address_In_B`, … Sie arbeiten direkt auf den Pseudoregistern A und B, für Fälle, die die eingebauten Funktionen nicht abdecken. Optionaler Wert `true`/`false` (Standard `true`)."
+        },
+        "fixedAPIFunctions": {
+          "detail": "Die Festkomma-Low-Level-API-Funktionen aktivieren",
+          "documentation": "Ergänzt `fixed`-typisierte Gegenstücke der API-Aufrufe, die Signa-Beträge bewegen: `F_Get_Current_Balance`, `F_Send_To_Address_In_B`, `F_Get_A1`, … Unabhängig von `#include APIFunctions`. Optionaler Wert `true`/`false` (Standard `true`)."
+        }
+      }
+    }
+  },
+  "asmDirectives": {
+    "program": {
+      "detail": "Contract-Metadaten",
+      "documentation": "Deklariert ein Stück Contract-Metadaten: `^program <property> <value>`.\n\nDie Direktive erzeugt keinen Maschinencode — die Werte reisen mit dem Bytecode in die Deployment-Transaktion. Eine unbekannte Eigenschaft ist ein Assembler-Fehler, die Liste unten ist also vollständig.",
+      "properties": {
+        "name": {
+          "detail": "Programmname (für das Deployment erforderlich)",
+          "documentation": "Setzt den Namen des Programms. Nur normale Buchstaben und Ziffern, höchstens 30 Zeichen. Für das Deployment ist ein Wert erforderlich."
+        },
+        "description": {
+          "detail": "Programmbeschreibung (optional)",
+          "documentation": "Setzt die Beschreibung des Programms. Keine Zeilenumbrüche, höchstens 1000 Zeichen. Optional."
+        },
+        "activationAmount": {
+          "detail": "Mindestbetrag zur Aktivierung des Contracts (für das Deployment erforderlich)",
+          "documentation": "Setzt den Aktivierungsbetrag des Programms in NQT (Beispiel: `3400_0000`).\n\nEine eingehende Transaktion mit weniger als diesem Betrag wird trotzdem empfangen — der Betrag landet im Guthaben des Contracts —, weckt den Contract aber nicht auf. Setz den Wert über die ungünstigsten Kosten eines Laufs: zu niedrig, und der Contract friert mitten in der Ausführung ein (kein Gas mehr); zu hoch, und es sammelt sich ungenutztes Guthaben an, das du dann behandeln musst. Für das Deployment ist ein Wert erforderlich."
+        },
+        "userStackPages": {
+          "detail": "Seiten für den User-Stack (max. 10)",
+          "documentation": "User-Seiten tragen den `PSH`/`POP`-Stack, der gesicherte Register über einen Aufruf hinweg und die lokalen Variablen rekursiver Aufrufe hält. Jede Seite fasst 16 Werte; Standard ist null, wenn das Programm keine braucht, sonst eins, Maximum 10 Seiten. Erhöhe den Wert für tief rekursive Funktionen — ein Stack-Überlauf beendet den Contract."
+        },
+        "codeStackPages": {
+          "detail": "Seiten für den Code-Stack (max. 10)",
+          "documentation": "Code-Seiten tragen den `JSR`/`RET`-Stack, der die Rücksprungadresse jedes verschachtelten Aufrufs speichert. Jede Seite fasst 16 Werte; Standard ist null, wenn das Programm keine braucht, sonst eins, Maximum 10 Seiten. Erhöhe den Wert für tief verschachtelte oder rekursive Funktionen."
+        },
+        "codeHashId": {
+          "detail": "Code-Hash-ID des kompilierten Codes erzwingen (optional)",
+          "documentation": "Stellt sicher, dass das kompilierte Programm genau diese Code-Hash-ID hat. Mit `0` wird der Wert während der Entwicklung in die Assembly-Ausgabe zurückgeschrieben. Trag beim Verteilen des Quellcodes die echte Zahl ein, dann meldet der Compiler einen Fehler, wenn der erzeugte Maschinencode abweicht. Optional."
+        },
+        "creator": {
+          "detail": "Ersteller-ID — nur SC-Simulator",
+          "documentation": "Gilt nur im SC-Simulator: setzt die Ersteller-ID des Contracts, damit sich mehrere Contracts als von verschiedenen Nutzern deployt simulieren lassen. Der Assembler akzeptiert und ignoriert sie — sie hat keinen Einfluss auf den erzeugten Maschinencode oder ein echtes Deployment."
+        },
+        "contract": {
+          "detail": "Contract-ID — nur SC-Simulator",
+          "documentation": "Gilt nur im SC-Simulator: setzt die Contract-ID, damit ein Szenario mehrere Contracts in beliebiger Reihenfolge deployen kann. Der Assembler akzeptiert und ignoriert sie — sie hat keinen Einfluss auf den erzeugten Maschinencode oder ein echtes Deployment."
+        }
+      }
+    },
+    "declare": {
+      "detail": "Variablendeklaration",
+      "documentation": "`^declare <name>` reserviert eine 64-Bit-Speicherzelle und bindet `<name>` an ihre Adresse.\n\nJedes `@name` / `$name` im Assembly bezieht sich auf eine so deklarierte Zelle, und die Reihenfolge der Deklarationen legt die Adressen fest. Die Direktive selbst erzeugt keinen Maschinencode, aber jede deklarierte Variable fügt den Datenseiten des Contracts eine Zelle hinzu."
+    },
+    "const": {
+      "detail": "Konstanten-Initialisierung",
+      "documentation": "`^const SET @<name> #<16 hex digits>` gibt einer deklarierten Variablen ihren Anfangswert.\n\nDer Wert wird beim Assemblieren ins anfängliche Speicherabbild des Contracts eingebacken statt zur Laufzeit zugewiesen; er kostet also weder Code-Bytes noch Schritte. Die Syntax ist starr: das `SET`, das `@` und genau 16 Hex-Ziffern in Kleinbuchstaben nach dem `#`."
+    },
+    "comment": {
+      "detail": "Assembler-Kommentar",
+      "documentation": "`^comment <text>` wird vom Assembler ignoriert und erzeugt nichts.\n\nSmartC nutzt ihn, um seine Ausgabe zu annotieren — `#pragma verboseAssembly` fügt so den ursprünglichen C-Quelltext ein, und `#pragma verboseScope` ergänzt Hinweise zur Lebensdauer von Registern."
+    }
+  },
+  "opcodes": {
+    "JMP": {
+      "title": "Springen",
+      "group": "Programmablauf",
+      "documentation": "Unbedingter Sprung: setzt den Instruktionszeiger auf `:label` und macht dort weiter.\n\nAnders als bei den bedingten Verzweigungen ist das Ziel als **vollständige 4-Byte-Absolutadresse** gespeichert, ein `JMP` erreicht also jede Stelle im Code-Bereich — es gibt keine Reichweitengrenze. Deshalb weicht der Assembler auch auf `JMP` aus, wenn ein Verzweigungs-Offset überläuft.\n\nEin unbekanntes Label ist ein Assembler-Fehler (`Unknow jump label`). SmartC erzeugt `JMP` für `goto`, für den Rücksprung von `while`/`for`-Schleifen und um den `else`-Zweig eines `if` zu überspringen. Der Optimierer löscht ein `JMP`, dessen Ziel direkt die nächste Instruktion ist."
+    },
+    "JSR": {
+      "title": "Sprung in Unterprogramm",
+      "group": "Programmablauf",
+      "documentation": "Legt die Adresse der *folgenden* Instruktion auf den **Code-Stack** und springt dann zu `:label`. Ein späteres `RET` holt diese Adresse für den Rücksprung zurück.\n\nDer Code-Stack fasst 16 Einträge pro Seite und wird mit `#pragma codeStackPages` dimensioniert (max. 10 Seiten, also 160 verschachtelte Aufrufe). Wird darüber hinaus gepusht, bricht der Contract mit *Code Stack buffer overflow* ab — es sei denn, ein `ERR`-Handler ist gesetzt; dann geht die Ausführung dort weiter.\n\nNur die Rücksprungadresse liegt auf dem Code-Stack. Argumente, Rückgabewerte und die lokalen Variablen rekursiver Aufrufe landen per `PSH`/`POP` auf dem separaten **User-Stack**, dimensioniert mit `#pragma userStackPages`. So ruft SmartC benutzerdefinierte Funktionen auf."
+    },
+    "RET": {
+      "title": "Rückkehr aus Unterprogramm",
+      "group": "Programmablauf",
+      "documentation": "Holt eine Adresse vom **Code-Stack** und springt dorthin — die Rückkehr aus dem `JSR`, das sie abgelegt hat.\n\nEin `RET` auf leerem Code-Stack bricht den Contract mit *Code Stack buffer underflow* ab, es sei denn, ein `ERR`-Handler ist gesetzt — dann springt die Ausführung dorthin.\n\nEine Ein-Byte-Instruktion und damit der günstigste Weg, ein Unterprogramm zu verlassen. SmartC schließt jede benutzerdefinierte Funktion damit ab; ein `return expr;` wird zu `SET @r0 $expr` gefolgt von `RET`, das Ergebnis kommt also im Register `r0` zurück statt auf einem Stack."
+    },
+    "BZR": {
+      "title": "Verzweigen, wenn null",
+      "group": "Programmablauf",
+      "documentation": "Verzweigt zu `:label`, wenn `$var` null ist, sonst geht es mit der nächsten Instruktion weiter.\n\nGeprüft wird der rohe 64-Bit-Wert, das Vorzeichen spielt hier also keine Rolle — nur das Bitmuster aus lauter Nullen verzweigt. Eine nie geschriebene Variable liest sich als 0 und verzweigt *daher*.\n\nDas Ziel ist als **vorzeichenbehafteter 8-Bit-Offset** relativ zur Verzweigung selbst kodiert und muss also innerhalb von -128..+127 Bytes liegen. Darum musst du dich nicht selbst kümmern: Liegt ein Label außer Reichweite, kehrt der Assembler die Bedingung um und fügt ein `JMP` zum fernen Label ein, was 5 Bytes und eine Instruktion extra kostet. Die dafür verwendete Umkehrung ist `BNZ`.\n\nMit 6 Bytes ist das die kleinste bedingte Instruktion des Befehlssatzes, deshalb bevorzugt SmartC `BZR`/`BNZ` wo immer möglich gegenüber einem Vergleich mit einer Null-Konstanten."
+    },
+    "BNZ": {
+      "title": "Verzweigen, wenn nicht null",
+      "group": "Programmablauf",
+      "documentation": "Verzweigt zu `:label`, wenn `$var` ungleich null ist, sonst geht es mit der nächsten Instruktion weiter.\n\nGeprüft wird der rohe 64-Bit-Wert, das Vorzeichen spielt also keine Rolle — jedes Bitmuster ungleich null verzweigt. Eine nie geschriebene Variable liest sich als 0 und verzweigt *nicht*.\n\nDas Ziel ist als **vorzeichenbehafteter 8-Bit-Offset** relativ zur Verzweigung selbst kodiert und muss also innerhalb von -128..+127 Bytes liegen. Darum musst du dich nicht selbst kümmern: Liegt ein Label außer Reichweite, kehrt der Assembler die Bedingung um und fügt ein `JMP` zum fernen Label ein, was 5 Bytes und eine Instruktion extra kostet. Die dafür verwendete Umkehrung ist `BZR`.\n\nDas genaue Gegenstück zu `BZR`; der Optimierer tauscht die beiden, wann immer er eine Bedingung umkehrt."
+    },
+    "BGT": {
+      "title": "Verzweigen, wenn größer",
+      "group": "Programmablauf",
+      "documentation": "Verzweigt zu `:label`, wenn `$var1 > $var2`, sonst geht es mit der nächsten Instruktion weiter.\n\nBeide Operanden werden als **vorzeichenbehaftete** 64-Bit-Ganzzahlen verglichen, `0xffffffffffffffff` zählt also als `-1`, nicht als riesige positive Zahl. SmartC erzeugt es für `>` bei `long`- und `fixed`-Operanden.\n\nDas Ziel ist als **vorzeichenbehafteter 8-Bit-Offset** relativ zur Verzweigung selbst kodiert und muss also innerhalb von -128..+127 Bytes liegen. Darum musst du dich nicht selbst kümmern: Liegt ein Label außer Reichweite, kehrt der Assembler die Bedingung um und fügt ein `JMP` zum fernen Label ein, was 5 Bytes und eine Instruktion extra kostet. Die dafür verwendete Umkehrung ist `BLE`.\n\nEin nie geschriebener Operand liest sich als 0."
+    },
+    "BLT": {
+      "title": "Verzweigen, wenn kleiner",
+      "group": "Programmablauf",
+      "documentation": "Verzweigt zu `:label`, wenn `$var1 < $var2`, sonst geht es mit der nächsten Instruktion weiter.\n\nBeide Operanden werden als **vorzeichenbehaftete** 64-Bit-Ganzzahlen verglichen, `0xffffffffffffffff` zählt also als `-1`, nicht als riesige positive Zahl. SmartC erzeugt es für `<` bei `long`- und `fixed`-Operanden.\n\nDas Ziel ist als **vorzeichenbehafteter 8-Bit-Offset** relativ zur Verzweigung selbst kodiert und muss also innerhalb von -128..+127 Bytes liegen. Darum musst du dich nicht selbst kümmern: Liegt ein Label außer Reichweite, kehrt der Assembler die Bedingung um und fügt ein `JMP` zum fernen Label ein, was 5 Bytes und eine Instruktion extra kostet. Die dafür verwendete Umkehrung ist `BGE`.\n\nEin nie geschriebener Operand liest sich als 0."
+    },
+    "BGE": {
+      "title": "Verzweigen, wenn größer oder gleich",
+      "group": "Programmablauf",
+      "documentation": "Verzweigt zu `:label`, wenn `$var1 >= $var2`, sonst geht es mit der nächsten Instruktion weiter.\n\nBeide Operanden werden als **vorzeichenbehaftete** 64-Bit-Ganzzahlen verglichen, `0xffffffffffffffff` zählt also als `-1`, nicht als riesige positive Zahl. SmartC erzeugt es für `>=` und auch als umgekehrte Form von `<`, wenn es günstiger ist, im Wahr-Fall durchzufallen.\n\nDas Ziel ist als **vorzeichenbehafteter 8-Bit-Offset** relativ zur Verzweigung selbst kodiert und muss also innerhalb von -128..+127 Bytes liegen. Darum musst du dich nicht selbst kümmern: Liegt ein Label außer Reichweite, kehrt der Assembler die Bedingung um und fügt ein `JMP` zum fernen Label ein, was 5 Bytes und eine Instruktion extra kostet. Die dafür verwendete Umkehrung ist `BLT`.\n\nEin nie geschriebener Operand liest sich als 0."
+    },
+    "BLE": {
+      "title": "Verzweigen, wenn kleiner oder gleich",
+      "group": "Programmablauf",
+      "documentation": "Verzweigt zu `:label`, wenn `$var1 <= $var2`, sonst geht es mit der nächsten Instruktion weiter.\n\nBeide Operanden werden als **vorzeichenbehaftete** 64-Bit-Ganzzahlen verglichen, `0xffffffffffffffff` zählt also als `-1`, nicht als riesige positive Zahl. SmartC erzeugt es für `<=` und auch als umgekehrte Form von `>`.\n\nDas Ziel ist als **vorzeichenbehafteter 8-Bit-Offset** relativ zur Verzweigung selbst kodiert und muss also innerhalb von -128..+127 Bytes liegen. Darum musst du dich nicht selbst kümmern: Liegt ein Label außer Reichweite, kehrt der Assembler die Bedingung um und fügt ein `JMP` zum fernen Label ein, was 5 Bytes und eine Instruktion extra kostet. Die dafür verwendete Umkehrung ist `BGT`.\n\nEin nie geschriebener Operand liest sich als 0."
+    },
+    "BEQ": {
+      "title": "Verzweigen, wenn gleich",
+      "group": "Programmablauf",
+      "documentation": "Verzweigt zu `:label`, wenn `$var1 == $var2`, sonst geht es mit der nächsten Instruktion weiter.\n\nBeide Operanden werden als **vorzeichenbehaftete** 64-Bit-Ganzzahlen verglichen, `0xffffffffffffffff` zählt also als `-1`, nicht als riesige positive Zahl. Für einen Vergleich mit null nimm besser `BZR`, das 4 Bytes kleiner ist und keinen zweiten Operanden braucht.\n\nDas Ziel ist als **vorzeichenbehafteter 8-Bit-Offset** relativ zur Verzweigung selbst kodiert und muss also innerhalb von -128..+127 Bytes liegen. Darum musst du dich nicht selbst kümmern: Liegt ein Label außer Reichweite, kehrt der Assembler die Bedingung um und fügt ein `JMP` zum fernen Label ein, was 5 Bytes und eine Instruktion extra kostet. Die dafür verwendete Umkehrung ist `BNE`.\n\nEin nie geschriebener Operand liest sich als 0."
+    },
+    "BNE": {
+      "title": "Verzweigen, wenn ungleich",
+      "group": "Programmablauf",
+      "documentation": "Verzweigt zu `:label`, wenn `$var1 != $var2`, sonst geht es mit der nächsten Instruktion weiter.\n\nBeide Operanden werden als **vorzeichenbehaftete** 64-Bit-Ganzzahlen verglichen, `0xffffffffffffffff` zählt also als `-1`, nicht als riesige positive Zahl. Für einen Vergleich mit null nimm besser `BNZ`, das 4 Bytes kleiner ist und keinen zweiten Operanden braucht.\n\nDas Ziel ist als **vorzeichenbehafteter 8-Bit-Offset** relativ zur Verzweigung selbst kodiert und muss also innerhalb von -128..+127 Bytes liegen. Darum musst du dich nicht selbst kümmern: Liegt ein Label außer Reichweite, kehrt der Assembler die Bedingung um und fügt ein `JMP` zum fernen Label ein, was 5 Bytes und eine Instruktion extra kostet. Die dafür verwendete Umkehrung ist `BEQ`.\n\nEin nie geschriebener Operand liest sich als 0."
+    },
+    "SLP": {
+      "title": "Schlafen",
+      "group": "Programmablauf",
+      "documentation": "Unterbricht den Contract und setzt ihn in einem späteren Block bei der **nächsten Instruktion** fort. Zustand und Instruktionszeiger bleiben erhalten — eine Pause, kein Neustart.\n\n* `SLP` — im nächsten Block aufwachen.\n* `SLP $var` — in `$var` Blöcken aufwachen. Der Wert wird **vorzeichenbehaftet** gelesen, alles unter 1 wird auf 1 angehoben; `SLP` mit null oder negativem Operanden verhält sich also wie die einfache Ein-Block-Form.\n\nDer Contract ist danach *gestoppt, aber nicht beendet*: Er behält sein Guthaben und wird im Zielblock automatisch fortgesetzt, ohne dass eine Transaktion eingehen muss. Genau dazu kompiliert SmartCs `sleep`-Anweisung. Nimm das bloße `SLP`, wenn ein Block genügt — es ist 4 Bytes kleiner."
+    },
+    "FIN": {
+      "title": "Ausführung beenden",
+      "group": "Programmablauf",
+      "documentation": "Beendet diese Aktivierung und markiert den Contract als *beendet*. Der Instruktionszeiger wird auf die **PCS**-Adresse zurückgesetzt (die der letzten `PCS`-Instruktion oder der Code-Anfang, falls es keine gab), die nächste Aktivierung beginnt also dort statt an der Stelle, an der die Ausführung endete.\n\nDer Contract wird eingefroren und läuft erst wieder, wenn eine neue Transaktion eingeht — oder im nächsten Block, wenn der Aktivierungsbetrag null ist. Dazu kompiliert SmartCs `exit`, und hier landet auch ein Programm, das über das Ende seines Codes hinausläuft.\n\nIm Gegensatz dazu stoppt `STP` den Contract ebenfalls, setzt aber bei der *nächsten* Instruktion fort statt bei PCS."
+    },
+    "STP": {
+      "title": "Ausführung stoppen",
+      "group": "Programmablauf",
+      "documentation": "Beendet diese Aktivierung und markiert den Contract als *gestoppt, nicht beendet*. Der Instruktionszeiger bleibt auf der **nächsten Instruktion**, die folgende Aktivierung macht also genau dort weiter.\n\nDer Contract wird eingefroren und wartet auf eine neue Transaktion — oder läuft im nächsten Block weiter, wenn der Aktivierungsbetrag null ist. Dazu kompiliert SmartCs `halt`.\n\nIm Gegensatz dazu setzt `FIN` die Ausführung auf die PCS-Adresse zurück, statt fortzufahren."
+    },
+    "FIZ": {
+      "title": "Beenden, wenn null",
+      "group": "Programmablauf",
+      "documentation": "Bedingtes `FIN`: Ist `$var` null, endet der Contract genau wie bei `FIN` — eingefroren, als beendet markiert, Instruktionszeiger auf die **PCS**-Adresse zurückgesetzt. Ist `$var` ungleich null, passiert nichts und die Ausführung geht mit der nächsten Instruktion weiter.\n\nGeprüft wird der rohe 64-Bit-Wert; eine nie geschriebene Variable liest sich als 0 und beendet daher.\n\nKodiert das häufige Muster „aussteigen, wenn das nicht geklappt hat“ in 5 Bytes, statt der 7, die das gleichwertige Paar `BNZ $var :skip` / `FIN` / `skip:` kosten würde."
+    },
+    "STZ": {
+      "title": "Stoppen, wenn null",
+      "group": "Programmablauf",
+      "documentation": "Bedingtes `STP`: Ist `$var` null, stoppt der Contract wie bei `STP` — eingefroren, *nicht* beendet, und setzt bei der folgenden Aktivierung mit der nächsten Instruktion fort. Ist `$var` ungleich null, passiert nichts und die Ausführung läuft einfach weiter.\n\nBeachte die Asymmetrie zu `FIZ`: In beiden Fällen rückt der Instruktionszeiger hinter das `STZ`, denn Stoppen heißt hier „später bei der nächsten Instruktion weitermachen“, nicht „neu starten“.\n\nGeprüft wird der rohe 64-Bit-Wert; eine nie geschriebene Variable liest sich als 0 und stoppt daher."
+    },
+    "ERR": {
+      "title": "Fehlerbehandlung setzen",
+      "group": "Programmablauf",
+      "documentation": "Installiert `:label` als Fehlerbehandlung des Contracts und macht mit der nächsten Instruktion weiter. Es springt **nicht** jetzt dorthin.\n\nIst sie gesetzt, übergibt ein Laufzeitfehler die Kontrolle an die Fehlerbehandlung, statt den Contract zu beenden. Über sie laufen diese Fehler:\n\n* Division durch null (`DIV`, `MOD`)\n* User-Stack-Unterlauf (`POP` auf leerem Stack)\n* Code-Stack-Überlauf / -Unterlauf (`JSR` zu tief, `RET` ohne Rücksprungziel)\n* kein Gas mehr und andere Maschinenausnahmen\n\nOhne Fehlerbehandlung markiert jeder dieser Fehler den Contract als *tot* — dauerhaft, mit festsitzendem Guthaben. Die Zieladresse wird als volle 4-Byte-Adresse gespeichert, die Fehlerbehandlung kann also überall im Code liegen. SmartC erzeugt dies aus `registerError()` bzw. der Fehlerbehandlungs-Unterstützung."
+    },
+    "PCS": {
+      "title": "Startpunkt des Programmzählers setzen",
+      "group": "Programmablauf",
+      "documentation": "Merkt sich die Adresse der **nächsten** Instruktion als Neustartpunkt des Contracts und macht dann normal weiter.\n\n`FIN` und `FIZ` setzen den Instruktionszeiger auf diese Adresse zurück; alles vor dem `PCS` läuft also genau einmal — bei der allerersten Aktivierung —, und jede spätere Aktivierung beginnt hier.\n\nGenau so setzt SmartC `void main()` um: Globale Anweisungen stehen vor dem `PCS`, und `main()` beginnt direkt danach. Ein Programm ohne `main()` hat kein `PCS`, der Neustartpunkt bleibt also bei Adresse 0, und die globalen Anweisungen laufen bei jeder Aktivierung erneut."
+    },
+    "NOP": {
+      "title": "Keine Operation",
+      "group": "Programmablauf",
+      "documentation": "Tut nichts und geht zur nächsten Instruktion. Kostet ein Byte und einen Schritt.\n\nSmartC erzeugt nie `NOP` — der Optimierer würde es entfernen. Es existiert für handgeschriebenes Assembly und als Füllung, wenn Adressen stabil bleiben sollen."
+    },
+    "ADD": {
+      "title": "Addieren",
+      "group": "Arithmetik",
+      "documentation": "`@dest = $dest + $var`, als **vorzeichenbehaftete** 64-Bit-Ganzzahlen.\n\nEin Überlauf läuft stillschweigend um — er löst keinen Fehler aus und erreicht nicht die `ERR`-Fehlerbehandlung. Kann eine Summe `9223372036854775807` übersteigen, musst du den Bereich selbst prüfen.\n\nWeil `fixed`-Werte einfache, mit 1e8 skalierte Ganzzahlen sind, addiert dieselbe Instruktion sie; nur Multiplikation und Division müssen neu skalieren.\n\nEine nie geschriebene Variable liest sich als 0."
+    },
+    "SUB": {
+      "title": "Subtrahieren",
+      "group": "Arithmetik",
+      "documentation": "`@dest = $dest - $var`, als **vorzeichenbehaftete** 64-Bit-Ganzzahlen.\n\nEin Unterlauf läuft stillschweigend um. Das rächt sich, wenn ein Guthaben als vorzeichenlos behandelt wird: `0 - 1` wird zu `0xffffffffffffffff`, das bei den vorzeichenbehafteten Verzweigungen als `-1` gilt, aber als riesige Zahl gelesen wird, wenn du es später einer API-Funktion übergibst.\n\nWie bei `ADD` brauchen `fixed`-Operanden keine Neuskalierung.\n\nEine nie geschriebene Variable liest sich als 0."
+    },
+    "MUL": {
+      "title": "Multiplizieren",
+      "group": "Arithmetik",
+      "documentation": "`@dest = $dest * $var`, als **vorzeichenbehaftete** 64-Bit-Ganzzahlen, bei Überlauf auf 64 Bits abgeschnitten.\n\nDer Überlauf ist still und schnell erreicht: Zwei Werte um 4e9 sprengen bereits den Bereich. Brauchst du das breite Zwischenergebnis, nimm stattdessen `MDV` — es multipliziert mit 128 Bits, bevor es teilt.\n\nBei `fixed`-Operanden muss das Ergebnis wieder um 1e8 herunterskaliert werden, deshalb lässt SmartC dem `MUL` ein `DIV @dest $f100000000` folgen.\n\nEine nie geschriebene Variable liest sich als 0."
+    },
+    "DIV": {
+      "title": "Dividieren",
+      "group": "Arithmetik",
+      "documentation": "`@dest = $dest / $var`, als **vorzeichenbehaftete** 64-Bit-Ganzzahlen, in Richtung null abgeschnitten.\n\n**Division durch null ist fatal.** Ohne Fehlerbehandlung wird der Contract mit *Division by zero* als tot markiert, und sein Guthaben sitzt endgültig fest; mit einer installierten `ERR :label`-Fehlerbehandlung springt die Ausführung stattdessen dorthin. Sichere den Divisor ab oder installiere eine Fehlerbehandlung.\n\nEin nie geschriebener Divisor zählt ebenfalls als null und löst denselben Fehler aus.\n\nBei `fixed`-Operanden muss der Zähler zuerst um 1e8 hochskaliert werden, deshalb erzeugt SmartC vor dem `DIV` ein `MUL @dest $f100000000` — oder, wenn möglich, ein einzelnes `MDV`."
+    },
+    "MOD": {
+      "title": "Modulo",
+      "group": "Arithmetik",
+      "documentation": "`@dest = $dest % $var`, der Rest der **vorzeichenbehafteten** Division, in Richtung null abgeschnitten. Das Ergebnis hat das Vorzeichen des Dividenden: `-7 % 3` ist `-1`, nicht `2`.\n\n**Modulo durch null ist fatal**, genau wie bei `DIV`: Der Contract stirbt mit *Division by zero ( mod 0 )*, es sei denn, eine `ERR :label`-Fehlerbehandlung ist installiert. Ein nie geschriebener Divisor zählt als null.\n\nEine nie geschriebene Variable liest sich als 0."
+    },
+    "POW": {
+      "title": "Potenz",
+      "group": "Arithmetik",
+      "documentation": "`@dest = $dest ^ ($var / 1e8)`, auf eine Ganzzahl abgeschnitten.\n\nDer Exponent ist eine **Festkommazahl**, keine Ganzzahl: Zum Quadrieren muss der Operand `200000000` enthalten (also `2.0`). Dadurch sind gebrochene Potenzen — Wurzeln — möglich: Ein Exponent von `50000000` (`0.5`) zieht die Quadratwurzel.\n\nDie Basis wird als vorzeichenbehaftete Ganzzahl gelesen. Ist sie null oder negativ, ist das Ergebnis `0`. Das Ergebnis wird auch dann auf `0` gesetzt, wenn es keine Zahl ist oder den positiven 64-Bit-Bereich überschreitet; ein fehlgeschlagenes `POW` ist also still — prüf auf ein Null-Ergebnis, wenn es darauf ankommt.\n\nAnders als die übrigen arithmetischen Instruktionen wird diese intern in Gleitkomma berechnet, sehr große Ergebnisse verlieren also an Genauigkeit, bevor sie abgeschnitten werden.\n\nEine nie geschriebene Variable liest sich als 0."
+    },
+    "MDV": {
+      "title": "Multiplizieren und dividieren",
+      "group": "Arithmetik",
+      "documentation": "`@dest = ($dest * $var1) / $var2`, wobei das Zwischenprodukt mit **128-Bit**-Genauigkeit berechnet und erst der endgültige Quotient auf 64 Bits abgeschnitten wird.\n\nDeshalb gibt es `MDV`: `MUL` gefolgt von `DIV` würde beim Zwischenergebnis überlaufen, `MDV` nicht. Es ist die richtige Instruktion für Prozente, Verhältnisse und `fixed`-Multiplikation — SmartC erzeugt es für `fixed * fixed` mit `$f100000000` als Divisor.\n\nAnders als bei `DIV` ist **ein Divisor von null nicht fatal**: Das Ergebnis ist einfach `0`, und die Ausführung geht weiter. Das ist standardmäßig sicher, heißt aber auch, dass ein falscher Divisor still scheitert, statt deine `ERR`-Fehlerbehandlung zu erreichen.\n\nMit 13 Bytes ist es eine der größeren Instruktionen, aber immer noch kleiner und genauer als das `MUL`/`DIV`-Paar, das es ersetzt.\n\nEine nie geschriebene Variable liest sich als 0."
+    },
+    "INC": {
+      "title": "Inkrementieren",
+      "group": "Arithmetik",
+      "documentation": "`@dest = $dest + 1`, läuft bei Überlauf stillschweigend um.\n\nMit 5 Bytes ist das 4 Bytes kleiner als `ADD @dest $one` und braucht keine Konstantenvariable für die 1.\n\nSmartC erzeugt es für `++` bei einem `long`. Vorsicht: `++` bei einem `fixed` ist *kein* `INC` — einen fixed-Wert zu inkrementieren heißt 1.0 zu addieren, deshalb erzeugt der Compiler stattdessen `ADD @dest $f100000000`."
+    },
+    "DEC": {
+      "title": "Dekrementieren",
+      "group": "Arithmetik",
+      "documentation": "`@dest = $dest - 1`, läuft bei Unterlauf stillschweigend um — eine Null zu dekrementieren ergibt `0xffffffffffffffff`.\n\nMit 5 Bytes ist das 4 Bytes kleiner als `SUB @dest $one` und braucht keine Konstantenvariable für die 1.\n\nSmartC erzeugt es für `--` bei einem `long`. Bei einem `fixed` erzeugt der Compiler stattdessen `SUB @dest $f100000000`, denn einen fixed-Wert zu dekrementieren heißt 1.0 abzuziehen."
+    },
+    "NOT": {
+      "title": "Bitweises NICHT",
+      "group": "Arithmetik",
+      "documentation": "`@dest = ~$dest` — jedes der 64 Bits wird an Ort und Stelle umgekehrt.\n\nDas ist das bitweise Komplement, keine logische Negation: `NOT` auf `0` ergibt `0xffffffffffffffff` (vorzeichenbehaftet `-1`), nicht `1`. SmartC erzeugt es für `~` bei `long`- und `fixed`-Operanden; das logische `!` wird stattdessen zu einer Verzweigung.\n\nDie Zweierkomplement-Negation ist `NOT` gefolgt von `INC`."
+    },
+    "CLR": {
+      "title": "Löschen",
+      "group": "Arithmetik",
+      "documentation": "Setzt `@dest` auf null.\n\nMit 5 Bytes ist das der günstigste Weg, eine Variable zu nullen: `SET @dest #0000000000000000` kostet 13 Bytes, und `SET @dest $zero` kostet 9 plus eine Variable, die die Null hält.\n\nDer Codegenerator macht aus einer Zuweisung des Literals `0` direkt ein `CLR`, `x = 0;` geht also nie über `SET`."
+    },
+    "SHL": {
+      "title": "Nach links schieben",
+      "group": "Arithmetik",
+      "documentation": "`@dest = $dest << $var`, auf dem rohen 64-Bit-Wort; oben herausgeschobene Bits gehen verloren.\n\nDie Schiebeweite wird **vorzeichenbehaftet** gelesen und dann auf `0..63` begrenzt: Eine negative Weite wird `0` (kein Schieben), alles über 63 wird `63`. Anders als in C ist ein zu weites Schieben hier also wohldefiniert statt undefiniert.\n\nUm *n* nach links zu schieben multipliziert mit 2ⁿ, solange oben nichts herausfällt.\n\nEine nie geschriebene Variable liest sich als 0."
+    },
+    "SHR": {
+      "title": "Nach rechts schieben",
+      "group": "Arithmetik",
+      "documentation": "`@dest = $dest >> $var`, ein **logisches** Schieben auf dem rohen 64-Bit-Wort: Oben kommen Nullen nach, das Vorzeichenbit bleibt nicht erhalten.\n\nDie Schiebeweite wird vorzeichenbehaftet gelesen und auf `0..63` begrenzt, genau wie bei `SHL`.\n\nWeil das Schieben logisch statt arithmetisch ist, teilt es nur bei vorzeichenlos gemeinten Werten durch 2ⁿ. Eine negative Zahl nach rechts zu schieben macht aus ihr eine große positive — nimm `DIV`, wenn du vorzeichenbehaftet teilen willst.\n\nEine nie geschriebene Variable liest sich als 0."
+    },
+    "BOR": {
+      "title": "Bitweises ODER",
+      "group": "Arithmetik",
+      "documentation": "`@dest = $dest | $var`, Bit für Bit über das ganze 64-Bit-Wort.\n\nRein bitweise — es gibt kein Vorzeichen, und kein Wert kann überlaufen. Die Mnemonik ist `BOR`, nicht `OR` — der Assembler akzeptiert `OR` nicht.\n\nEine nie geschriebene Variable liest sich als 0."
+    },
+    "AND": {
+      "title": "Bitweises UND",
+      "group": "Arithmetik",
+      "documentation": "`@dest = $dest & $var`, Bit für Bit über das ganze 64-Bit-Wort.\n\nRein bitweise — es gibt kein Vorzeichen, und kein Wert kann überlaufen. Der übliche Weg, Bits aus einem gepackten Wort auszumaskieren; SmartC erzeugt es für `&` und zum Lesen von Bitfeldern.\n\nEine nie geschriebene Variable liest sich als 0."
+    },
+    "XOR": {
+      "title": "Bitweises XOR",
+      "group": "Arithmetik",
+      "documentation": "`@dest = $dest ^ $var`, Bit für Bit über das ganze 64-Bit-Wort.\n\nRein bitweise — es gibt kein Vorzeichen, und kein Wert kann überlaufen. `XOR` eines Werts mit sich selbst nullt ihn in 9 Bytes, `CLR` schafft dasselbe in 5.\n\nEine nie geschriebene Variable liest sich als 0."
+    },
+    "SET": {
+      "title": "Daten setzen / verschieben",
+      "group": "Speicher",
+      "documentation": "Das Arbeitspferd des Befehlssatzes: weist einer Speicherzelle einen Wert zu. Hinter dieser einen Mnemonik stecken sechs verschiedene Opcodes, und der Assembler wählt allein anhand der Form der Operanden.\n\n**Direkt**\n\n* `SET @dest #hex` — ein 64-Bit-Literal laden. Das Literal muss aus genau 16 Hex-Ziffern in Kleinbuchstaben bestehen. Mit 13 Bytes ist das die teuerste Form; genau deshalb gibt es `#pragma maxConstVars`: Es legt häufige Konstanten in Variablen ab, sodass wiederholte Verwendungen 9 statt 13 Bytes kosten.\n* `SET @dest $var` — eine Variable in eine andere kopieren.\n\n**Lesen über einen Zeiger**\n\n* `SET @dest $($ptr)` — von der Adresse in `$ptr` laden.\n* `SET @dest $($ptr + $idx)` — von `$ptr + $idx` laden, die Form hinter Lesezugriffen auf `array[i]` und `struct->member`.\n\n**Schreiben über einen Zeiger**\n\n* `SET @($ptr) $var` — `$var` an der Adresse in `$ptr` speichern.\n* `SET @($ptr + $idx) $var` — an `$ptr + $idx` speichern, die Form hinter `array[i] = x`.\n\nBeachte die Asymmetrie der Syntax: `@` markiert die geschriebene Zelle, `$` den gelesenen Wert; indirektes Lesen und Schreiben unterscheiden sich also nur darin, auf welcher Seite die Klammern stehen.\n\nDie Adressen in `$ptr`/`$idx` sind **Zellindizes, keine Byte-Offsets** — jede Speicherzelle ist ein 64-Bit-Wort.\n\nDie vier indirekten Formen werden auf Grenzen geprüft, und eine Überschreitung ist **fatal**: Eine effektive Adresse unter 0 oder über `32 × dataPages` beendet den Contract mit *Variable address out of range*, es sei denn, eine `ERR :label`-Fehlerbehandlung ist installiert. Ein wilder Zeiger bringt den Contract also zum Absturz, statt still eine Nachbarzelle zu beschädigen.\n\nEine nie geschriebene Variable liest sich als 0."
+    },
+    "PSH": {
+      "title": "Auf den User-Stack legen",
+      "group": "Stack",
+      "documentation": "Legt eine Kopie von `$var` auf den **User-Stack**.\n\nDer User-Stack ist getrennt vom Code-Stack, den `JSR`/`RET` verwenden, und wird mit `#pragma userStackPages` dimensioniert — 16 Einträge pro Seite, bis zu 10 Seiten.\n\nGut zu wissen: SmartC übergibt Argumente **nicht** über diesen Stack. Ein Aufruf weist jedes Argument per `SET` direkt der Parametervariable der aufgerufenen Funktion zu, und der Rückgabewert kommt in `r0` zurück. Tatsächlich gepusht werden:\n\n* die belegten Register des Aufrufers, über den Aufruf hinweg gesichert, weil die aufgerufene Funktion sie überschreiben kann\n* die Variablen des aktuellen Scopes, wenn der Aufruf **rekursiv** ist — das ist der Fall, in dem `#pragma userStackPages` zählt\n\nEine nie geschriebene Variable legt 0 ab."
+    },
+    "POP": {
+      "title": "Vom User-Stack holen",
+      "group": "Stack",
+      "documentation": "Entfernt den obersten Wert vom **User-Stack** und speichert ihn in `@dest`.\n\nVon einem leeren Stack zu holen ist ein Fehler: Der Contract wird mit *User Stack buffer underflow* als tot markiert, es sei denn, eine `ERR :label`-Fehlerbehandlung ist installiert — dann geht die Ausführung dort weiter. Genau das passiert, wenn ein handgeschriebener `asm { }`-Block ungleich oft pusht und popt.\n\nEs gibt keine Instruktion, die den obersten Wert liest, ohne ihn zu entfernen, und keinen indizierten Zugriff; brauchst du den Wert zweimal, hol ihn in eine Variable."
+    },
+    "FUN": {
+      "title": "Eine API-Funktion aufrufen",
+      "group": "API",
+      "documentation": "Ruft eine der eingebauten API-Funktionen der Blockchain auf — der einzige Weg der Maschine über ihren eigenen Speicher hinaus: Transaktionen lesen, Signa senden, hashen, mit Assets und Maps arbeiten und so weiter.\n\nSechs Opcodes teilen sich die Mnemonik, gewählt danach, ob der Aufruf einen Wert liefert und wie viele Argumente er nimmt. Der Rückgabeslot steht in der Syntax **zuerst**, vor dem Funktionsnamen:\n\n* `FUN name` / `FUN name $a` / `FUN name $a $b` — kein Rückgabewert\n* `FUN @dest name` / `FUN @dest name $a` / `FUN @dest name $a $b` — Ergebnis wird nach `@dest` geschrieben\n\nZwei Argumente sind die harte Obergrenze. Alles, was mehr Daten braucht, geht über die **Register A und B** — je vier 64-Bit-Wörter —, weshalb so viel AT-Code aus einer Reihe von `set_A1`/`set_B2`-Aufrufen gefolgt vom eigentlichen Aufruf besteht. Eine Funktion in der falschen Form oder mit einem Namen aufzurufen, den die Maschine nicht kennt, beendet den Contract.\n\n**Das ist die teure Instruktion.** Jedes `FUN` kostet **10 Schritte** gegenüber dem 1, das jede andere Instruktion kostet; API-Aufrufe bestimmen also die Gas-Rechnung eines typischen Contracts. Ein wiederholtes `FUN` aus einer Schleife herauszuziehen ist meist der größte Gewinn überhaupt — und genau danach sucht `#pragma optimizationLevel 3`.\n\nDer Name wird beim Assemblieren in einen 2-Byte-API-Code aufgelöst; fahr mit der Maus über einen API-Funktionsnamen, um seinen Code zu sehen."
+    }
+  }
+}

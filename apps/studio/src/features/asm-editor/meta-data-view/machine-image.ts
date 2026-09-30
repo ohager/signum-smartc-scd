@@ -1,4 +1,5 @@
 import type { MachineData } from "@/features/asm-editor/machine-data.ts";
+import { t } from "@/i18n/runtime";
 
 /**
  * The arithmetic the assembler does, repeated here so the panel can show it.
@@ -26,17 +27,17 @@ function fillOfLastPage(used: number, perPage: number) {
 export function pageBudget(data: MachineData): PageKind[] {
   return [
     {
-      label: "code",
+      label: t("asm-editor.meta.pages.code"),
       count: data.CodePages,
       lastFill: fillOfLastPage(data.ByteCode.length / 2, PAGE_BYTES),
     },
     {
-      label: "data",
+      label: t("asm-editor.meta.pages.data"),
       count: data.DataPages,
       lastFill: fillOfLastPage(data.Memory.length, SLOTS_PER_DATA_PAGE),
     },
-    { label: "code stack", count: data.CodeStackPages, lastFill: 1 },
-    { label: "user stack", count: data.UserStackPages, lastFill: 1 },
+    { label: t("asm-editor.meta.pages.codeStack"), count: data.CodeStackPages, lastFill: 1 },
+    { label: t("asm-editor.meta.pages.userStack"), count: data.UserStackPages, lastFill: 1 },
   ];
 }
 

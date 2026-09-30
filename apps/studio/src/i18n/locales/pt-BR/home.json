@@ -1,0 +1,68 @@
+{
+  "hero": {
+    "pitch": "Escreva, simule e implante contratos inteligentes Signum — totalmente no navegador. Nada para instalar.",
+    "tagline": "Signum · IDE no navegador",
+    "createFirst": "Crie seu primeiro contrato",
+    "newProject": "Novo projeto",
+    "importProject": "Importar projeto",
+    "import": "Importar"
+  },
+  "howItWorks": {
+    "heading": "Como funciona",
+    "soon": "em breve",
+    "write": {
+      "title": "Escrever",
+      "blurb": "Editor SmartC com autocompletar, documentação ao passar o mouse e diagnóstico do compilador em tempo real."
+    },
+    "test": {
+      "title": "Testar",
+      "blurb": "Escreva testes ao lado do seu contrato e execute-os no navegador, com os valores direto no código."
+    },
+    "simulate": {
+      "title": "Simular",
+      "blurb": "Execute passo a passo com um cenário: pontos de interrupção, variáveis, um ledger simulado."
+    },
+    "deploy": {
+      "title": "Implantar",
+      "blurb": "Conecte sua carteira e publique na Testnet ou Mainnet da Signum."
+    }
+  },
+  "learn": {
+    "heading": "Aprender",
+    "smartc-repo": {
+      "title": "Linguagem e compilador SmartC",
+      "blurb": "Referência de sintaxe, funções embutidas e o próprio compilador."
+    },
+    "signum-docs": {
+      "title": "Documentação da Signum",
+      "blurb": "Como a rede Signum, as contas e as transações funcionam."
+    },
+    "signum-network": {
+      "title": "Rede Signum",
+      "blurb": "O projeto, seu ecossistema e comunidade."
+    }
+  },
+  "continue": {
+    "heading": "Continue de onde parou",
+    "justNow": "agora mesmo",
+    "minutesAgo": "há {minutes} min",
+    "hoursAgo": "há {hours} h",
+    "yesterday": "ontem",
+    "daysAgo": {
+      "one": "há {count} dia",
+      "other": "há {count} dias"
+    }
+  },
+  "projects": {
+    "heading": "Projetos",
+    "files": {
+      "one": "{count} arquivo",
+      "other": "{count} arquivos"
+    },
+    "nothingToOpen": " · nada para abrir ainda"
+  },
+  "smallScreen": {
+    "title": "Melhor em uma tela maior",
+    "body": "O SmartC Studio foi feito para computadores. Em telas pequenas, o editor, o simulador e a implantação não têm espaço suficiente — use um notebook ou desktop."
+  }
+}

@@ -22,6 +22,7 @@ import { FileTypes } from "@/features/project/filetype-icons.tsx";
 import { findProjectOfFolder } from "@/features/project/project-root";
 import { isContractFile } from "@/features/project/contract";
 import { analyzeWithCompiler } from "./language/compiler-symbols";
+import { t } from "@/i18n/runtime";
 
 async function createAssemblyFile(
   folderId: string,
@@ -41,12 +42,10 @@ async function createAssemblyFile(
     compiler.compile();
     const assembly = compiler.getAssemblyCode();
     await fs.addFile(folderId, fileName, FileTypes.ASM, assembly);
-    toast.success(
-      "Smart Contract compiled successfully - Assembly file created!",
-    );
+    toast.success(t("smartc-editor.compile.created"));
   } catch (e) {
     console.error(e);
-    toast.error("Could not create Assembly file: ", e.message);
+    toast.error(t("smartc-editor.compile.createFailed", { message: (e as Error).message }));
   }
 }
 
@@ -66,12 +65,10 @@ async function updateAssemblyFile(fileId: string, code: string) {
     compiler.compile();
     const assembly = compiler.getAssemblyCode();
     await fs.saveFile(fileId, assembly);
-    toast.success(
-      "Smart Contract compiled successfully - Assembly file updated!",
-    );
+    toast.success(t("smartc-editor.compile.updated"));
   } catch (e) {
     console.error(e);
-    toast.error("Could not update Assembly file: ", e.message);
+    toast.error(t("smartc-editor.compile.updateFailed", { message: (e as Error).message }));
   }
 }
 
@@ -147,7 +144,7 @@ function SmartCEditor({ file }: Props) {
     const { files } = fs.listFolderContents(file.metadata.folderId);
     const existingFile = files.find((f) => f.metadata.type === FileTypes.ASM);
     if (!existingFile) {
-      return toast.error("Could not find existing file");
+      return toast.error(t("smartc-editor.compile.noAsmFile"));
     }
     return updateAssemblyFile(existingFile.id, code);
   }, [code, baseName]);
@@ -157,7 +154,7 @@ function SmartCEditor({ file }: Props) {
       id: ActionType.Compile,
       // TODO: this is not good... we need to use events
       run: compileSmartC,
-      label: "Compile SmartC",
+      label: t("smartc-editor.compile.action"),
       keybindings: [
         monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyC,
       ],
@@ -184,12 +181,12 @@ function SmartCEditor({ file }: Props) {
             disabled={!isValid}
             title={
               isValid
-                ? `Compile this contract (${COMPILE_HOTKEY})`
-                : "Fix the error before compiling"
+                ? t("smartc-editor.compile.hint", { hotkey: COMPILE_HOTKEY })
+                : t("smartc-editor.compile.fixFirst")
             }
           >
             <Code2 className="h-4 w-4" />
-            Compile
+            {t("smartc-editor.compile.button")}
           </ToolbarButton>
         }
         context={
@@ -235,10 +232,10 @@ function SmartCEditor({ file }: Props) {
         open={showConfirmDialog}
         onOpenChange={setShowConfirmDialog}
         onConfirm={recompileSmartC}
-        title="Compile SmartC"
-        description="An assembly file already exists. All previous code will be overwritten if you re-compile"
-        confirmText="Re-Compile"
-        cancelText="Cancel"
+        title={t("smartc-editor.compile.overwriteTitle")}
+        description={t("smartc-editor.compile.overwrite")}
+        confirmText={t("smartc-editor.compile.recompile")}
+        cancelText={t("common.actions.cancel")}
         variant="destructive"
       />
     </div>

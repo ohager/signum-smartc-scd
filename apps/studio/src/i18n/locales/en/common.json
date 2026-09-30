@@ -1,0 +1,95 @@
+{
+  "actions": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "confirm": "Confirm",
+    "create": "Create",
+    "delete": "Delete",
+    "disconnect": "Disconnect",
+    "download": "Download",
+    "finish": "Finish",
+    "next": "Next",
+    "open": "Open",
+    "previous": "Previous",
+    "rename": "Rename",
+    "save": "Save"
+  },
+  "confirm": {
+    "title": "Confirm Action",
+    "description": "Do you really want to do this?"
+  },
+  "sidebar": {
+    "home": "Home",
+    "projects": "Projects",
+    "addProject": "Add new project",
+    "importProject": "Import project (zip)",
+    "selectOpenedFile": "Select opened file",
+    "createProject": "Create new project",
+    "alpha": "Alpha",
+    "prerelease": "v{version} · experimental — expect rough edges and breaking changes",
+    "resize": "Drag to resize sidebar",
+    "toggle": "Toggle Sidebar",
+    "mobileTitle": "Sidebar",
+    "mobileDescription": "Displays the mobile sidebar."
+  },
+  "import": {
+    "done": {
+      "one": "Imported {count} file",
+      "other": "Imported {count} files"
+    },
+    "doneWithSkipped": {
+      "one": "Imported {count} file ({skipped} skipped)",
+      "other": "Imported {count} files ({skipped} skipped)"
+    }
+  },
+  "climate": {
+    "label": "Colour climate"
+  },
+  "wallet": {
+    "connect": "Connect Wallet",
+    "connectTestnet": "Connect to Testnet",
+    "connectMainnet": "Connect to Mainnet",
+    "connectionIssue": "Connection Issue",
+    "expectedNetwork": "Expected Network: {network}",
+    "ready": "Ready to deploy contracts",
+    "account": "Account",
+    "balance": "Balance",
+    "testnet": "Testnet",
+    "mainnet": "Mainnet"
+  },
+  "editor": {
+    "format": "Format document ({hotkey})",
+    "download": "Download this file ({hotkey})",
+    "unsaved": "Unsaved changes ({hotkey})",
+    "allSaved": "All Saved",
+    "saveAction": "Save File",
+    "downloadAction": "Download File",
+    "saved": "File saved successfully!",
+    "saveFailed": "Could not save file: {message}"
+  },
+  "files": {
+    "loading": "Loading…",
+    "loadError": "Error loading file",
+    "unsupported": "This file type (\"{type}\") is no longer supported.",
+    "nameTaken": "A file named {name} already exists in this folder",
+    "folderNameTaken": "A folder named {name} already exists here",
+    "deleteRoot": "Cannot delete root folder",
+    "renameRoot": "Cannot rename root folder"
+  },
+  "pages": {
+    "deploy": "Deploy",
+    "notCompiling": "The contract does not compile, so there is nothing to publish: {error}",
+    "compiling": "Compiling…",
+    "simulate": "Simulate",
+    "replayNote": "Replays what this test sent. Assertions do not re-evaluate while you step, and only the last contract the test loaded is steppable.",
+    "replayScenario": "from {test}"
+  },
+  "debugDashboard": {
+    "block": "block {block}",
+    "step": "step {step}",
+    "live": "● live",
+    "waiting": "waiting for a debug session…",
+    "contractStatus": "Contract Status",
+    "ledgerStatus": "Ledger Status"
+  }
+}

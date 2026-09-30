@@ -1,0 +1,57 @@
+{
+  "editor": {
+    "run": "Ejecutar",
+    "runHint": "Ejecutar este archivo de pruebas",
+    "runFailed": "No se pudieron ejecutar las pruebas: {message}",
+    "runOneFailed": "No se pudo ejecutar la prueba: {message}",
+    "simulate": "Simular",
+    "simulateHint": "Ejecutar la prueba seleccionada y simular el escenario que registra",
+    "selectToSimulate": "Selecciona una prueba para simular su escenario",
+    "simulateFailed": "No se pudo simular: {message}",
+    "noContract": "«{name}» no cargó ningún contrato, así que no hay nada que simular.",
+    "running": "en ejecución…",
+    "showingValues": "mostrando valores de:",
+    "traceTruncated": " — traza truncada, algunos valores no se registraron",
+    "debugRun": "Ejecución de depuración (DevTools)",
+    "debugRunNote": "— se ejecuta en la página para que DevTools pueda detenerse; un contrato descontrolado congelará la pestaña",
+    "results": "Resultados",
+    "value": "Valor"
+  },
+  "results": {
+    "goToLine": "Ir a la línea {line}",
+    "duration": "{ms} ms",
+    "expected": "esperado: {value}",
+    "received": "recibido: {value}",
+    "passed": "{count} correctas",
+    "failed": "{count} fallidas",
+    "skipped": "{count} omitidas",
+    "timedOut": "{count} agotaron el tiempo",
+    "pressRun": "Pulsa Ejecutar para lanzar este archivo de pruebas.",
+    "couldNotLoad": "No se pudo cargar {file}",
+    "hookFailed": "{phase} falló",
+    "hookFailedIn": "{phase} falló en {suite}"
+  },
+  "value": {
+    "hint": "Haz clic en un valor mostrado al final de una línea para inspeccionarlo aquí.",
+    "fallbackName": "valor",
+    "ranTimes": "se ejecutó {count} veces — se muestra la última",
+    "collapseAll": "Contraer todo",
+    "expandAll": "Expandir todo",
+    "noValue": "Esta línea completó una aserción pero no enlazó ningún valor.",
+    "eachRun": "Cada ejecución",
+    "eachRunLast": "Cada ejecución, mostrando las últimas {shown} de {count}"
+  },
+  "devtools": {
+    "label": "Cómo depurar con DevTools",
+    "title": "Depurar con DevTools",
+    "openFirst": "Abre DevTools primero — no puede conectarse a una ejecución que ya está en marcha.",
+    "tick": "Marca esta casilla y pulsa Ejecutar.",
+    "find": "Busca tu prueba en Sources bajo la ruta del proyecto, p. ej. <code>/my-project/tests/counter.test.ts</code>.",
+    "breakpoint": "Pon ahí un punto de interrupción, o añade una sentencia <code>debugger;</code> en la prueba.",
+    "freeze": "Las pruebas se ejecutan en la página en lugar de en un worker, así que un contrato en bucle infinito congelará la pestaña — el watchdog no puede interrumpir el bucle que lo está bloqueando."
+  },
+  "decorations": {
+    "run": "Ejecutar {label}",
+    "runAll": "Ejecutar todo en {label}"
+  }
+}

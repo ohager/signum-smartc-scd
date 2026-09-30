@@ -1,0 +1,34 @@
+{
+  "rail": {
+    "label": "Workflow",
+    "write": "Write",
+    "test": "Test",
+    "simulate": "Simulate",
+    "deploy": "Deploy",
+    "noContract": "no contract",
+    "needsCompile": "needs a contract that compiles",
+    "ignoredContract": " · a second contract ({name}) is ignored"
+  },
+  "cells": {
+    "compiles": "compiles",
+    "errors": {
+      "one": "{count} error",
+      "other": "{count} errors"
+    },
+    "noTests": "no tests",
+    "failed": "{count} failed",
+    "green": "{count} green",
+    "noScenario": "no scenario",
+    "scenarios": {
+      "one": "{count} scenario",
+      "other": "{count} scenarios"
+    },
+    "connectWallet": "Connect a wallet to ask the chain",
+    "notCompiling": "The contract does not compile yet",
+    "deploying": "deploying…",
+    "waitingBlock": "Waiting for the next block",
+    "notDeployed": "not deployed",
+    "yours": "{count} · {mine} yours",
+    "deployed": "{count} deployed"
+  }
+}

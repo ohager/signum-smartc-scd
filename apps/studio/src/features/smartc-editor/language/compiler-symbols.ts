@@ -1,4 +1,5 @@
 import { SmartC } from "smartc-signum-compiler";
+import { t } from "@/i18n/runtime";
 
 export interface ParsedError {
   line: number;
@@ -27,7 +28,7 @@ export function parseCompileError(message: string): ParsedError {
       message: m.groups.message,
     };
   }
-  return { line: 1, column: 1, message: (message ?? "").trim() || "Compilation error" };
+  return { line: 1, column: 1, message: (message ?? "").trim() || t("smartc-editor.compile.genericError") };
 }
 
 function isInternalName(name: string): boolean {

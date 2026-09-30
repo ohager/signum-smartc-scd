@@ -1,0 +1,93 @@
+{
+  "status": {
+    "ready": "bereit",
+    "running": "läuft",
+    "stopped": "gestoppt",
+    "finished": "beendet",
+    "error": "Fehler"
+  },
+  "toolbar": {
+    "start": "Starten",
+    "continue": "Fortsetzen",
+    "step": "Schritt",
+    "stepHint": "Eine Quellzeile weiter",
+    "stepInstruction": "Instruktion",
+    "stepInstructionHint": "Eine AT-Instruktion weiter",
+    "nextBlock": "⛏ Nächster Block",
+    "nextBlockHint": "Den nächsten Block schmieden und seine geplanten Transaktionen zustellen",
+    "reset": "⟳ Zurücksetzen",
+    "resetHint": "Dieses Szenario von vorn beginnen",
+    "scenario": "Szenario",
+    "builtInDefault": "(eingebauter Standard)",
+    "newScenario": "+ Neu",
+    "newScenarioHint": "Ein Szenario für diesen Contract anlegen",
+    "block": "Block",
+    "stepCount": "Schritt",
+    "line": "Zeile",
+    "popOut": "Ein Live-Debug-Dashboard in einem eigenen Tab öffnen",
+    "close": "Simulator schließen"
+  },
+  "transport": {
+    "halted": "Der Contract wurde angehalten. Setz ihn zurück, um neu zu beginnen.",
+    "roundOver": "Diese Runde ist vorbei — schmiede den nächsten Block, um ihn erneut laufen zu lassen."
+  },
+  "help": {
+    "title": "So funktioniert der Simulator",
+    "model": {
+      "chain": "Dein Contract läuft hier in einer erfundenen Signum-Chain.",
+      "scenario": "Ein Szenario liefert die Transaktionen, die ihn anstoßen.",
+      "blocks": "Blöcke gibt es nur, wenn du sie schmiedest — genau das macht „Nächster Block“.",
+      "breakpoints": "Setz Haltepunkte am Rand; „Schritt“ geht eine Quellzeile weiter."
+    },
+    "noScenario": "Noch kein Szenario",
+    "createFirst": "Erstes Szenario anlegen",
+    "useDefault": "Eingebauten Standard verwenden"
+  },
+  "panels": {
+    "variables": "Variablen",
+    "registers": "Register",
+    "watch": "Beobachten",
+    "breakpoints": "Haltepunkte",
+    "emitted": "Gesendet",
+    "emittedTxs": "Gesendete Txs",
+    "none": "— keine —",
+    "showInternals": "Interna anzeigen",
+    "variableName": "Variablenname",
+    "addWatch": "— Variable zum Beobachten hinzufügen —",
+    "line": "Zeile {line}",
+    "contractStatus": "Contract-Status",
+    "ledgerStatus": "Ledger-Status"
+  },
+  "ledger": {
+    "title": "Ledger · Block {block}",
+    "noLedger": "— kein Ledger —",
+    "accounts": "Konten",
+    "transactions": "Transaktionen"
+  },
+  "scenario": {
+    "formatterUnavailable": "Der Formatierer ist noch nicht verfügbar — versuch es gleich noch einmal",
+    "formatFailed": "Formatieren fehlgeschlagen: {message}",
+    "simulateFailed": "Simulieren fehlgeschlagen: {message}",
+    "simulate": "Simulieren",
+    "simulateHint": "Den Contract mit diesem Szenario durchgehen",
+    "fixFirst": "Korrigiere das Szenario, bevor du es simulierst",
+    "errors": "{count} Fehler: {first}",
+    "invalid": {
+      "notObject": "kein Objekt",
+      "version": "version muss 2 sein",
+      "creator": "creator muss eine numerische Konto-ID sein",
+      "accounts": "accounts muss ein Array sein",
+      "account": "accounts[{i}] braucht eine numerische id und balance",
+      "transactions": "transactions muss ein Array sein",
+      "block": "transactions[{i}] braucht einen ganzzahligen block >= 1",
+      "senderAmount": "transactions[{i}] braucht numerische sender und amount",
+      "txId": "transactions[{i}] txId muss numerisch sein",
+      "message": "transactions[{i}] message muss ein String sein",
+      "messageHex": "transactions[{i}] messageHex muss ein String sein"
+    }
+  },
+  "debug": {
+    "invalidScenario": "Ungültiges Szenario, verwende den eingebauten Standard: {message}",
+    "cannotStart": "Debuggen kann nicht starten: {message}"
+  }
+}

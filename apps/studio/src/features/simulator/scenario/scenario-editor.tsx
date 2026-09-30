@@ -20,6 +20,7 @@ import {
   registerEditorFileActions,
 } from "@/components/ui/editor/file-actions.tsx";
 import { useEditorFile } from "@/components/ui/editor/use-editor-file.ts";
+import { t } from "@/i18n/runtime";
 
 function validationErrors(text: string): string[] {
   let parsed: unknown;
@@ -72,13 +73,13 @@ export function ScenarioEditor({ file }: { file: File }) {
   const formatDocument = useCallback(async () => {
     const action = editorRef.current?.getAction("editor.action.formatDocument");
     if (!action) {
-      toast.warning("Formatter is not available yet - try again in a moment");
+      toast.warning(t("simulator.scenario.formatterUnavailable"));
       return;
     }
     try {
       await action.run();
     } catch (e: any) {
-      toast.error("Could not format: " + e.message);
+      toast.error(t("simulator.scenario.formatFailed", { message: e.message }));
     }
   }, []);
 
@@ -100,25 +101,25 @@ export function ScenarioEditor({ file }: { file: File }) {
             weight="primary"
             onClick={() => {
               simulate().catch((e) =>
-                toast.error("Could not simulate: " + (e as Error).message),
+                toast.error(t("simulator.scenario.simulateFailed", { message: (e as Error).message })),
               );
             }}
             disabled={!isValid || !projectId}
             title={
               isValid
-                ? "Step the contract through this scenario"
-                : "Fix the scenario before simulating it"
+                ? t("simulator.scenario.simulateHint")
+                : t("simulator.scenario.fixFirst")
             }
           >
             <StepForward className="h-4 w-4" />
-            Simulate
+            {t("simulator.scenario.simulate")}
           </ToolbarButton>
         }
         context={
           !isValid ? (
             <ToolbarDiagnostic tone="error">
               {errors.length > 1
-                ? `${errors.length} errors: ${errors[0]}`
+                ? t("simulator.scenario.errors", { count: errors.length, first: errors[0] })
                 : errors[0]}
             </ToolbarDiagnostic>
           ) : null

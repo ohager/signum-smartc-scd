@@ -1,0 +1,93 @@
+{
+  "status": {
+    "ready": "готовий",
+    "running": "виконується",
+    "stopped": "зупинений",
+    "finished": "завершений",
+    "error": "помилка"
+  },
+  "toolbar": {
+    "start": "Запустити",
+    "continue": "Продовжити",
+    "step": "Крок",
+    "stepHint": "Перейти на один рядок вихідного коду",
+    "stepInstruction": "Крок за інструкцією",
+    "stepInstructionHint": "Виконати одну інструкцію AT",
+    "nextBlock": "⛏ Наступний блок",
+    "nextBlockHint": "Викувати наступний блок і доставити заплановані в ньому транзакції",
+    "reset": "⟳ Скинути",
+    "resetHint": "Почати цей сценарій заново",
+    "scenario": "Сценарій",
+    "builtInDefault": "(вбудований типовий)",
+    "newScenario": "+ Новий",
+    "newScenarioHint": "Створити сценарій запуску для цього контракту",
+    "block": "блок",
+    "stepCount": "крок",
+    "line": "рядок",
+    "popOut": "Відкрити панель налагодження наживо в окремій вкладці",
+    "close": "Закрити симулятор"
+  },
+  "transport": {
+    "halted": "Контракт зупинився. Скиньте його, щоб почати заново.",
+    "roundOver": "Цей раунд завершено — викуйте наступний блок, щоб запустити його знову."
+  },
+  "help": {
+    "title": "Як працює симулятор",
+    "model": {
+      "chain": "Ваш контракт працює тут у вигаданому ланцюжку Signum.",
+      "scenario": "Сценарій постачає транзакції, які його запускають.",
+      "blocks": "Блоки з'являються лише тоді, коли ви їх викуваєте — саме це робить «Наступний блок».",
+      "breakpoints": "Ставте точки зупинки на полях; «Крок» переходить на один рядок вихідного коду."
+    },
+    "noScenario": "Сценарію поки немає",
+    "createFirst": "Створити перший сценарій",
+    "useDefault": "Пройти вбудований типовий сценарій"
+  },
+  "panels": {
+    "variables": "Змінні",
+    "registers": "Регістри",
+    "watch": "Стеження",
+    "breakpoints": "Точки зупинки",
+    "emitted": "Надіслані",
+    "emittedTxs": "Надіслані транзакції",
+    "none": "— немає —",
+    "showInternals": "показати внутрішні",
+    "variableName": "назва змінної",
+    "addWatch": "— додайте змінну для стеження —",
+    "line": "рядок {line}",
+    "contractStatus": "Стан контракту",
+    "ledgerStatus": "Стан реєстру"
+  },
+  "ledger": {
+    "title": "Реєстр · блок {block}",
+    "noLedger": "— немає реєстру —",
+    "accounts": "Облікові записи",
+    "transactions": "Транзакції"
+  },
+  "scenario": {
+    "formatterUnavailable": "Форматувальник ще недоступний — спробуйте за мить",
+    "formatFailed": "Не вдалося відформатувати: {message}",
+    "simulateFailed": "Не вдалося запустити симуляцію: {message}",
+    "simulate": "Симулювати",
+    "simulateHint": "Пройти контракт покроково за цим сценарієм",
+    "fixFirst": "Виправте сценарій, перш ніж запускати симуляцію",
+    "errors": "Помилок: {count}. {first}",
+    "invalid": {
+      "notObject": "не є об'єктом",
+      "version": "version має бути 2",
+      "creator": "creator має бути числовим ID облікового запису",
+      "accounts": "accounts має бути масивом",
+      "account": "accounts[{i}] потребує числових id та balance",
+      "transactions": "transactions має бути масивом",
+      "block": "transactions[{i}] потребує цілого значення block >= 1",
+      "senderAmount": "transactions[{i}] потребує числових sender та amount",
+      "txId": "transactions[{i}] txId має бути числом",
+      "message": "transactions[{i}] message має бути рядком",
+      "messageHex": "transactions[{i}] messageHex має бути рядком"
+    }
+  },
+  "debug": {
+    "invalidScenario": "Некоректний сценарій, використовується вбудований типовий: {message}",
+    "cannotStart": "Не вдалося запустити налагодження: {message}"
+  }
+}

@@ -9,6 +9,7 @@ import AsmCodeEditor from "./code-editor/asm-code-editor.tsx";
 import type { MachineData } from "./machine-data.ts";
 import { tryAssemble } from "@/features/asm-editor/lib/try-assemble.ts";
 import { MetaDataView } from "./meta-data-view";
+import { t } from "@/i18n/runtime";
 
 interface Props {
   file: File;
@@ -52,7 +53,7 @@ export function AsmEditor({ file }: Props) {
             <MetaDataView machineData={machineData} />
           ) : (
             <p className="p-3 text-xs text-[var(--dim)]">
-              Assemble the file to see its pages, memory and bytes.
+              {t("asm-editor.editor.assembleFirst")}
             </p>
           )}
         </div>

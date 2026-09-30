@@ -1,0 +1,41 @@
+{
+  "folder": {
+    "addFile": "Aggiungi file",
+    "newFolder": "Nuova cartella",
+    "downloadZip": "Scarica (zip)",
+    "uploadFiles": "Carica file…",
+    "importZip": "Importa ZIP…",
+    "importFolder": "Importa cartella…",
+    "folderName": "Nome della cartella",
+    "renameTitle": "Rinomina cartella",
+    "nameTaken": "Esiste già una cartella con questo nome",
+    "deleteTitle": "Elimina cartella",
+    "deleteConfirm": "Eliminare questa cartella e tutto il suo contenuto? Questa azione non può essere annullata."
+  },
+  "file": {
+    "renameTitle": "Rinomina file",
+    "fileName": "Nome del file",
+    "nameTaken": "Esiste già un file con questo nome",
+    "deleteTitle": "Elimina file",
+    "deleteConfirm": "Vuoi davvero eliminare questo file? Questa azione non può essere annullata."
+  },
+  "newFile": {
+    "title": "Nuovo file",
+    "type": "Tipo",
+    "name": "Nome",
+    "smartc": "Contratto SmartC (.smart.c)",
+    "scenario": "Scenario (.scenario.json)",
+    "test": "Test (.test.ts)"
+  },
+  "newProject": {
+    "title": "Nuovo progetto",
+    "createDescription": "Aggiungi un nuovo progetto di smart contract al tuo spazio di lavoro.",
+    "inspectDescription": "Crea un progetto di ispezione di smart contract",
+    "type": "Tipo di progetto",
+    "selectType": "Seleziona il tipo di progetto",
+    "create": "Crea un nuovo smart contract",
+    "inspect": "Ispeziona smart contract",
+    "name": "Nome",
+    "namePlaceholder": "Il mio nuovo progetto"
+  }
+}

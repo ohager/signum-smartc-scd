@@ -1,0 +1,93 @@
+{
+  "status": {
+    "ready": "ready",
+    "running": "running",
+    "stopped": "stopped",
+    "finished": "finished",
+    "error": "error"
+  },
+  "toolbar": {
+    "start": "Start",
+    "continue": "Continue",
+    "step": "Step",
+    "stepHint": "Advance one source line",
+    "stepInstruction": "Step instruction",
+    "stepInstructionHint": "Advance one AT instruction",
+    "nextBlock": "⛏ Next block",
+    "nextBlockHint": "Forge the next block and deliver its scheduled transactions",
+    "reset": "⟳ Reset",
+    "resetHint": "Start this scenario over",
+    "scenario": "Scenario",
+    "builtInDefault": "(built-in default)",
+    "newScenario": "+ New",
+    "newScenarioHint": "Create a run scenario for this contract",
+    "block": "block",
+    "stepCount": "step",
+    "line": "line",
+    "popOut": "Open a live debug dashboard in a separate tab",
+    "close": "Close the simulator"
+  },
+  "transport": {
+    "halted": "The contract halted. Reset to start over.",
+    "roundOver": "This round is over — forge the next block to run it again."
+  },
+  "help": {
+    "title": "How the simulator works",
+    "model": {
+      "chain": "Your contract runs here in an invented Signum chain.",
+      "scenario": "A scenario supplies the transactions that poke it.",
+      "blocks": "Blocks only exist when you forge them — that is what “Next block” does.",
+      "breakpoints": "Set breakpoints in the margin; “Step” advances one source line."
+    },
+    "noScenario": "No scenario yet",
+    "createFirst": "Create the first scenario",
+    "useDefault": "Step through the built-in default"
+  },
+  "panels": {
+    "variables": "Variables",
+    "registers": "Registers",
+    "watch": "Watch",
+    "breakpoints": "Breakpoints",
+    "emitted": "Emitted",
+    "emittedTxs": "Emitted Txs",
+    "none": "— none —",
+    "showInternals": "show internals",
+    "variableName": "variable name",
+    "addWatch": "— add a variable to watch —",
+    "line": "line {line}",
+    "contractStatus": "Contract Status",
+    "ledgerStatus": "Ledger Status"
+  },
+  "ledger": {
+    "title": "Ledger · block {block}",
+    "noLedger": "— no ledger —",
+    "accounts": "Accounts",
+    "transactions": "Transactions"
+  },
+  "scenario": {
+    "formatterUnavailable": "Formatter is not available yet - try again in a moment",
+    "formatFailed": "Could not format: {message}",
+    "simulateFailed": "Could not simulate: {message}",
+    "simulate": "Simulate",
+    "simulateHint": "Step the contract through this scenario",
+    "fixFirst": "Fix the scenario before simulating it",
+    "errors": "{count} errors: {first}",
+    "invalid": {
+      "notObject": "not an object",
+      "version": "version must be 2",
+      "creator": "creator must be a numeric account id",
+      "accounts": "accounts must be an array",
+      "account": "accounts[{i}] needs numeric id and balance",
+      "transactions": "transactions must be an array",
+      "block": "transactions[{i}] needs an integer block >= 1",
+      "senderAmount": "transactions[{i}] needs numeric sender and amount",
+      "txId": "transactions[{i}] txId must be numeric",
+      "message": "transactions[{i}] message must be a string",
+      "messageHex": "transactions[{i}] messageHex must be a string"
+    }
+  },
+  "debug": {
+    "invalidScenario": "Invalid scenario, using built-in default: {message}",
+    "cannotStart": "Cannot start debug: {message}"
+  }
+}

@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import type { File } from "@/lib/file-system";
 import { downloadBlob } from "@/lib/download.ts";
+import { registerPendingSave } from "@/lib/pending-saves";
+import { t } from "@/i18n/runtime";
 
 /**
  * The open buffer of a file: its text, whether it differs from what is
@@ -80,9 +82,9 @@ export function useEditorFile({ file, onSaved }: Options): EditorFile {
         // is only clean if it still holds exactly what went to storage.
         setIsDirty(textRef.current !== written);
         onSaved?.(written);
-        if (!silent) toast.success("File saved successfully!");
+        if (!silent) toast.success(t("common.editor.saved"));
       } catch (e: any) {
-        toast.error("Could not save file: " + e.message);
+        toast.error(t("common.editor.saveFailed", { message: e.message }));
       }
     },
     [fs, file.metadata.id, onSaved],
@@ -94,7 +96,7 @@ export function useEditorFile({ file, onSaved }: Options): EditorFile {
   saveRef.current = save;
 
   const autosave = useMemo(
-    () => debounce(() => void saveRef.current({ silent: true }), AUTOSAVE_PAUSE_MS),
+    () => debounce(() => saveRef.current({ silent: true }), AUTOSAVE_PAUSE_MS),
     [],
   );
 
@@ -114,7 +116,10 @@ export function useEditorFile({ file, onSaved }: Options): EditorFile {
   }, [autosave, save]);
 
   // Closing the file is not a reason to drop what is pending.
-  useEffect(() => () => autosave.flush(), [autosave]);
+  useEffect(() => () => void autosave.flush(), [autosave]);
+
+  // A language switch reloads the page; it waits for this before it does.
+  useEffect(() => registerPendingSave(() => autosave.flush()), [autosave]);
 
   const download = useCallback(
     () =>

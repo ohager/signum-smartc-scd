@@ -3,41 +3,42 @@ import { AsmOpcodes, type AsmOpcodeDeclaration } from "../language-definitions/o
 import { AsmFunctions } from "../language-definitions/functions.ts";
 import { AsmDirectiveDocs } from "../language-definitions/directives.ts";
 import { matchAsmDirectiveTarget } from "./directive-target.ts";
+import { t, type PlainKey } from "@/i18n/runtime";
 
 const hex = (value: number, digits: number) =>
   `0x${value.toString(16).padStart(digits, "0")}`;
 
 /** `EXT_FUN_RET_DAT_2` → the call shape it implements, for the API hover. */
-const API_FORM: Record<number, string> = {
-  0x32: "no arguments, no return value",
-  0x33: "one argument",
-  0x34: "two arguments",
-  0x35: "returns a value",
-  0x36: "returns a value, one argument",
-  0x37: "returns a value, two arguments",
+const API_FORM: Record<number, PlainKey> = {
+  0x32: "asm-editor.hover.form.none",
+  0x33: "asm-editor.hover.form.one",
+  0x34: "asm-editor.hover.form.two",
+  0x35: "asm-editor.hover.form.returns",
+  0x36: "asm-editor.hover.form.returnsOne",
+  0x37: "asm-editor.hover.form.returnsTwo",
 };
 
 function opcodeHover(mnemonic: string, op: AsmOpcodeDeclaration): string[] {
-  const steps = op.stepFee === 1 ? "1 step" : `${op.stepFee} steps`;
+  const steps = t("asm-editor.hover.steps", { count: op.stepFee });
   const rows = op.forms
     .map((f) => `| \`${f.syntax}\` | \`${hex(f.opCode, 2)}\` | ${f.size} |`)
     .join("\n");
   return [
     `**${mnemonic}** — ${op.title}\n\n*${op.group} · ${steps}*`,
     op.documentation,
-    `| Form | Opcode | Bytes |\n| --- | --- | --- |\n${rows}`,
+    `${t("asm-editor.hover.formTable")}\n| --- | --- | --- |\n${rows}`,
   ];
 }
 
 function apiFunctionHover(name: string): string[] | null {
   const fn = AsmFunctions[name];
   if (!fn) return null;
-  const shape = API_FORM[fn.opCode] ?? `opcode ${hex(fn.opCode, 2)}`;
+  const form = API_FORM[fn.opCode];
+  const shape = form ? t(form) : t("asm-editor.hover.opcode", { hex: hex(fn.opCode, 2) });
   return [
-    `**${name}** — API function\n\n*${shape} · 10 steps*`,
-    fn.description ??
-      "Built-in blockchain API function, invoked through the `FUN` instruction.",
-    `| API code | Instruction | Arguments |\n| --- | --- | --- |\n` +
+    `**${name}** — ${t("asm-editor.hover.apiFunction")}\n\n*${shape} · ${t("asm-editor.hover.steps", { count: 10 })}*`,
+    fn.description ?? t("asm-editor.hover.apiBody"),
+    `${t("asm-editor.hover.apiTable")}\n| --- | --- | --- |\n` +
       `| \`${hex(fn.apiCode, 4)}\` | \`${hex(fn.opCode, 2)}\` | ${fn.params ?? 0} |`,
   ];
 }

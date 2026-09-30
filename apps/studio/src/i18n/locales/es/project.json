@@ -1,0 +1,41 @@
+{
+  "folder": {
+    "addFile": "Añadir archivo",
+    "newFolder": "Nueva carpeta",
+    "downloadZip": "Descargar (zip)",
+    "uploadFiles": "Subir archivo(s)…",
+    "importZip": "Importar ZIP…",
+    "importFolder": "Importar carpeta…",
+    "folderName": "Nombre de la carpeta",
+    "renameTitle": "Renombrar carpeta",
+    "nameTaken": "Ya existe una carpeta con este nombre",
+    "deleteTitle": "Eliminar carpeta",
+    "deleteConfirm": "¿Eliminar esta carpeta y todo su contenido? Esta acción no se puede deshacer."
+  },
+  "file": {
+    "renameTitle": "Renombrar archivo",
+    "fileName": "Nombre del archivo",
+    "nameTaken": "Ya existe un archivo con este nombre",
+    "deleteTitle": "Eliminar archivo",
+    "deleteConfirm": "¿Seguro que quieres eliminar este archivo? Esta acción no se puede deshacer."
+  },
+  "newFile": {
+    "title": "Nuevo archivo",
+    "type": "Tipo",
+    "name": "Nombre",
+    "smartc": "Contrato SmartC (.smart.c)",
+    "scenario": "Escenario (.scenario.json)",
+    "test": "Prueba (.test.ts)"
+  },
+  "newProject": {
+    "title": "Nuevo proyecto",
+    "createDescription": "Añade un nuevo proyecto de contrato inteligente a tu espacio de trabajo.",
+    "inspectDescription": "Crear un proyecto de inspección de contratos inteligentes",
+    "type": "Tipo de proyecto",
+    "selectType": "Selecciona el tipo de proyecto",
+    "create": "Crear nuevo contrato inteligente",
+    "inspect": "Inspeccionar contrato(s) inteligente(s)",
+    "name": "Nombre",
+    "namePlaceholder": "Mi nuevo proyecto"
+  }
+}

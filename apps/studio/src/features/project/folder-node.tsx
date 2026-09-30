@@ -43,6 +43,7 @@ import { FileSidebarItem, FILE_DND_MIME } from "./file-sidebar-item";
 import { uniqueName } from "./file-naming";
 import { revealFileRequestAtom } from "@/stores/project-tree-atoms";
 import { toast } from "sonner";
+import { t } from "@/i18n/runtime";
 
 export function FolderNode({ folder }: { folder: FolderMetadata }) {
   const fs = useFileSystem();
@@ -71,7 +72,9 @@ export function FolderNode({ folder }: { folder: FolderMetadata }) {
 
   const reportImport = (imported: number, skipped: number) => {
     toast.success(
-      `Imported ${imported} file(s)` + (skipped ? ` (${skipped} skipped)` : ""),
+      skipped
+        ? t("common.import.doneWithSkipped", { count: imported, skipped })
+        : t("common.import.done", { count: imported }),
     );
   };
 
@@ -199,38 +202,38 @@ export function FolderNode({ folder }: { folder: FolderMetadata }) {
             <DropdownMenuContent align="end" className="w-[160px]">
               <DropdownMenuItem onClick={() => setShowNewFile(true)}>
                 <FilePlus2 className="h-4 w-4" />
-                Add File
+                {t("project.folder.addFile")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setShowNewFolder(true)}>
                 <FolderPlusIcon className="h-4 w-4" />
-                New Folder
+                {t("project.folder.newFolder")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onDownloadZip}>
                 <DownloadIcon className="h-4 w-4" />
-                Download (zip)
+                {t("project.folder.downloadZip")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => uploadInputRef.current?.click()}>
                 <UploadIcon className="h-4 w-4" />
-                Upload File(s)…
+                {t("project.folder.uploadFiles")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => zipInputRef.current?.click()}>
                 <FileArchiveIcon className="h-4 w-4" />
-                Import ZIP…
+                {t("project.folder.importZip")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => dirInputRef.current?.click()}>
                 <FolderInputIcon className="h-4 w-4" />
-                Import Folder…
+                {t("project.folder.importFolder")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setShowRename(true)}>
                 <EditIcon className="h-4 w-4" />
-                Rename
+                {t("common.actions.rename")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => setShowDelete(true)}
                 className="text-destructive focus:text-destructive"
               >
                 <TrashIcon className="h-4 w-4" color="red" />
-                Delete
+                {t("common.actions.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -295,9 +298,9 @@ export function FolderNode({ folder }: { folder: FolderMetadata }) {
       <NameInputDialog
         open={showNewFolder}
         onOpenChange={setShowNewFolder}
-        title="New Folder"
-        label="Folder name"
-        submitLabel="Create"
+        title={t("project.folder.newFolder")}
+        label={t("project.folder.folderName")}
+        submitLabel={t("common.actions.create")}
         onSubmit={async (n) => {
           try {
             await fs.createFolder(folder.id, uniqueName(n, folderNames));
@@ -311,11 +314,11 @@ export function FolderNode({ folder }: { folder: FolderMetadata }) {
       <NameInputDialog
         open={showRename}
         onOpenChange={setShowRename}
-        title="Rename Folder"
-        label="Folder name"
+        title={t("project.folder.renameTitle")}
+        label={t("project.folder.folderName")}
         initialValue={folder.name}
-        submitLabel="Rename"
-        validate={(n) => (folderNames.includes(n) ? "A folder with this name already exists" : null)}
+        submitLabel={t("common.actions.rename")}
+        validate={(n) => (folderNames.includes(n) ? t("project.folder.nameTaken") : null)}
         onSubmit={async (n) => {
           try {
             await fs.renameFolder(folder.id, n);
@@ -329,10 +332,10 @@ export function FolderNode({ folder }: { folder: FolderMetadata }) {
         open={showDelete}
         onOpenChange={setShowDelete}
         onConfirm={() => fs.deleteFolder(folder.id)}
-        title="Delete Folder"
-        description="Delete this folder and all its contents? This action cannot be undone."
-        confirmText="Delete"
-        cancelText="Cancel"
+        title={t("project.folder.deleteTitle")}
+        description={t("project.folder.deleteConfirm")}
+        confirmText={t("common.actions.delete")}
+        cancelText={t("common.actions.cancel")}
         variant="destructive"
       />
     </>

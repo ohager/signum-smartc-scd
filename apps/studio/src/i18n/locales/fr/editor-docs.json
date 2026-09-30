@@ -1,0 +1,1241 @@
+{
+  "builtins": {
+    "getNextTx": {
+      "detail": "Suit les transactions entrantes et renvoie l'ID de la transaction suivante.",
+      "documentation": "Suit les transactions entrantes et renvoie l'ID de la transaction suivante.\nS'il n'y a pas de nouvelle transaction, renvoie zéro.\nLa variable interne '_counterTimestamp' stocke la dernière transaction reçue et est mise à jour par cette fonction.\n* Remarque :\nS'il faut revenir plus tard à une transaction donnée, on peut sauvegarder le contenu du compteur automatique moins un dans une autre variable. Il suffit ensuite d'écraser le compteur automatique et d'appeler la fonction `getNextTx`. On peut ainsi reparcourir tous les messages à partir de ce point. Exemple :\n```c\n// Save current loop point\ncurrrentTransaction = getNextTx();\nrewindPoint = _counterTimestamp - 1;\n// ...\n\n// Restore loop point\n_counterTimestamp = rewindPoint;\ncurrrentTransaction = getNextTx();\n// currrentTransaction will be the same from save point\n// and all messages after that one can be visited again.\n```"
+    },
+    "getNextTxFromBlockheight": {
+      "detail": "Renvoie l'ID de la première transaction reçue au bloc 'blockheight' ou après.",
+      "documentation": "Renvoie l'ID de la première transaction reçue au bloc 'blockheight' ou après.\nS'il n'y a aucune transaction, renvoie zéro.\nCette fonction définit aussi la variable interne '_counterTimestamp' et peut être utilisée avec `getNextTx`."
+    },
+    "getBlockheight": {
+      "detail": "Renvoie la hauteur de bloc de 'transaction'.",
+      "documentation": "Renvoie la hauteur de bloc de 'transaction'.\nSi la transaction est invalide, renvoie 4294967295.",
+      "params": {
+        "transaction": "transaction'."
+      }
+    },
+    "getAmount": {
+      "documentation": "Renvoie le montant en Signa de 'transaction'.\nLa valeur renvoyée est le montant envoyé à l'origine moins le montant d'activation du contrat.\nSi la transaction est invalide, renvoie -1 (-0.00000001 en fixed)."
+    },
+    "getAmountFx": {
+      "documentation": "Renvoie le montant en Signa de 'transaction'.\nLa valeur renvoyée est le montant envoyé à l'origine moins le montant d'activation du contrat.\nSi la transaction est invalide, renvoie -1 (-0.00000001 en fixed)."
+    },
+    "getSender": {
+      "detail": "Renvoie l'ID de l'expéditeur de 'transaction'.",
+      "documentation": "Renvoie l'ID de l'expéditeur de 'transaction'.\nSi la transaction est invalide, renvoie 0."
+    },
+    "getType": {
+      "detail": "Renvoie le type de 'transaction'.",
+      "documentation": "Renvoie le type de 'transaction'.\nTous les types de transaction peuvent être obtenus via l'API HTTP [getConstants](https://europe.signum.network/api-doc?requestTag=INFO).\nSi la transaction est invalide, renvoie -1.",
+      "params": {
+        "transaction": "transaction'."
+      }
+    },
+    "readMessage": {
+      "detail": "Lit le message entrant de 'transaction' à la page 'page' et le stocke dans 'buffer'.",
+      "documentation": "Lit le message entrant de 'transaction' à la page 'page' et le stocke dans 'buffer'.\nChaque page fait 32 octets (4 longs) ; le tampon doit donc contenir au moins 4 longs, sinon la fonction le fera déborder.\nLa première page est 0 et aucun indicateur ne donne la taille du message. Repérez la fin du message aux zéros qui la suivent.\nSi 'page' est inférieure à zéro ou supérieure à 32, le tampon est rempli de zéros.\nSi 'transaction' est invalide ou n'a pas de message joint, le tampon est rempli de zéros.\n",
+      "params": {
+        "transaction": "transaction' at 'page' and store it at 'buffer'.",
+        "page": "page' and store it at 'buffer'."
+      }
+    },
+    "readShortMessage": {
+      "detail": "Lit les 'length' premiers longs du message de 'transaction' et les stocke dans 'buffer'.",
+      "documentation": "Lit les 'length' premiers longs du message de 'transaction' et les stocke dans 'buffer'.\nCette fonction ne lit que la page zéro du message.\nAssurez-vous que 'buffer' contient au moins 'length' longs, sinon la fonction le fera déborder.\nSi 'transaction' est invalide ou n'a pas de message joint, le tampon est rempli de zéros.\nLimites : 0 <= length <= 4.",
+      "params": {
+        "transaction": "transaction' and store it at 'buffer'.",
+        "length": "'length' longs from message of 'transaction' and store it at 'buffer'."
+      }
+    },
+    "readAssets": {
+      "detail": "Lit tous les ID d'actifs (jusqu'à 4) de 'transaction' et les stocke dans 'buffer'.",
+      "documentation": "Lit tous les ID d'actifs (jusqu'à 4) de 'transaction' et les stocke dans 'buffer'.\nQuatre valeurs sont lues ; le tampon doit donc contenir au moins 4 longs, sinon la fonction le fera déborder.\nSi 'transaction' est invalide ou si aucun actif n'est trouvé, le tampon est rempli de zéros.\nSi moins de 4 actifs sont trouvés, les premières valeurs contiennent l'assetId et les suivantes sont à zéro.\n",
+      "params": {
+        "transaction": "transaction' and store them at 'buffer'.",
+        "buffer": "buffer'."
+      }
+    },
+    "getQuantity": {
+      "detail": "Renvoie la quantité (QNT) de 'assetId' transférée dans 'transaction'.",
+      "documentation": "Renvoie la quantité (QNT) de 'assetId' transférée dans 'transaction'.\nSi la transaction est invalide, renvoie -1.\nSi la transaction est valide mais ne contient aucun transfert de 'assetId', renvoie zéro.",
+      "params": {
+        "transaction": "transaction'.",
+        "assetId": "assetId' transfered in 'transaction'."
+      }
+    },
+    "sendAmount": {
+      "documentation": "Met en file une transaction qui envoie 'amount' Signa à 'accountId'.\nPour l'envoi de Signa et de messages, une seule transaction est envoyée par bloc ; les montants sont additionnés.\nSi 'amount' dépasse le solde actuel du contrat, tout le solde est envoyé et le contrat interrompt son exécution (plus de gas).\nAucune transaction vide n'est envoyée : elle doit envoyer au moins 1 NQT (soit 0.00000001 Signa).\n",
+      "params": {
+        "amount": "Montant en NQT/Planck",
+        "accountId": "Adresse du destinataire"
+      }
+    },
+    "sendAmountFx": {
+      "documentation": "Met en file une transaction qui envoie 'amount' Signa à 'accountId'.\nPour l'envoi de Signa et de messages, une seule transaction est envoyée par bloc ; les montants sont additionnés.\nSi 'amount' dépasse le solde actuel du contrat, tout le solde est envoyé et le contrat interrompt son exécution (plus de gas).\nAucune transaction vide n'est envoyée : elle doit envoyer au moins 1 NQT (soit 0.00000001 Signa).\n",
+      "params": {
+        "amount": "Montant en Signa",
+        "accountId": "Adresse du destinataire"
+      }
+    },
+    "sendMessage": {
+      "detail": "Met en file une transaction qui envoie le contenu de 'buffer' sous forme d'une page de message (32 octets ou 4 longs) à 'accountId'.",
+      "documentation": "Met en file une transaction qui envoie le contenu de 'buffer' sous forme d'une page de message (32 octets ou 4 longs) à 'accountId'.\nLe tampon doit contenir au moins 4 longs, sinon la fonction lira au-delà.\nSi la fonction est appelée plusieurs fois dans un bloc, les messages sont concaténés jusqu'à 992 octets (31 pages).\nSi une 32e page est envoyée, les 31 premières sont abandonnées et le cycle recommence.\nÀ VÉRIFIER : la transaction est-elle envoyée avec un message vide ? Un message vide ne contient que des zéros.",
+      "params": {
+        "buffer": "buffer' as one message page (32 bytes or 4 longs) to 'accountId'.",
+        "accountId": "Adresse du destinataire'."
+      }
+    },
+    "sendShortMessage": {
+      "detail": "Met en file une transaction qui envoie le contenu de 'buffer' de longueur 'length' sous forme d'une page de message (32 octets ou 4 longs) à 'accountId'.",
+      "documentation": "Met en file une transaction qui envoie le contenu de 'buffer' de longueur 'length' sous forme d'une page de message (32 octets ou 4 longs) à 'accountId'.\nSi 'length' vaut 3 ou moins, les longs restants sont remplis de zéros.\nLa limite de taille totale du message est la même que pour SendMessage.\nLimites : 0 <= length <= 4.",
+      "params": {
+        "buffer": "buffer' with 'length' as one message page (32 bytes or 4 longs) to 'accountId'.",
+        "length": "length' as one message page (32 bytes or 4 longs) to 'accountId'.",
+        "accountId": "Adresse du destinataire'."
+      }
+    },
+    "sendAmountAndMessage": {
+      "detail": "Raccourci pour `sendAmount` et `sendMessage` (code optimisé). Les mêmes restrictions s'appliquent.",
+      "documentation": "Raccourci pour `sendAmount` et `sendMessage` (code optimisé). Les mêmes restrictions s'appliquent.",
+      "params": {
+        "amount": "Le montant en Planck",
+        "buffer": "Le message à envoyer",
+        "accountId": "Adresse du destinataire'."
+      }
+    },
+    "sendAmountAndMessageFx": {
+      "detail": "Raccourci pour `sendAmount` et `sendMessage` (code optimisé). Les mêmes restrictions s'appliquent.",
+      "documentation": "Raccourci pour `sendAmount` et `sendMessage` (code optimisé). Les mêmes restrictions s'appliquent.",
+      "params": {
+        "amount": "Le montant en Signa",
+        "buffer": "Le message à envoyer",
+        "accountId": "Adresse du destinataire'."
+      }
+    },
+    "sendBalance": {
+      "detail": "Met en file une transaction qui envoie tout le solde actuel (Signa) à 'accountId'.",
+      "documentation": "Met en file une transaction qui envoie tout le solde actuel (Signa) à 'accountId'.\nLes mêmes restrictions que pour `sendAmount` s'appliquent.\nLe contrat interrompra son exécution (plus de gas).",
+      "params": {
+        "accountId": "Adresse du destinataire'."
+      }
+    },
+    "sendQuantity": {
+      "detail": "Transfère 'quantity' de 'assetId' à 'accountId'.",
+      "documentation": "Envoie une transaction qui transfère 'quantity' de 'assetId' à 'accountId'.\nSi le solde du contrat en 'assetId' est inférieur à 'quantity', tout le solde en 'assetId' est envoyé.\nSi le même actif est transféré deux fois dans le même bloc, les quantités sont additionnées et une seule transaction est envoyée.\nLes transactions des contrats intelligents ne peuvent transférer qu'un seul actif. Si deux actifs différents sont transférés dans le même bloc, deux transactions seront envoyées.\nAucune transaction vide n'est envoyée : elle doit transférer au moins 1 QNT d'un actif.",
+      "params": {
+        "quantity": "quantity' of 'assetId' to 'accountId'.",
+        "assetId": "assetId de l'actif à envoyer.",
+        "accountId": "Adresse du destinataire'."
+      }
+    },
+    "sendQuantityAndAmount": {
+      "detail": "Transfère 'quantity' de 'assetId' et 'amount' NQT à 'accountId'",
+      "documentation": "Envoie une transaction qui transfère 'quantity' de 'assetId' et 'amount' NQT/Planck à 'accountId'.\nCette fonction garantit que l'actif et les Signa sont envoyés dans la même transaction, avec un code optimisé.\nSi 'quantity' vaut zéro, aucune transaction n'est envoyée, même si 'amount' est supérieur à zéro.\nSi le solde du contrat en 'assetId' est inférieur à 'quantity', tout le solde en 'assetId' est envoyé.\nSi le solde du contrat est inférieur à 'amount', tout le solde en Signa est envoyé.\nLes transactions de transfert d'actifs ne peuvent pas contenir de message.\nSi le même actif est transféré deux fois dans le même bloc, les quantités sont additionnées et une seule transaction est envoyée.\nLes transactions des contrats intelligents ne peuvent transférer qu'un seul actif. Si deux actifs différents sont transférés dans le même bloc, deux transactions seront envoyées.",
+      "params": {
+        "quantity": "Quantité d'actif à envoyer",
+        "assetId": "ID de l'actif à envoyer.",
+        "amount": "Montant à envoyer en NQT/Planck",
+        "accountId": "Adresse du destinataire'."
+      }
+    },
+    "sendQuantityAndAmountFx": {
+      "detail": "Transfère 'quantity' de 'assetId' et 'amount' Signa à 'accountId'",
+      "documentation": "Envoie une transaction qui transfère 'quantity' de 'assetId' et 'amount' Signa à 'accountId'.\nCette fonction garantit que l'actif et les Signa sont envoyés dans la même transaction, avec un code optimisé.\nSi 'quantity' vaut zéro, aucune transaction n'est envoyée, même si 'amount' est supérieur à zéro.\nSi le solde du contrat en 'assetId' est inférieur à 'quantity', tout le solde en 'assetId' est envoyé.\nSi le solde du contrat est inférieur à 'amount', tout le solde en Signa est envoyé.\nLes transactions de transfert d'actifs ne peuvent pas contenir de message.\nSi le même actif est transféré deux fois dans le même bloc, les quantités sont additionnées et une seule transaction est envoyée.\nLes transactions des contrats intelligents ne peuvent transférer qu'un seul actif. Si deux actifs différents sont transférés dans le même bloc, deux transactions seront envoyées.",
+      "params": {
+        "quantity": "Quantité d'actif à envoyer",
+        "assetId": "ID de l'actif à envoyer.",
+        "amount": "Montant à envoyer en Signa",
+        "accountId": "Adresse du destinataire'."
+      }
+    },
+    "getCurrentBlockheight": {
+      "detail": "Renvoie la hauteur de bloc courante au moment où l'instruction est exécutée.",
+      "documentation": "Renvoie la hauteur de bloc courante au moment où l'instruction est exécutée."
+    },
+    "getWeakRandomNumber": {
+      "detail": "Renvoie un nombre aléatoire simple basé sur la signature du dernier bloc.",
+      "documentation": "Renvoie un nombre aléatoire simple basé sur la signature du dernier bloc.\nIl est très improbable que quelqu'un manipule ce nombre, mais c'est théoriquement possible.\nAttention aux contrats qui manipulent de grosses sommes.\nLa valeur renvoyée peut être négative, et un nombre négatif MOD un nombre positif donne un résultat négatif. Astuce : utilisez un décalage à droite pour éliminer les valeurs négatives `positiveRnd = getWeakRandomNumber() >> 1;`."
+    },
+    "getCreator": {
+      "detail": "Renvoie l'ID du compte du créateur du contrat courant.",
+      "documentation": "Renvoie l'ID du compte du créateur du contrat courant."
+    },
+    "getCreatorOf": {
+      "detail": "Renvoie l'ID du compte du créateur de 'contractId'.",
+      "documentation": "Renvoie l'ID du compte du créateur de 'contractId'.\nSi 'contractId' n'est pas un contrat, renvoie zéro.",
+      "params": {
+        "contractId": "contractId'."
+      }
+    },
+    "getCodeHashOf": {
+      "detail": "Renvoie l'ID du hash du code de 'contractId'.",
+      "documentation": "Renvoie l'ID du hash du code de 'contractId'.\nSi 'contractId' vaut zéro, renvoie le hash du code du contrat lui-même.\nSi 'contractId' n'est pas un contrat, renvoie zéro.",
+      "params": {
+        "contractId": "contractId'."
+      }
+    },
+    "getActivationOf": {
+      "detail": "Renvoie le montant minimum en NQT/Planck nécessaire pour activer 'contractId'",
+      "documentation": "Renvoie le montant minimum en NQT/Planck nécessaire pour activer 'contractId'.\nSi 'contractId' vaut zéro, renvoie le montant d'activation minimum du contrat lui-même.\nSi 'contractId' n'est pas un contrat, renvoie zéro.",
+      "params": {
+        "contractId": "Le contrat cible"
+      }
+    },
+    "getActivationOfFx": {
+      "detail": "Renvoie le montant minimum en Signa nécessaire pour activer 'contractId'",
+      "documentation": "Renvoie le montant minimum en Signa nécessaire pour activer 'contractId'.\nSi 'contractId' vaut zéro, renvoie le montant d'activation minimum du contrat lui-même.\nSi 'contractId' n'est pas un contrat, renvoie zéro.",
+      "params": {
+        "contractId": "Le contrat cible"
+      }
+    },
+    "getCurrentBalance": {
+      "detail": "Obtient le solde courant",
+      "documentation": "Renvoie le solde du contrat (NQT/Planck) au moment où l'instruction est exécutée."
+    },
+    "getCurrentBalanceFx": {
+      "detail": "Obtient le solde courant",
+      "documentation": "Renvoie le solde du contrat (Signa) au moment où l'instruction est exécutée."
+    },
+    "getAssetBalance": {
+      "detail": "Renvoie le solde du contrat pour le 'assetId' donné au moment où l'instruction est exécutée.",
+      "documentation": "Renvoie le solde du contrat pour le 'assetId' donné au moment où l'instruction est exécutée.\nSi 'assetId' vaut zéro, la valeur renvoyée est la même que `getCurrentBalance`.",
+      "params": {
+        "assetId": "assetId' at the time the instruction is executed."
+      }
+    },
+    "setMapValue": {
+      "detail": "Définit 'value' dans la map à 'currentContract[key1][key2]'",
+      "documentation": "Définit 'value' dans la map à 'currentContract[key1][key2]'\n\nLes maps offrent un espace « illimité » pour stocker des valeurs. Chaque valeur stockée (long ou fixed de 64 bits) est lue ou écrite à l'aide de deux clés (longs de 64 bits).\nTout élément jamais défini vaut zéro. La suppression est impossible ; il suffit de le remettre à zéro si besoin.",
+      "params": {
+        "key1": "Première clé",
+        "key2": "Deuxième clé",
+        "value": "Valeur"
+      }
+    },
+    "setMapValueFx": {
+      "detail": "Définit 'value' dans la map à 'currentContract[key1][key2]'",
+      "documentation": "Définit 'value' dans la map à 'currentContract[key1][key2]'\n\nLes maps offrent un espace « illimité » pour stocker des valeurs. Chaque valeur stockée (long ou fixed de 64 bits) est lue ou écrite à l'aide de deux clés (longs de 64 bits).\nTout élément jamais défini vaut zéro. La suppression est impossible ; il suffit de le remettre à zéro si besoin.",
+      "params": {
+        "key1": "Première clé",
+        "key2": "Deuxième clé",
+        "value": "Valeur en Signa au format fixed"
+      }
+    },
+    "getMapValue": {
+      "detail": "Lit 'value' dans la map à 'currentContract[key1][key2]'",
+      "documentation": "Définit 'value' dans la map à 'currentContract[key1][key2]'\n\nLes maps offrent un espace « illimité » pour stocker des valeurs. Chaque valeur stockée (long ou fixed de 64 bits) est lue ou écrite à l'aide de deux clés (longs de 64 bits).\nTout élément jamais défini vaut zéro. La suppression est impossible ; il suffit de le remettre à zéro si besoin.",
+      "params": {
+        "key1": "Première clé",
+        "key2": "Deuxième clé"
+      }
+    },
+    "getMapValueFx": {
+      "detail": "Lit 'value' dans la map à 'currentContract[key1][key2]' au format fixed",
+      "documentation": "Définit 'value' dans la map à 'currentContract[key1][key2]'\n\nLes maps offrent un espace « illimité » pour stocker des valeurs. Chaque valeur stockée (long ou fixed de 64 bits) est lue ou écrite à l'aide de deux clés (longs de 64 bits).\nTout élément jamais défini vaut zéro. La suppression est impossible ; il suffit de le remettre à zéro si besoin.",
+      "params": {
+        "key1": "Première clé",
+        "key2": "Deuxième clé"
+      }
+    },
+    "getExtMapValue": {
+      "detail": "Lit la map du contrat externe à 'contractId[key1][key2]'",
+      "documentation": "Lit la map du contrat externe à 'contractId[key1][key2]'.\nSi le contrat n'a pas de map, ou si 'contractId' n'est pas un contrat, renvoie zéro.\nContrairement à la mémoire du contrat, les valeurs des maps d'autres contrats peuvent être lues avec cette fonction.\n\nLes maps offrent un espace « illimité » pour stocker des valeurs. Chaque valeur stockée (long ou fixed de 64 bits) est lue ou écrite à l'aide de deux clés (longs de 64 bits).\nTout élément jamais défini vaut zéro. La suppression est impossible ; il suffit de le remettre à zéro si besoin.",
+      "params": {
+        "key1": "Première clé",
+        "key2": "Deuxième clé",
+        "contractId": "L'ID du contrat externe"
+      }
+    },
+    "getExtMapValueFx": {
+      "detail": "Lit la map du contrat externe à 'contractId[key1][key2]' comme valeur fixed",
+      "documentation": "Lit la map du contrat externe à 'contractId[key1][key2]'.\nSi le contrat n'a pas de map, ou si 'contractId' n'est pas un contrat, renvoie zéro.\nContrairement à la mémoire du contrat, les valeurs des maps d'autres contrats peuvent être lues avec cette fonction.\n\nLes maps offrent un espace « illimité » pour stocker des valeurs. Chaque valeur stockée (long ou fixed de 64 bits) est lue ou écrite à l'aide de deux clés (longs de 64 bits).\nTout élément jamais défini vaut zéro. La suppression est impossible ; il suffit de le remettre à zéro si besoin.",
+      "params": {
+        "key1": "Première clé",
+        "key2": "Deuxième clé",
+        "contractId": "L'ID du contrat externe"
+      }
+    },
+    "checkSignature": {
+      "detail": "Vérifie si la signature de 'accountId' dans 'transaction' aux pages 'page' et 'page+1' correspond à 'message2..4'.",
+      "documentation": "Vérifie si la signature de 'accountId' dans 'transaction' aux pages 'page' et 'page+1' correspond à 'message2..4'.\nRenvoie 1 (vrai) si la signature est valide, 0 sinon.",
+      "params": {
+        "transaction": "transaction' at 'page' and 'page+1' matches for the given 'message2.",
+        "page": "page' and 'page+1' matches for the given 'message2.",
+        "accountId": "accountId' in 'transaction' at 'page' and 'page+1' matches for the given 'message2."
+      }
+    },
+    "issueAsset": {
+      "detail": "Émet un nouvel actif et renvoie son ID.",
+      "documentation": "Émet un nouvel actif et renvoie son ID.\nLe nom de l'actif doit compter entre 3 et 10 caractères. Seuls les lettres majuscules, minuscules et les chiffres sont autorisés.\nLes 8 premiers caractères sont indiqués dans 'name1' et les autres dans 'name2'.\nMettez 'name2' à 0 ou \"\" si le nom compte 8 caractères ou moins.\nLe nombre de décimales va de 0 à 8.\nÉmettre un actif coûte 150 Signa. L'exécution du contrat reste bloquée sur cette instruction jusqu'à ce que le solde soit atteint.",
+      "params": {
+        "name1": "Les 8 premiers caractères du nom.",
+        "name2": "Les 2 derniers caractères du nom. Laissez `0` si le nom du jeton fait 8 caractères ou moins",
+        "decimals": "Nombre de décimales"
+      }
+    },
+    "mintAsset": {
+      "detail": "Frappe 'quantity' de 'assetId'.",
+      "documentation": "Frappe 'quantity' de 'assetId'.\nL'actif doit avoir été émis par le contrat.\nLes quantités négatives sont interdites ; pour brûler, envoyez à l'accountId 0.\nLa quantité frappée est disponible juste après l'instruction.",
+      "params": {
+        "quantity": "quantity' of 'assetId'.",
+        "assetId": "assetId'."
+      }
+    },
+    "distributeToHolders": {
+      "detail": "Distribuer des Planck et/ou des actifs aux détenteurs de jetons",
+      "documentation": "Distribue les Planck 'amountToDistribute' et 'quantityToDistribute' de 'assetToDistribute' aux comptes qui détiennent au moins 'holdersAssetMinQuantity' de 'holdersAsset'.\nSi 'amountToDistribute' et 'quantityToDistribute' valent zéro, aucune distribution n'a lieu.\n'amountToDistribute' et 'quantityToDistribute' peuvent être distribués dans la même transaction.\nSeul le solde disponible est pris en compte : les quantités en ordres de vente ne comptent pas.\nSi le bloc courant a déjà le nombre maximal de transactions indirectes, aucune distribution n'a lieu.\nSi aucun détenteur ne dépasse la quantité minimale, aucune distribution n'a lieu.\nLes comptes de trésorerie configurés ne participent pas à la distribution des dividendes.\n'assetToDistribute' peut être identique à 'holdersAsset' ; dans ce cas, le contrat participe à la distribution (à vérifier).",
+      "params": {
+        "holdersAssetMinQuantity": "Quantité minimale que doit détenir le détenteur bénéficiaire",
+        "holdersAsset": "L'actif cible",
+        "amountToDistribute": "Montant en Planck à distribuer",
+        "assetToDistribute": "Actif supplémentaire à distribuer",
+        "quantityToDistribute": "Quantité d'actif à distribuer"
+      }
+    },
+    "distributeToHoldersFx": {
+      "detail": "Distribuer des Signa et/ou des actifs aux détenteurs de jetons",
+      "documentation": "Distribue les Signa 'amountToDistribute' et 'quantityToDistribute' de 'assetToDistribute' aux comptes qui détiennent au moins 'holdersAssetMinQuantity' de 'holdersAsset'.\nSi 'amountToDistribute' et 'quantityToDistribute' valent zéro, aucune distribution n'a lieu.\n'amountToDistribute' et 'quantityToDistribute' peuvent être distribués dans la même transaction.\nSeul le solde disponible est pris en compte : les quantités en ordres de vente ne comptent pas.\nSi le bloc courant a déjà le nombre maximal de transactions indirectes, aucune distribution n'a lieu.\nSi aucun détenteur ne dépasse la quantité minimale, aucune distribution n'a lieu.\nLes comptes de trésorerie configurés ne participent pas à la distribution des dividendes.\n'assetToDistribute' peut être identique à 'holdersAsset' ; dans ce cas, le contrat participe à la distribution (à vérifier).",
+      "params": {
+        "holdersAssetMinQuantity": "Quantité minimale que doit détenir le détenteur bénéficiaire",
+        "holdersAsset": "L'actif cible",
+        "amountToDistribute": "Montant en Signa à distribuer",
+        "assetToDistribute": "Actif supplémentaire à distribuer",
+        "quantityToDistribute": "Quantité d'actif à distribuer"
+      }
+    },
+    "getAssetHoldersCount": {
+      "detail": "Renvoie le nombre de détenteurs qui possèdent au moins 'minimumQuantity' de 'assetId'.",
+      "documentation": "Renvoie le nombre de détenteurs qui possèdent au moins 'minimumQuantity' de 'assetId'.\nSeul le solde disponible est pris en compte : les quantités en ordres de vente ne comptent pas.",
+      "params": {
+        "minimumQuantity": "minimumQuantity' of 'assetId'.",
+        "assetId": "assetId'."
+      }
+    },
+    "getAssetCirculating": {
+      "detail": "Renvoie la quantité de 'assetId' actuellement en circulation.",
+      "documentation": "Renvoie la quantité de 'assetId' actuellement en circulation.\n* Notez que certaines quantités ne sont pas prises en compte :\n  1) sur les comptes de trésorerie ;\n  2) dans les ordres de vente ;\n  3) sur l'accountId zéro (adresse de destruction).",
+      "params": {
+        "assetId": "assetId cible"
+      }
+    },
+    "getAccountBalance": {
+      "detail": "Obtenir le solde d'un compte en Planck",
+      "documentation": "Renvoie le solde en Planck détenu par 'accountId'.\nS'il n'y a pas d'accountId, renvoie zéro.\nPour les contrats intelligents, renvoie le solde du dernier bloc, et non celui après l'exécution dans le bloc courant.\nIl en va de même pour le solde du contrat lui-même, qui équivaut à l'API Signum Get_Previous_Balance et n'est la plupart du temps pas utile.\n* Notez que certaines parties du solde sont aussi prises en compte :\n  1) Commitment.",
+      "params": {
+        "accountId": "Compte cible"
+      }
+    },
+    "getAccountBalanceFx": {
+      "detail": "Obtenir le solde d'un compte en Signa",
+      "documentation": "Renvoie le solde en Signa détenu par 'accountId'.\nS'il n'y a pas d'accountId, renvoie zéro.\nPour les contrats intelligents, renvoie le solde du dernier bloc, et non celui après l'exécution dans le bloc courant.\nIl en va de même pour le solde du contrat lui-même, qui équivaut à l'API Signum Get_Previous_Balance et n'est la plupart du temps pas utile.\n* Notez que certaines parties du solde sont aussi prises en compte :\n  1) Commitment.",
+      "params": {
+        "accountId": "Compte cible"
+      }
+    },
+    "getAccountAssetQuantity": {
+      "detail": "Renvoie la quantité de 'assetId'",
+      "documentation": "Renvoie la quantité de 'assetId' détenue par 'accountId'.\nPour les contrats intelligents, renvoie le solde du dernier bloc, et non celui après l'exécution dans le bloc courant.\n* Notez que certaines quantités sont aussi prises en compte :\n  1) dans les ordres de vente.",
+      "params": {
+        "accountId": "Compte cible",
+        "assetId": "Actif cible"
+      }
+    },
+    "mdv": {
+      "detail": "Calcule `m1` multiplié par `m2` avec une précision de 128 bits (sans débordement), puis divise ce résultat par `div`.",
+      "documentation": "Calcule `m1` multiplié par `m2` avec une précision de 128 bits (sans débordement), puis divise ce résultat par `div`.\nLe calcul est renvoyé comme valeur.\n* Remarques :\n  1) Cette instruction est utilisée lors des optimisations, même sans déclaration explicite. Utilisez cette forme pour garantir l'instruction, ou vérifiez le code assembleur généré en cas de doute.",
+      "params": {
+        "m1": "m1` multiplied by `m2` with 128-bit precision (no overflow) and then divides this result by `div`.",
+        "m2": "m2` with 128-bit precision (no overflow) and then divides this result by `div`.",
+        "div": "div`."
+      }
+    },
+    "pow": {
+      "detail": "Calcule `base` à la puissance `expBy1e8`, où expBy1e8 est un nombre à virgule fixe à 8 décimales (comme les valeurs en Signa). Le résultat est renvoyé comme long, les décimales sont tronquées.",
+      "documentation": "Calcule `base` à la puissance `expBy1e8`, où expBy1e8 est un nombre à virgule fixe à 8 décimales (comme les valeurs en Signa). Le résultat est renvoyé comme long, les décimales sont tronquées.\n* Exemples :\n  * sqrt(49) = 7 :: `val = pow(49, 5000_0000);`\n  * 5 * 5 * 5 * 5 = 5^4 = 625 :: `val = pow(5, 4_0000_0000);`\n  * sqrt(48) = 6 :: `val = pow(48, 5000_0000);`\n* Remarques\n  1) pow renvoie zéro si le résultat est mathématiquement indéfini ;\n  2) pow renvoie zéro si base est négatif ;\n  3) pow renvoie zéro si le résultat dépasse 9223372036854775807 (plus grand long positif).",
+      "params": {
+        "base": "base` to the power of `expBy1e8`, where expBy1e8 is used as fixed point representation with 8 decimals (like the values in Signa).",
+        "expBy1e8": "expBy1e8`, where expBy1e8 is used as fixed point representation with 8 decimals (like the values in Signa)."
+      }
+    },
+    "powf": {
+      "detail": "Comme `pow`, mais avec un nombre à virgule fixe comme exposant.",
+      "documentation": "Comme `pow`, mais avec un nombre à virgule fixe comme exposant.\n* Exemples :\n  * sqrt(49) = 7 :: `val = powf(49, 0.5);`\n  * 5 * 5 * 5 * 5 = 5^4 = 625 :: `val = pow(5, 4.0);`\n  * sqrt(48) = 6 :: `val = pow(48, .5);`\n* Remarques\n  1) pow renvoie zéro si le résultat est mathématiquement indéfini ;\n  2) pow renvoie zéro si base est négatif ;\n  3) pow renvoie zéro si le résultat dépasse 9223372036854775807 (plus grand long positif).",
+      "params": {
+        "base": "base is negative;\n  3) pow will return zero if result is greater than 9223372036854775807 (max positive long)."
+      }
+    },
+    "memcopy": {
+      "detail": "Copie la valeur binaire de la source vers la destination. Pratique pour copier le contenu de variables sans qu'une conversion de type ne le modifie.",
+      "documentation": "Copie la valeur binaire de la source vers la destination. Pratique pour copier le contenu de variables sans qu'une conversion de type ne le modifie.\n* Exemple :\n  * `fixed f; long l; memcopy(&f, &l);` Copie les données binaires de la variable `l` vers `f` sans transformation. Si l vaut 50, f vaudra 0.00000050.",
+      "params": {
+        "destination": "destination.",
+        "source": "source vers la destination."
+      }
+    },
+    "bcftol": {
+      "detail": "Convertit un long en fixed",
+      "documentation": "Effectue une conversion binaire (sans modifier les valeurs en mémoire) d'un long vers un fixed.\nExemples :\n`fixed val; val = bcltof(5000_0000);` Résultat : val contiendra 0.5.",
+      "params": {
+        "value": "Valeur fixed"
+      }
+    },
+    "bcltof": {
+      "detail": "Convertit un fixed en long",
+      "documentation": "Effectue une conversion binaire (sans modifier les valeurs en mémoire) d'un long vers un fixed.\nExemples :\n`fixed val; val = bcltof(5000_0000);` Résultat : val contiendra 0.5.",
+      "params": {
+        "value": "Valeur long"
+      }
+    }
+  },
+  "api": {
+    "Get_A1": {
+      "detail": "Renvoie la valeur du slot de registre A1.",
+      "documentation": "Renvoie la valeur du slot de registre A1.\n\nA et B sont les deux pseudo-registres de 256 bits de la machine, chacun divisé en quatre slots de 64 bits (A1–A4, B1–B4). Les appels d'API prennent au plus deux arguments, tout le reste passe donc par eux."
+    },
+    "Set_A1": {
+      "detail": "Stocke une valeur dans le slot de registre A1.",
+      "documentation": "Stocke une valeur dans le slot de registre A1.\n\nA et B sont les deux pseudo-registres de 256 bits de la machine, chacun divisé en quatre slots de 64 bits (A1–A4, B1–B4). Les appels d'API prennent au plus deux arguments, tout le reste passe donc par eux.",
+      "params": {
+        "a1": "Nouvelle valeur pour A1."
+      }
+    },
+    "Get_A2": {
+      "detail": "Renvoie la valeur du slot de registre A2.",
+      "documentation": "Renvoie la valeur du slot de registre A2.\n\nA et B sont les deux pseudo-registres de 256 bits de la machine, chacun divisé en quatre slots de 64 bits (A1–A4, B1–B4). Les appels d'API prennent au plus deux arguments, tout le reste passe donc par eux."
+    },
+    "Set_A2": {
+      "detail": "Stocke une valeur dans le slot de registre A2.",
+      "documentation": "Stocke une valeur dans le slot de registre A2.\n\nA et B sont les deux pseudo-registres de 256 bits de la machine, chacun divisé en quatre slots de 64 bits (A1–A4, B1–B4). Les appels d'API prennent au plus deux arguments, tout le reste passe donc par eux.",
+      "params": {
+        "a2": "Nouvelle valeur pour A2."
+      }
+    },
+    "Get_A3": {
+      "detail": "Renvoie la valeur du slot de registre A3.",
+      "documentation": "Renvoie la valeur du slot de registre A3.\n\nA et B sont les deux pseudo-registres de 256 bits de la machine, chacun divisé en quatre slots de 64 bits (A1–A4, B1–B4). Les appels d'API prennent au plus deux arguments, tout le reste passe donc par eux."
+    },
+    "Set_A3": {
+      "detail": "Stocke une valeur dans le slot de registre A3.",
+      "documentation": "Stocke une valeur dans le slot de registre A3.\n\nA et B sont les deux pseudo-registres de 256 bits de la machine, chacun divisé en quatre slots de 64 bits (A1–A4, B1–B4). Les appels d'API prennent au plus deux arguments, tout le reste passe donc par eux.",
+      "params": {
+        "a3": "Nouvelle valeur pour A3."
+      }
+    },
+    "Get_A4": {
+      "detail": "Renvoie la valeur du slot de registre A4.",
+      "documentation": "Renvoie la valeur du slot de registre A4.\n\nA et B sont les deux pseudo-registres de 256 bits de la machine, chacun divisé en quatre slots de 64 bits (A1–A4, B1–B4). Les appels d'API prennent au plus deux arguments, tout le reste passe donc par eux."
+    },
+    "Set_A4": {
+      "detail": "Stocke une valeur dans le slot de registre A4.",
+      "documentation": "Stocke une valeur dans le slot de registre A4.\n\nA et B sont les deux pseudo-registres de 256 bits de la machine, chacun divisé en quatre slots de 64 bits (A1–A4, B1–B4). Les appels d'API prennent au plus deux arguments, tout le reste passe donc par eux.",
+      "params": {
+        "a4": "Nouvelle valeur pour A4."
+      }
+    },
+    "Set_A1_A2": {
+      "detail": "Stocke deux valeurs dans A1 et A2 en un seul appel d'API.",
+      "documentation": "Stocke deux valeurs dans A1 et A2 en un seul appel d'API.\n\nDeux fois moins cher que d'appeler `Set_A1` et `Set_A2` séparément. Chaque appel d'API coûte 10 pas, contre 1 pour une instruction ordinaire.",
+      "params": {
+        "a1": "Nouvelle valeur pour A1.",
+        "a2": "Nouvelle valeur pour A2."
+      }
+    },
+    "Set_A3_A4": {
+      "detail": "Stocke deux valeurs dans A3 et A4 en un seul appel d'API.",
+      "documentation": "Stocke deux valeurs dans A3 et A4 en un seul appel d'API.\n\nDeux fois moins cher que d'appeler `Set_A3` et `Set_A4` séparément. Chaque appel d'API coûte 10 pas, contre 1 pour une instruction ordinaire.",
+      "params": {
+        "a3": "Nouvelle valeur pour A3.",
+        "a4": "Nouvelle valeur pour A4."
+      }
+    },
+    "Get_B1": {
+      "detail": "Renvoie la valeur du slot de registre B1.",
+      "documentation": "Renvoie la valeur du slot de registre B1.\n\nA et B sont les deux pseudo-registres de 256 bits de la machine, chacun divisé en quatre slots de 64 bits (A1–A4, B1–B4). Les appels d'API prennent au plus deux arguments, tout le reste passe donc par eux."
+    },
+    "Set_B1": {
+      "detail": "Stocke une valeur dans le slot de registre B1.",
+      "documentation": "Stocke une valeur dans le slot de registre B1.\n\nA et B sont les deux pseudo-registres de 256 bits de la machine, chacun divisé en quatre slots de 64 bits (A1–A4, B1–B4). Les appels d'API prennent au plus deux arguments, tout le reste passe donc par eux.",
+      "params": {
+        "b1": "Nouvelle valeur pour B1."
+      }
+    },
+    "Get_B2": {
+      "detail": "Renvoie la valeur du slot de registre B2.",
+      "documentation": "Renvoie la valeur du slot de registre B2.\n\nA et B sont les deux pseudo-registres de 256 bits de la machine, chacun divisé en quatre slots de 64 bits (A1–A4, B1–B4). Les appels d'API prennent au plus deux arguments, tout le reste passe donc par eux."
+    },
+    "Set_B2": {
+      "detail": "Stocke une valeur dans le slot de registre B2.",
+      "documentation": "Stocke une valeur dans le slot de registre B2.\n\nA et B sont les deux pseudo-registres de 256 bits de la machine, chacun divisé en quatre slots de 64 bits (A1–A4, B1–B4). Les appels d'API prennent au plus deux arguments, tout le reste passe donc par eux.",
+      "params": {
+        "b2": "Nouvelle valeur pour B2."
+      }
+    },
+    "Get_B3": {
+      "detail": "Renvoie la valeur du slot de registre B3.",
+      "documentation": "Renvoie la valeur du slot de registre B3.\n\nA et B sont les deux pseudo-registres de 256 bits de la machine, chacun divisé en quatre slots de 64 bits (A1–A4, B1–B4). Les appels d'API prennent au plus deux arguments, tout le reste passe donc par eux."
+    },
+    "Set_B3": {
+      "detail": "Stocke une valeur dans le slot de registre B3.",
+      "documentation": "Stocke une valeur dans le slot de registre B3.\n\nA et B sont les deux pseudo-registres de 256 bits de la machine, chacun divisé en quatre slots de 64 bits (A1–A4, B1–B4). Les appels d'API prennent au plus deux arguments, tout le reste passe donc par eux.",
+      "params": {
+        "b3": "Nouvelle valeur pour B3."
+      }
+    },
+    "Get_B4": {
+      "detail": "Renvoie la valeur du slot de registre B4.",
+      "documentation": "Renvoie la valeur du slot de registre B4.\n\nA et B sont les deux pseudo-registres de 256 bits de la machine, chacun divisé en quatre slots de 64 bits (A1–A4, B1–B4). Les appels d'API prennent au plus deux arguments, tout le reste passe donc par eux."
+    },
+    "Set_B4": {
+      "detail": "Stocke une valeur dans le slot de registre B4.",
+      "documentation": "Stocke une valeur dans le slot de registre B4.\n\nA et B sont les deux pseudo-registres de 256 bits de la machine, chacun divisé en quatre slots de 64 bits (A1–A4, B1–B4). Les appels d'API prennent au plus deux arguments, tout le reste passe donc par eux.",
+      "params": {
+        "b4": "Nouvelle valeur pour B4."
+      }
+    },
+    "Set_B1_B2": {
+      "detail": "Stocke deux valeurs dans B1 et B2 en un seul appel d'API.",
+      "documentation": "Stocke deux valeurs dans B1 et B2 en un seul appel d'API.\n\nDeux fois moins cher que d'appeler `Set_B1` et `Set_B2` séparément. Chaque appel d'API coûte 10 pas, contre 1 pour une instruction ordinaire.",
+      "params": {
+        "b1": "Nouvelle valeur pour B1.",
+        "b2": "Nouvelle valeur pour B2."
+      }
+    },
+    "Set_B3_B4": {
+      "detail": "Stocke deux valeurs dans B3 et B4 en un seul appel d'API.",
+      "documentation": "Stocke deux valeurs dans B3 et B4 en un seul appel d'API.\n\nDeux fois moins cher que d'appeler `Set_B3` et `Set_B4` séparément. Chaque appel d'API coûte 10 pas, contre 1 pour une instruction ordinaire.",
+      "params": {
+        "b3": "Nouvelle valeur pour B3.",
+        "b4": "Nouvelle valeur pour B4."
+      }
+    },
+    "Clear_A": {
+      "detail": "Met à zéro les quatre slots de A.",
+      "documentation": "Met à zéro les quatre slots de A."
+    },
+    "Clear_B": {
+      "detail": "Met à zéro les quatre slots de B.",
+      "documentation": "Met à zéro les quatre slots de B."
+    },
+    "Clear_A_And_B": {
+      "detail": "Met à zéro tous les slots de A et B.",
+      "documentation": "Met à zéro tous les slots de A et B."
+    },
+    "Copy_A_From_B": {
+      "detail": "Copie B dans A (A = B).",
+      "documentation": "Copie B dans A (A = B)."
+    },
+    "Copy_B_From_A": {
+      "detail": "Copie A dans B (B = A).",
+      "documentation": "Copie A dans B (B = A)."
+    },
+    "Swap_A_and_B": {
+      "detail": "Échange le contenu de A et B.",
+      "documentation": "Échange le contenu de A et B."
+    },
+    "Check_A_Is_Zero": {
+      "detail": "Renvoie 1 si les quatre slots de A valent zéro, 0 sinon.",
+      "documentation": "Renvoie 1 si les quatre slots de A valent zéro, 0 sinon."
+    },
+    "Check_B_Is_Zero": {
+      "detail": "Renvoie 1 si les quatre slots de B valent zéro, 0 sinon.",
+      "documentation": "Renvoie 1 si les quatre slots de B valent zéro, 0 sinon."
+    },
+    "Check_A_Equals_B": {
+      "detail": "Renvoie 1 si A et B contiennent les mêmes quatre valeurs, 0 sinon.",
+      "documentation": "Renvoie 1 si A et B contiennent les mêmes quatre valeurs, 0 sinon."
+    },
+    "OR_A_with_B": {
+      "detail": "A = A | B, slot par slot.",
+      "documentation": "A = A | B, slot par slot."
+    },
+    "OR_B_with_A": {
+      "detail": "B = B | A, slot par slot.",
+      "documentation": "B = B | A, slot par slot."
+    },
+    "AND_A_with_B": {
+      "detail": "A = A & B, slot par slot.",
+      "documentation": "A = A & B, slot par slot."
+    },
+    "AND_B_with_A": {
+      "detail": "B = B & A, slot par slot.",
+      "documentation": "B = B & A, slot par slot."
+    },
+    "XOR_A_with_B": {
+      "detail": "A = A ^ B, slot par slot.",
+      "documentation": "A = A ^ B, slot par slot."
+    },
+    "XOR_B_with_A": {
+      "detail": "B = B ^ A, slot par slot.",
+      "documentation": "B = B ^ A, slot par slot."
+    },
+    "Add_A_To_B": {
+      "detail": "B = A + B, en nombres de 256 bits.",
+      "documentation": "B = A + B, en nombres de 256 bits.\n\nLes quatre slots sont lus comme un seul nombre non signé de 256 bits, A1/B1 étant le poids faible."
+    },
+    "Add_B_To_A": {
+      "detail": "A = A + B, en nombres de 256 bits.",
+      "documentation": "A = A + B, en nombres de 256 bits.\n\nLes quatre slots sont lus comme un seul nombre non signé de 256 bits, A1/B1 étant le poids faible."
+    },
+    "Sub_A_From_B": {
+      "detail": "B = B - A, en nombres de 256 bits.",
+      "documentation": "B = B - A, en nombres de 256 bits.\n\nLes quatre slots sont lus comme un seul nombre non signé de 256 bits, A1/B1 étant le poids faible."
+    },
+    "Sub_B_From_A": {
+      "detail": "A = A - B, en nombres de 256 bits.",
+      "documentation": "A = A - B, en nombres de 256 bits.\n\nLes quatre slots sont lus comme un seul nombre non signé de 256 bits, A1/B1 étant le poids faible."
+    },
+    "Mul_A_By_B": {
+      "detail": "B = A * B, en nombres de 256 bits.",
+      "documentation": "B = A * B, en nombres de 256 bits.\n\nLes quatre slots sont lus comme un seul nombre non signé de 256 bits, A1/B1 étant le poids faible."
+    },
+    "Mul_B_By_A": {
+      "detail": "A = A * B, en nombres de 256 bits.",
+      "documentation": "A = A * B, en nombres de 256 bits.\n\nLes quatre slots sont lus comme un seul nombre non signé de 256 bits, A1/B1 étant le poids faible."
+    },
+    "Div_A_By_B": {
+      "detail": "B = A / B, en nombres de 256 bits.",
+      "documentation": "B = A / B, en nombres de 256 bits.\n\nLes quatre slots sont lus comme un seul nombre non signé de 256 bits, A1/B1 étant le poids faible. Si B vaut zéro, rien ne change."
+    },
+    "Div_B_By_A": {
+      "detail": "A = B / A, en nombres de 256 bits.",
+      "documentation": "A = B / A, en nombres de 256 bits.\n\nLes quatre slots sont lus comme un seul nombre non signé de 256 bits, A1/B1 étant le poids faible. Si A vaut zéro, rien ne change."
+    },
+    "MD5_A_To_B": {
+      "detail": "Calcule le hash MD5 de A1–A2 (16 octets) et stocke l'empreinte dans B1–B2.",
+      "documentation": "Calcule le hash MD5 de A1–A2 (16 octets) et stocke l'empreinte dans B1–B2."
+    },
+    "Check_MD5_A_With_B": {
+      "detail": "Renvoie 1 si le MD5 de A1–A2 est égal à B1–B2, 0 sinon.",
+      "documentation": "Renvoie 1 si le MD5 de A1–A2 est égal à B1–B2, 0 sinon."
+    },
+    "HASH160_A_To_B": {
+      "detail": "Calcule le hash RIPEMD-160 de A (32 octets) et stocke l'empreinte de 20 octets dans B1, B2 et les 32 bits de poids faible de B3.",
+      "documentation": "Calcule le hash RIPEMD-160 de A (32 octets) et stocke l'empreinte de 20 octets dans B1, B2 et les 32 bits de poids faible de B3."
+    },
+    "Check_HASH160_A_With_B": {
+      "detail": "Renvoie 1 si le RIPEMD-160 de A est égal à B1, B2 et aux 32 bits de poids faible de B3, 0 sinon.",
+      "documentation": "Renvoie 1 si le RIPEMD-160 de A est égal à B1, B2 et aux 32 bits de poids faible de B3, 0 sinon."
+    },
+    "SHA256_A_To_B": {
+      "detail": "Calcule le hash SHA-256 de A (32 octets) et stocke l'empreinte dans B.",
+      "documentation": "Calcule le hash SHA-256 de A (32 octets) et stocke l'empreinte dans B."
+    },
+    "Check_SHA256_A_With_B": {
+      "detail": "Renvoie 1 si le SHA-256 de A est égal à B, 0 sinon.",
+      "documentation": "Renvoie 1 si le SHA-256 de A est égal à B, 0 sinon."
+    },
+    "Check_Sig_B_With_A": {
+      "detail": "Vérifie la signature d'un compte sur un message ; renvoie 1 si elle est valide, 0 sinon.",
+      "documentation": "Vérifie la signature d'un compte sur un message ; renvoie 1 si elle est valide, 0 sinon.\n\nEntrées :\n* A1 : ID de la transaction contenant la signature\n* A2 : page du message où commence la signature (elle couvre `page` et `page+1`)\n* A3 : ID du compte signataire\n* B2–B4 : le message signé (B1 n'est pas utilisé)\n\nLa fonction intégrée `checkSignature()` définit ces registres pour vous."
+    },
+    "Get_Block_Timestamp": {
+      "detail": "Renvoie l'horodatage du bloc courant.",
+      "documentation": "Renvoie l'horodatage du bloc courant.\n\nUn horodatage AT vaut `blockheight << 32` plus l'index de la transaction dans ce bloc. `Get_Block_Timestamp() >> 32` est la hauteur de bloc courante."
+    },
+    "Get_Creation_Timestamp": {
+      "detail": "Renvoie l'horodatage du bloc dans lequel ce contrat a été créé.",
+      "documentation": "Renvoie l'horodatage du bloc dans lequel ce contrat a été créé.\n\nUn horodatage AT vaut `blockheight << 32` plus l'index de la transaction dans ce bloc."
+    },
+    "Get_Last_Block_Timestamp": {
+      "detail": "Renvoie l'horodatage du bloc précédent.",
+      "documentation": "Renvoie l'horodatage du bloc précédent.\n\nUn horodatage AT vaut `blockheight << 32` plus l'index de la transaction dans ce bloc."
+    },
+    "Put_Last_Block_Hash_In_A": {
+      "detail": "Charge le hash du bloc précédent dans A.",
+      "documentation": "Charge le hash du bloc précédent dans A."
+    },
+    "Put_Last_Block_GSig_In_A": {
+      "detail": "Charge la signature de génération du bloc précédent dans A.",
+      "documentation": "Charge la signature de génération du bloc précédent dans A.\n\nC'est la source d'entropie de `getWeakRandomNumber()`, qui renvoie A2 après cet appel. Les forgeurs de blocs peuvent l'influencer, ne vous y fiez donc pour rien de précieux."
+    },
+    "Add_Minutes_To_Timestamp": {
+      "detail": "Renvoie 'timestamp' avancé de 'minutes'.",
+      "documentation": "Renvoie 'timestamp' avancé de 'minutes'.\n\nUn horodatage AT vaut `blockheight << 32` plus l'index de la transaction dans ce bloc. Chaque bloc compte pour 4 minutes, le résultat avance donc de `minutes / 4` blocs.",
+      "params": {
+        "timestamp": "Horodatage AT de départ.",
+        "minutes": "Minutes à ajouter ; converties en blocs de 4 minutes."
+      }
+    },
+    "A_To_Tx_After_Timestamp": {
+      "detail": "Trouve la première transaction vers ce contrat après 'timestamp' et place son ID dans A1.",
+      "documentation": "Trouve la première transaction vers ce contrat après 'timestamp' et place son ID dans A1.\n\nUn horodatage AT vaut `blockheight << 32` plus l'index de la transaction dans ce bloc. A est d'abord vidé, A1 vaut donc 0 s'il n'existe pas de telle transaction. Les fonctions intégrées `getNextTx()` et `getNextTxFromBlockheight()` reposent sur cet appel.",
+      "params": {
+        "timestamp": "Horodatage AT après lequel chercher."
+      }
+    },
+    "Get_Type_For_Tx_In_A": {
+      "detail": "Renvoie le type de la transaction dont l'ID est dans A1.",
+      "documentation": "Renvoie le type de la transaction dont l'ID est dans A1.\n\nRenvoie -1 si A1 n'est pas une transaction valide."
+    },
+    "Get_Amount_For_Tx_In_A": {
+      "detail": "Renvoie le montant porté par la transaction dans A1.",
+      "documentation": "Renvoie le montant porté par la transaction dans A1.\n\nEntrées :\n* A1 : ID de la transaction\n* A2 : ID de l'actif, ou 0 pour Signa\n\nPour Signa, le montant d'activation du contrat est déjà déduit. Renvoie -1 si A1 n'est pas une transaction valide."
+    },
+    "Get_Timestamp_For_Tx_In_A": {
+      "detail": "Renvoie l'horodatage de la transaction dont l'ID est dans A1.",
+      "documentation": "Renvoie l'horodatage de la transaction dont l'ID est dans A1.\n\nUn horodatage AT vaut `blockheight << 32` plus l'index de la transaction dans ce bloc. Renvoie -1 si A1 n'est pas une transaction valide."
+    },
+    "Get_Random_Id_For_Tx_In_A": {
+      "detail": "Renvoie un nombre aléatoire dérivé de la transaction dans A1.",
+      "documentation": "Renvoie un nombre aléatoire dérivé de la transaction dans A1.\n\nLa valeur n'est disponible que 15 blocs après l'inclusion de la transaction. Si l'appel a lieu plus tôt, le contrat **dort** jusque-là. Renvoie -1 si A1 n'est pas une transaction valide."
+    },
+    "Message_From_Tx_In_A_To_B": {
+      "detail": "Charge une page de 32 octets du message de la transaction dans B.",
+      "documentation": "Charge une page de 32 octets du message de la transaction dans B.\n\nEntrées :\n* A1 : ID de la transaction\n* A2 : numéro de page, à partir de 0\n\nLes octets manquants du message se lisent comme zéro ; une transaction invalide vide B. `readMessage()` encapsule cet appel."
+    },
+    "B_To_Address_Of_Tx_In_A": {
+      "detail": "Place l'expéditeur de la transaction dans A1 dans B1.",
+      "documentation": "Place l'expéditeur de la transaction dans A1 dans B1.\n\nB2–B4 sont vidés. `getSender()` encapsule cet appel."
+    },
+    "B_To_Assets_Of_Tx_In_A": {
+      "detail": "Place les ID des actifs envoyés avec la transaction dans A1 dans B1–B4.",
+      "documentation": "Place les ID des actifs envoyés avec la transaction dans A1 dans B1–B4.\n\nUne transaction porte au plus quatre actifs ; les slots inutilisés valent 0. `readAssets()` encapsule cet appel."
+    },
+    "B_To_Address_Of_Creator": {
+      "detail": "Place le créateur d'un contrat dans B1.",
+      "documentation": "Place le créateur d'un contrat dans B1.\n\nEntrée : B2 contient l'ID du contrat, ou 0 pour ce contrat. Les autres slots de B sont vidés. `getCreator()` et `getCreatorOf()` encapsulent cet appel."
+    },
+    "Get_Current_Balance": {
+      "detail": "Renvoie le solde courant de ce contrat.",
+      "documentation": "Renvoie le solde courant de ce contrat.\n\nEntrée : B2 contient un ID d'actif, ou 0 pour le solde en Signa (en NQT)."
+    },
+    "Get_Previous_Balance": {
+      "detail": "Renvoie le solde en Signa de ce contrat avant l'exécution courante.",
+      "documentation": "Renvoie le solde en Signa de ce contrat avant l'exécution courante."
+    },
+    "Get_Account_Balance": {
+      "detail": "Renvoie le solde de n'importe quel compte.",
+      "documentation": "Renvoie le solde de n'importe quel compte.\n\nEntrées :\n* B1 : ID du compte\n* B2 : ID de l'actif, ou 0 pour Signa (en NQT)\n\n`getAccountBalance()` et `getAccountQuantity()` encapsulent cet appel."
+    },
+    "Send_To_Address_In_B": {
+      "detail": "Envoie 'amount' au compte dans B1.",
+      "documentation": "Envoie 'amount' au compte dans B1.\n\nEntrées :\n* B1 : destinataire\n* B2 : ID de l'actif, ou 0 pour envoyer des Signa\n* B3 : lors de l'envoi d'un actif, les Signa (NQT) envoyés avec\n\nLes montants supérieurs au solde sont plafonnés à celui-ci ; les montants nuls ou négatifs n'envoient rien.",
+      "params": {
+        "amount": "NQT pour l'envoi de Signa, sinon la quantité d'actif."
+      }
+    },
+    "Send_All_To_Address_In_B": {
+      "detail": "Envoie tout le solde en Signa du contrat au compte dans B1.",
+      "documentation": "Envoie tout le solde en Signa du contrat au compte dans B1."
+    },
+    "Send_Old_To_Address_In_B": {
+      "detail": "Envoie le solde en Signa d'avant l'exécution courante au compte dans B1.",
+      "documentation": "Envoie le solde en Signa d'avant l'exécution courante au compte dans B1.\n\nPlafonné au solde courant."
+    },
+    "Send_A_To_Address_In_B": {
+      "detail": "Envoie les 32 octets de A comme message au compte dans B1.",
+      "documentation": "Envoie les 32 octets de A comme message au compte dans B1.\n\nPlusieurs appels vers le même destinataire au cours d'une exécution sont réunis en un seul message. `sendMessage()` encapsule cet appel."
+    },
+    "Get_Code_Hash_Id": {
+      "detail": "Renvoie l'ID du hash du code d'un contrat.",
+      "documentation": "Renvoie l'ID du hash du code d'un contrat.\n\nEntrée : B2 contient l'ID du contrat, ou 0 pour ce contrat. Renvoie 0 si le contrat est inconnu. `getCodeHashOf()` encapsule cet appel."
+    },
+    "Get_Activation_Fee": {
+      "detail": "Renvoie le montant d'activation (NQT) d'un contrat.",
+      "documentation": "Renvoie le montant d'activation (NQT) d'un contrat.\n\nEntrée : B2 contient l'ID du contrat, ou 0 pour ce contrat. Renvoie 0 si le contrat est inconnu. `getActivationOf()` encapsule cet appel."
+    },
+    "Get_Map_Value_Keys_In_A": {
+      "detail": "Lit une valeur dans la map clé-clé-valeur d'un contrat.",
+      "documentation": "Lit une valeur dans la map clé-clé-valeur d'un contrat.\n\nEntrées :\n* A1 : key1\n* A2 : key2\n* A3 : ID du contrat, ou 0 pour ce contrat\n\nRenvoie 0 pour une entrée absente. `getMapValue()` et `getExtMapValue()` encapsulent cet appel."
+    },
+    "Set_Map_Value_Keys_In_A": {
+      "detail": "Écrit une valeur dans la map clé-clé-valeur de ce contrat.",
+      "documentation": "Écrit une valeur dans la map clé-clé-valeur de ce contrat.\n\nEntrées :\n* A1 : key1\n* A2 : key2\n* A4 : valeur (A3 n'est pas utilisé)\n\n`setMapValue()` encapsule cet appel."
+    },
+    "Issue_Asset": {
+      "detail": "Émet un nouvel actif détenu par ce contrat et renvoie son ID.",
+      "documentation": "Émet un nouvel actif détenu par ce contrat et renvoie son ID.\n\nEntrées :\n* A1–A2 : nom de l'actif, jusqu'à 10 caractères\n* B1 : nombre de décimales\n\nL'actif démarre avec une quantité nulle ; utilisez `Mint_Asset` pour créer des unités. `issueAsset()` encapsule cet appel."
+    },
+    "Mint_Asset": {
+      "detail": "Crée de nouvelles unités d'un actif émis par ce contrat.",
+      "documentation": "Crée de nouvelles unités d'un actif émis par ce contrat.\n\nEntrées :\n* B1 : quantité\n* B2 : ID de l'actif\n\nNe fait rien pour un actif que ce contrat n'a pas émis. `mintAsset()` encapsule cet appel."
+    },
+    "Distribute_To_Asset_Holders": {
+      "detail": "Distribue des Signa et/ou un actif aux détenteurs d'un actif, au prorata de leurs avoirs.",
+      "documentation": "Distribue des Signa et/ou un actif aux détenteurs d'un actif, au prorata de leurs avoirs.\n\nEntrées :\n* B1 : quantité minimale qu'un détenteur doit posséder pour participer\n* B2 : actif dont les détenteurs reçoivent la distribution\n* A1 : Signa (NQT) à distribuer\n* A3 : actif à distribuer, ou 0 pour aucun\n* A4 : quantité de cet actif à distribuer\n\nLes montants sont plafonnés à ce que détient le contrat. `distributeToHolders()` encapsule cet appel."
+    },
+    "Get_Asset_Holders_Count": {
+      "detail": "Renvoie combien de comptes détiennent au moins une quantité minimale d'un actif.",
+      "documentation": "Renvoie combien de comptes détiennent au moins une quantité minimale d'un actif.\n\nEntrées :\n* B1 : quantité minimale\n* B2 : ID de l'actif\n\n`getAssetHoldersCount()` encapsule cet appel."
+    },
+    "Get_Asset_Circulating": {
+      "detail": "Renvoie l'offre en circulation d'un actif.",
+      "documentation": "Renvoie l'offre en circulation d'un actif.\n\nEntrée : B2 contient l'ID de l'actif. Renvoie 0 pour l'ID d'actif 0. `getAssetCirculating()` encapsule cet appel."
+    },
+    "F_Get_A1": {
+      "detail": "Renvoie le slot de registre A1 sous forme de valeur à virgule fixe.",
+      "documentation": "Renvoie le slot de registre A1 sous forme de valeur à virgule fixe.\n\nMême appel que `Get_A1` ; la valeur brute est lue comme `fixed` (1.0 = 1_0000_0000)."
+    },
+    "F_Set_A1": {
+      "detail": "Stocke une valeur à virgule fixe dans le slot de registre A1.",
+      "documentation": "Stocke une valeur à virgule fixe dans le slot de registre A1.\n\nMême appel que `Set_A1` ; la valeur `fixed` est stockée sous la forme de son contenu brut de 64 bits.",
+      "params": {
+        "a1": "Nouvelle valeur pour A1."
+      }
+    },
+    "F_Get_A2": {
+      "detail": "Renvoie le slot de registre A2 sous forme de valeur à virgule fixe.",
+      "documentation": "Renvoie le slot de registre A2 sous forme de valeur à virgule fixe.\n\nMême appel que `Get_A2` ; la valeur brute est lue comme `fixed` (1.0 = 1_0000_0000)."
+    },
+    "F_Set_A2": {
+      "detail": "Stocke une valeur à virgule fixe dans le slot de registre A2.",
+      "documentation": "Stocke une valeur à virgule fixe dans le slot de registre A2.\n\nMême appel que `Set_A2` ; la valeur `fixed` est stockée sous la forme de son contenu brut de 64 bits.",
+      "params": {
+        "a2": "Nouvelle valeur pour A2."
+      }
+    },
+    "F_Get_A3": {
+      "detail": "Renvoie le slot de registre A3 sous forme de valeur à virgule fixe.",
+      "documentation": "Renvoie le slot de registre A3 sous forme de valeur à virgule fixe.\n\nMême appel que `Get_A3` ; la valeur brute est lue comme `fixed` (1.0 = 1_0000_0000)."
+    },
+    "F_Set_A3": {
+      "detail": "Stocke une valeur à virgule fixe dans le slot de registre A3.",
+      "documentation": "Stocke une valeur à virgule fixe dans le slot de registre A3.\n\nMême appel que `Set_A3` ; la valeur `fixed` est stockée sous la forme de son contenu brut de 64 bits.",
+      "params": {
+        "a3": "Nouvelle valeur pour A3."
+      }
+    },
+    "F_Get_A4": {
+      "detail": "Renvoie le slot de registre A4 sous forme de valeur à virgule fixe.",
+      "documentation": "Renvoie le slot de registre A4 sous forme de valeur à virgule fixe.\n\nMême appel que `Get_A4` ; la valeur brute est lue comme `fixed` (1.0 = 1_0000_0000)."
+    },
+    "F_Set_A4": {
+      "detail": "Stocke une valeur à virgule fixe dans le slot de registre A4.",
+      "documentation": "Stocke une valeur à virgule fixe dans le slot de registre A4.\n\nMême appel que `Set_A4` ; la valeur `fixed` est stockée sous la forme de son contenu brut de 64 bits.",
+      "params": {
+        "a4": "Nouvelle valeur pour A4."
+      }
+    },
+    "F_Get_B1": {
+      "detail": "Renvoie le slot de registre B1 sous forme de valeur à virgule fixe.",
+      "documentation": "Renvoie le slot de registre B1 sous forme de valeur à virgule fixe.\n\nMême appel que `Get_B1` ; la valeur brute est lue comme `fixed` (1.0 = 1_0000_0000)."
+    },
+    "F_Set_B1": {
+      "detail": "Stocke une valeur à virgule fixe dans le slot de registre B1.",
+      "documentation": "Stocke une valeur à virgule fixe dans le slot de registre B1.\n\nMême appel que `Set_B1` ; la valeur `fixed` est stockée sous la forme de son contenu brut de 64 bits.",
+      "params": {
+        "b1": "Nouvelle valeur pour B1."
+      }
+    },
+    "F_Get_B2": {
+      "detail": "Renvoie le slot de registre B2 sous forme de valeur à virgule fixe.",
+      "documentation": "Renvoie le slot de registre B2 sous forme de valeur à virgule fixe.\n\nMême appel que `Get_B2` ; la valeur brute est lue comme `fixed` (1.0 = 1_0000_0000)."
+    },
+    "F_Set_B2": {
+      "detail": "Stocke une valeur à virgule fixe dans le slot de registre B2.",
+      "documentation": "Stocke une valeur à virgule fixe dans le slot de registre B2.\n\nMême appel que `Set_B2` ; la valeur `fixed` est stockée sous la forme de son contenu brut de 64 bits.",
+      "params": {
+        "b2": "Nouvelle valeur pour B2."
+      }
+    },
+    "F_Get_B3": {
+      "detail": "Renvoie le slot de registre B3 sous forme de valeur à virgule fixe.",
+      "documentation": "Renvoie le slot de registre B3 sous forme de valeur à virgule fixe.\n\nMême appel que `Get_B3` ; la valeur brute est lue comme `fixed` (1.0 = 1_0000_0000)."
+    },
+    "F_Set_B3": {
+      "detail": "Stocke une valeur à virgule fixe dans le slot de registre B3.",
+      "documentation": "Stocke une valeur à virgule fixe dans le slot de registre B3.\n\nMême appel que `Set_B3` ; la valeur `fixed` est stockée sous la forme de son contenu brut de 64 bits.",
+      "params": {
+        "b3": "Nouvelle valeur pour B3."
+      }
+    },
+    "F_Get_B4": {
+      "detail": "Renvoie le slot de registre B4 sous forme de valeur à virgule fixe.",
+      "documentation": "Renvoie le slot de registre B4 sous forme de valeur à virgule fixe.\n\nMême appel que `Get_B4` ; la valeur brute est lue comme `fixed` (1.0 = 1_0000_0000)."
+    },
+    "F_Set_B4": {
+      "detail": "Stocke une valeur à virgule fixe dans le slot de registre B4.",
+      "documentation": "Stocke une valeur à virgule fixe dans le slot de registre B4.\n\nMême appel que `Set_B4` ; la valeur `fixed` est stockée sous la forme de son contenu brut de 64 bits.",
+      "params": {
+        "b4": "Nouvelle valeur pour B4."
+      }
+    },
+    "F_Get_Amount_For_Tx_In_A": {
+      "detail": "Renvoie le montant porté par la transaction dans A1, en fixed.",
+      "documentation": "Renvoie le montant porté par la transaction dans A1, en fixed.\n\nMême appel que `Get_Amount_For_Tx_In_A` (A1 : ID de la transaction, A2 : ID de l'actif ou 0 pour Signa)."
+    },
+    "F_Get_Current_Balance": {
+      "detail": "Renvoie le solde courant de ce contrat, en fixed.",
+      "documentation": "Renvoie le solde courant de ce contrat, en fixed.\n\nMême appel que `Get_Current_Balance` (B2 : ID de l'actif, ou 0 pour Signa)."
+    },
+    "F_Get_Previous_Balance": {
+      "detail": "Renvoie le solde en Signa de ce contrat avant l'exécution courante, en fixed.",
+      "documentation": "Renvoie le solde en Signa de ce contrat avant l'exécution courante, en fixed."
+    },
+    "F_Get_Account_Balance": {
+      "detail": "Renvoie le solde de n'importe quel compte, en fixed.",
+      "documentation": "Renvoie le solde de n'importe quel compte, en fixed.\n\nMême appel que `Get_Account_Balance` (B1 : ID du compte, B2 : ID de l'actif ou 0 pour Signa)."
+    },
+    "F_Send_To_Address_In_B": {
+      "detail": "Envoie 'amount' au compte dans B1.",
+      "documentation": "Envoie 'amount' au compte dans B1.\n\nMême appel que `Send_To_Address_In_B` (B1 : destinataire, B2 : ID de l'actif ou 0 pour Signa, B3 : Signa envoyés avec un actif).",
+      "params": {
+        "amount": "Montant en Signa, par ex. 1.5."
+      }
+    },
+    "F_Get_Map_Value_Keys_In_A": {
+      "detail": "Lit une valeur dans la map clé-clé-valeur d'un contrat, en fixed.",
+      "documentation": "Lit une valeur dans la map clé-clé-valeur d'un contrat, en fixed.\n\nMême appel que `Get_Map_Value_Keys_In_A` (A1 : key1, A2 : key2, A3 : ID du contrat ou 0)."
+    },
+    "F_Get_Activation_Fee": {
+      "detail": "Renvoie le montant d'activation d'un contrat, en fixed.",
+      "documentation": "Renvoie le montant d'activation d'un contrat, en fixed.\n\nMême appel que `Get_Activation_Fee` (B2 : ID du contrat, ou 0 pour ce contrat)."
+    }
+  },
+  "keywords": {
+    "exit": {
+      "detail": "Arrête l'exécution du contrat et revient à main",
+      "documentation": "Met le contrat en mode 'stop' et fait redémarrer le programme à la fonction main (mode 'finished'). Il reste inactif jusqu'à la réception d'une nouvelle transaction. Une fois la transaction reçue, l'exécution commence à la fonction void main(). Si la fonction main n'est pas définie, l'exécution reprend au début du code, en réexécutant toutes les instructions globales. Si la fonction main est définie, les instructions globales ne sont exécutées que lors des premières activations du contrat. exit ne prend pas d'argument. Si le montant d'activation du contrat vaut zéro, le contrat reprend l'exécution au bloc suivant (comme sleep)"
+    },
+    "sleep": {
+      "detail": "Dort n blocs",
+      "documentation": "Met le contrat en mode 'sleep' et reprend l'exécution au bloc suivant. Il peut aussi prendre un argument indiquant le nombre de blocs de sommeil, et cet argument peut être une expression. Les trois instructions sleep;, sleep 0; et sleep 1; ont le même effet, mais la première est préférable car l'instruction est plus courte."
+    },
+    "fixed": {
+      "detail": "Déclare une variable à virgule fixe",
+      "documentation": "Déclare une variable à virgule fixe. Tous les nombres fixed ont 8 décimales, ce qui est pratique pour les calculs en Signa. Ils prennent en charge les valeurs positives de 0.00000001 à 92,233,720,368.54775807 et négatives de -0.00000001 à -92,233,720,368.54775808. En interne, ce sont des nombres signés de 64 bits."
+    },
+    "halt": {
+      "detail": "Le contrat reste inactif jusqu'à la prochaine transaction",
+      "documentation": "Met le contrat en mode 'stop'. Il reste inactif jusqu'à la réception d'une nouvelle transaction, puis reprend l'exécution à l'instruction suivante. Ne prend pas d'argument. Si le montant d'activation du contrat vaut zéro, le contrat reprend l'exécution au bloc suivant."
+    }
+  },
+  "directives": {
+    "program": {
+      "detail": "Métadonnées du contrat",
+      "documentation": "Définit les métadonnées du contrat : nom, description, montant d'activation, pages de pile et ID du hash du code.",
+      "properties": {
+        "name": {
+          "detail": "Nom du programme (obligatoire pour le déploiement)",
+          "documentation": "Définit le nom du programme. Uniquement des lettres et des chiffres ordinaires, 30 caractères au maximum. Une valeur est obligatoire pour le déploiement."
+        },
+        "description": {
+          "detail": "Description du programme (facultatif)",
+          "documentation": "Définit la description du programme. Sans retour à la ligne, 1000 caractères au maximum. Facultatif."
+        },
+        "activationAmount": {
+          "detail": "Montant minimum pour activer le contrat (obligatoire pour le déploiement)",
+          "documentation": "Définit le montant d'activation du programme. Si VALUE est à virgule fixe (exemple : .34), il est utilisé comme montant en Signa. Sinon, la valeur est définie en NQT (exemple : 3400_0000).\n\nSi une transaction entrante porte un montant inférieur à cette valeur, le programme ne la traitera pas (mais le montant sera bien reçu !). Choisissez une valeur basse, mais supérieure au montant nécessaire dans le pire des cas pour exécuter votre programme. Trop basse, votre programme se figera en cours d'exécution (plus de gas). Trop haute, le solde du programme sera élevé après l'exécution (solde non dépensé). Pensez à gérer ce cas dans un programme sérieux ! Une valeur est obligatoire pour le déploiement."
+        },
+        "codeHashId": {
+          "detail": "Imposer l'ID du hash du code compilé (facultatif)",
+          "documentation": "Garantit que le programme compilé aura exactement cet ID de hash du code. Utilisez 0 pour obtenir cette information dans la sortie assembleur (pendant le développement). Utilisez la valeur réelle si vous comptez distribuer le code source : le compilateur signalera alors une erreur en cas de divergence. Facultatif."
+        },
+        "codeStackPages": {
+          "detail": "Pages de la pile de code (10 max.)",
+          "documentation": "Les pages de code servent lors des appels de fonction à stocker la position de retour du pointeur d'instruction (aussi appelé Program Counter). La valeur par défaut est zéro si inutile, un sinon. Chaque page stocke 16 valeurs. Ajustez cette valeur si vous utilisez beaucoup de fonctions imbriquées ou récursives. Le maximum est de 10 pages."
+        },
+        "userStackPages": {
+          "detail": "Pages de la pile utilisateur (10 max.)",
+          "documentation": "Les pages utilisateur servent lors des appels de fonction à passer les valeurs des arguments, à stocker la valeur de retour ou à stocker les variables de portée lors des appels récursifs. La valeur par défaut est zéro si inutile, un sinon. Ajustez cette valeur si vos fonctions ont plus de 16 arguments ou sont récursives. Le maximum est de 10 pages."
+        },
+        "creator": {
+          "detail": "ID du créateur — SC-Simulator uniquement",
+          "documentation": "Valable uniquement dans SC-Simulator. N doit être un nombre décimal. Définit l'ID du créateur du contrat. Utile pour simuler plusieurs contrats déployés par différents utilisateurs. Ignoré lors de la génération du code machine et lors d'un vrai déploiement."
+        },
+        "contract": {
+          "detail": "ID du contrat — SC-Simulator uniquement",
+          "documentation": "Valable uniquement dans SC-Simulator. N doit être un nombre décimal. Définit l'ID du contrat. Utile pour déployer plusieurs contrats, qui peuvent alors l'être dans n'importe quel ordre. Ignoré lors de la génération du code machine et lors d'un vrai déploiement."
+        }
+      }
+    },
+    "pragma": {
+      "detail": "Options du compilateur",
+      "documentation": "Fonctionnalités spéciales utilisées par le compilateur.",
+      "properties": {
+        "maxAuxVars": {
+          "detail": "Nombre de variables auxiliaires / registres (0..10, 3 par défaut)",
+          "documentation": "Indique au compilateur combien de variables auxiliaires sont disponibles (elles servent de registres). La valeur par défaut est 3, le minimum 0 et le maximum 10. En cas de manque de mémoire, réduisez au minimum nécessaire pour compiler. Les contrats simples en utilisent environ 2, mais ce nombre dépend des opérations imbriquées."
+        },
+        "maxConstVars": {
+          "detail": "Nombre de variables constantes 'n1'..'n10' (0..10, 0 par défaut)",
+          "documentation": "Le compilateur crée des variables de 1 à maxConstVars, nommées 'n1', 'n2', … 'n10'. C'est très utile, car le compilateur remplace toutes les références aux nombres par ces variables et optimise le code, qui devient nettement plus petit ! La valeur par défaut est 0 (désactivé) et le maximum 10."
+        },
+        "optimizationLevel": {
+          "detail": "Stratégie de l'optimiseur de code (0..4, 2 par défaut)",
+          "documentation": "Choisit la stratégie de l'optimiseur de code. Elle peut aller de 0 à 3.\n\n* `0` : aucune optimisation.\n* `1` : optimisation très basique, supprime seulement le code absurde et inutilisé.\n* `2` : par défaut. Modifie et/ou supprime du code en toute sécurité pour un meilleur résultat.\n* `3` : utilise une VM pour suivre le contenu des variables et supprimer le code redondant. Fonctionnalité bêta, qui deviendra le défaut après davantage de tests. Peut bien optimiser en réduisant le nombre d'appels aux fonctions d'API.\n* `4` : optimisations risquées et peu testées. Le résultat doit être vérifié par le développeur."
+        },
+        "reuseAssignedVar": {
+          "detail": "Réutiliser le membre gauche de l'affectation comme registre (true par défaut)",
+          "documentation": "Si activé, le compilateur essaie d'utiliser la variable du membre gauche d'une affectation comme registre. Si la variable figure aussi dans le membre droit, elle n'est pas réutilisée. Cela peut économiser une instruction assembleur par expression ! La valeur par défaut est true et il est vivement recommandé de la laisser active."
+        },
+        "verboseAssembly": {
+          "detail": "Annoter la sortie assembleur avec les lignes du source",
+          "documentation": "Ajoute dans la sortie assembleur un commentaire avec le numéro de ligne et le code source correspondants. Très utile pour le débogage."
+        },
+        "verboseScope": {
+          "detail": "Annoter la sortie assembleur avec la portée des registres",
+          "documentation": "Ajoute dans la sortie assembleur un commentaire avec les registres libres à chaque début et fin de portée. Indique aussi quand un registre est utilisé sous le nom d'une autre variable. Très utile pour le débogage."
+        },
+        "version": {
+          "detail": "Version du compilateur pour laquelle le code a été écrit (facultatif)",
+          "documentation": "Indique pour quelle version du compilateur le code a été écrit. Facultatif, mais peut aider les générations futures. VALUE peut être n'importe quel texte ou remarque."
+        }
+      }
+    },
+    "include": {
+      "detail": "Activer les fonctions d'API de bas niveau",
+      "documentation": "Active une table de fonctions d'API de bas niveau : `#include APIFunctions` ou `#include fixedAPIFunctions`.",
+      "properties": {
+        "APIFunctions": {
+          "detail": "Activer les fonctions d'API de bas niveau",
+          "documentation": "Rend les appels d'API de la machine AT disponibles sous forme de fonctions C : `Get_A1`, `Set_B1_B2`, `Clear_A`, `SHA256_A_To_B`, `Send_To_Address_In_B`, … Elles opèrent directement sur les pseudo-registres A et B, pour les cas que les fonctions intégrées ne couvrent pas. Valeur facultative `true`/`false` (`true` par défaut)."
+        },
+        "fixedAPIFunctions": {
+          "detail": "Activer les fonctions d'API de bas niveau à virgule fixe",
+          "documentation": "Ajoute des jumeaux typés `fixed` des appels d'API qui déplacent des montants en Signa : `F_Get_Current_Balance`, `F_Send_To_Address_In_B`, `F_Get_A1`, … Indépendant de `#include APIFunctions`. Valeur facultative `true`/`false` (`true` par défaut)."
+        }
+      }
+    }
+  },
+  "asmDirectives": {
+    "program": {
+      "detail": "Métadonnées du contrat",
+      "documentation": "Déclare une métadonnée du contrat : `^program <property> <value>`.\n\nLa directive ne produit aucun code machine — les valeurs accompagnent le bytecode dans la transaction de déploiement. Une propriété inconnue est une erreur d'assemblage ; la liste ci-dessous est donc exhaustive.",
+      "properties": {
+        "name": {
+          "detail": "Nom du programme (obligatoire pour le déploiement)",
+          "documentation": "Définit le nom du programme. Uniquement des lettres et des chiffres ordinaires, 30 caractères au maximum. Une valeur est obligatoire pour le déploiement."
+        },
+        "description": {
+          "detail": "Description du programme (facultatif)",
+          "documentation": "Définit la description du programme. Sans retour à la ligne, 1000 caractères au maximum. Facultatif."
+        },
+        "activationAmount": {
+          "detail": "Montant minimum pour activer le contrat (obligatoire pour le déploiement)",
+          "documentation": "Définit le montant d'activation du programme, en NQT (exemple : `3400_0000`).\n\nUne transaction entrante portant moins que ce montant est tout de même reçue — le montant s'ajoute au solde du contrat — mais elle ne réveille pas le contrat. Réglez-le au-dessus du coût d'une exécution dans le pire des cas : trop bas, le contrat se fige en pleine exécution (plus de gas) ; trop haut, il accumule un solde non dépensé qu'il vous faudra gérer. Une valeur est obligatoire pour le déploiement."
+        },
+        "userStackPages": {
+          "detail": "Pages de la pile utilisateur (10 max.)",
+          "documentation": "Les pages utilisateur forment la pile `PSH`/`POP`, qui conserve les registres sauvegardés pendant un appel et les variables de portée des appels récursifs. Chaque page contient 16 valeurs ; par défaut zéro si le programme n'en a pas besoin, un sinon, et 10 pages au maximum. Augmentez-la pour les fonctions très récursives — un débordement de pile tue le contrat."
+        },
+        "codeStackPages": {
+          "detail": "Pages de la pile de code (10 max.)",
+          "documentation": "Les pages de code forment la pile `JSR`/`RET`, qui stocke l'adresse de retour de chaque appel imbriqué. Chaque page contient 16 valeurs ; par défaut zéro si le programme n'en a pas besoin, un sinon, et 10 pages au maximum. Augmentez-la pour les fonctions très imbriquées ou récursives."
+        },
+        "codeHashId": {
+          "detail": "Imposer l'ID du hash du code compilé (facultatif)",
+          "documentation": "Garantit que le programme compilé aura exactement cet ID de hash du code. Utilisez `0` pour que la valeur soit réécrite dans la sortie assembleur pendant le développement. Utilisez la valeur réelle en distribuant le source : le compilateur signalera une erreur si le code machine produit diverge. Facultatif."
+        },
+        "creator": {
+          "detail": "ID du créateur — SC-Simulator uniquement",
+          "documentation": "Valable uniquement dans SC-Simulator : définit l'ID du créateur du contrat pour simuler plusieurs contrats déployés par des utilisateurs différents. L'assembleur l'accepte et l'ignore — il n'a aucun effet sur le code machine généré ni sur un vrai déploiement."
+        },
+        "contract": {
+          "detail": "ID du contrat — SC-Simulator uniquement",
+          "documentation": "Valable uniquement dans SC-Simulator : définit l'ID du contrat, afin qu'un scénario déployant plusieurs contrats puisse le faire dans n'importe quel ordre. L'assembleur l'accepte et l'ignore — il n'a aucun effet sur le code machine généré ni sur un vrai déploiement."
+        }
+      }
+    },
+    "declare": {
+      "detail": "Déclaration de variable",
+      "documentation": "`^declare <name>` réserve une cellule mémoire de 64 bits et lie `<name>` à son adresse.\n\nChaque `@name` / `$name` de l'assembleur désigne une cellule déclarée ainsi, et l'ordre des déclarations fixe les adresses. La directive elle-même ne produit aucun code machine, mais chaque variable déclarée ajoute une cellule aux pages de données du contrat."
+    },
+    "const": {
+      "detail": "Initialisation de constante",
+      "documentation": "`^const SET @<name> #<16 hex digits>` donne sa valeur initiale à une variable déclarée.\n\nLa valeur est inscrite dans l'image mémoire initiale du contrat à l'assemblage au lieu d'être affectée à l'exécution ; elle ne coûte donc ni octets de code ni pas. La syntaxe est stricte : le `SET`, le `@` et exactement 16 chiffres hexadécimaux en minuscules après le `#`."
+    },
+    "comment": {
+      "detail": "Commentaire d'assembleur",
+      "documentation": "`^comment <text>` est ignoré par l'assembleur et ne produit rien.\n\nSmartC s'en sert pour annoter sa sortie — `#pragma verboseAssembly` y intercale ainsi le source C d'origine, et `#pragma verboseScope` ajoute des notes sur la durée de vie des registres."
+    }
+  },
+  "opcodes": {
+    "JMP": {
+      "title": "Saut",
+      "group": "Flux du programme",
+      "documentation": "Saut inconditionnel : place le pointeur d'instruction sur `:label` et poursuit à partir de là.\n\nContrairement aux branchements conditionnels, la cible est stockée comme une **adresse absolue complète de 4 octets** : un `JMP` peut donc atteindre n'importe quel point de la section de code — il n'y a pas de limite de portée. C'est aussi pourquoi l'assembleur se rabat sur `JMP` quand le décalage d'un branchement déborde.\n\nUne étiquette inconnue est une erreur d'assemblage (`Unknow jump label`). SmartC émet `JMP` pour `goto`, pour le retour en arrière des boucles `while`/`for` et pour sauter la branche `else` d'un `if`. L'optimiseur supprime un `JMP` dont la cible est l'instruction suivante."
+    },
+    "JSR": {
+      "title": "Saut vers un sous-programme",
+      "group": "Flux du programme",
+      "documentation": "Empile l'adresse de l'instruction *suivante* sur la **pile de code**, puis saute à `:label`. Un `RET` ultérieur dépile cette adresse pour revenir.\n\nLa pile de code contient 16 entrées par page et se dimensionne avec `#pragma codeStackPages` (10 pages max., soit 160 appels imbriqués). Dépasser cette limite interrompt le contrat avec *Code Stack buffer overflow* — sauf si un gestionnaire `ERR` est installé, auquel cas l'exécution s'y poursuit.\n\nSeule l'adresse de retour transite par la pile de code. Les arguments, les valeurs de retour et les variables locales des appels récursifs passent par la **pile utilisateur** distincte via `PSH`/`POP`, dimensionnée par `#pragma userStackPages`. C'est ainsi que SmartC appelle les fonctions définies par l'utilisateur."
+    },
+    "RET": {
+      "title": "Retour de sous-programme",
+      "group": "Flux du programme",
+      "documentation": "Dépile une adresse de la **pile de code** et y saute, revenant du `JSR` qui l'avait empilée.\n\nExécuter `RET` sur une pile de code vide interrompt le contrat avec *Code Stack buffer underflow*, sauf si un gestionnaire `ERR` est défini — l'exécution y saute alors.\n\nC'est une instruction d'un octet, donc le moyen le moins cher de quitter un sous-programme. SmartC termine chaque fonction définie par l'utilisateur par elle ; un `return expr;` se compile en `SET @r0 $expr` suivi de `RET`, le résultat revient donc dans le registre `r0` et non sur une pile."
+    },
+    "BZR": {
+      "title": "Brancher si zéro",
+      "group": "Flux du programme",
+      "documentation": "Branche vers `:label` quand `$var` vaut zéro ; sinon, l'exécution continue.\n\nLe test porte sur la valeur brute de 64 bits, le signe n'importe donc pas ici — seul le motif de bits tout à zéro branche. Une variable jamais écrite se lit comme 0 et *branche* donc.\n\nLa cible est codée comme un **décalage signé sur 8 bits** relatif au branchement lui-même ; elle doit donc se trouver entre -128..+127 octets. Inutile de s'en occuper à la main : quand une étiquette est hors de portée, l'assembleur inverse la condition et insère un `JMP` vers l'étiquette lointaine, ce qui coûte 5 octets et une instruction de plus. L'inverse utilisé pour cette réécriture est `BNZ`.\n\nAvec 6 octets, c'est la plus petite instruction conditionnelle du jeu d'instructions ; c'est pourquoi SmartC préfère `BZR`/`BNZ` à un branchement de comparaison avec une constante nulle chaque fois qu'il le peut."
+    },
+    "BNZ": {
+      "title": "Brancher si non nul",
+      "group": "Flux du programme",
+      "documentation": "Branche vers `:label` quand `$var` est différent de zéro ; sinon, l'exécution continue.\n\nLe test porte sur la valeur brute de 64 bits, le signe n'importe donc pas — tout motif de bits non nul branche. Une variable jamais écrite se lit comme 0 et ne branche *pas*.\n\nLa cible est codée comme un **décalage signé sur 8 bits** relatif au branchement lui-même ; elle doit donc se trouver entre -128..+127 octets. Inutile de s'en occuper à la main : quand une étiquette est hors de portée, l'assembleur inverse la condition et insère un `JMP` vers l'étiquette lointaine, ce qui coûte 5 octets et une instruction de plus. L'inverse utilisé pour cette réécriture est `BZR`.\n\nPendant exact de `BZR` ; l'optimiseur les échange chaque fois qu'il inverse une condition."
+    },
+    "BGT": {
+      "title": "Brancher si supérieur",
+      "group": "Flux du programme",
+      "documentation": "Branche vers `:label` quand `$var1 > $var2` ; sinon, passe à l'instruction suivante.\n\nLes deux opérandes sont comparés comme des entiers **signés** de 64 bits : `0xffffffffffffffff` compte donc comme `-1`, et non comme un énorme nombre positif. SmartC l'émet pour `>` avec des opérandes `long` et `fixed`.\n\nLa cible est codée comme un **décalage signé sur 8 bits** relatif au branchement lui-même ; elle doit donc se trouver entre -128..+127 octets. Inutile de s'en occuper à la main : quand une étiquette est hors de portée, l'assembleur inverse la condition et insère un `JMP` vers l'étiquette lointaine, ce qui coûte 5 octets et une instruction de plus. L'inverse utilisé pour cette réécriture est `BLE`.\n\nUn opérande jamais écrit se lit comme 0."
+    },
+    "BLT": {
+      "title": "Brancher si inférieur",
+      "group": "Flux du programme",
+      "documentation": "Branche vers `:label` quand `$var1 < $var2` ; sinon, passe à l'instruction suivante.\n\nLes deux opérandes sont comparés comme des entiers **signés** de 64 bits : `0xffffffffffffffff` compte donc comme `-1`, et non comme un énorme nombre positif. SmartC l'émet pour `<` avec des opérandes `long` et `fixed`.\n\nLa cible est codée comme un **décalage signé sur 8 bits** relatif au branchement lui-même ; elle doit donc se trouver entre -128..+127 octets. Inutile de s'en occuper à la main : quand une étiquette est hors de portée, l'assembleur inverse la condition et insère un `JMP` vers l'étiquette lointaine, ce qui coûte 5 octets et une instruction de plus. L'inverse utilisé pour cette réécriture est `BGE`.\n\nUn opérande jamais écrit se lit comme 0."
+    },
+    "BGE": {
+      "title": "Brancher si supérieur ou égal",
+      "group": "Flux du programme",
+      "documentation": "Branche vers `:label` quand `$var1 >= $var2` ; sinon, passe à l'instruction suivante.\n\nLes deux opérandes sont comparés comme des entiers **signés** de 64 bits : `0xffffffffffffffff` compte donc comme `-1`, et non comme un énorme nombre positif. SmartC l'émet pour `>=`, et aussi comme forme inversée de `<` quand il est moins coûteux de poursuivre dans le cas vrai.\n\nLa cible est codée comme un **décalage signé sur 8 bits** relatif au branchement lui-même ; elle doit donc se trouver entre -128..+127 octets. Inutile de s'en occuper à la main : quand une étiquette est hors de portée, l'assembleur inverse la condition et insère un `JMP` vers l'étiquette lointaine, ce qui coûte 5 octets et une instruction de plus. L'inverse utilisé pour cette réécriture est `BLT`.\n\nUn opérande jamais écrit se lit comme 0."
+    },
+    "BLE": {
+      "title": "Brancher si inférieur ou égal",
+      "group": "Flux du programme",
+      "documentation": "Branche vers `:label` quand `$var1 <= $var2` ; sinon, passe à l'instruction suivante.\n\nLes deux opérandes sont comparés comme des entiers **signés** de 64 bits : `0xffffffffffffffff` compte donc comme `-1`, et non comme un énorme nombre positif. SmartC l'émet pour `<=`, et aussi comme forme inversée de `>`.\n\nLa cible est codée comme un **décalage signé sur 8 bits** relatif au branchement lui-même ; elle doit donc se trouver entre -128..+127 octets. Inutile de s'en occuper à la main : quand une étiquette est hors de portée, l'assembleur inverse la condition et insère un `JMP` vers l'étiquette lointaine, ce qui coûte 5 octets et une instruction de plus. L'inverse utilisé pour cette réécriture est `BGT`.\n\nUn opérande jamais écrit se lit comme 0."
+    },
+    "BEQ": {
+      "title": "Brancher si égal",
+      "group": "Flux du programme",
+      "documentation": "Branche vers `:label` quand `$var1 == $var2` ; sinon, passe à l'instruction suivante.\n\nLes deux opérandes sont comparés comme des entiers **signés** de 64 bits : `0xffffffffffffffff` compte donc comme `-1`, et non comme un énorme nombre positif. Pour une comparaison avec zéro, préférez `BZR`, plus petit de 4 octets et sans second opérande.\n\nLa cible est codée comme un **décalage signé sur 8 bits** relatif au branchement lui-même ; elle doit donc se trouver entre -128..+127 octets. Inutile de s'en occuper à la main : quand une étiquette est hors de portée, l'assembleur inverse la condition et insère un `JMP` vers l'étiquette lointaine, ce qui coûte 5 octets et une instruction de plus. L'inverse utilisé pour cette réécriture est `BNE`.\n\nUn opérande jamais écrit se lit comme 0."
+    },
+    "BNE": {
+      "title": "Brancher si différent",
+      "group": "Flux du programme",
+      "documentation": "Branche vers `:label` quand `$var1 != $var2` ; sinon, passe à l'instruction suivante.\n\nLes deux opérandes sont comparés comme des entiers **signés** de 64 bits : `0xffffffffffffffff` compte donc comme `-1`, et non comme un énorme nombre positif. Pour une comparaison avec zéro, préférez `BNZ`, plus petit de 4 octets et sans second opérande.\n\nLa cible est codée comme un **décalage signé sur 8 bits** relatif au branchement lui-même ; elle doit donc se trouver entre -128..+127 octets. Inutile de s'en occuper à la main : quand une étiquette est hors de portée, l'assembleur inverse la condition et insère un `JMP` vers l'étiquette lointaine, ce qui coûte 5 octets et une instruction de plus. L'inverse utilisé pour cette réécriture est `BEQ`.\n\nUn opérande jamais écrit se lit comme 0."
+    },
+    "SLP": {
+      "title": "Dormir",
+      "group": "Flux du programme",
+      "documentation": "Suspend le contrat et le reprend à l'**instruction suivante** lors d'un bloc ultérieur. L'état et le pointeur d'instruction sont conservés : c'est une pause, pas un redémarrage.\n\n* `SLP` — se réveiller au bloc suivant.\n* `SLP $var` — se réveiller dans `$var` blocs. La valeur est lue comme **signée**, et tout ce qui est inférieur à 1 est ramené à 1 : un `SLP` avec un opérande nul ou négatif se comporte donc comme la forme simple d'un bloc.\n\nLe contrat se retrouve *arrêté mais pas terminé* : il conserve son solde et reprendra automatiquement au bloc cible sans avoir besoin d'une transaction entrante. C'est ce en quoi se compile l'instruction `sleep` de SmartC. Préférez le `SLP` seul quand un bloc suffit — il est plus petit de 4 octets."
+    },
+    "FIN": {
+      "title": "Terminer l'exécution",
+      "group": "Flux du programme",
+      "documentation": "Termine cette activation et marque le contrat comme *terminé*. Le pointeur d'instruction est ramené à l'adresse **PCS** (celle définie par la dernière instruction `PCS`, ou le début du code s'il n'y en a pas eu) : l'activation suivante commence donc là, et non là où l'exécution s'est arrêtée.\n\nLe contrat est figé et ne s'exécutera à nouveau qu'à l'arrivée d'une nouvelle transaction — ou au bloc suivant si le montant d'activation vaut zéro. C'est ce en quoi se compile le `exit` de SmartC, et c'est aussi là qu'aboutit un programme qui dépasse la fin de son code.\n\nÀ comparer avec `STP`, qui arrête aussi le contrat mais reprend à l'instruction *suivante* plutôt qu'au PCS."
+    },
+    "STP": {
+      "title": "Arrêter l'exécution",
+      "group": "Flux du programme",
+      "documentation": "Termine cette activation et marque le contrat comme *arrêté, pas terminé*. Le pointeur d'instruction reste sur l'**instruction suivante** : l'activation suivante reprend donc exactement là où celle-ci s'est arrêtée.\n\nLe contrat est figé et attend une nouvelle transaction — ou reprend au bloc suivant si le montant d'activation vaut zéro. C'est ce en quoi se compile le `halt` de SmartC.\n\nÀ comparer avec `FIN`, qui ramène l'exécution à l'adresse PCS au lieu de continuer."
+    },
+    "FIZ": {
+      "title": "Terminer si zéro",
+      "group": "Flux du programme",
+      "documentation": "`FIN` conditionnel : quand `$var` vaut zéro, le contrat se termine exactement comme avec `FIN` — figé, marqué terminé, pointeur d'instruction ramené à l'adresse **PCS**. Quand `$var` est non nul, c'est une opération nulle et l'exécution continue à l'instruction suivante.\n\nLe test porte sur la valeur brute de 64 bits ; une variable jamais écrite se lit comme 0 et termine donc.\n\nEncode le schéma courant « sortir si cela n'a pas réussi » en 5 octets, contre les 7 que coûterait la paire équivalente `BNZ $var :skip` / `FIN` / `skip:`."
+    },
+    "STZ": {
+      "title": "Arrêter si zéro",
+      "group": "Flux du programme",
+      "documentation": "`STP` conditionnel : quand `$var` vaut zéro, le contrat s'arrête comme avec `STP` — figé, *pas* terminé, et reprend à l'instruction suivante lors de l'activation suivante. Quand `$var` est non nul, rien ne se passe et l'exécution continue simplement.\n\nNotez l'asymétrie avec `FIZ` : dans les deux cas, le pointeur d'instruction dépasse le `STZ`, car s'arrêter ici signifie « reprendre plus tard à l'instruction suivante », et non « redémarrer ».\n\nLe test porte sur la valeur brute de 64 bits ; une variable jamais écrite se lit comme 0 et arrête donc."
+    },
+    "ERR": {
+      "title": "Définir le gestionnaire d'erreurs",
+      "group": "Flux du programme",
+      "documentation": "Installe `:label` comme gestionnaire d'erreurs du contrat et continue à l'instruction suivante. Il n'y saute **pas** maintenant.\n\nUne fois défini, une erreur à l'exécution transfère le contrôle au gestionnaire au lieu de tuer le contrat. Les erreurs qui passent par lui sont :\n\n* division par zéro (`DIV`, `MOD`)\n* dépassement par le bas de la pile utilisateur (`POP` sur une pile vide)\n* débordement / dépassement par le bas de la pile de code (`JSR` trop profond, `RET` sans rien à quoi revenir)\n* manque de gas et autres exceptions de la machine\n\nSans gestionnaire, chacune de ces erreurs marque le contrat comme *mort* — définitivement, avec son solde bloqué. L'adresse cible est stockée sur 4 octets complets : le gestionnaire peut donc se trouver n'importe où dans le code. SmartC le génère à partir de `registerError()` / de la prise en charge des gestionnaires d'erreurs."
+    },
+    "PCS": {
+      "title": "Définir le début du compteur de programme",
+      "group": "Flux du programme",
+      "documentation": "Enregistre l'adresse de l'instruction **suivante** comme point de redémarrage du contrat, puis continue normalement.\n\n`FIN` et `FIZ` ramènent le pointeur d'instruction à cette adresse : tout ce qui précède le `PCS` s'exécute donc exactement une fois — lors de la toute première activation —, et chaque activation ultérieure commence ici.\n\nC'est précisément ainsi que SmartC implémente `void main()` : les instructions globales sont émises avant le `PCS`, et `main()` commence juste après. Un programme sans `main()` n'a pas de `PCS` : le point de redémarrage reste donc à l'adresse 0 et les instructions globales se réexécutent à chaque activation."
+    },
+    "NOP": {
+      "title": "Aucune opération",
+      "group": "Flux du programme",
+      "documentation": "Ne fait rien et passe à l'instruction suivante. Coûte un octet et un pas.\n\nSmartC n'émet jamais `NOP` — l'optimiseur le supprimerait. Il existe pour l'assembleur écrit à la main et pour le remplissage quand il faut garder des adresses stables."
+    },
+    "ADD": {
+      "title": "Addition",
+      "group": "Arithmétique",
+      "documentation": "`@dest = $dest + $var`, en entiers **signés** de 64 bits.\n\nLe débordement boucle silencieusement — il ne déclenche pas d'erreur et n'atteint pas le gestionnaire `ERR`. Si une somme peut dépasser `9223372036854775807`, vous devez vérifier l'intervalle vous-même.\n\nComme les valeurs `fixed` sont de simples entiers mis à l'échelle par 1e8, la même instruction les additionne ; seules la multiplication et la division exigent une remise à l'échelle.\n\nUne variable jamais écrite se lit comme 0."
+    },
+    "SUB": {
+      "title": "Soustraction",
+      "group": "Arithmétique",
+      "documentation": "`@dest = $dest - $var`, en entiers **signés** de 64 bits.\n\nLe dépassement par le bas boucle silencieusement. Cela pose problème quand un solde est traité comme non signé : `0 - 1` devient `0xffffffffffffffff`, qui vaut `-1` pour les branchements signés, mais se lit comme un nombre énorme si vous le passez ensuite à une fonction d'API.\n\nComme pour `ADD`, les opérandes `fixed` ne demandent aucune remise à l'échelle.\n\nUne variable jamais écrite se lit comme 0."
+    },
+    "MUL": {
+      "title": "Multiplication",
+      "group": "Arithmétique",
+      "documentation": "`@dest = $dest * $var`, en entiers **signés** de 64 bits, tronqué à 64 bits en cas de débordement.\n\nLe débordement est silencieux et facile à atteindre : deux valeurs autour de 4e9 dépassent déjà l'intervalle. Quand vous avez besoin du résultat intermédiaire large, utilisez plutôt `MDV` — il multiplie sur 128 bits avant de diviser.\n\nPour des opérandes `fixed`, le résultat doit être ramené à l'échelle par 1e8 : SmartC fait donc suivre le `MUL` d'un `DIV @dest $f100000000`.\n\nUne variable jamais écrite se lit comme 0."
+    },
+    "DIV": {
+      "title": "Division",
+      "group": "Arithmétique",
+      "documentation": "`@dest = $dest / $var`, en entiers **signés** de 64 bits, tronqué vers zéro.\n\n**Diviser par zéro est fatal.** Sans gestionnaire d'erreurs, le contrat est marqué mort avec *Division by zero* et son solde est bloqué pour de bon ; avec un gestionnaire `ERR :label` installé, l'exécution y saute. Protégez le diviseur, ou installez un gestionnaire.\n\nUn diviseur jamais écrit compte aussi comme zéro et déclenche la même erreur.\n\nPour des opérandes `fixed`, le numérateur doit d'abord être mis à l'échelle par 1e8 : SmartC émet donc `MUL @dest $f100000000` avant le `DIV` — ou un seul `MDV` quand il le peut."
+    },
+    "MOD": {
+      "title": "Modulo",
+      "group": "Arithmétique",
+      "documentation": "`@dest = $dest % $var`, le reste de la division **signée**, tronquée vers zéro. Le résultat prend le signe du dividende : `-7 % 3` vaut `-1`, et non `2`.\n\n**Le modulo par zéro est fatal**, exactement comme `DIV` : le contrat meurt avec *Division by zero ( mod 0 )* sauf si un gestionnaire `ERR :label` est installé. Un diviseur jamais écrit compte comme zéro.\n\nUne variable jamais écrite se lit comme 0."
+    },
+    "POW": {
+      "title": "Puissance",
+      "group": "Arithmétique",
+      "documentation": "`@dest = $dest ^ ($var / 1e8)`, tronqué en entier.\n\nL'exposant est **à virgule fixe**, pas un entier : pour élever au carré, l'opérande doit contenir `200000000` (soit `2.0`). C'est ce qui rend possibles les puissances fractionnaires — les racines : un exposant de `50000000` (`0.5`) calcule la racine carrée.\n\nLa base est lue comme un entier signé. Si elle est nulle ou négative, le résultat est `0`. Le résultat est aussi forcé à `0` quand ce n'est pas un nombre ou qu'il dépasse l'intervalle positif sur 64 bits : un `POW` qui échoue est donc silencieux — vérifiez si le résultat est nul quand cela compte.\n\nContrairement aux autres instructions arithmétiques, celle-ci est calculée en interne en virgule flottante : les très grands résultats perdent donc en précision avant d'être tronqués.\n\nUne variable jamais écrite se lit comme 0."
+    },
+    "MDV": {
+      "title": "Multiplier puis diviser",
+      "group": "Arithmétique",
+      "documentation": "`@dest = ($dest * $var1) / $var2`, le produit intermédiaire étant calculé avec une précision de **128 bits** et seul le quotient final étant tronqué à 64 bits.\n\nC'est la raison d'être de `MDV` : un `MUL` suivi d'un `DIV` déborderait sur l'intermédiaire, pas `MDV`. C'est l'instruction qui convient aux pourcentages, aux ratios et à la multiplication de `fixed` — SmartC l'émet pour `fixed * fixed` avec `$f100000000` comme diviseur.\n\nContrairement à `DIV`, **un diviseur nul n'est pas fatal** : le résultat vaut simplement `0` et l'exécution continue. C'est sûr par défaut, mais cela signifie aussi qu'un mauvais diviseur échoue en silence au lieu d'atteindre votre gestionnaire `ERR`.\n\nAvec 13 octets, c'est l'une des plus grandes instructions, mais elle reste plus petite et plus précise que la paire `MUL`/`DIV` qu'elle remplace.\n\nUne variable jamais écrite se lit comme 0."
+    },
+    "INC": {
+      "title": "Incrémenter",
+      "group": "Arithmétique",
+      "documentation": "`@dest = $dest + 1`, bouclant silencieusement en cas de débordement.\n\nAvec 5 octets, c'est 4 octets de moins que `ADD @dest $one`, et aucune variable constante n'est nécessaire pour stocker le 1.\n\nSmartC l'émet pour `++` sur un `long`. Attention : `++` sur un `fixed` n'est *pas* un `INC` — incrémenter une valeur fixed signifie ajouter 1.0, le compilateur émet donc `ADD @dest $f100000000`."
+    },
+    "DEC": {
+      "title": "Décrémenter",
+      "group": "Arithmétique",
+      "documentation": "`@dest = $dest - 1`, bouclant silencieusement en cas de dépassement par le bas — décrémenter zéro donne `0xffffffffffffffff`.\n\nAvec 5 octets, c'est 4 octets de moins que `SUB @dest $one`, et aucune variable constante n'est nécessaire pour stocker le 1.\n\nSmartC l'émet pour `--` sur un `long`. Sur un `fixed`, le compilateur émet `SUB @dest $f100000000`, car décrémenter une valeur fixed signifie soustraire 1.0."
+    },
+    "NOT": {
+      "title": "NON bit à bit",
+      "group": "Arithmétique",
+      "documentation": "`@dest = ~$dest` — chacun des 64 bits est inversé sur place.\n\nC'est le complément bit à bit, pas une négation logique : `NOT` sur `0` donne `0xffffffffffffffff` (`-1` signé), et non `1`. C'est ce que SmartC émet pour `~`, sur des opérandes `long` comme `fixed` ; le `!` logique se compile en un branchement.\n\nLa négation en complément à deux est `NOT` suivi de `INC`."
+    },
+    "CLR": {
+      "title": "Effacer",
+      "group": "Arithmétique",
+      "documentation": "Met `@dest` à zéro.\n\nAvec 5 octets, c'est le moyen le moins cher de mettre une variable à zéro : `SET @dest #0000000000000000` coûte 13 octets, et `SET @dest $zero` en coûte 9 plus une variable pour stocker le zéro.\n\nLe générateur de code transforme directement l'affectation du littéral `0` en `CLR` : `x = 0;` ne passe donc jamais par `SET`."
+    },
+    "SHL": {
+      "title": "Décalage à gauche",
+      "group": "Arithmétique",
+      "documentation": "`@dest = $dest << $var`, sur le mot brut de 64 bits ; les bits qui sortent par le haut sont perdus.\n\nLe nombre de décalages est lu comme **signé** puis ramené dans `0..63` : un nombre négatif devient `0` (aucun décalage) et tout ce qui dépasse 63 devient `63`. Contrairement au C, un décalage trop large est donc bien défini ici, et non indéfini.\n\nDécaler de *n* à gauche multiplie par 2ⁿ tant que rien ne sort par le haut.\n\nUne variable jamais écrite se lit comme 0."
+    },
+    "SHR": {
+      "title": "Décalage à droite",
+      "group": "Arithmétique",
+      "documentation": "`@dest = $dest >> $var`, un décalage **logique** sur le mot brut de 64 bits : des zéros entrent par le haut et le bit de signe n'est pas conservé.\n\nLe nombre de décalages est lu comme signé et ramené dans `0..63`, exactement comme pour `SHL`.\n\nComme le décalage est logique et non arithmétique, il ne divise par 2ⁿ que les valeurs que vous considérez comme non signées. Décaler à droite un nombre négatif en fait un grand nombre positif — utilisez `DIV` pour une division signée.\n\nUne variable jamais écrite se lit comme 0."
+    },
+    "BOR": {
+      "title": "OU bit à bit",
+      "group": "Arithmétique",
+      "documentation": "`@dest = $dest | $var`, bit à bit sur tout le mot de 64 bits.\n\nPurement bit à bit — il n'y a pas de notion de signe et aucune valeur ne peut déborder. Notez que le mnémonique est `BOR`, pas `OR` — l'assembleur n'accepte pas `OR`.\n\nUne variable jamais écrite se lit comme 0."
+    },
+    "AND": {
+      "title": "ET bit à bit",
+      "group": "Arithmétique",
+      "documentation": "`@dest = $dest & $var`, bit à bit sur tout le mot de 64 bits.\n\nPurement bit à bit — il n'y a pas de notion de signe et aucune valeur ne peut déborder. C'est le moyen habituel de masquer des bits d'un mot compacté ; SmartC l'émet pour `&` et pour la lecture de champs de bits.\n\nUne variable jamais écrite se lit comme 0."
+    },
+    "XOR": {
+      "title": "OU exclusif bit à bit",
+      "group": "Arithmétique",
+      "documentation": "`@dest = $dest ^ $var`, bit à bit sur tout le mot de 64 bits.\n\nPurement bit à bit — il n'y a pas de notion de signe et aucune valeur ne peut déborder. Un `XOR` d'une valeur avec elle-même la met à zéro en 9 octets, mais `CLR` fait de même en 5.\n\nUne variable jamais écrite se lit comme 0."
+    },
+    "SET": {
+      "title": "Définir / déplacer des données",
+      "group": "Mémoire",
+      "documentation": "Le cheval de bataille du jeu d'instructions : affecte une valeur à une cellule mémoire. Six opcodes différents se cachent derrière ce seul mnémonique, et l'assembleur choisit uniquement d'après la forme des opérandes.\n\n**Direct**\n\n* `SET @dest #hex` — charge un littéral de 64 bits. Le littéral doit compter exactement 16 chiffres hexadécimaux en minuscules. Avec 13 octets, c'est la forme la plus coûteuse, et c'est pourquoi `#pragma maxConstVars` existe : il place les constantes courantes dans des variables, de sorte que les usages répétés coûtent 9 octets au lieu de 13.\n* `SET @dest $var` — copie une variable dans une autre.\n\n**Lecture via un pointeur**\n\n* `SET @dest $($ptr)` — charge depuis l'adresse contenue dans `$ptr`.\n* `SET @dest $($ptr + $idx)` — charge depuis `$ptr + $idx`, la forme derrière les lectures de `array[i]` et `struct->member`.\n\n**Écriture via un pointeur**\n\n* `SET @($ptr) $var` — stocke `$var` à l'adresse contenue dans `$ptr`.\n* `SET @($ptr + $idx) $var` — stocke à `$ptr + $idx`, la forme derrière `array[i] = x`.\n\nNotez l'asymétrie de la syntaxe : `@` marque la cellule écrite et `$` la valeur lue ; la lecture et l'écriture indirectes ne diffèrent donc que par le côté qui porte les parenthèses.\n\nLes adresses dans `$ptr`/`$idx` sont des **indices de cellules, pas des décalages en octets** — chaque cellule mémoire est un mot de 64 bits.\n\nLes quatre formes indirectes vérifient les bornes, et les dépasser est **fatal** : une adresse effective inférieure à 0 ou supérieure à `32 × dataPages` tue le contrat avec *Variable address out of range*, sauf si un gestionnaire `ERR :label` est installé. Un pointeur fou fait donc tomber le contrat au lieu de corrompre discrètement une cellule voisine.\n\nUne variable jamais écrite se lit comme 0."
+    },
+    "PSH": {
+      "title": "Empiler sur la pile utilisateur",
+      "group": "Pile",
+      "documentation": "Empile une copie de `$var` sur la **pile utilisateur**.\n\nLa pile utilisateur est distincte de la pile de code utilisée par `JSR`/`RET`, et se dimensionne avec `#pragma userStackPages` — 16 entrées par page, jusqu'à 10 pages.\n\nBon à savoir : SmartC ne passe **pas** les arguments par cette pile. Un appel affecte chaque argument directement à la variable de paramètre de la fonction appelée avec un `SET`, et la valeur de retour revient dans `r0`. Ce qui est réellement empilé :\n\n* les registres utilisés par l'appelant, sauvegardés pendant l'appel car l'appelé peut les écraser\n* les variables de la portée courante, quand l'appel est **récursif** — c'est le cas où `#pragma userStackPages` compte\n\nUne variable jamais écrite empile 0."
+    },
+    "POP": {
+      "title": "Dépiler de la pile utilisateur",
+      "group": "Pile",
+      "documentation": "Retire la valeur du sommet de la **pile utilisateur** et la stocke dans `@dest`.\n\nDépiler une pile vide est une erreur : le contrat est marqué mort avec *User Stack buffer underflow*, sauf si un gestionnaire `ERR :label` est installé — l'exécution continue alors dans le gestionnaire. C'est l'erreur qu'on rencontre quand un bloc `asm { }` écrit à la main empile et dépile de façon déséquilibrée.\n\nAucune instruction ne lit le sommet de la pile sans le retirer, et il n'y a pas d'accès indexé ; si vous avez besoin de la valeur deux fois, dépilez-la dans une variable."
+    },
+    "FUN": {
+      "title": "Appeler une fonction d'API",
+      "group": "API",
+      "documentation": "Appelle l'une des fonctions d'API intégrées de la blockchain — le seul moyen pour la machine d'atteindre quelque chose hors de sa propre mémoire : lire des transactions, envoyer des Signa, calculer des hash, manipuler des actifs et des maps, etc.\n\nSix opcodes partagent le mnémonique, choisis selon que l'appel renvoie une valeur et selon le nombre d'arguments. Le slot de retour vient **en premier** dans la syntaxe, avant le nom de la fonction :\n\n* `FUN name` / `FUN name $a` / `FUN name $a $b` — sans valeur de retour\n* `FUN @dest name` / `FUN @dest name $a` / `FUN @dest name $a $b` — résultat écrit dans `@dest`\n\nDeux arguments constituent le plafond absolu. Tout ce qui nécessite plus de données passe par les **registres A et B** — quatre mots de 64 bits chacun —, ce qui explique pourquoi tant de code AT est une suite d'appels `set_A1`/`set_B2` suivie de l'appel réel. Appeler une fonction sous la mauvaise forme, ou avec un nom que la machine ne connaît pas, tue le contrat.\n\n**C'est l'instruction coûteuse.** Chaque `FUN` coûte **10 pas**, contre 1 pour toute autre instruction : les appels d'API dominent donc la facture de gas d'un contrat typique. Sortir un `FUN` répété d'une boucle est généralement le plus gros gain possible, et c'est exactement ce que recherche `#pragma optimizationLevel 3`.\n\nLe nom est résolu en un code d'API de 2 octets à l'assemblage ; survolez le nom d'une fonction d'API pour voir son code."
+    }
+  }
+}

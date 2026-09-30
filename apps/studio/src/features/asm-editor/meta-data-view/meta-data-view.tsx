@@ -1,9 +1,11 @@
 import { useState, type ReactNode } from "react";
+import { formatNumber } from "@/i18n/runtime";
 import { PanelTabs } from "@/components/ui/panel.tsx";
 import type { MachineData } from "@/features/asm-editor/machine-data.ts";
 import { ContractSummary } from "./contract-summary.tsx";
 import { HexDump } from "./hex-dump.tsx";
 import { LabelList, MemoryMap } from "./lists.tsx";
+import { t } from "@/i18n/runtime";
 
 interface Props {
   machineData: MachineData;
@@ -26,15 +28,15 @@ export function MetaDataView({ machineData }: Props) {
   const tabs: { id: View; label: ReactNode }[] = [
     {
       id: "memory",
-      label: <Tab name="Memory" count={machineData.Memory.length} />,
+      label: <Tab name={t("asm-editor.meta.memory")} count={machineData.Memory.length} />,
     },
     {
       id: "labels",
-      label: <Tab name="Labels" count={machineData.Labels.length} />,
+      label: <Tab name={t("asm-editor.meta.labels")} count={machineData.Labels.length} />,
     },
     {
       id: "bytes",
-      label: <Tab name="Bytes" count={machineData.ByteCode.length / 2} />,
+      label: <Tab name={t("asm-editor.meta.bytesTab")} count={machineData.ByteCode.length / 2} />,
     },
   ];
 
@@ -56,7 +58,7 @@ function Tab({ name, count }: { name: string; count: number }) {
     <span className="flex items-baseline justify-center gap-1.5">
       {name}
       <span className="font-mono text-[11px] opacity-60">
-        {count.toLocaleString()}
+        {formatNumber(count)}
       </span>
     </span>
   );

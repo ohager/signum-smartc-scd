@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { DebugState } from "../engine/engine.types";
 import { isInternalVar } from "./vars";
 import { useChangedValues } from "@/motion/use-changed-values";
+import { t } from "@/i18n/runtime";
 
 type Tab = "variables" | "registers" | "watch" | "breakpoints" | "emitted";
 
@@ -37,13 +38,13 @@ export function InspectorPanel({ state, onRemoveBreakpoint }: Props) {
   return (
     <div className="flex flex-col h-full text-xs">
       <div className="flex border-b shrink-0">
-        {tabs.map((t) => (
+        {tabs.map((id) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={"flex-1 px-2 py-1 capitalize " + (tab === t ? "bg-[color-mix(in_srgb,var(--accent-1)_20%,transparent)] font-medium" : "opacity-70")}
+            key={id}
+            onClick={() => setTab(id)}
+            className={"flex-1 px-2 py-1 " + (tab === id ? "bg-[color-mix(in_srgb,var(--accent-1)_20%,transparent)] font-medium" : "opacity-70")}
           >
-            {t}
+            {t(`simulator.panels.${id}`)}
           </button>
         ))}
       </div>
@@ -57,7 +58,7 @@ export function InspectorPanel({ state, onRemoveBreakpoint }: Props) {
               ))}
             <label className="mt-2 flex items-center gap-1 opacity-70 font-sans">
               <input type="checkbox" checked={showInternals} onChange={(e) => setShowInternals(e.target.checked)} />
-              show internals
+              {t("simulator.panels.showInternals")}
             </label>
             {showInternals &&
               Object.entries(memory)
@@ -84,7 +85,7 @@ export function InspectorPanel({ state, onRemoveBreakpoint }: Props) {
             >
               <input
                 className="flex-1 border rounded px-1 bg-transparent"
-                placeholder="variable name"
+                placeholder={t("simulator.panels.variableName")}
                 value={watchInput}
                 onChange={(e) => setWatchInput(e.target.value)}
               />
@@ -92,7 +93,7 @@ export function InspectorPanel({ state, onRemoveBreakpoint }: Props) {
                 +
               </button>
             </form>
-            {watched.length === 0 && <div className="opacity-50 font-sans">— add a variable to watch —</div>}
+            {watched.length === 0 && <div className="opacity-50 font-sans">{t("simulator.panels.addWatch")}</div>}
             {watched.map((name) => (
               <div key={name} className="flex justify-between gap-2 group">
                 <span>{name}</span>
@@ -112,10 +113,10 @@ export function InspectorPanel({ state, onRemoveBreakpoint }: Props) {
 
         {tab === "breakpoints" && (
           <>
-            {(state?.breakpoints ?? []).length === 0 && <div className="opacity-50 font-sans">— none —</div>}
+            {(state?.breakpoints ?? []).length === 0 && <div className="opacity-50 font-sans">{t("simulator.panels.none")}</div>}
             {(state?.breakpoints ?? []).map((line) => (
               <div key={line} className="flex justify-between gap-2 group">
-                <span>line {line}</span>
+                <span>{t("simulator.panels.line", { line })}</span>
                 <button className="opacity-0 group-hover:opacity-60" onClick={() => onRemoveBreakpoint(line)}>
                   ✕
                 </button>
@@ -126,7 +127,7 @@ export function InspectorPanel({ state, onRemoveBreakpoint }: Props) {
 
         {tab === "emitted" && (
           <>
-            {emitted.length === 0 && <div className="opacity-50 font-sans">— none —</div>}
+            {emitted.length === 0 && <div className="opacity-50 font-sans">{t("simulator.panels.none")}</div>}
             {emitted.map((tx, i) => (
               <div
                 key={i}

@@ -1,48 +1,32 @@
 import { Badge } from "@/components/ui/badge";
 import { Panel } from "@/components/ui/panel";
 import { CodeIcon, FlaskConicalIcon, BugIcon, RocketIcon } from "lucide-react";
+import { t } from "@/i18n/runtime";
 
 interface Step {
-  title: string;
-  blurb: string;
+  id: "write" | "test" | "simulate" | "deploy";
   icon: typeof CodeIcon;
   soon?: boolean;
 }
 
 const STEPS: Step[] = [
-  {
-    title: "Write",
-    blurb: "SmartC editor with completion, hover docs and live compiler diagnostics.",
-    icon: CodeIcon,
-  },
-  {
-    title: "Test",
-    blurb: "Write tests beside your contract and run them in the browser, with values inline.",
-    icon: FlaskConicalIcon,
-  },
-  {
-    title: "Simulate",
-    blurb: "Step through against a scenario: breakpoints, variables, a mock ledger.",
-    icon: BugIcon,
-  },
-  {
-    title: "Deploy",
-    blurb: "Connect your wallet and publish to Signum testnet or mainnet.",
-    icon: RocketIcon,
-  },
+  { id: "write", icon: CodeIcon },
+  { id: "test", icon: FlaskConicalIcon },
+  { id: "simulate", icon: BugIcon },
+  { id: "deploy", icon: RocketIcon },
 ];
 
 export function HowItWorks() {
   return (
     <section className="px-6 py-6">
       <h2 className="mb-4 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-        How it works
+        {t("home.howItWorks.heading")}
         <span className="h-px flex-1 bg-border" />
       </h2>
 
       <ol className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {STEPS.map((step, index) => (
-          <li key={step.title}>
+          <li key={step.id}>
             <Panel
               variant="bracketed"
               className={
@@ -69,7 +53,7 @@ export function HowItWorks() {
                       "text-sm font-medium " + (step.soon ? "text-muted-foreground" : "")
                     }
                   >
-                    {step.title}
+                    {t(`home.howItWorks.${step.id}.title`)}
                   </span>
                   <step.icon
                     className={
@@ -81,14 +65,14 @@ export function HowItWorks() {
                   />
                 </div>
 
-                <p className="text-xs leading-relaxed text-muted-foreground">{step.blurb}</p>
+                <p className="text-xs leading-relaxed text-muted-foreground">{t(`home.howItWorks.${step.id}.blurb`)}</p>
 
                 {step.soon && (
                   <Badge
                     variant="secondary"
                     className="mt-auto w-fit font-mono text-[10px] uppercase tracking-wider"
                   >
-                    soon
+                    {t("home.howItWorks.soon")}
                   </Badge>
                 )}
               </div>
