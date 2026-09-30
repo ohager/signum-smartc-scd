@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/webp" href="./logo.webp" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <title>Signum SCD Studio</title>
     <script>
       // next-themes sets data-theme only once React runs. Setting it here
@@ -17,27 +17,36 @@
     </script>
     <style>
       /* Inline: the Tailwind bundle is not loaded yet while this shows. */
-      html { background: #050810; }
-      html[data-theme="dawn"] { background: #eef2fb; }
-      html[data-theme="solaris"] { background: #0d0906; }
-      html[data-theme="terminal"] { background: #000a00; }
+      html { background: #050810; --rg-1: #0066ff; --rg-2: #00aaff; --rg-ghost: rgba(0, 170, 255, 0.3); }
+      html[data-theme="dawn"] { background: #eef2fb; --rg-1: #0055cc; --rg-2: #0066ff; --rg-ghost: rgba(0, 102, 255, 0.26); }
+      html[data-theme="solaris"] { background: #0d0906; --rg-1: #ff9500; --rg-2: #ffd700; --rg-ghost: rgba(255, 200, 0, 0.32); }
+      html[data-theme="terminal"] { background: #000a00; --rg-1: #00cc00; --rg-2: #00ff00; --rg-ghost: rgba(0, 255, 0, 0.32); }
       .studio-splash {
         position: fixed; inset: 0; display: grid; place-items: center;
         opacity: 0;
         /* A fast boot never shows the splash at all. */
         animation: studio-splash-in 240ms ease-out 150ms forwards;
       }
-      .studio-splash img {
-        width: 72px; height: 72px;
-        animation: studio-splash-breathe 1.6s ease-in-out 390ms infinite;
+      /* The Register mark (components/brand): the S builds in pen order, then breathes. */
+      .studio-splash svg {
+        overflow: visible;
+        animation: studio-splash-breathe 1.6s ease-in-out 1s infinite;
       }
+      .studio-splash .rg-ghost { fill: none; stroke: var(--rg-ghost); stroke-width: 1; }
+      .studio-splash .rg-cell {
+        fill: var(--rg-1);
+        animation: studio-splash-cell 170ms linear backwards;
+        animation-delay: calc(390ms + var(--i) * 55ms);
+      }
+      .studio-splash .rg-end { fill: var(--rg-2); }
+      @keyframes studio-splash-cell { from { fill-opacity: 0; } }
       @keyframes studio-splash-in { to { opacity: 1; } }
       @keyframes studio-splash-breathe {
         0%, 100% { opacity: 0.55; transform: scale(0.96); }
         50% { opacity: 1; transform: scale(1); }
       }
       @media (prefers-reduced-motion: reduce) {
-        .studio-splash img { animation: none; }
+        .studio-splash svg, .studio-splash .rg-cell { animation: none; }
       }
     </style>
     <script type="module" src="./index.tsx" async></script>
@@ -45,7 +54,23 @@
   <body>
     <div id="root">
       <div class="studio-splash" role="status" aria-label="Loading Studio">
-        <img src="./logo.webp" alt="" />
+        <svg viewBox="0 0 64 64" width="84" height="84" aria-hidden="true">
+          <rect class="rg-ghost" x="28" y="16.5" width="8" height="8"/>
+          <rect class="rg-ghost" x="39.5" y="16.5" width="8" height="8"/>
+          <rect class="rg-ghost" x="16.5" y="39.5" width="8" height="8"/>
+          <rect class="rg-ghost" x="28" y="39.5" width="8" height="8"/>
+          <rect class="rg-cell rg-end" style="--i:0" x="39" y="4.5" width="9" height="9"/>
+          <rect class="rg-cell" style="--i:1" x="27.5" y="4.5" width="9" height="9"/>
+          <rect class="rg-cell" style="--i:2" x="16" y="4.5" width="9" height="9"/>
+          <rect class="rg-cell" style="--i:3" x="16" y="16" width="9" height="9"/>
+          <rect class="rg-cell" style="--i:4" x="16" y="27.5" width="9" height="9"/>
+          <rect class="rg-cell" style="--i:5" x="27.5" y="27.5" width="9" height="9"/>
+          <rect class="rg-cell" style="--i:6" x="39" y="27.5" width="9" height="9"/>
+          <rect class="rg-cell" style="--i:7" x="39" y="39" width="9" height="9"/>
+          <rect class="rg-cell" style="--i:8" x="39" y="50.5" width="9" height="9"/>
+          <rect class="rg-cell" style="--i:9" x="27.5" y="50.5" width="9" height="9"/>
+          <rect class="rg-cell rg-end" style="--i:10" x="16" y="50.5" width="9" height="9"/>
+        </svg>
       </div>
     </div>
   </body>
