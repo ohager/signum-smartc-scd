@@ -79,6 +79,38 @@ All 64-bit identifiers, keys and values are stored as **decimal strings** (signe
 64-bit does not fit a JS number; the node API uses strings too). Both files carry
 `version: 1`, and parsers migrate by version.
 
+### 4.0 Dialect, schema and editing
+
+- **Dialect: JSONC** (JSON with `//` and `/* */` comments and trailing commas).
+  Comments are the part of JSON5 the Studio's scenario files are valued for, and
+  Monaco's built-in JSON service supports JSONC fully: completion, hover and
+  diagnostics, set up with `allowComments: true` and `trailingCommas: "ignore"`.
+  Other JSON5 features (unquoted keys, single quotes, hex numbers) are not
+  supported in these two files, because Monaco would flag them.
+- **One schema source: Zod 4.** Each file has one Zod schema that yields:
+  - TS types via `z.infer`
+  - runtime validation
+  - the JSON Schema for Monaco via `z.toJSONSchema()`, registered through
+    `jsonDefaults.setDiagnosticsOptions({ schemas })` for the file patterns
+    `*.inspect.json` and `*.labels.json`. `.describe()` texts become hover docs.
+  - form validation in `LabelMapEditor` via `@hookform/resolvers` (already a
+    dependency)
+- **Parsing and writing: `jsonc-parser`.** This is the library Monaco's JSON
+  service is built on.
+  - Parse with `parse(text, errors, { allowTrailingComma: true })`.
+  - **UI edits never re-serialize the whole file.** "Set label", "add hash to Label
+    Map", adding watchlist entries and similar actions apply `modify()` +
+    `applyEdits()`, which replace only the affected node. The user's comments and
+    formatting survive.
+  - Only a newly created file is written with `JSON.stringify(…, null, 2)`.
+- **Errors with positions.** A Zod issue path (`maps[1].key2[0].valueFormat`) is
+  resolved with `findNodeAtLocation` to a line and column. The form views list
+  errors as "line 42: unknown format", with a jump into JSON mode. Messages go
+  through i18n, using Zod's per-issue error customization.
+- **Scenarios are unchanged in M1** and stay JSON5 with hand-written validation.
+  A follow-up could move them to the same pattern after checking existing
+  scenario files for JSON5-only syntax (§10).
+
 ### 4.1 Watchlist
 
 ```json
@@ -204,14 +236,19 @@ Everything lives under `apps/studio/src/features/inspector/`, in three layers.
 
 | Module | Responsibility |
 |---|---|
-| `watchlist.ts` | types, parse/validate (with error paths), migrate, serialize |
+| `watchlist.ts` | Zod schema, types, parse (jsonc) + validate with positions, migrate, comment-preserving edits |
 | `label-map.ts` | same for Label Maps |
+| `schemas.ts` | JSON Schemas for Monaco (`z.toJSONSchema`) |
 | `resolve-label-map.ts` | §5.1 |
 | `decode.ts` | `machineData` → slots; slot hex × format → display value |
 | `merge-labels.ts` | §5.2, returns the merged map plus conflicts |
 
-Validation is hand-written. The Studio has no schema library, and this spec adds
-none.
+`watchlist.ts` and `label-map.ts` each export their Zod schema, the derived
+types, `parse(text)` (jsonc-parser + Zod, errors with positions) and edit helpers
+that return `jsonc-parser` edits (§4.0). `schemas.ts` exports the generated JSON
+Schemas for Monaco.
+
+New dependencies: `zod` (v4) and `jsonc-parser`.
 
 ### 6.2 Adapters
 
@@ -262,7 +299,8 @@ The Creator and Code-hash tabs:
 
 **`LabelMapEditor`** opens for `*.labels.json`:
 - tabs *Slots*, *Maps*, *Enums* and *Code hashes*
-- a toggle to raw JSON in Monaco
+- a toggle to raw JSONC in Monaco, with the schema registered for completion,
+  hover and diagnostics
 - **Generate from source…**: pick a `.smart.c`, compile, merge (§5.2), show the
   conflicts and the typed/fallback state
 
@@ -271,6 +309,14 @@ The Creator and Code-hash tabs:
 - `filetype-icons.tsx`: add two `FileTypes` members, icons and `acceptedFileType`
   (`.inspect.json` and `.labels.json`, checked before any generic `.json` rule)
 - `files-page.tsx`: dispatch the two new editors
+- Monaco setup: register the two JSON Schemas once, with `validate: true`,
+  `allowComments: true` and `trailingCommas: "ignore"`. **These options are global
+  to the Monaco instance, not per model.** The scenario editor currently sets
+  `validate: false` in `beforeMount` (`scenario-editor.tsx:145`), which would switch
+  validation off for the inspector files as well. The scenario editor therefore
+  moves to its own `json5` language id: JSON-like Monarch highlighting with no
+  JSON worker attached. Its models are then untouched by the JSON diagnostics, and
+  its behaviour stays the same.
 - `new-project-dialog.tsx`: the existing `"inspect"` type creates
   `<name>.inspect.json` and opens it
 - Deploy flow (`deployment-flow.tsx`, `large-contract-deployment.tsx`): an
@@ -315,7 +361,12 @@ The Creator and Code-hash tabs:
 ## 9. Testing (bun test)
 
 - **Model:**
-  - schema validation for valid and broken files
+  - schema validation for valid and broken files, including comments and
+    trailing commas
+  - error positions: a Zod path resolves to the right line and column
+  - comment preservation: an edit helper applied to a commented file changes only
+    the target node, and the comments stay byte-identical
+  - the JSON Schema output contains the formats enum and the descriptions
   - `decode` for every format, with edge cases: negative longs, `fixed` rounding,
     invalid UTF-8, address 0, `enum` without a match
   - `resolveLabelMap`: pinned, by hash, ambiguous, none, pinned-but-missing
@@ -337,4 +388,4 @@ The Creator and Code-hash tabs:
 | **M1** (this spec) | watchlist, contract selection (id / creator incl. wallet / code hash), overview, labelled data stack, labelled maps, Label Map format + editor + generation from source, Inspect-after-deploy |
 | **M2** | disassembly of `machineCode` with slot and code labels, using the ASM definitions and hover docs |
 | **M3** | state search across instances: filter by labelled slot and map values (e.g. `isOnSale == 1`), throttled fetch with progress and cancel, local IndexedDB index updated incrementally, map value filter via the API's `value` parameter |
-| later | live polling and slot diff, transaction and message history, time travel by replaying chain history in the simulator, per-instance overrides, deep links |
+| later | live polling and slot diff, transaction and message history, time travel by replaying chain history in the simulator, per-instance overrides, deep links, scenarios moved to JSONC + Zod + Monaco schema |
