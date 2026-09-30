@@ -155,5 +155,45 @@
     "invalidId": "Not a contract id or address.",
     "notFound": "No contract {id} on this network.",
     "none": "Nothing found."
+  },
+  "labels": {
+    "tabs": {
+      "slots": "Slots",
+      "maps": "Maps",
+      "enums": "Enums",
+      "hashes": "Code hashes"
+    },
+    "generate": "Generate from source…",
+    "add": "Add",
+    "edit": "Edit",
+    "remove": "Remove",
+    "origin": "Origin",
+    "index": "Slot",
+    "name": "Name",
+    "format": "Format",
+    "length": "Length",
+    "key1": "key1",
+    "noEntries": "Nothing here yet.",
+    "enumName": "Enum name",
+    "enumValues": "One per line: value = label",
+    "enumInvalid": "Every line must read \"value = label\" with a decimal value.",
+    "hash": "Hash",
+    "hashNetwork": "Network (note)",
+    "hashNote": "Note",
+    "hashInvalid": "A code hash is a decimal number.",
+    "saved": "Saved"
+  },
+  "generate": {
+    "title": "Generate labels from SmartC source",
+    "source": "Source file",
+    "noSources": "No .smart.c file in the workspace.",
+    "run": "Compile and preview",
+    "apply": "Apply",
+    "summary": "{slots} slots and {codeLabels} code labels from {file}. Code hash {hash}.",
+    "untyped": "Types unavailable: the compiler's memory table was not found, only names were generated.",
+    "conflicts": "Your own labels win on these slots:",
+    "conflict": "slot {index}: kept \"{manual}\", compiler says \"{compiler}\"",
+    "compileError": "Line {line}: {message}",
+    "applied": "Labels regenerated"
   }
 }
