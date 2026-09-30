@@ -70,7 +70,8 @@
     "create": "Créer une Label Map",
     "addHash": "Ajouter ce hash à…",
     "created": "Label Map créée",
-    "hashAdded": "Hash du code ajouté à {name}"
+    "hashAdded": "Hash du code ajouté à {name}",
+    "chooseFirst": "Plusieurs Label Maps contiennent ce hash du code. Choisissez-en d’abord une dans l’Aperçu."
   },
   "data": {
     "length": "{bytes} octets, {slots} emplacements",

@@ -465,6 +465,7 @@ export type MessageParams = {
   "inspector.overview.addHash": undefined;
   "inspector.overview.created": undefined;
   "inspector.overview.hashAdded": { name: string | number };
+  "inspector.overview.chooseFirst": undefined;
   "inspector.data.length": { bytes: string | number; slots: string | number };
   "inspector.data.onlyLabelled": undefined;
   "inspector.data.search": undefined;

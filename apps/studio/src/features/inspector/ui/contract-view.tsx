@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { SurfaceToolbar, ToolbarButton, ToolbarDiagnostic } from "@/components/u
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import { t } from "@/i18n/runtime";
 import { addressPrefixOf, networkKey } from "../model/networks";
-import { resolveLabelMap, type IndexedLabelMap } from "../model/resolve-label-map";
+import { labelTarget, resolveLabelMap, type IndexedLabelMap } from "../model/resolve-label-map";
 import type { WatchEntry } from "../model/watchlist";
 import { useLabelMaps } from "../workspace/use-label-maps";
 import { addHashToLabelMap, createLabelMapFor } from "./label-map-actions";
@@ -54,6 +54,18 @@ export function ContractView({
     }
   };
 
+  const [tab, setTab] = useState("data");
+
+  /** The file a new label is written to; see `labelTarget` for why ambiguity never creates one. */
+  const ensureLabelMap = async (): Promise<string | null> => {
+    const target = labelTarget(resolution);
+    if (target.kind === "file") return target.fileId;
+    if (target.kind === "create") return createMap();
+    toast.warning(t("inspector.overview.chooseFirst"));
+    setTab("overview");
+    return null;
+  };
+
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       <SurfaceToolbar
@@ -86,7 +98,7 @@ export function ContractView({
         </div>
       )}
       {contract && client && (
-        <Tabs defaultValue="data" className="flex min-h-0 flex-1 flex-col">
+        <Tabs value={tab} onValueChange={setTab} className="flex min-h-0 flex-1 flex-col">
           <TabsList className="mx-4 mt-2 self-start">
             <TabsTrigger value="overview">{t("inspector.contract.tabs.overview")}</TabsTrigger>
             <TabsTrigger value="data">{t("inspector.contract.tabs.data")}</TabsTrigger>
@@ -107,10 +119,10 @@ export function ContractView({
             />
           </TabsContent>
           <TabsContent value="data" className="min-h-0 flex-1 overflow-hidden">
-            <DataStackTab contract={contract} labelMap={active} prefix={prefix} ensureLabelMap={createMap} />
+            <DataStackTab contract={contract} labelMap={active} prefix={prefix} ensureLabelMap={ensureLabelMap} />
           </TabsContent>
           <TabsContent value="maps" className="min-h-0 flex-1 overflow-auto">
-            <MapsTab contract={contract} client={client} labelMap={active} prefix={prefix} ensureLabelMap={createMap} revision={revision} />
+            <MapsTab contract={contract} client={client} labelMap={active} prefix={prefix} ensureLabelMap={ensureLabelMap} revision={revision} />
           </TabsContent>
         </Tabs>
       )}

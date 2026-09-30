@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import type { LabelMap } from "./label-map";
-import { resolveLabelMap, type IndexedLabelMap } from "./resolve-label-map";
+import { labelTarget, resolveLabelMap, type IndexedLabelMap } from "./resolve-label-map";
 
 const lm = (name: string, hashes: string[]): LabelMap => ({
   version: 1, name, codeHashes: hashes.map((hash) => ({ hash })), slots: [], maps: [], enums: {}, codeLabels: [],
@@ -35,5 +35,13 @@ describe("resolveLabelMap", () => {
     expect(resolveLabelMap("1", "broken.labels.json", [a, broken])).toEqual({
       kind: "hash", entry: a, pinnedMissing: "broken.labels.json",
     });
+  });
+});
+
+describe("labelTarget", () => {
+  it("writes to the resolved map, creates one only when none matches, and asks when several do", () => {
+    expect(labelTarget(resolveLabelMap("1", undefined, [a, b]))).toEqual({ kind: "file", fileId: a.fileId });
+    expect(labelTarget(resolveLabelMap("3", undefined, [a, b]))).toEqual({ kind: "create" });
+    expect(labelTarget(resolveLabelMap("2", undefined, [a, b]))).toEqual({ kind: "choose" });
   });
 });

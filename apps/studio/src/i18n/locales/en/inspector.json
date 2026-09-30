@@ -70,7 +70,8 @@
     "create": "Create Label Map",
     "addHash": "Add this hash to…",
     "created": "Label Map created",
-    "hashAdded": "Code hash added to {name}"
+    "hashAdded": "Code hash added to {name}",
+    "chooseFirst": "Several Label Maps list this code hash. Choose one in the Overview first."
   },
   "data": {
     "length": "{bytes} bytes, {slots} slots",

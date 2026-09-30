@@ -72,7 +72,8 @@
     "create": "Створити Label Map",
     "addHash": "Додати цей хеш до…",
     "created": "Label Map створено",
-    "hashAdded": "Хеш коду додано до {name}"
+    "hashAdded": "Хеш коду додано до {name}",
+    "chooseFirst": "Цей хеш коду є в кількох Label Map. Спершу виберіть одну в огляді."
   },
   "data": {
     "length": "{bytes} байтів, {slots} слотів",

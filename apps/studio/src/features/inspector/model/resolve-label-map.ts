@@ -45,3 +45,16 @@ export function resolveLabelMap(
   if (candidates.length > 1) return { kind: "ambiguous", candidates, ...missing };
   return { kind: "none", ...missing };
 }
+
+export type LabelTarget = { kind: "file"; fileId: string } | { kind: "create" } | { kind: "choose" };
+
+/**
+ * Where a new label goes. While several maps claim the code hash, creating
+ * another one would only add a candidate: the choice stays ambiguous, the
+ * label never shows, and the next click creates yet another file.
+ */
+export function labelTarget(resolution: Resolution): LabelTarget {
+  if (resolution.kind === "pinned" || resolution.kind === "hash") return { kind: "file", fileId: resolution.entry.fileId };
+  if (resolution.kind === "ambiguous") return { kind: "choose" };
+  return { kind: "create" };
+}

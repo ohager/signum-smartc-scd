@@ -69,7 +69,8 @@
     "create": "创建 Label Map",
     "addHash": "将此哈希添加到…",
     "created": "Label Map 已创建",
-    "hashAdded": "代码哈希已添加到 {name}"
+    "hashAdded": "代码哈希已添加到 {name}",
+    "chooseFirst": "多个 Label Map 包含此代码哈希。请先在概览中选择一个。"
   },
   "data": {
     "length": "{bytes} 字节，{slots} 个槽位",
