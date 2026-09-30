@@ -119,6 +119,7 @@
   "group": {
     "titleFixed": "Grupo de mapa para key1 {key1}",
     "titlePattern": "Patrón de grupo de mapa",
+    "key1": "key1 (decimal)",
     "name": "Nombre",
     "key1Format": "Formato de key1 (grupo patrón)",
     "key2Format": "Formato de key2",

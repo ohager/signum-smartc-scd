@@ -53,9 +53,17 @@ function sameGroup(a: MapGroup, b: MapGroup): boolean {
   return false;
 }
 
-export function upsertMapGroup(text: string, group: MapGroup): string {
+/**
+ * `position` is the group being edited: an editor knows which one it opened,
+ * and a group's identity (its key1, or its pattern and name) is exactly what
+ * an edit may change. Without it the group is matched by identity.
+ */
+export function upsertMapGroup(text: string, group: MapGroup, position?: number): string {
   const entry = { ...group, origin: group.origin ?? "manual" };
   const maps = current(text).maps;
+  if (position !== undefined && position >= 0 && position < maps.length) {
+    return editDocument(text, ["maps", position], entry);
+  }
   const at = maps.findIndex((g) => sameGroup(g, group));
   if (at >= 0) return editDocument(text, ["maps", at], entry);
   return insertAt(text, "maps", maps.length, entry);

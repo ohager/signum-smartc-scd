@@ -82,3 +82,21 @@ describe("code hashes and enums", () => {
     expect(parsed(out).enums).toEqual({ status: { "0": "idle", "1": "sale" } });
   });
 });
+
+describe("map groups edited by position", () => {
+  const withGroups = upsertMapGroup(
+    upsertMapGroup(base, { key1: "0", name: "Zero", key2: [{ key2: "1", name: "keep" }] }),
+    { key1Format: "address", name: "Accounts" },
+  );
+
+  it("renames a pattern group in place instead of appending a copy", () => {
+    const out = upsertMapGroup(withGroups, { key1Format: "address", name: "Accounts v2" }, 1);
+    expect(parsed(out).maps.map((g) => g.name)).toEqual(["Zero", "Accounts v2"]);
+  });
+
+  it("adds a new fixed group without replacing an existing key1 0 group", () => {
+    const out = upsertMapGroup(withGroups, { key1: "7", name: "Seven" });
+    expect(parsed(out).maps.map((g) => g.name)).toEqual(["Zero", "Accounts", "Seven"]);
+    expect(parsed(out).maps[0]!.key2).toEqual([{ key2: "1", name: "keep" }]);
+  });
+});

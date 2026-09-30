@@ -121,6 +121,7 @@
   "group": {
     "titleFixed": "Група мапи для key1 {key1}",
     "titlePattern": "Шаблон групи мапи",
+    "key1": "key1 (десяткове)",
     "name": "Назва",
     "key1Format": "Формат key1 (шаблонна група)",
     "key2Format": "Формат key2",

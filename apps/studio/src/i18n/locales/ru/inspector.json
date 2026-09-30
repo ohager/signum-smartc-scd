@@ -121,6 +121,7 @@
   "group": {
     "titleFixed": "Группа карты для key1 {key1}",
     "titlePattern": "Шаблон группы карты",
+    "key1": "key1 (десятичное)",
     "name": "Имя",
     "key1Format": "Формат key1 (шаблонная группа)",
     "key2Format": "Формат key2",

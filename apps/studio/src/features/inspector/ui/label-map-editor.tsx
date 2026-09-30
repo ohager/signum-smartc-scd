@@ -40,7 +40,7 @@ export function LabelMapEditor({ file }: { file: File }) {
   const parsed = useMemo(() => parseLabelMap(editor.text), [editor.text]);
   const [view, setView] = useState<"ui" | "json">(parsed.ok ? "ui" : "json");
   const [slot, setSlot] = useState<SlotLabel | null>(null);
-  const [group, setGroup] = useState<MapGroup | null>(null);
+  const [group, setGroup] = useState<{ group: MapGroup; position?: number } | null>(null);
   const [generating, setGenerating] = useState(false);
   const [enumDraft, setEnumDraft] = useState({ name: "", lines: "" });
   const [hashDraft, setHashDraft] = useState({ hash: "", network: "", note: "" });
@@ -129,10 +129,10 @@ export function LabelMapEditor({ file }: { file: File }) {
 
           <TabsContent value="maps" className="min-h-0 flex-1 overflow-auto p-4">
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => setGroup({ key1: "0", name: "" })}>
+              <Button size="sm" variant="outline" onClick={() => setGroup({ group: { key1: "", name: "" } })}>
                 {t("inspector.labels.add")} ({t("inspector.labels.key1")})
               </Button>
-              <Button size="sm" variant="outline" onClick={() => setGroup({ key1Format: "address", name: "" })}>
+              <Button size="sm" variant="outline" onClick={() => setGroup({ group: { key1Format: "address", name: "" } })}>
                 {t("inspector.labels.add")} ({t("inspector.group.key1Format")})
               </Button>
             </div>
@@ -145,7 +145,7 @@ export function LabelMapEditor({ file }: { file: File }) {
                       {isFixedGroup(g) ? `key1 ${g.key1}` : `key1: ${g.key1Format}`}
                     </span>
                   </span>
-                  <Button size="sm" variant="ghost" onClick={() => setGroup(g)}>{t("inspector.labels.edit")}</Button>
+                  <Button size="sm" variant="ghost" onClick={() => setGroup({ group: g, position: i })}>{t("inspector.labels.edit")}</Button>
                   <Button size="sm" variant="ghost" onClick={() => write((x) => removeMapGroup(x, i))}>{t("inspector.labels.remove")}</Button>
                 </li>
               ))}
@@ -226,7 +226,12 @@ export function LabelMapEditor({ file }: { file: File }) {
         />
       )}
       {group && (
-        <MapGroupDialog open onOpenChange={(o) => !o && setGroup(null)} initial={group} onSave={(g) => write((x) => upsertMapGroup(x, g))} />
+        <MapGroupDialog
+          open
+          onOpenChange={(o) => !o && setGroup(null)}
+          initial={group.group}
+          onSave={(g) => write((x) => upsertMapGroup(x, g, group.position))}
+        />
       )}
       {generating && map && (
         <GenerateLabelsDialog

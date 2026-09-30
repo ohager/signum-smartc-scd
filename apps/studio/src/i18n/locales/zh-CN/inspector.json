@@ -118,6 +118,7 @@
   "group": {
     "titleFixed": "key1 {key1} 的映射分组",
     "titlePattern": "映射分组模式",
+    "key1": "key1（十进制）",
     "name": "名称",
     "key1Format": "key1 格式（模式分组）",
     "key2Format": "key2 格式",

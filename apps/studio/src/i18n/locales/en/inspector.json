@@ -119,6 +119,7 @@
   "group": {
     "titleFixed": "Map group for key1 {key1}",
     "titlePattern": "Map group pattern",
+    "key1": "key1 (decimal)",
     "name": "Name",
     "key1Format": "key1 format (pattern group)",
     "key2Format": "key2 format",

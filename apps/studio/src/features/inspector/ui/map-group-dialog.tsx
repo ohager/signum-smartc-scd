@@ -59,8 +59,17 @@ export function MapGroupDialog({
               {fixed ? t("inspector.group.titleFixed", { key1: initial.key1 }) : t("inspector.group.titlePattern")}
             </DialogTitle>
           </DialogHeader>
+          {fixed && (
+            <>
+              <Label htmlFor="group-key1">{t("inspector.group.key1")}</Label>
+              <Input id="group-key1" autoFocus={!initial.key1} {...form.register("key1" as never)} />
+              {(form.formState.errors as { key1?: { message?: string } }).key1 && (
+                <p className="text-xs text-[var(--mag)]">{t("inspector.validation.pattern")}</p>
+              )}
+            </>
+          )}
           <Label htmlFor="group-name">{t("inspector.group.name")}</Label>
-          <Input id="group-name" autoFocus {...form.register("name")} />
+          <Input id="group-name" autoFocus={!fixed || !!initial.key1} {...form.register("name")} />
           {!fixed && formatField("key1Format", t("inspector.group.key1Format"), false)}
           {formatField("key2Format", t("inspector.group.key2Format"))}
           {formatField("valueFormat", t("inspector.group.valueFormat"))}

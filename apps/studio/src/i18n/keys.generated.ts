@@ -505,6 +505,7 @@ export type MessageParams = {
   "inspector.maps.noGroups": undefined;
   "inspector.group.titleFixed": { key1: string | number };
   "inspector.group.titlePattern": undefined;
+  "inspector.group.key1": undefined;
   "inspector.group.name": undefined;
   "inspector.group.key1Format": undefined;
   "inspector.group.key2Format": undefined;

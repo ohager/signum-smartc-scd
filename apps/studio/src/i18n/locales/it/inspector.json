@@ -119,6 +119,7 @@
   "group": {
     "titleFixed": "Gruppo di map per key1 {key1}",
     "titlePattern": "Modello di gruppo di map",
+    "key1": "key1 (decimale)",
     "name": "Nome",
     "key1Format": "Formato di key1 (gruppo modello)",
     "key2Format": "Formato di key2",
