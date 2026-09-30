@@ -1,0 +1,141 @@
+{
+  "editor": {
+    "deploy": "Distribuisci",
+    "deployHint": "Pubblica questo contratto sulla blockchain",
+    "handEdits": "Le modifiche manuali vengono sovrascritte alla prossima compilazione",
+    "assembleFirst": "Assembla il file per vederne le pagine, la memoria e i byte."
+  },
+  "meta": {
+    "unnamed": "Contratto senza nome",
+    "minimumFee": "Commissione minima",
+    "activation": "Attivazione",
+    "machineCode": "Codice macchina",
+    "bytes": {
+      "one": "{count} byte",
+      "other": "{count} byte"
+    },
+    "codeHash": "Hash del codice",
+    "noCode": "Questo contratto non produce codice all'assemblaggio.",
+    "noVariables": "Questo contratto non dichiara variabili.",
+    "noLabels": "Questo contratto non ha destinazioni di salto.",
+    "memory": "Memoria",
+    "labels": "Etichette",
+    "bytesTab": "Byte",
+    "pages": {
+      "code": "codice",
+      "data": "dati",
+      "codeStack": "stack del codice",
+      "userStack": "stack utente"
+    }
+  },
+  "size": {
+    "tooLargeTitle": "Contratto troppo grande",
+    "cannotDeploy": "Questo contratto non può essere distribuito",
+    "exceedsTitle": "Il contratto supera la dimensione massima",
+    "exceeds": "Il tuo contratto occupa {size}, oltre il limite di distribuzione di 10 KiB (10240 byte). Ottimizza il codice del contratto per ridurne la dimensione prima della distribuzione.",
+    "largeTitle": "Rilevato contratto grande ({size})",
+    "large": "Questo contratto è troppo grande (>8KiB) per la distribuzione standard. XT Wallet non può firmare contratti grandi. Devi fornire la tua passphrase per l'invio diretto al nodo."
+  },
+  "deploy": {
+    "title": "Distribuisci smart contract",
+    "noteTitle": "Nota importante",
+    "note": "La distribuzione di uno smart contract è irreversibile. Testa a fondo il contratto prima di distribuirlo.",
+    "summary": "Riepilogo del contratto",
+    "summaryHint": "Controlla il contratto prima della distribuzione",
+    "name": "Nome del contratto",
+    "activationAmount": "Importo di attivazione",
+    "description": "Descrizione",
+    "codeSize": "Dimensione del codice",
+    "minimumFee": "Commissione minima",
+    "settings": "Impostazioni di distribuzione",
+    "settingsHint": "Configura i parametri di distribuzione",
+    "activationSigna": "Importo di attivazione (SIGNA)",
+    "feeSigna": "Commissione della transazione (SIGNA)",
+    "minimum": "Minimo:",
+    "deadline": "Scadenza (minuti)",
+    "deadlineHint": "Scadenza della transazione in minuti (max: 1440)"
+  },
+  "flow": {
+    "connectWallet": "Connetti un wallet per distribuire il contratto",
+    "title": "Distribuzione del contratto",
+    "subtitle": "Distribuisci il tuo smart contract sulla blockchain Signum",
+    "inProgress": "In corso",
+    "progress": "Avanzamento della distribuzione",
+    "connectFirst": "Connetti prima il wallet",
+    "deploy": "Distribuisci contratto",
+    "deployed": "Distribuito!",
+    "broadcasting": "Trasmissione…",
+    "reset": "Reimposta",
+    "failed": "Distribuzione non riuscita",
+    "success": "Distribuzione riuscita!",
+    "successBody": "Il tuo smart contract è stato distribuito correttamente.",
+    "checkWallet": "Controlla XT Wallet",
+    "unsignedBytes": "Byte non firmati:",
+    "walletAction": "Azione richiesta in XT Wallet",
+    "walletActionBody": "Controlla l'estensione XT Wallet. Dovrebbe essersi aperta una finestra di conferma. Verifica i dettagli della transazione e conferma per procedere con la distribuzione.",
+    "steps": {
+      "preparing": "Preparazione della transazione",
+      "preparingHint": "Recupero dei byte non firmati dal registro Signum",
+      "confirm": "Conferma nel wallet",
+      "confirmHint": "In attesa della conferma di XT Wallet",
+      "broadcasting": "Trasmissione",
+      "broadcastingHint": "Invio della transazione alla rete",
+      "deployed": "Distribuito",
+      "deployedHint": "Contratto distribuito correttamente"
+    }
+  },
+  "large": {
+    "enterPassphrase": "Inserisci la tua passphrase",
+    "deployed": "Contratto distribuito correttamente!",
+    "failed": "Distribuzione non riuscita",
+    "noTxId": "Il nodo non ha restituito alcun ID di transazione",
+    "title": "Distribuzione di un contratto grande",
+    "subtitle": "Distribuisci tramite Form POST (passphrase richiesta)",
+    "passphraseTitle": "Passphrase richiesta",
+    "passphraseBody": "La tua passphrase verrà usata per firmare direttamente la transazione. Non verrà memorizzata e sarà cancellata dalla memoria dopo la distribuzione.",
+    "passphraseLabel": "Passphrase dell'account",
+    "passphrasePlaceholder": "Inserisci la tua passphrase di 12 parole",
+    "submittingTitle": "Invio della transazione",
+    "submittingBody": "Invio del contratto al nodo Signum tramite Form POST…",
+    "successBody": "Il tuo smart contract grande è stato distribuito correttamente.",
+    "copied": "ID transazione copiato!",
+    "deployLarge": "Distribuisci contratto grande",
+    "submitting": "Invio…",
+    "deployAnother": "Distribuiscine un altro",
+    "tryAgain": "Riprova"
+  },
+  "wallet": {
+    "title": "Connessione del wallet",
+    "subtitle": "Connetti XT Wallet per distribuire il contratto",
+    "connected": "Wallet connesso",
+    "connectedBody": "Il tuo XT Wallet è connesso e pronto per la distribuzione.",
+    "openExplorer": "Apri nell'explorer"
+  },
+  "completion": {
+    "void": "Funzione senza valore di ritorno",
+    "one": "Funzione a un parametro",
+    "two": "Funzione a due parametri",
+    "returns": "Funzione con valore di ritorno",
+    "special": "Funzione speciale",
+    "unknown": "Tipo di funzione sconosciuto"
+  },
+  "hover": {
+    "steps": {
+      "one": "{count} passo",
+      "other": "{count} passi"
+    },
+    "formTable": "| Forma | Opcode | Byte |",
+    "apiFunction": "Funzione API",
+    "apiBody": "Funzione API integrata della blockchain, invocata tramite l'istruzione `FUN`.",
+    "apiTable": "| Codice API | Istruzione | Argomenti |",
+    "opcode": "opcode {hex}",
+    "form": {
+      "none": "nessun argomento, nessun valore di ritorno",
+      "one": "un argomento",
+      "two": "due argomenti",
+      "returns": "restituisce un valore",
+      "returnsOne": "restituisce un valore, un argomento",
+      "returnsTwo": "restituisce un valore, due argomenti"
+    }
+  }
+}

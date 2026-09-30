@@ -1,0 +1,95 @@
+{
+  "actions": {
+    "cancel": "Annulla",
+    "close": "Chiudi",
+    "confirm": "Conferma",
+    "create": "Crea",
+    "delete": "Elimina",
+    "disconnect": "Disconnetti",
+    "download": "Scarica",
+    "finish": "Fine",
+    "next": "Avanti",
+    "open": "Apri",
+    "previous": "Indietro",
+    "rename": "Rinomina",
+    "save": "Salva"
+  },
+  "confirm": {
+    "title": "Conferma azione",
+    "description": "Vuoi davvero farlo?"
+  },
+  "sidebar": {
+    "home": "Home",
+    "projects": "Progetti",
+    "addProject": "Aggiungi nuovo progetto",
+    "importProject": "Importa progetto (zip)",
+    "selectOpenedFile": "Seleziona il file aperto",
+    "createProject": "Crea nuovo progetto",
+    "alpha": "Alpha",
+    "prerelease": "v{version} · sperimentale — aspettati imperfezioni e modifiche incompatibili",
+    "resize": "Trascina per ridimensionare la barra laterale",
+    "toggle": "Mostra/nascondi barra laterale",
+    "mobileTitle": "Barra laterale",
+    "mobileDescription": "Mostra la barra laterale per dispositivi mobili."
+  },
+  "import": {
+    "done": {
+      "one": "{count} file importato",
+      "other": "{count} file importati"
+    },
+    "doneWithSkipped": {
+      "one": "{count} file importato ({skipped} saltati)",
+      "other": "{count} file importati ({skipped} saltati)"
+    }
+  },
+  "climate": {
+    "label": "Tema colori"
+  },
+  "wallet": {
+    "connect": "Connetti wallet",
+    "connectTestnet": "Connetti alla Testnet",
+    "connectMainnet": "Connetti alla Mainnet",
+    "connectionIssue": "Problema di connessione",
+    "expectedNetwork": "Rete attesa: {network}",
+    "ready": "Pronto a distribuire contratti",
+    "account": "Account",
+    "balance": "Saldo",
+    "testnet": "Testnet",
+    "mainnet": "Mainnet"
+  },
+  "editor": {
+    "format": "Formatta documento ({hotkey})",
+    "download": "Scarica questo file ({hotkey})",
+    "unsaved": "Modifiche non salvate ({hotkey})",
+    "allSaved": "Tutto salvato",
+    "saveAction": "Salva file",
+    "downloadAction": "Scarica file",
+    "saved": "File salvato!",
+    "saveFailed": "Impossibile salvare il file: {message}"
+  },
+  "files": {
+    "loading": "Caricamento…",
+    "loadError": "Errore durante il caricamento del file",
+    "unsupported": "Questo tipo di file («{type}») non è più supportato.",
+    "nameTaken": "In questa cartella esiste già un file chiamato {name}",
+    "folderNameTaken": "Qui esiste già una cartella chiamata {name}",
+    "deleteRoot": "Impossibile eliminare la cartella principale",
+    "renameRoot": "Impossibile rinominare la cartella principale"
+  },
+  "pages": {
+    "deploy": "Distribuisci",
+    "notCompiling": "Il contratto non compila, quindi non c'è niente da pubblicare: {error}",
+    "compiling": "Compilazione…",
+    "simulate": "Simula",
+    "replayNote": "Riproduce ciò che questo test ha inviato. Le asserzioni non vengono rivalutate durante l'esecuzione passo passo, e si può eseguire passo passo solo l'ultimo contratto caricato dal test.",
+    "replayScenario": "da {test}"
+  },
+  "debugDashboard": {
+    "block": "blocco {block}",
+    "step": "passo {step}",
+    "live": "● in diretta",
+    "waiting": "in attesa di una sessione di debug…",
+    "contractStatus": "Stato del contratto",
+    "ledgerStatus": "Stato del registro"
+  }
+}

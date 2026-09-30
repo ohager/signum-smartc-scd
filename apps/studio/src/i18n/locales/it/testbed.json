@@ -1,0 +1,51 @@
+{
+  "editor": {
+    "run": "Esegui",
+    "runHint": "Esegui questo file di test",
+    "runFailed": "Impossibile eseguire i test: {message}",
+    "runOneFailed": "Impossibile eseguire il test: {message}",
+    "simulate": "Simula",
+    "simulateHint": "Esegui il test selezionato e simula lo scenario che registra",
+    "selectToSimulate": "Seleziona un test per simularne lo scenario",
+    "simulateFailed": "Impossibile simulare: {message}",
+    "noContract": "«{name}» non ha caricato alcun contratto, quindi non c'è niente da simulare.",
+    "running": "in esecuzione…",
+    "showingValues": "valori da:",
+    "traceTruncated": " — traccia troncata, alcuni valori non sono stati registrati",
+    "debugRun": "Esecuzione di debug (DevTools)",
+    "debugRunNote": "— gira nella pagina così DevTools può fermarsi; un contratto fuori controllo bloccherà la scheda",
+    "results": "Risultati",
+    "value": "Valore"
+  },
+  "results": {
+    "goToLine": "Vai alla riga {line}",
+    "duration": "{ms} ms",
+    "expected": "atteso: {value}",
+    "received": "ricevuto: {value}",
+    "passed": "{count} superati",
+    "failed": "{count} falliti",
+    "skipped": "{count} saltati",
+    "timedOut": "{count} scaduti",
+    "pressRun": "Premi Esegui per lanciare questo file di test.",
+    "couldNotLoad": "Impossibile caricare {file}",
+    "hookFailed": "{phase} fallito",
+    "hookFailedIn": "{phase} fallito in {suite}"
+  },
+  "value": {
+    "hint": "Fai clic su un valore mostrato a fine riga per esaminarlo qui.",
+    "fallbackName": "valore",
+    "ranTimes": "eseguito {count} volte — mostrato l'ultimo",
+    "collapseAll": "Comprimi tutto",
+    "expandAll": "Espandi tutto",
+    "noValue": "Questa riga ha completato un'asserzione ma non ha associato alcun valore."
+  },
+  "devtools": {
+    "label": "Come fare il debug con DevTools",
+    "title": "Debug con DevTools",
+    "openFirst": "Apri prima DevTools — non può collegarsi a un'esecuzione già in corso.",
+    "tick": "Spunta questa casella, poi premi Esegui.",
+    "find": "Trova il tuo test in Sources sotto il percorso del progetto, ad es. <code>/my-project/tests/counter.test.ts</code>.",
+    "breakpoint": "Imposta lì un punto di interruzione, oppure inserisci un'istruzione <code>debugger;</code> nel test.",
+    "freeze": "I test girano nella pagina invece che in un worker, quindi un contratto in ciclo infinito bloccherà la scheda — il watchdog non può interrompere il ciclo che lo sta bloccando."
+  }
+}
