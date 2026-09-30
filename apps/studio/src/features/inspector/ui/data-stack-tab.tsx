@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
 import { cn } from "@/lib/utils";
+import { ROW_HOVER, ROW_SELECTED } from "./selection";
 import { t } from "@/i18n/runtime";
 import { buildSlotRows, slotCount, type SlotRow } from "../model/data-stack";
 import { removeSlot, upsertSlot } from "../model/label-map-edits";
@@ -87,7 +88,7 @@ export function DataStackTab({
                 <tr
                   key={`${row.index}-${row.outOfRange}`}
                   onClick={() => setSelected(row.index)}
-                  className={cn("cursor-pointer hover:bg-accent", selected === row.index && "bg-accent")}
+                  className={cn("cursor-pointer", ROW_HOVER, selected === row.index && ROW_SELECTED)}
                 >
                   <td className="px-4 py-0.5 text-right font-mono text-muted-foreground">{row.index}</td>
                   <td className="px-2 py-0.5">{row.name ?? ""}</td>

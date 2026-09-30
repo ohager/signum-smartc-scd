@@ -25,6 +25,7 @@ import { useFollowedFile } from "../workspace/use-followed-file";
 import { enumToLines, parseEnumLines } from "./enum-lines";
 import { GenerateLabelsDialog } from "./generate-labels-dialog";
 import { JsoncSourceEditor } from "./jsonc-source-editor";
+import { ROW_HOVER, ROW_SELECTED } from "./selection";
 import { writeThrough } from "./write-through";
 import { MapGroupDialog } from "./map-group-dialog";
 import { SlotLabelDialog } from "./slot-label-dialog";
@@ -110,7 +111,7 @@ export function LabelMapEditor({ file }: { file: File }) {
               </thead>
               <tbody>
                 {map.slots.map((s) => (
-                  <tr key={s.index} className="hover:bg-accent">
+                  <tr key={s.index} className={ROW_HOVER}>
                     <td className="text-right font-mono">{s.index}</td>
                     <td className="px-2">{s.name}</td>
                     <td className="px-2 font-mono text-xs">{s.format ?? ""}{s.enum ? ` (${s.enum})` : ""}</td>

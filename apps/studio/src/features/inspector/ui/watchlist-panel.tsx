@@ -2,6 +2,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { ROW_HOVER, ROW_SELECTED } from "./selection";
 import { t } from "@/i18n/runtime";
 import type { ContractStatus } from "../chain/inspector-client";
 import { networkKey, type Network } from "../model/networks";
@@ -63,8 +64,9 @@ export function WatchlistPanel({
                   type="button"
                   onClick={() => onSelect(key)}
                   className={cn(
-                    "group flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-accent",
-                    selected === key && "bg-accent",
+                    "group flex w-full items-center gap-2 px-3 py-2 text-left text-sm",
+                    ROW_HOVER,
+                    selected === key && ROW_SELECTED,
                   )}
                 >
                   <span className="min-w-0 flex-1">

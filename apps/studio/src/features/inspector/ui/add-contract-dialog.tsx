@@ -14,6 +14,7 @@ import { parseContractId } from "../model/contract-input";
 import { networkFromWallet, type Network } from "../model/networks";
 import type { WatchEntry } from "../model/watchlist";
 import { NetworkPicker } from "./network-picker";
+import { ROW_HOVER, ROW_SELECTED } from "./selection";
 import { statusLabel } from "./watchlist-panel";
 
 const PAGE = 100;
@@ -202,7 +203,7 @@ export function AddContractDialog({
                 <div className="min-h-0 flex-1 overflow-auto rounded border">
                   {shown.length === 0 && <p className="p-2 text-xs text-muted-foreground">{t("inspector.add.none")}</p>}
                   {shown.map((r) => (
-                    <label key={r.id} className="flex items-center gap-2 border-b px-2 py-1 text-sm hover:bg-accent">
+                    <label key={r.id} className={`flex items-center gap-2 border-b px-2 py-1 text-sm ${ROW_HOVER}`}>
                       <Checkbox checked={picked.has(r.id)} onCheckedChange={() => toggle(r.id)} />
                       <span className="w-48 shrink-0 truncate font-mono text-xs">{r.id}</span>
                       <span className="min-w-0 flex-1 truncate">{r.name}</span>
