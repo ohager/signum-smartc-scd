@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.3.0-alpha.1 — 2026-09-30
+
+Studio can look at contracts that are already on chain. Still **experimental**:
+projects live in your browser's storage, so export them as zip regularly.
+
+### Highlights
+
+- **Contract Inspector** — read a deployed contract's state by meaning instead of
+  by slot index. It is read-only: it sends no transactions and needs no wallet.
+  - **Watchlists** (`*.inspect.json`) list the contracts to inspect, each with
+    its network (mainnet or testnet). Add contracts by id, by creator or by
+    code hash.
+  - **Data stack** with labelled slots, a detail view per slot, and values shown
+    as number, fixed-point, hex, address, text, bool or enum.
+  - **Contract maps** grouped by `key1`, either a fixed key or a pattern, with
+    labelled keys and values.
+  - **Label Maps** (`*.labels.json`) give slots, map keys and values their names
+    and formats. Generate one from a `.smart.c`, or write it by hand in the
+    inspector or the editor. A Label Map applies to every contract whose code
+    hash it lists, in any project of the workspace. Regenerating it keeps your
+    own entries and comments.
+  - **Inspect after deploying** — one click after a deployment adds the new
+    contract to the project's watchlist and opens it.
+- **Inspection-only folders** — a folder that holds only inspection files works
+  as a project of its own, without the workflow rail.
+- **Editor support for the new files** — completion, hover and diagnostics for
+  watchlists and Label Maps. Both are JSON with comments.
+
 ## 0.2.0-alpha.1 — 2026-09-29
 
 Studio speaks your language, and gets a face of its own. Still **experimental**:
