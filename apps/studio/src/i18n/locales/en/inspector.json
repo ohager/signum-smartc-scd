@@ -125,5 +125,35 @@
     "enum": "Value enum",
     "comment": "Comment",
     "save": "Save"
+  },
+  "add": {
+    "title": "Add contracts",
+    "network": "Network",
+    "customNode": "Node URL",
+    "customTestnet": "This node serves testnet",
+    "tabs": {
+      "id": "Contract",
+      "creator": "Creator",
+      "hash": "Code hash"
+    },
+    "idLabel": "Contract id or address",
+    "creatorLabel": "Creator account id or address",
+    "myWallet": "My wallet",
+    "hashLabel": "Machine code hash",
+    "hashFilter": "Code hash filter (optional)",
+    "search": "Search",
+    "cancel": "Stop",
+    "more": "Load more",
+    "found": "{shown} of {total} shown",
+    "filter": "Filter loaded results",
+    "selectAll": "Select all shown",
+    "addSelected": {
+      "one": "Add {count} contract",
+      "other": "Add {count} contracts"
+    },
+    "addOne": "Add",
+    "invalidId": "Not a contract id or address.",
+    "notFound": "No contract {id} on this network.",
+    "none": "Nothing found."
   }
 }
