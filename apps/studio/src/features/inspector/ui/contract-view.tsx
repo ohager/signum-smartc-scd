@@ -13,6 +13,7 @@ import type { WatchEntry } from "../model/watchlist";
 import { useLabelMaps } from "../workspace/use-label-maps";
 import { addHashToLabelMap, createLabelMapFor } from "./label-map-actions";
 import { OverviewTab } from "./overview-tab";
+import { CodeTab, type CodeFocus } from "./code-tab";
 import { DataStackTab } from "./data-stack-tab";
 import { MapsTab } from "./maps-tab";
 import { useContract } from "./use-contract";
@@ -59,6 +60,7 @@ export function ContractView({
   };
 
   const [tab, setTab] = useState("data");
+  const [codeFocus, setCodeFocus] = useState<CodeFocus | null>(null);
   const [nodeDraft, setNodeDraft] = useState<Network | null>(null);
 
   /** The file a new label is written to; see `labelTarget` for why ambiguity never creates one. */
@@ -120,6 +122,7 @@ export function ContractView({
             <TabsTrigger value="overview">{t("inspector.contract.tabs.overview")}</TabsTrigger>
             <TabsTrigger value="data">{t("inspector.contract.tabs.data")}</TabsTrigger>
             <TabsTrigger value="maps">{t("inspector.contract.tabs.maps")}</TabsTrigger>
+            <TabsTrigger value="code">{t("inspector.contract.tabs.code")}</TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className="min-h-0 flex-1 overflow-auto">
             <OverviewTab
@@ -140,6 +143,18 @@ export function ContractView({
           </TabsContent>
           <TabsContent value="maps" className="min-h-0 flex-1 overflow-auto">
             <MapsTab contract={contract} client={client} labelMap={active} prefix={prefix} ensureLabelMap={ensureLabelMap} revision={revision} />
+          </TabsContent>
+          <TabsContent value="code" className="min-h-0 flex-1 overflow-hidden">
+            <CodeTab
+              contract={contract}
+              labelMap={active}
+              entry={entry}
+              folderId={folderId}
+              prefix={prefix}
+              ensureLabelMap={ensureLabelMap}
+              focus={codeFocus}
+              onShowSlot={() => setTab("data")}
+            />
           </TabsContent>
         </Tabs>
       )}
