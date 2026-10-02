@@ -48,7 +48,7 @@ describe("decode", () => {
     const resumed = decode("ff" + "28");
     expect(resumed.instructions.map((i) => i.form.mnemonic)).toEqual(["FIN"]);
     expect(resumed.assemblable).toBe(false);
-    expect(MAX_SLOT).toBe(0xffff);
+    expect(MAX_SLOT).toBe(0x1fff);
   });
 
   it("flags targets that do not land on an instruction", () => {

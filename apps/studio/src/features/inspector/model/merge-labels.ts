@@ -42,7 +42,10 @@ export function mergeGenerated(
   });
 
   const slots = [...kept, ...fresh].sort((a, b) => a.index - b.index);
-  const codeLabels = [...existing.codeLabels.filter((c) => !fromCompiler(c)), ...generated.codeLabels];
+  // A place the user named keeps their name; the compiler's goes only where nobody has spoken.
+  const keptCode = existing.codeLabels.filter((c) => !fromCompiler(c));
+  const namedAt = new Set(keptCode.map((c) => c.address));
+  const codeLabels = [...keptCode, ...generated.codeLabels.filter((c) => !namedAt.has(c.address))];
   const codeHashes = existing.codeHashes.some((h) => h.hash === generated.codeHash)
     ? existing.codeHashes
     : [...existing.codeHashes, { hash: generated.codeHash, ...(meta.network ? { network: meta.network } : {}) }];

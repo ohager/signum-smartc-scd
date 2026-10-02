@@ -68,3 +68,21 @@ describe("buildNames", () => {
     expect(names.targetAsm.get(0)).toBe("loop_2");
   });
 });
+
+describe("buildNames, defensive", () => {
+  const dis = decode("02" + "03000000" + "00000000" + "1a" + "00000000");
+
+  it("prefers a person's code name over a compiler one at the same address", () => {
+    const names = buildNames(
+      dis,
+      map({ codeLabels: [{ address: 0, name: "mine", origin: "manual" }, { address: 0, name: "__fn_main", origin: "compiler" }] }),
+      0,
+    );
+    expect(names.targetDisplay.get(0)).toBe("mine");
+  });
+
+  it("does not let a label far beyond the code and data stretch the declarations", () => {
+    const names = buildNames(dis, map({ slots: [{ index: 50_000, name: "typo" }] }), 2);
+    expect(names.slotCount).toBe(4);
+  });
+});

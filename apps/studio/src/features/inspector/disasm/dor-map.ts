@@ -21,7 +21,9 @@ export type DorMap = z.infer<typeof DorMapSchema>;
 const GENERATED = /^(r\d+|var_?\d+|lab_[0-9a-f]+)$/;
 
 export function toDorMap(map: LabelMap): DorMap {
-  const names = buildNames(null, map, 0);
+  // Without code, the declared slots are exactly the labelled ones.
+  const end = map.slots.reduce((max, s) => Math.max(max, s.index + (s.length ?? 1)), 0);
+  const names = buildNames(null, map, end);
   return {
     Memory: names.slotAsm,
     Labels: map.codeLabels.map((c) => ({ label: names.targetAsm.get(c.address)!, address: c.address })),

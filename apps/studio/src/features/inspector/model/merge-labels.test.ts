@@ -97,3 +97,11 @@ describe("mergeGenerated records the build", () => {
     expect(map.source?.codeHash).toBe("2");
   });
 });
+
+describe("mergeGenerated keeps the user's code names", () => {
+  it("does not add a compiler label where a manual or imported one already names the address", () => {
+    const withManual = { ...existing, codeLabels: [{ address: 7, name: "myMain", origin: "manual" as const }] };
+    const { map } = mergeGenerated(withManual, generated, { sourceFile: "c.smart.c", now: new Date(0) });
+    expect(map.codeLabels).toEqual([{ address: 7, name: "myMain", origin: "manual" }]);
+  });
+});

@@ -41,8 +41,13 @@ export interface Disassembly {
   assemblable: boolean;
 }
 
-/** Slot indices above this are treated as garbage, not as a request to declare billions of cells. */
-export const MAX_SLOT = 0xffff;
+/**
+ * Slot indices above this are treated as garbage, not as a request to declare
+ * them all: every cell up to the highest is declared, and 65,536 declarations
+ * keep the assembler busy for over a minute. 8,192 cells (64 KB of data) is far
+ * beyond any real contract.
+ */
+export const MAX_SLOT = 0x1fff;
 
 function byteAt(hex: string, at: number): number {
   return parseInt(hex.slice(at * 2, at * 2 + 2), 16);

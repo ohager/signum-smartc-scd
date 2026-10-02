@@ -41,7 +41,9 @@ export function buildNames(dis: Disassembly | null, map: LabelMap | null, dataSl
   for (const i of dis?.instructions ?? []) {
     for (const o of i.operands) if (o.kind === "slot") highest = Math.max(highest, o.index);
   }
-  for (const l of labels) highest = Math.max(highest, l.index + (l.length ?? 1) - 1);
+  // Labels name slots; they do not create them. A label far beyond the code
+  // and data (a typo, or a map shared for another build) would otherwise
+  // declare tens of thousands of cells and stall the assembler.
   const slotCount = highest + 1;
   const width = Math.max(3, String(Math.max(0, slotCount - 1)).length);
 
@@ -59,7 +61,9 @@ export function buildNames(dis: Disassembly | null, map: LabelMap | null, dataSl
     slotAsm.push(unique(base, used));
   }
 
-  const codeLabel = new Map((map?.codeLabels ?? []).map((c) => [c.address, c]));
+  // Compiler entries first, so a name a person gave the same address wins.
+  const codeLabels = [...(map?.codeLabels ?? [])].sort((a, b) => Number(a.origin !== "compiler") - Number(b.origin !== "compiler"));
+  const codeLabel = new Map(codeLabels.map((c) => [c.address, c]));
   const targets = new Set<number>(codeLabel.keys());
   for (const i of dis?.instructions ?? []) {
     for (const o of i.operands) if (o.kind === "target") targets.add(o.address);
