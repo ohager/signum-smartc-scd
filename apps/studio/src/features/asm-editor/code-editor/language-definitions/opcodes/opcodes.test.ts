@@ -115,4 +115,12 @@ describe("opcode documentation vs. the assembler's table", () => {
       expect(op.documentation.length, mnemonic).toBeGreaterThan(200);
     }
   });
+  it("describes each form's operands in the order and widths the assembler encodes them", async () => {
+    const { FORMS } = await import("@/features/inspector/disasm/opcode-index");
+    const args = new Map(
+      [...source.matchAll(/name:\s*'(\w+)',\s*size:\s*\d+,\s*argsType:\s*\[([^\]]*)\]/g)].map((m) => [m[1]!, (m[2]!.match(/[ILBJF]/g) ?? []).join("")]),
+    );
+    const wrong = FORMS.filter((f) => args.has(f.name) && args.get(f.name) !== f.operands.map((o) => o.type).join(""));
+    expect(wrong.map((f) => f.name)).toEqual([]);
+  });
 });
