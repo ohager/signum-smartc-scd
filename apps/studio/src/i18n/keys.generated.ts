@@ -483,6 +483,8 @@ export type MessageParams = {
   "inspector.data.interpretations": undefined;
   "inspector.data.stringReversed": undefined;
   "inspector.data.saved": undefined;
+  "inspector.data.use": { reads: string | number; writes: string | number };
+  "inspector.data.showInCode": undefined;
   "inspector.label.title": { index: string | number };
   "inspector.label.name": undefined;
   "inspector.label.format": undefined;

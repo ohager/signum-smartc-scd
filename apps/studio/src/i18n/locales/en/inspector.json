@@ -90,7 +90,9 @@
     "editLabel": "Edit label",
     "interpretations": "Interpretations",
     "stringReversed": "string (reversed)",
-    "saved": "Label saved"
+    "saved": "Label saved",
+    "use": "Read by {reads} · written by {writes} instructions",
+    "showInCode": "Show in code"
   },
   "label": {
     "title": "Label for slot {index}",

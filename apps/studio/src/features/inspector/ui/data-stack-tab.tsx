@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Contract } from "@signumjs/contracts";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,11 @@ import { removeSlot, upsertSlot } from "../model/label-map-edits";
 import type { SlotLabel } from "../model/label-map";
 import type { IndexedLabelMap } from "../model/resolve-label-map";
 import { updateFileText } from "../workspace/update-file";
+import { decode } from "../disasm/decode";
+import { trustOf } from "../disasm/trust";
+import { buildXrefs, slotUse } from "../disasm/xrefs";
 import { SlotDetail } from "./slot-detail";
+import { TrustBadge } from "./trust-badge";
 import { SlotLabelDialog } from "./slot-label-dialog";
 
 export function DataStackTab({
@@ -20,11 +24,16 @@ export function DataStackTab({
   labelMap,
   prefix,
   ensureLabelMap,
+  focusSlot,
+  onShowInCode,
 }: {
   contract: Contract;
   labelMap: IndexedLabelMap | null;
   prefix: "S" | "TS";
   ensureLabelMap: () => Promise<string | null>;
+  /** Set by the Code tab's "Show in data stack"; the nonce makes a repeat request count. */
+  focusSlot: { slot: number; nonce: number } | null;
+  onShowInCode: (slot: number) => void;
 }) {
   const fs = useFileSystem();
   const rows = useMemo(
@@ -34,6 +43,16 @@ export function DataStackTab({
   const [onlyLabelled, setOnlyLabelled] = useState(false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<number | null>(null);
+  const xrefs = useMemo(() => (contract.machineCode ? buildXrefs(decode(contract.machineCode)) : null), [contract.machineCode]);
+  const trustFor = (label: SlotLabel | null) =>
+    label && labelMap?.map ? trustOf(label.origin, labelMap.map, contract.machineCodeHashId) : null;
+
+  useEffect(() => {
+    if (!focusSlot) return;
+    setSelected(focusSlot.slot);
+    document.querySelector(`[data-slot="${focusSlot.slot}"]`)?.scrollIntoView({ block: "center" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusSlot?.nonce]);
   const [editing, setEditing] = useState<SlotLabel | null>(null);
 
   const q = query.trim().toLowerCase();
@@ -87,11 +106,14 @@ export function DataStackTab({
               {visible.map((row) => (
                 <tr
                   key={`${row.index}-${row.outOfRange}`}
+                  data-slot={row.index}
                   onClick={() => setSelected(row.index)}
                   className={cn("cursor-pointer", ROW_HOVER, selected === row.index && ROW_SELECTED)}
                 >
                   <td className="px-4 py-0.5 text-right font-mono text-muted-foreground">{row.index}</td>
-                  <td className="px-2 py-0.5">{row.name ?? ""}</td>
+                  <td className="px-2 py-0.5">
+                    {row.name ?? ""} {(() => { const trust = trustFor(row.label); return trust && <TrustBadge trust={trust} />; })()}
+                  </td>
                   <td className="px-2 py-0.5 font-mono">
                     {row.outOfRange ? (
                       <span className="text-[var(--amber)]">{t("inspector.data.outOfRange")}</span>
@@ -112,6 +134,9 @@ export function DataStackTab({
             row={current}
             prefix={prefix}
             onLabel={() => setEditing(current.label ?? { index: current.index, name: "" })}
+            use={xrefs ? (({ reads, writes }) => ({ reads: reads.length, writes: writes.length }))(slotUse(xrefs, current.index)) : null}
+            trust={trustFor(current.label)}
+            onShowInCode={() => onShowInCode(current.index)}
           />
         ) : (
           <p className="p-3 text-xs text-muted-foreground">{t("inspector.data.select")}</p>

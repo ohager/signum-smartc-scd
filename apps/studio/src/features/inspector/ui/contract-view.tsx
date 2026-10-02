@@ -61,6 +61,7 @@ export function ContractView({
 
   const [tab, setTab] = useState("data");
   const [codeFocus, setCodeFocus] = useState<CodeFocus | null>(null);
+  const [dataFocus, setDataFocus] = useState<{ slot: number; nonce: number } | null>(null);
   const [nodeDraft, setNodeDraft] = useState<Network | null>(null);
 
   /** The file a new label is written to; see `labelTarget` for why ambiguity never creates one. */
@@ -139,7 +140,17 @@ export function ContractView({
             />
           </TabsContent>
           <TabsContent value="data" className="min-h-0 flex-1 overflow-hidden">
-            <DataStackTab contract={contract} labelMap={active} prefix={prefix} ensureLabelMap={ensureLabelMap} />
+            <DataStackTab
+              contract={contract}
+              labelMap={active}
+              prefix={prefix}
+              ensureLabelMap={ensureLabelMap}
+              focusSlot={dataFocus}
+              onShowInCode={(slot) => {
+                setCodeFocus({ slot, nonce: Date.now() });
+                setTab("code");
+              }}
+            />
           </TabsContent>
           <TabsContent value="maps" className="min-h-0 flex-1 overflow-auto">
             <MapsTab contract={contract} client={client} labelMap={active} prefix={prefix} ensureLabelMap={ensureLabelMap} revision={revision} />
@@ -153,7 +164,10 @@ export function ContractView({
               prefix={prefix}
               ensureLabelMap={ensureLabelMap}
               focus={codeFocus}
-              onShowSlot={() => setTab("data")}
+              onShowSlot={(slot) => {
+                setDataFocus({ slot, nonce: Date.now() });
+                setTab("data");
+              }}
             />
           </TabsContent>
         </Tabs>
