@@ -47,7 +47,8 @@
     "tabs": {
       "overview": "Visão geral",
       "data": "Pilha de dados",
-      "maps": "Mapas"
+      "maps": "Mapas",
+      "code": "Código"
     },
     "otherNode": "Escolher outro nó",
     "useNode": "Usar este nó"
@@ -89,7 +90,9 @@
     "editLabel": "Editar rótulo",
     "interpretations": "Interpretações",
     "stringReversed": "string (invertida)",
-    "saved": "Rótulo salvo"
+    "saved": "Rótulo salvo",
+    "use": "Lido por {reads} · escrito por {writes} instruções",
+    "showInCode": "Mostrar no código"
   },
   "label": {
     "title": "Rótulo do slot {index}",
@@ -186,7 +189,17 @@
     "hashNetwork": "Rede (nota)",
     "hashNote": "Nota",
     "hashInvalid": "Um hash do código é um número decimal.",
-    "saved": "Salvo"
+    "saved": "Salvo",
+    "dorExport": "Exportar D'Or MAP",
+    "dorImport": "Importar D'Or MAP…",
+    "dorTitle": "Importar um D'Or MAP ou um objeto de máquina do compilador",
+    "dorHint": "Cole um JSON com \"Memory\" (nomes de slots) e \"Labels\". Os nomes são adicionados como alegações; os rótulos existentes são mantidos.",
+    "dorInvalid": "Não é um D'Or MAP: {message}",
+    "dorImported": {
+      "one": "{count} nome importado",
+      "other": "{count} nomes importados"
+    },
+    "trust": "Confiança"
   },
   "generate": {
     "title": "Gerar rótulos a partir do código SmartC",
@@ -205,5 +218,80 @@
     "inspect": "Inspecionar",
     "inspectHint": "Abrir este contrato no inspetor, com rótulos gerados a partir deste código-fonte",
     "failed": "Não foi possível preparar a inspeção: {message}"
+  },
+  "code": {
+    "noCode": "Este nó não retornou o código do contrato. Escolha outro nó.",
+    "empty": "Este contrato não tem código.",
+    "size": "{bytes} bytes · {instructions} instruções · {pages} páginas de código",
+    "verifyPending": "Verificando se a listagem pode ser remontada…",
+    "verifyOk": "Remonta para um código idêntico",
+    "verifyDiffers": "O código remontado difere a partir do byte {byte}",
+    "verifyCompile": "Não remonta: {message}",
+    "notAssemblable": "Não montável: {count} bytes desconhecidos ou destinos desalinhados",
+    "export": "Exportar como .asm",
+    "exportDisabled": "Exportar exige uma listagem que remonte para um código idêntico",
+    "exported": "Exportado para {name}",
+    "open": "Abrir",
+    "outline": "Estrutura",
+    "back": "Voltar",
+    "showBytes": "Bytes",
+    "showValues": "Valores",
+    "padding": "preenchimento, {count} bytes",
+    "unknown": "byte desconhecido {byte} ({reason})",
+    "reason": {
+      "opcode": "opcode inexistente",
+      "api": "função de API desconhecida",
+      "slot": "slot fora do intervalo",
+      "truncated": "cortado"
+    },
+    "misaligned": "salta para o meio de uma instrução",
+    "kinds": {
+      "start": "Início",
+      "restart": "Retomada",
+      "error": "Tratador de erros",
+      "function": "Função"
+    },
+    "callers": {
+      "one": "{count} chamador",
+      "other": "{count} chamadores"
+    },
+    "select": "Selecione uma instrução, um slot ou um destino de salto.",
+    "steps": "{steps} steps",
+    "reads": "Lido por",
+    "writes": "Escrito por",
+    "writesThrough": "Escreve por meio do ponteiro {name}",
+    "incoming": "Alcançado a partir de",
+    "currentValue": "Valor atual",
+    "nameLocation": "Nomear este local",
+    "showInData": "Mostrar na pilha de dados",
+    "jumpKinds": {
+      "jump": "salto",
+      "branch": "desvio",
+      "call": "chamada",
+      "error": "tratador de erros"
+    },
+    "none": "nenhum",
+    "caps": {
+      "title": "Este contrato pode",
+      "nothing": "Nenhuma chamada de fundos, tokens, mapas ou hash encontrada.",
+      "sendsFunds": "enviar SIGNA ou tokens",
+      "assets": "emitir, cunhar ou distribuir tokens",
+      "writesMaps": "escrever seus mapas",
+      "readsMaps": "ler mapas",
+      "readsBalances": "ler saldos e detentores de tokens",
+      "crypto": "calcular hashes ou verificar assinaturas"
+    }
+  },
+  "codeLabel": {
+    "title": "Nomear o endereço {address}",
+    "name": "Nome",
+    "save": "Salvar",
+    "remove": "Remover nome",
+    "saved": "Local nomeado"
+  },
+  "trust": {
+    "verified": "Verificado: gerado pelo compilador exatamente para este código",
+    "otherBuild": "Do compilador, mas para outro build deste código",
+    "claim": "Uma alegação: escrita à mão ou importada, não verificada"
   }
 }

@@ -47,7 +47,8 @@
     "tabs": {
       "overview": "Aperçu",
       "data": "Pile de données",
-      "maps": "Maps"
+      "maps": "Maps",
+      "code": "Code"
     },
     "otherNode": "Choisir un autre nœud",
     "useNode": "Utiliser ce nœud"
@@ -89,7 +90,9 @@
     "editLabel": "Modifier l’étiquette",
     "interpretations": "Interprétations",
     "stringReversed": "string (inversé)",
-    "saved": "Étiquette enregistrée"
+    "saved": "Étiquette enregistrée",
+    "use": "Lu par {reads} · écrit par {writes} instructions",
+    "showInCode": "Afficher dans le code"
   },
   "label": {
     "title": "Étiquette de l’emplacement {index}",
@@ -186,7 +189,17 @@
     "hashNetwork": "Réseau (note)",
     "hashNote": "Note",
     "hashInvalid": "Un hash du code est un nombre décimal.",
-    "saved": "Enregistré"
+    "saved": "Enregistré",
+    "dorExport": "Exporter la D'Or MAP",
+    "dorImport": "Importer une D'Or MAP…",
+    "dorTitle": "Importer une D'Or MAP ou un objet machine du compilateur",
+    "dorHint": "Collez du JSON avec « Memory » (noms d’emplacements) et « Labels ». Les noms sont ajoutés comme affirmations ; les étiquettes existantes sont conservées.",
+    "dorInvalid": "Ce n’est pas une D'Or MAP : {message}",
+    "dorImported": {
+      "one": "{count} nom importé",
+      "other": "{count} noms importés"
+    },
+    "trust": "Confiance"
   },
   "generate": {
     "title": "Générer des étiquettes depuis la source SmartC",
@@ -205,5 +218,80 @@
     "inspect": "Inspecter",
     "inspectHint": "Ouvrir ce contrat dans l’inspecteur, avec des étiquettes générées depuis cette source",
     "failed": "Impossible de préparer l’inspection : {message}"
+  },
+  "code": {
+    "noCode": "Ce nœud n’a pas renvoyé le code du contrat. Choisissez un autre nœud.",
+    "empty": "Ce contrat n’a pas de code.",
+    "size": "{bytes} octets · {instructions} instructions · {pages} pages de code",
+    "verifyPending": "Vérification du réassemblage du listing…",
+    "verifyOk": "Se réassemble en un code identique",
+    "verifyDiffers": "Le code réassemblé diffère à partir de l’octet {byte}",
+    "verifyCompile": "Ne se réassemble pas : {message}",
+    "notAssemblable": "Non assemblable : {count} octets inconnus ou cibles mal alignées",
+    "export": "Exporter en .asm",
+    "exportDisabled": "L’export nécessite un listing qui se réassemble en un code identique",
+    "exported": "Exporté vers {name}",
+    "open": "Ouvrir",
+    "outline": "Plan",
+    "back": "Retour",
+    "showBytes": "Octets",
+    "showValues": "Valeurs",
+    "padding": "remplissage, {count} octets",
+    "unknown": "octet inconnu {byte} ({reason})",
+    "reason": {
+      "opcode": "opcode inexistant",
+      "api": "fonction d’API inconnue",
+      "slot": "emplacement hors limites",
+      "truncated": "tronqué"
+    },
+    "misaligned": "saute au milieu d’une instruction",
+    "kinds": {
+      "start": "Démarrage",
+      "restart": "Reprise",
+      "error": "Gestionnaire d’erreurs",
+      "function": "Fonction"
+    },
+    "callers": {
+      "one": "{count} appelant",
+      "other": "{count} appelants"
+    },
+    "select": "Sélectionnez une instruction, un emplacement ou une cible de saut.",
+    "steps": "{steps} étapes",
+    "reads": "Lu par",
+    "writes": "Écrit par",
+    "writesThrough": "Écrit via le pointeur {name}",
+    "incoming": "Atteint depuis",
+    "currentValue": "Valeur actuelle",
+    "nameLocation": "Nommer cet emplacement",
+    "showInData": "Afficher dans la pile de données",
+    "jumpKinds": {
+      "jump": "saut",
+      "branch": "branchement",
+      "call": "appel",
+      "error": "gestionnaire d’erreurs"
+    },
+    "none": "aucun",
+    "caps": {
+      "title": "Ce contrat peut",
+      "nothing": "Aucun appel lié aux fonds, aux tokens, aux maps ou au hachage.",
+      "sendsFunds": "envoyer des SIGNA ou des tokens",
+      "assets": "émettre, frapper ou distribuer des tokens",
+      "writesMaps": "écrire ses maps",
+      "readsMaps": "lire des maps",
+      "readsBalances": "lire des soldes et des détenteurs de tokens",
+      "crypto": "hacher ou vérifier des signatures"
+    }
+  },
+  "codeLabel": {
+    "title": "Nommer l’adresse {address}",
+    "name": "Nom",
+    "save": "Enregistrer",
+    "remove": "Supprimer le nom",
+    "saved": "Emplacement nommé"
+  },
+  "trust": {
+    "verified": "Vérifié : généré par le compilateur pour exactement ce code",
+    "otherBuild": "Du compilateur, mais pour une autre compilation de ce code",
+    "claim": "Une affirmation : écrite à la main ou importée, non vérifiée"
   }
 }

@@ -46,7 +46,8 @@
     "tabs": {
       "overview": "概览",
       "data": "数据栈",
-      "maps": "映射"
+      "maps": "映射",
+      "code": "代码"
     },
     "otherNode": "选择其他节点",
     "useNode": "使用此节点"
@@ -88,7 +89,9 @@
     "editLabel": "编辑标签",
     "interpretations": "解读",
     "stringReversed": "string（反转）",
-    "saved": "标签已保存"
+    "saved": "标签已保存",
+    "use": "被 {reads} 条指令读取 · 被 {writes} 条指令写入",
+    "showInCode": "在代码中显示"
   },
   "label": {
     "title": "槽位 {index} 的标签",
@@ -184,7 +187,16 @@
     "hashNetwork": "网络（备注）",
     "hashNote": "备注",
     "hashInvalid": "代码哈希是一个十进制数。",
-    "saved": "已保存"
+    "saved": "已保存",
+    "dorExport": "导出 D'Or MAP",
+    "dorImport": "导入 D'Or MAP…",
+    "dorTitle": "导入 D'Or MAP 或编译器机器对象",
+    "dorHint": "粘贴包含“Memory”（槽位名称）和“Labels”的 JSON。名称将作为声明添加；已有标签保持不变。",
+    "dorInvalid": "不是 D'Or MAP：{message}",
+    "dorImported": {
+      "other": "已导入 {count} 个名称"
+    },
+    "trust": "可信度"
   },
   "generate": {
     "title": "从 SmartC 源代码生成标签",
@@ -203,5 +215,79 @@
     "inspect": "检查",
     "inspectHint": "在检查器中打开此合约，并使用从此源代码生成的标签",
     "failed": "无法准备检查：{message}"
+  },
+  "code": {
+    "noCode": "此节点未返回合约代码。请选择其他节点。",
+    "empty": "此合约没有代码。",
+    "size": "{bytes} 字节 · {instructions} 条指令 · {pages} 个代码页",
+    "verifyPending": "正在检查列表能否重新汇编…",
+    "verifyOk": "重新汇编后代码完全相同",
+    "verifyDiffers": "重新汇编的代码从第 {byte} 字节开始不同",
+    "verifyCompile": "无法重新汇编：{message}",
+    "notAssemblable": "无法汇编：{count} 个未知字节或未对齐的目标",
+    "export": "导出为 .asm",
+    "exportDisabled": "导出需要一个能重新汇编为相同代码的列表",
+    "exported": "已导出到 {name}",
+    "open": "打开",
+    "outline": "结构",
+    "back": "返回",
+    "showBytes": "字节",
+    "showValues": "数值",
+    "padding": "填充，{count} 字节",
+    "unknown": "未知字节 {byte}（{reason}）",
+    "reason": {
+      "opcode": "无此操作码",
+      "api": "未知 API 函数",
+      "slot": "槽位超出范围",
+      "truncated": "被截断"
+    },
+    "misaligned": "跳转到指令中间",
+    "kinds": {
+      "start": "开始",
+      "restart": "重新开始",
+      "error": "错误处理程序",
+      "function": "函数"
+    },
+    "callers": {
+      "other": "{count} 个调用方"
+    },
+    "select": "请选择一条指令、一个槽位或一个跳转目标。",
+    "steps": "{steps} 步",
+    "reads": "读取方",
+    "writes": "写入方",
+    "writesThrough": "通过指针 {name} 写入",
+    "incoming": "来自",
+    "currentValue": "当前值",
+    "nameLocation": "为此位置命名",
+    "showInData": "在数据栈中显示",
+    "jumpKinds": {
+      "jump": "跳转",
+      "branch": "分支",
+      "call": "调用",
+      "error": "错误处理程序"
+    },
+    "none": "无",
+    "caps": {
+      "title": "此合约可以",
+      "nothing": "未发现涉及资金、代币、映射或哈希的调用。",
+      "sendsFunds": "发送 SIGNA 或代币",
+      "assets": "发行、铸造或分发代币",
+      "writesMaps": "写入自己的映射",
+      "readsMaps": "读取映射",
+      "readsBalances": "读取余额和代币持有人",
+      "crypto": "计算哈希或验证签名"
+    }
+  },
+  "codeLabel": {
+    "title": "为地址 {address} 命名",
+    "name": "名称",
+    "save": "保存",
+    "remove": "删除名称",
+    "saved": "位置已命名"
+  },
+  "trust": {
+    "verified": "已验证：由编译器专为此代码生成",
+    "otherBuild": "来自编译器，但针对此代码的另一个构建",
+    "claim": "声明：手写或导入，未经验证"
   }
 }

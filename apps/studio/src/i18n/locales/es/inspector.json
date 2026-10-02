@@ -47,7 +47,8 @@
     "tabs": {
       "overview": "Resumen",
       "data": "Pila de datos",
-      "maps": "Mapas"
+      "maps": "Mapas",
+      "code": "Código"
     },
     "otherNode": "Elegir otro nodo",
     "useNode": "Usar este nodo"
@@ -89,7 +90,9 @@
     "editLabel": "Editar etiqueta",
     "interpretations": "Interpretaciones",
     "stringReversed": "string (invertido)",
-    "saved": "Etiqueta guardada"
+    "saved": "Etiqueta guardada",
+    "use": "Leído por {reads} · escrito por {writes} instrucciones",
+    "showInCode": "Mostrar en el código"
   },
   "label": {
     "title": "Etiqueta de la ranura {index}",
@@ -186,7 +189,17 @@
     "hashNetwork": "Red (nota)",
     "hashNote": "Nota",
     "hashInvalid": "Un hash del código es un número decimal.",
-    "saved": "Guardado"
+    "saved": "Guardado",
+    "dorExport": "Exportar D'Or MAP",
+    "dorImport": "Importar D'Or MAP…",
+    "dorTitle": "Importar un D'Or MAP o un objeto máquina del compilador",
+    "dorHint": "Pega JSON con \"Memory\" (nombres de ranuras) y \"Labels\". Los nombres se añaden como afirmaciones; las etiquetas existentes se conservan.",
+    "dorInvalid": "No es un D'Or MAP: {message}",
+    "dorImported": {
+      "one": "{count} nombre importado",
+      "other": "{count} nombres importados"
+    },
+    "trust": "Confianza"
   },
   "generate": {
     "title": "Generar etiquetas desde el código SmartC",
@@ -205,5 +218,80 @@
     "inspect": "Inspeccionar",
     "inspectHint": "Abrir este contrato en el inspector, con etiquetas generadas desde este código fuente",
     "failed": "No se pudo preparar la inspección: {message}"
+  },
+  "code": {
+    "noCode": "Este nodo no devolvió el código del contrato. Elige otro nodo.",
+    "empty": "Este contrato no tiene código.",
+    "size": "{bytes} bytes · {instructions} instrucciones · {pages} páginas de código",
+    "verifyPending": "Comprobando que el listado se vuelve a ensamblar…",
+    "verifyOk": "Se vuelve a ensamblar en código idéntico",
+    "verifyDiffers": "El código reensamblado difiere desde el byte {byte}",
+    "verifyCompile": "No se puede reensamblar: {message}",
+    "notAssemblable": "No ensamblable: {count} bytes desconocidos o destinos desalineados",
+    "export": "Exportar como .asm",
+    "exportDisabled": "Exportar requiere un listado que se reensamble en código idéntico",
+    "exported": "Exportado a {name}",
+    "open": "Abrir",
+    "outline": "Esquema",
+    "back": "Atrás",
+    "showBytes": "Bytes",
+    "showValues": "Valores",
+    "padding": "relleno, {count} bytes",
+    "unknown": "byte desconocido {byte} ({reason})",
+    "reason": {
+      "opcode": "no existe ese opcode",
+      "api": "función de API desconocida",
+      "slot": "ranura fuera de rango",
+      "truncated": "cortado"
+    },
+    "misaligned": "salta a la mitad de una instrucción",
+    "kinds": {
+      "start": "Inicio",
+      "restart": "Reanudación",
+      "error": "Manejador de errores",
+      "function": "Función"
+    },
+    "callers": {
+      "one": "{count} llamador",
+      "other": "{count} llamadores"
+    },
+    "select": "Selecciona una instrucción, una ranura o un destino de salto.",
+    "steps": "{steps} pasos",
+    "reads": "Leído por",
+    "writes": "Escrito por",
+    "writesThrough": "Escribe a través del puntero {name}",
+    "incoming": "Alcanzado desde",
+    "currentValue": "Valor actual",
+    "nameLocation": "Nombrar esta ubicación",
+    "showInData": "Mostrar en la pila de datos",
+    "jumpKinds": {
+      "jump": "salto",
+      "branch": "bifurcación",
+      "call": "llamada",
+      "error": "manejador de errores"
+    },
+    "none": "ninguno",
+    "caps": {
+      "title": "Este contrato puede",
+      "nothing": "No se encontraron llamadas de fondos, tokens, mapas ni hashes.",
+      "sendsFunds": "enviar SIGNA o tokens",
+      "assets": "emitir, acuñar o distribuir tokens",
+      "writesMaps": "escribir sus mapas",
+      "readsMaps": "leer mapas",
+      "readsBalances": "leer saldos y titulares de tokens",
+      "crypto": "calcular hashes o verificar firmas"
+    }
+  },
+  "codeLabel": {
+    "title": "Nombrar la dirección {address}",
+    "name": "Nombre",
+    "save": "Guardar",
+    "remove": "Quitar nombre",
+    "saved": "Ubicación nombrada"
+  },
+  "trust": {
+    "verified": "Verificado: generado por el compilador para exactamente este código",
+    "otherBuild": "Del compilador, pero para otra compilación de este código",
+    "claim": "Una afirmación: escrita a mano o importada, no verificada"
   }
 }

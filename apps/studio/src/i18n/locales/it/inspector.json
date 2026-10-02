@@ -47,7 +47,8 @@
     "tabs": {
       "overview": "Panoramica",
       "data": "Stack dei dati",
-      "maps": "Map"
+      "maps": "Map",
+      "code": "Codice"
     },
     "otherNode": "Scegli un altro nodo",
     "useNode": "Usa questo nodo"
@@ -89,7 +90,9 @@
     "editLabel": "Modifica etichetta",
     "interpretations": "Interpretazioni",
     "stringReversed": "string (invertita)",
-    "saved": "Etichetta salvata"
+    "saved": "Etichetta salvata",
+    "use": "Letto da {reads} · scritto da {writes} istruzioni",
+    "showInCode": "Mostra nel codice"
   },
   "label": {
     "title": "Etichetta per lo slot {index}",
@@ -186,7 +189,17 @@
     "hashNetwork": "Rete (nota)",
     "hashNote": "Nota",
     "hashInvalid": "Un hash del codice è un numero decimale.",
-    "saved": "Salvato"
+    "saved": "Salvato",
+    "dorExport": "Esporta D'Or MAP",
+    "dorImport": "Importa D'Or MAP…",
+    "dorTitle": "Importa una D'Or MAP o un oggetto macchina del compilatore",
+    "dorHint": "Incolla un JSON con \"Memory\" (nomi degli slot) e \"Labels\". I nomi vengono aggiunti come affermazioni; le etichette esistenti restano.",
+    "dorInvalid": "Non è una D'Or MAP: {message}",
+    "dorImported": {
+      "one": "{count} nome importato",
+      "other": "{count} nomi importati"
+    },
+    "trust": "Affidabilità"
   },
   "generate": {
     "title": "Genera etichette dal sorgente SmartC",
@@ -205,5 +218,80 @@
     "inspect": "Ispeziona",
     "inspectHint": "Apri questo contratto nell'inspector, con etichette generate da questo sorgente",
     "failed": "Impossibile preparare l'ispezione: {message}"
+  },
+  "code": {
+    "noCode": "Questo nodo non ha restituito il codice del contratto. Scegli un altro nodo.",
+    "empty": "Questo contratto non ha codice.",
+    "size": "{bytes} byte · {instructions} istruzioni · {pages} pagine di codice",
+    "verifyPending": "Verifica del riassemblaggio del listato…",
+    "verifyOk": "Si riassembla in codice identico",
+    "verifyDiffers": "Il codice riassemblato differisce dal byte {byte}",
+    "verifyCompile": "Non si riassembla: {message}",
+    "notAssemblable": "Non assemblabile: {count} byte sconosciuti o destinazioni non allineate",
+    "export": "Esporta come .asm",
+    "exportDisabled": "L'esportazione richiede un listato che si riassembli in codice identico",
+    "exported": "Esportato in {name}",
+    "open": "Apri",
+    "outline": "Struttura",
+    "back": "Indietro",
+    "showBytes": "Byte",
+    "showValues": "Valori",
+    "padding": "riempimento, {count} byte",
+    "unknown": "byte sconosciuto {byte} ({reason})",
+    "reason": {
+      "opcode": "opcode inesistente",
+      "api": "funzione API sconosciuta",
+      "slot": "slot fuori intervallo",
+      "truncated": "troncato"
+    },
+    "misaligned": "salta a metà di un'istruzione",
+    "kinds": {
+      "start": "Avvio",
+      "restart": "Ripresa",
+      "error": "Gestore degli errori",
+      "function": "Funzione"
+    },
+    "callers": {
+      "one": "{count} chiamante",
+      "other": "{count} chiamanti"
+    },
+    "select": "Seleziona un'istruzione, uno slot o una destinazione di salto.",
+    "steps": "{steps} step",
+    "reads": "Letto da",
+    "writes": "Scritto da",
+    "writesThrough": "Scrive tramite il puntatore {name}",
+    "incoming": "Raggiunto da",
+    "currentValue": "Valore attuale",
+    "nameLocation": "Dai un nome a questa posizione",
+    "showInData": "Mostra nello stack dei dati",
+    "jumpKinds": {
+      "jump": "salto",
+      "branch": "diramazione",
+      "call": "chiamata",
+      "error": "gestore degli errori"
+    },
+    "none": "nessuno",
+    "caps": {
+      "title": "Questo contratto può",
+      "nothing": "Nessuna chiamata per fondi, token, map o hash trovata.",
+      "sendsFunds": "inviare SIGNA o token",
+      "assets": "emettere, coniare o distribuire token",
+      "writesMaps": "scrivere le sue map",
+      "readsMaps": "leggere map",
+      "readsBalances": "leggere saldi e detentori di token",
+      "crypto": "calcolare hash o verificare firme"
+    }
+  },
+  "codeLabel": {
+    "title": "Dai un nome all'indirizzo {address}",
+    "name": "Nome",
+    "save": "Salva",
+    "remove": "Rimuovi nome",
+    "saved": "Posizione nominata"
+  },
+  "trust": {
+    "verified": "Verificato: generato dal compilatore per esattamente questo codice",
+    "otherBuild": "Dal compilatore, ma per un'altra build di questo codice",
+    "claim": "Un'affermazione: scritta a mano o importata, non verificata"
   }
 }

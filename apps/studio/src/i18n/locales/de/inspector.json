@@ -47,7 +47,8 @@
     "tabs": {
       "overview": "Übersicht",
       "data": "Data Stack",
-      "maps": "Maps"
+      "maps": "Maps",
+      "code": "Code"
     },
     "otherNode": "Anderen Node wählen",
     "useNode": "Diesen Node verwenden"
@@ -89,7 +90,9 @@
     "editLabel": "Label bearbeiten",
     "interpretations": "Interpretationen",
     "stringReversed": "string (umgekehrt)",
-    "saved": "Label gespeichert"
+    "saved": "Label gespeichert",
+    "use": "Gelesen von {reads} · geschrieben von {writes} Instruktionen",
+    "showInCode": "Im Code zeigen"
   },
   "label": {
     "title": "Label für Slot {index}",
@@ -186,7 +189,17 @@
     "hashNetwork": "Netzwerk (Notiz)",
     "hashNote": "Notiz",
     "hashInvalid": "Ein Code-Hash ist eine Dezimalzahl.",
-    "saved": "Gespeichert"
+    "saved": "Gespeichert",
+    "dorExport": "D'Or MAP exportieren",
+    "dorImport": "D'Or MAP importieren…",
+    "dorTitle": "Eine D'Or MAP oder ein Compiler-Maschinenobjekt importieren",
+    "dorHint": "Füge JSON mit \"Memory\" (Slot-Namen) und \"Labels\" ein. Namen werden als Behauptungen übernommen, vorhandene Labels bleiben erhalten.",
+    "dorInvalid": "Keine D'Or MAP: {message}",
+    "dorImported": {
+      "one": "{count} Name importiert",
+      "other": "{count} Namen importiert"
+    },
+    "trust": "Vertrauen"
   },
   "generate": {
     "title": "Labels aus SmartC-Quellcode generieren",
@@ -205,5 +218,80 @@
     "inspect": "Inspizieren",
     "inspectHint": "Diesen Contract im Inspector öffnen, mit Labels aus diesem Quellcode",
     "failed": "Die Inspektion konnte nicht vorbereitet werden: {message}"
+  },
+  "code": {
+    "noCode": "Dieser Node hat den Code des Contracts nicht geliefert. Wähle einen anderen Node.",
+    "empty": "Dieser Contract hat keinen Code.",
+    "size": "{bytes} Bytes · {instructions} Instruktionen · {pages} Code-Seiten",
+    "verifyPending": "Prüfe, ob sich das Listing wieder assemblieren lässt…",
+    "verifyOk": "Assembliert zu identischem Code",
+    "verifyDiffers": "Neu assemblierter Code weicht ab Byte {byte} ab",
+    "verifyCompile": "Lässt sich nicht assemblieren: {message}",
+    "notAssemblable": "Nicht assemblierbar: {count} unbekannte Bytes oder falsche Sprungziele",
+    "export": "Als .asm exportieren",
+    "exportDisabled": "Export braucht ein Listing, das zu identischem Code assembliert",
+    "exported": "Exportiert nach {name}",
+    "open": "Öffnen",
+    "outline": "Gliederung",
+    "back": "Zurück",
+    "showBytes": "Bytes",
+    "showValues": "Werte",
+    "padding": "Padding, {count} Bytes",
+    "unknown": "unbekanntes Byte {byte} ({reason})",
+    "reason": {
+      "opcode": "kein solcher Opcode",
+      "api": "unbekannte API-Funktion",
+      "slot": "Slot außerhalb des Bereichs",
+      "truncated": "abgeschnitten"
+    },
+    "misaligned": "springt mitten in eine Instruktion",
+    "kinds": {
+      "start": "Start",
+      "restart": "Wiederanlauf",
+      "error": "Fehler-Handler",
+      "function": "Funktion"
+    },
+    "callers": {
+      "one": "{count} Aufrufer",
+      "other": "{count} Aufrufer"
+    },
+    "select": "Wähle eine Instruktion, einen Slot oder ein Sprungziel.",
+    "steps": "{steps} Steps",
+    "reads": "Gelesen von",
+    "writes": "Geschrieben von",
+    "writesThrough": "Schreibt über Zeiger {name}",
+    "incoming": "Erreicht von",
+    "currentValue": "Aktueller Wert",
+    "nameLocation": "Diesen Ort benennen",
+    "showInData": "Im Data Stack zeigen",
+    "jumpKinds": {
+      "jump": "Sprung",
+      "branch": "Verzweigung",
+      "call": "Aufruf",
+      "error": "Fehler-Handler"
+    },
+    "none": "keine",
+    "caps": {
+      "title": "Dieser Contract kann",
+      "nothing": "Keine Aufrufe für Guthaben, Tokens, Maps oder Hashes gefunden.",
+      "sendsFunds": "SIGNA oder Tokens senden",
+      "assets": "Tokens ausgeben, minten oder verteilen",
+      "writesMaps": "seine Maps schreiben",
+      "readsMaps": "Maps lesen",
+      "readsBalances": "Guthaben und Token-Halter lesen",
+      "crypto": "hashen oder Signaturen prüfen"
+    }
+  },
+  "codeLabel": {
+    "title": "Adresse {address} benennen",
+    "name": "Name",
+    "save": "Speichern",
+    "remove": "Namen entfernen",
+    "saved": "Ort benannt"
+  },
+  "trust": {
+    "verified": "Verifiziert: vom Compiler für genau diesen Code erzeugt",
+    "otherBuild": "Vom Compiler, aber für einen anderen Build dieses Codes",
+    "claim": "Eine Behauptung: von Hand geschrieben oder importiert, nicht verifiziert"
   }
 }

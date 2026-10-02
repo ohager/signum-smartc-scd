@@ -13,6 +13,7 @@ file extensions (`.smart.c`, `.scenario.json`, `.test.ts`) · keyboard shortcuts
 scenario field names (`version`, `creator`, `accounts[…]`, `transactions[…]`, `txId`, `message`, `messageHex`) ·
 `.labels.json` · `.inspect.json` · `key1` · `key2` · value formats (`long`, `unsigned`, `fixed`, `hex`, `address`, `string`, `bool`, `enum`) ·
 Label Map field names (`codeHashes`, `slots`, `maps`, `enums`, `codeLabels`) · Label Map ·
+`.asm` · D'Or · MAP (as in D'Or MAP) ·
 anything in `backticks`, and every `{placeholder}` and `<tag>`.
 
 ## Style per language
@@ -46,6 +47,9 @@ anything in `backticks`, and every `{placeholder}` and `<tag>`.
 | data stack | Data Stack | pilha de dados | pile de données | pila de datos | stack dei dati | стек даних | стек данных | 数据栈 |
 | slot | Slot | slot | emplacement | ranura | slot | слот | слот | 槽位 |
 | code hash | Code-Hash | hash do código | hash du code | hash del código | hash del codice | хеш коду | хеш кода | 代码哈希 |
+| disassembly | Disassembly | desmontagem | désassemblage | desensamblado | disassemblaggio | дизасемблювання | дизассемблирование | 反汇编 |
+| capability | Fähigkeit | capacidade | capacité | capacidad | capacità | можливість | возможность | 能力 |
+| claim (unverified name) | Behauptung | alegação | affirmation | afirmación | affermazione | твердження | утверждение | 声明 |
 | testbed | Testbed | testbed | banc d'essai | banco de pruebas | banco di prova | тестовий стенд | тестовый стенд | 测试台 |
 | simulator | Simulator | simulador | simulateur | simulador | simulatore | симулятор | симулятор | 模拟器 |
 | simulate | simulieren | simular | simuler | simular | simulare | симулювати | симулировать | 模拟 |
@@ -72,6 +76,9 @@ anything in `backticks`, and every `{placeholder}` and `<tag>`.
 | memory | Speicher | memória | mémoire | memoria | memoria | пам'ять | память | 内存 |
 | page (memory/code) | Seite | página | page | página | pagina | сторінка | страница | 页 |
 | code hash | Code-Hash | hash do código | hash du code | hash del código | hash del codice | хеш коду | хеш кода | 代码哈希 |
+| disassembly | Disassembly | desmontagem | désassemblage | desensamblado | disassemblaggio | дизасемблювання | дизассемблирование | 反汇编 |
+| capability | Fähigkeit | capacidade | capacité | capacidad | capacità | можливість | возможность | 能力 |
+| claim (unverified name) | Behauptung | alegação | affirmation | afirmación | affermazione | твердження | утверждение | 声明 |
 | machine code | Maschinencode | código de máquina | code machine | código máquina | codice macchina | машинний код | машинный код | 机器码 |
 | instruction | Instruktion | instrução | instruction | instrucción | istruzione | інструкція | инструкция | 指令 |
 | workflow | Workflow | fluxo de trabalho | flux de travail | flujo de trabajo | flusso di lavoro | робочий процес | рабочий процесс | 工作流 |
