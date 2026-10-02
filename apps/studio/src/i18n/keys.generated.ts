@@ -565,6 +565,13 @@ export type MessageParams = {
   "inspector.labels.hashNote": undefined;
   "inspector.labels.hashInvalid": undefined;
   "inspector.labels.saved": undefined;
+  "inspector.labels.dorExport": undefined;
+  "inspector.labels.dorImport": undefined;
+  "inspector.labels.dorTitle": undefined;
+  "inspector.labels.dorHint": undefined;
+  "inspector.labels.dorInvalid": { message: string | number };
+  "inspector.labels.dorImported": { count: number };
+  "inspector.labels.trust": undefined;
   "inspector.generate.title": undefined;
   "inspector.generate.source": undefined;
   "inspector.generate.noSources": undefined;

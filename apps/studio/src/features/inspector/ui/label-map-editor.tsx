@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Wand2 } from "lucide-react";
+import { Download, Upload, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SurfaceToolbar, ToolbarButton, ToolbarDiagnostic } from "@/components/ui/surface-toolbar";
 import { EditorFileActions } from "@/components/ui/editor/file-actions.tsx";
 import type { File } from "@/lib/file-system";
+import { downloadBlob } from "@/lib/download";
 import { t } from "@/i18n/runtime";
 import { isFixedGroup, parseLabelMap, type MapGroup, type SlotLabel } from "../model/label-map";
 import {
@@ -21,6 +22,10 @@ import {
   upsertSlot,
 } from "../model/label-map-edits";
 import { applyMerge } from "../model/merge-labels";
+import { importDorMap, toDorMap } from "../disasm/dor-map";
+import { trustOf } from "../disasm/trust";
+import { DorImportDialog } from "./dor-import-dialog";
+import { TrustBadge } from "./trust-badge";
 import { useFollowedFile } from "../workspace/use-followed-file";
 import { enumToLines, parseEnumLines } from "./enum-lines";
 import { GenerateLabelsDialog } from "./generate-labels-dialog";
@@ -43,6 +48,7 @@ export function LabelMapEditor({ file }: { file: File }) {
   const [slot, setSlot] = useState<SlotLabel | null>(null);
   const [group, setGroup] = useState<{ group: MapGroup; position?: number } | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [enumDraft, setEnumDraft] = useState({ name: "", lines: "" });
   const [hashDraft, setHashDraft] = useState({ hash: "", network: "", note: "" });
 
@@ -69,6 +75,21 @@ export function LabelMapEditor({ file }: { file: File }) {
             </ToolbarButton>
             <ToolbarButton onClick={() => setGenerating(true)} disabled={!parsed.ok}>
               <Wand2 className="h-4 w-4" /> {t("inspector.labels.generate")}
+            </ToolbarButton>
+            <ToolbarButton
+              disabled={!parsed.ok}
+              onClick={() =>
+                parsed.ok &&
+                downloadBlob(
+                  file.metadata.name.replace(/\.labels\.json$/i, "") + ".dor-map.json", // i18n-ignore
+                  new Blob([JSON.stringify(toDorMap(parsed.value), null, 2)], { type: "application/json" }),
+                )
+              }
+            >
+              <Download className="h-4 w-4" /> {t("inspector.labels.dorExport")}
+            </ToolbarButton>
+            <ToolbarButton onClick={() => setImporting(true)} disabled={!parsed.ok}>
+              <Upload className="h-4 w-4" /> {t("inspector.labels.dorImport")}
             </ToolbarButton>
           </>
         }
@@ -106,6 +127,7 @@ export function LabelMapEditor({ file }: { file: File }) {
                   <th className="px-2 text-left">{t("inspector.labels.format")}</th>
                   <th className="px-2 text-left">{t("inspector.labels.length")}</th>
                   <th className="px-2 text-left">{t("inspector.labels.origin")}</th>
+                  <th className="px-2 text-left">{t("inspector.labels.trust")}</th>
                   <th />
                 </tr>
               </thead>
@@ -117,6 +139,8 @@ export function LabelMapEditor({ file }: { file: File }) {
                     <td className="px-2 font-mono text-xs">{s.format ?? ""}{s.enum ? ` (${s.enum})` : ""}</td>
                     <td className="px-2">{s.length ?? ""}</td>
                     <td className="px-2 text-xs text-muted-foreground">{s.origin ?? "manual"}</td>
+                    {/* In the editor the build is the map's own: generated entries verify against the hash they came from. */}
+                    <td className="px-2"><TrustBadge trust={trustOf(s.origin, map, map.source?.codeHash ?? "")} /></td>
                     <td className="whitespace-nowrap text-right">
                       <Button size="sm" variant="ghost" onClick={() => setSlot(s)}>{t("inspector.labels.edit")}</Button>
                       <Button size="sm" variant="ghost" onClick={() => write((x) => removeSlot(x, s.index))}>{t("inspector.labels.remove")}</Button>
@@ -141,7 +165,7 @@ export function LabelMapEditor({ file }: { file: File }) {
               {map.maps.map((g, i) => (
                 <li key={i} className="flex items-center gap-2 border-b py-1">
                   <span className="flex-1">
-                    {g.name}{" "}
+                    {g.name} <TrustBadge trust={trustOf(g.origin, map, map.source?.codeHash ?? "")} />{" "}
                     <span className="font-mono text-xs text-muted-foreground">
                       {isFixedGroup(g) ? `key1 ${g.key1}` : `key1: ${g.key1Format}`}
                     </span>
@@ -234,6 +258,19 @@ export function LabelMapEditor({ file }: { file: File }) {
           onSave={(g) => write((x) => upsertMapGroup(x, g, group.position))}
         />
       )}
+      <DorImportDialog
+        open={importing}
+        onOpenChange={setImporting}
+        onImport={(dor) => {
+          let added = 0;
+          write((text) => {
+            const result = importDorMap(text, dor);
+            added = result.added;
+            return result.text;
+          });
+          toast.success(t("inspector.labels.dorImported", { count: added }));
+        }}
+      />
       {generating && map && (
         <GenerateLabelsDialog
           open

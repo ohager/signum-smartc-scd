@@ -189,7 +189,17 @@
     "hashNetwork": "Network (note)",
     "hashNote": "Note",
     "hashInvalid": "A code hash is a decimal number.",
-    "saved": "Saved"
+    "saved": "Saved",
+    "dorExport": "Export D'Or MAP",
+    "dorImport": "Import D'Or MAP…",
+    "dorTitle": "Import a D'Or MAP or a compiler machine object",
+    "dorHint": "Paste JSON with \"Memory\" (slot names) and \"Labels\". Names are added as claims; existing labels are kept.",
+    "dorInvalid": "Not a D'Or MAP: {message}",
+    "dorImported": {
+      "one": "{count} name imported",
+      "other": "{count} names imported"
+    },
+    "trust": "Trust"
   },
   "generate": {
     "title": "Generate labels from SmartC source",
