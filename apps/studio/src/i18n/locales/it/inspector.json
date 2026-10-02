@@ -198,8 +198,7 @@
     "dorImported": {
       "one": "{count} nome importato",
       "other": "{count} nomi importati"
-    },
-    "trust": "Affidabilità"
+    }
   },
   "generate": {
     "title": "Genera etichette dal sorgente SmartC",
@@ -290,7 +289,7 @@
     "saved": "Posizione nominata"
   },
   "trust": {
-    "verified": "Verificato: generato dal compilatore per esattamente questo codice",
+    "verified": "Dal compilatore per esattamente questo codice, secondo la sua Label Map",
     "otherBuild": "Dal compilatore, ma per un'altra build di questo codice",
     "claim": "Un'affermazione: scritta a mano o importata, non verificata"
   }

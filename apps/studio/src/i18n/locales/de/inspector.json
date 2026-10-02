@@ -198,8 +198,7 @@
     "dorImported": {
       "one": "{count} Name importiert",
       "other": "{count} Namen importiert"
-    },
-    "trust": "Vertrauen"
+    }
   },
   "generate": {
     "title": "Labels aus SmartC-Quellcode generieren",
@@ -290,7 +289,7 @@
     "saved": "Ort benannt"
   },
   "trust": {
-    "verified": "Verifiziert: vom Compiler für genau diesen Code erzeugt",
+    "verified": "Vom Compiler für genau diesen Code, laut seiner Label Map",
     "otherBuild": "Vom Compiler, aber für einen anderen Build dieses Codes",
     "claim": "Eine Behauptung: von Hand geschrieben oder importiert, nicht verifiziert"
   }

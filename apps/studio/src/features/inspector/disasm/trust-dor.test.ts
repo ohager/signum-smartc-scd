@@ -46,3 +46,18 @@ describe("D'Or MAP", () => {
     expect(parseDorMap(`{ "Memory": "x" }`).ok).toBe(false);
   });
 });
+
+describe("trust of names as shown in the listing", () => {
+  it("gives labelled slots and targets their level, and generated names none", async () => {
+    const { decode } = await import("./decode");
+    const { buildNames } = await import("./names");
+    const { slotTrust, targetTrust } = await import("./trust");
+    const dis = decode("02" + "03000000" + "01000000" + "1a" + "08000000"); // SET @3 $1 · JMP :8
+    const names = buildNames(dis, map, 0);
+    expect(slotTrust(names, 1, map, "77")).toBe("verified");
+    expect(slotTrust(names, 3, map, "77")).toBe("claim");
+    expect(slotTrust(names, 0, map, "77")).toBeNull();
+    expect(targetTrust(names, 8, map, "78")).toBe("otherBuild");
+    expect(slotTrust(names, 1, null, "77")).toBeNull();
+  });
+});

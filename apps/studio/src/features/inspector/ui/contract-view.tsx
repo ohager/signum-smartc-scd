@@ -155,7 +155,9 @@ export function ContractView({
           <TabsContent value="maps" className="min-h-0 flex-1 overflow-auto">
             <MapsTab contract={contract} client={client} labelMap={active} prefix={prefix} ensureLabelMap={ensureLabelMap} revision={revision} />
           </TabsContent>
-          <TabsContent value="code" className="min-h-0 flex-1 overflow-hidden">
+          {/* Kept mounted: leaving for the data stack and coming back must not lose the
+              position, the Back history, or re-run the verification. */}
+          <TabsContent value="code" forceMount className="min-h-0 flex-1 overflow-hidden data-[state=inactive]:hidden">
             <CodeTab
               contract={contract}
               labelMap={active}
@@ -164,6 +166,7 @@ export function ContractView({
               prefix={prefix}
               ensureLabelMap={ensureLabelMap}
               focus={codeFocus}
+              onFocusHandled={() => setCodeFocus(null)}
               onShowSlot={(slot) => {
                 setDataFocus({ slot, nonce: Date.now() });
                 setTab("data");

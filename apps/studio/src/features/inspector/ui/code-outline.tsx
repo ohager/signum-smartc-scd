@@ -3,6 +3,9 @@ import { t } from "@/i18n/runtime";
 import type { EntryKind, Outline } from "../disasm/outline";
 import type { Names } from "../disasm/names";
 import { ROW_HOVER } from "./selection";
+import type { LabelMap } from "../model/label-map";
+import { targetTrust } from "../disasm/trust";
+import { TrustBadge } from "./trust-badge";
 
 export function kindLabel(kind: EntryKind): string {
   switch (kind) {
@@ -21,10 +24,14 @@ export function CodeOutline({
   outline,
   names,
   onGo,
+  map,
+  codeHash,
 }: {
   outline: Outline;
   names: Names;
   onGo: (address: number) => void;
+  map: LabelMap | null;
+  codeHash: string;
 }) {
   return (
     <nav className="w-56 shrink-0 overflow-auto border-r p-2 text-sm" aria-label={t("inspector.code.outline")}>
@@ -37,7 +44,13 @@ export function CodeOutline({
               onClick={() => onGo(s.address)}
               className={cn("flex w-full flex-col items-start rounded px-1 py-1 text-left", ROW_HOVER)}
             >
-              <span className="truncate font-mono">{names.targetDisplay.get(s.address) ?? kindLabel(s.kinds[0]!)}</span>
+              <span className="truncate font-mono">
+                {names.targetDisplay.get(s.address) ?? kindLabel(s.kinds[0]!)}{" "}
+                {(() => {
+                  const trust = targetTrust(names, s.address, map, codeHash);
+                  return trust && <TrustBadge trust={trust} />;
+                })()}
+              </span>
               <span className="text-xs text-muted-foreground">
                 {/* An unnamed entry is already titled by its first kind; do not say it twice. */}
                 {(names.targetDisplay.has(s.address) ? s.kinds : s.kinds.slice(1)).map(kindLabel).join(" · ")}

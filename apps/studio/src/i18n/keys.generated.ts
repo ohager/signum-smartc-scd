@@ -571,7 +571,6 @@ export type MessageParams = {
   "inspector.labels.dorHint": undefined;
   "inspector.labels.dorInvalid": { message: string | number };
   "inspector.labels.dorImported": { count: number };
-  "inspector.labels.trust": undefined;
   "inspector.generate.title": undefined;
   "inspector.generate.source": undefined;
   "inspector.generate.noSources": undefined;

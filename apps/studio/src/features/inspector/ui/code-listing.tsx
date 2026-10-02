@@ -5,6 +5,9 @@ import { AsmOpcodes } from "@/features/asm-editor/code-editor/language-definitio
 import { formatValue, slotToBigInt } from "../model/decode";
 import type { DisassemblyView } from "./use-disassembly";
 import type { CodeSelection } from "./code-detail";
+import type { LabelMap } from "../model/label-map";
+import { slotTrust, targetTrust } from "../disasm/trust";
+import { TrustBadge } from "./trust-badge";
 import { ROW_HOVER, ROW_SELECTED } from "./selection";
 
 const hex4 = (n: number) => n.toString(16).padStart(4, "0");
@@ -20,6 +23,8 @@ export function CodeListing({
   showValues,
   scrollTo,
   onSelect,
+  map,
+  codeHash,
 }: {
   view: DisassemblyView;
   machineData: string;
@@ -30,13 +35,15 @@ export function CodeListing({
   highlight: Set<number>;
   showBytes: boolean;
   showValues: boolean;
-  scrollTo: number | null;
+  scrollTo: { address: number; nonce: number } | null;
   onSelect: (selection: CodeSelection) => void;
+  map: LabelMap | null;
+  codeHash: string;
 }) {
   const container = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (scrollTo === null) return;
-    container.current?.querySelector(`[data-address="${scrollTo}"]`)?.scrollIntoView({ block: "center" });
+    if (!scrollTo) return;
+    container.current?.querySelector(`[data-address="${scrollTo.address}"]`)?.scrollIntoView({ block: "center" });
   }, [scrollTo]);
 
   const { dis, names, outline } = view;
@@ -77,7 +84,7 @@ export function CodeListing({
                 className="block px-3 pt-1 text-left text-[var(--accent-2)]"
                 onClick={() => onSelect({ kind: "target", address: row.address })}
               >
-                {label}:
+                {label}: <Mark trust={targetTrust(names, row.address, map, codeHash)} />
               </button>
             )}
             <div
@@ -112,6 +119,7 @@ export function CodeListing({
                         }}
                       >
                         {names.slotDisplay[o.index] ?? names.slotAsm[o.index]}
+                        <Mark trust={slotTrust(names, o.index, map, codeHash)} />
                         {value !== null && <span className="text-muted-foreground"> ={value}</span>}
                       </button>
                     );
@@ -128,6 +136,7 @@ export function CodeListing({
                         }}
                       >
                         {names.targetDisplay.get(o.address)}
+                        <Mark trust={targetTrust(names, o.address, map, codeHash)} />
                       </button>
                     );
                   }
@@ -154,4 +163,9 @@ function reasonText(reason: "opcode" | "api" | "slot" | "truncated"): string {
     case "truncated":
       return t("inspector.code.reason.truncated");
   }
+}
+
+/** Every name shown carries its trust; a generated name (`var_007`, `lab_01a4`) has none to show. */
+function Mark({ trust }: { trust: ReturnType<typeof slotTrust> }) {
+  return trust ? <span className="ml-0.5"><TrustBadge trust={trust} /></span> : null;
 }

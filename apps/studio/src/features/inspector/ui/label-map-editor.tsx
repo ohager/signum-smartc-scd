@@ -23,9 +23,7 @@ import {
 } from "../model/label-map-edits";
 import { applyMerge } from "../model/merge-labels";
 import { importDorMap, toDorMap } from "../disasm/dor-map";
-import { trustOf } from "../disasm/trust";
 import { DorImportDialog } from "./dor-import-dialog";
-import { TrustBadge } from "./trust-badge";
 import { useFollowedFile } from "../workspace/use-followed-file";
 import { enumToLines, parseEnumLines } from "./enum-lines";
 import { GenerateLabelsDialog } from "./generate-labels-dialog";
@@ -127,7 +125,6 @@ export function LabelMapEditor({ file }: { file: File }) {
                   <th className="px-2 text-left">{t("inspector.labels.format")}</th>
                   <th className="px-2 text-left">{t("inspector.labels.length")}</th>
                   <th className="px-2 text-left">{t("inspector.labels.origin")}</th>
-                  <th className="px-2 text-left">{t("inspector.labels.trust")}</th>
                   <th />
                 </tr>
               </thead>
@@ -139,8 +136,6 @@ export function LabelMapEditor({ file }: { file: File }) {
                     <td className="px-2 font-mono text-xs">{s.format ?? ""}{s.enum ? ` (${s.enum})` : ""}</td>
                     <td className="px-2">{s.length ?? ""}</td>
                     <td className="px-2 text-xs text-muted-foreground">{s.origin ?? "manual"}</td>
-                    {/* In the editor the build is the map's own: generated entries verify against the hash they came from. */}
-                    <td className="px-2"><TrustBadge trust={trustOf(s.origin, map, map.source?.codeHash ?? "")} /></td>
                     <td className="whitespace-nowrap text-right">
                       <Button size="sm" variant="ghost" onClick={() => setSlot(s)}>{t("inspector.labels.edit")}</Button>
                       <Button size="sm" variant="ghost" onClick={() => write((x) => removeSlot(x, s.index))}>{t("inspector.labels.remove")}</Button>
@@ -165,7 +160,7 @@ export function LabelMapEditor({ file }: { file: File }) {
               {map.maps.map((g, i) => (
                 <li key={i} className="flex items-center gap-2 border-b py-1">
                   <span className="flex-1">
-                    {g.name} <TrustBadge trust={trustOf(g.origin, map, map.source?.codeHash ?? "")} />{" "}
+                    {g.name}{" "}
                     <span className="font-mono text-xs text-muted-foreground">
                       {isFixedGroup(g) ? `key1 ${g.key1}` : `key1: ${g.key1Format}`}
                     </span>

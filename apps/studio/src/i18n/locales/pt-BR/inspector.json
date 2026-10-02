@@ -198,8 +198,7 @@
     "dorImported": {
       "one": "{count} nome importado",
       "other": "{count} nomes importados"
-    },
-    "trust": "Confiança"
+    }
   },
   "generate": {
     "title": "Gerar rótulos a partir do código SmartC",
@@ -290,7 +289,7 @@
     "saved": "Local nomeado"
   },
   "trust": {
-    "verified": "Verificado: gerado pelo compilador exatamente para este código",
+    "verified": "Do compilador exatamente para este código, segundo sua Label Map",
     "otherBuild": "Do compilador, mas para outro build deste código",
     "claim": "Uma alegação: escrita à mão ou importada, não verificada"
   }

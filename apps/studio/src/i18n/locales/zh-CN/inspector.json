@@ -195,8 +195,7 @@
     "dorInvalid": "不是 D'Or MAP：{message}",
     "dorImported": {
       "other": "已导入 {count} 个名称"
-    },
-    "trust": "可信度"
+    }
   },
   "generate": {
     "title": "从 SmartC 源代码生成标签",
@@ -286,7 +285,7 @@
     "saved": "位置已命名"
   },
   "trust": {
-    "verified": "已验证：由编译器专为此代码生成",
+    "verified": "根据其 Label Map，由编译器专为此代码生成",
     "otherBuild": "来自编译器，但针对此代码的另一个构建",
     "claim": "声明：手写或导入，未经验证"
   }

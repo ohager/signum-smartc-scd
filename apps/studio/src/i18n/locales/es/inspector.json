@@ -198,8 +198,7 @@
     "dorImported": {
       "one": "{count} nombre importado",
       "other": "{count} nombres importados"
-    },
-    "trust": "Confianza"
+    }
   },
   "generate": {
     "title": "Generar etiquetas desde el código SmartC",
@@ -290,7 +289,7 @@
     "saved": "Ubicación nombrada"
   },
   "trust": {
-    "verified": "Verificado: generado por el compilador para exactamente este código",
+    "verified": "Del compilador para exactamente este código, según su Label Map",
     "otherBuild": "Del compilador, pero para otra compilación de este código",
     "claim": "Una afirmación: escrita a mano o importada, no verificada"
   }

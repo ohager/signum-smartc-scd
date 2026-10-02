@@ -49,6 +49,7 @@ export function CodeTab({
   prefix,
   ensureLabelMap,
   focus,
+  onFocusHandled,
   onShowSlot,
 }: {
   contract: Contract;
@@ -58,6 +59,8 @@ export function CodeTab({
   prefix: "S" | "TS";
   ensureLabelMap: () => Promise<string | null>;
   focus: CodeFocus | null;
+  /** Called once a focus request is applied, so a later remount does not apply it again. */
+  onFocusHandled: () => void;
   onShowSlot: (index: number) => void;
 }) {
   const fs = useFileSystem();
@@ -73,7 +76,8 @@ export function CodeTab({
   });
   const [selection, setSelection] = useState<CodeSelection | null>(null);
   const [history, setHistory] = useState<number[]>([]);
-  const [scrollTo, setScrollTo] = useState<number | null>(null);
+  // A request, not a position: clicking the same entry twice must scroll twice.
+  const [scrollTo, setScrollTo] = useState<{ address: number; nonce: number } | null>(null);
   const [showBytes, setShowBytes] = useState(false);
   const [showValues, setShowValues] = useState(true);
   const [slotDialog, setSlotDialog] = useState<number | null>(null);
@@ -82,13 +86,14 @@ export function CodeTab({
   const go = (address: number) => {
     if (selection && selection.kind !== "slot") setHistory((h) => [...h, selection.address]);
     setSelection({ kind: "instruction", address });
-    setScrollTo(address);
+    setScrollTo({ address, nonce: Date.now() });
   };
 
   useEffect(() => {
     if (!focus) return;
     if (focus.slot !== undefined) setSelection({ kind: "slot", index: focus.slot });
     if (focus.address !== undefined) go(focus.address);
+    onFocusHandled();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focus?.nonce]);
 
@@ -181,7 +186,7 @@ export function CodeTab({
               const previous = history.at(-1)!;
               setHistory((h) => h.slice(0, -1));
               setSelection({ kind: "instruction", address: previous });
-              setScrollTo(previous);
+              setScrollTo({ address: previous, nonce: Date.now() });
             }}>
               <ArrowLeft className="h-3.5 w-3.5" /> {t("inspector.code.back")}
             </Button>
@@ -199,7 +204,7 @@ export function CodeTab({
         </div>
       </header>
       <div className="flex min-h-0 flex-1">
-        <CodeOutline outline={view.outline} names={view.names} onGo={go} />
+        <CodeOutline outline={view.outline} names={view.names} onGo={go} map={map} codeHash={contract.machineCodeHashId} />
         <CodeListing
           view={view}
           machineData={contract.machineData}
@@ -210,6 +215,8 @@ export function CodeTab({
           showBytes={showBytes}
           showValues={showValues}
           scrollTo={scrollTo}
+          map={map}
+          codeHash={contract.machineCodeHashId}
           onSelect={(s) => {
             if (s.kind === "target") go(s.address);
             else setSelection(s);
