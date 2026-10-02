@@ -78,3 +78,11 @@ describe("emptyLabelMap", () => {
     expect(r.ok && r.value.codeHashes).toEqual([{ hash: "1" }]);
   });
 });
+
+describe("source.codeHash", () => {
+  it("accepts the hash the labels were generated for", () => {
+    const r = parseLabelMap(`{ "version": 1, "name": "x", "codeHashes": [],
+      "source": { "file": "a.smart.c", "generatedAt": "2026-10-02T00:00:00Z", "codeHash": "77" } }`);
+    expect(r.ok && r.value.source?.codeHash).toBe("77");
+  });
+});

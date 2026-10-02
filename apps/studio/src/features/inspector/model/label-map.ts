@@ -69,7 +69,13 @@ export const LabelMapSchema = z
     version: z.literal(1),
     name: z.string().min(1),
     codeHashes: z.array(CodeHashSchema),
-    source: z.strictObject({ file: z.string(), generatedAt: z.string() }).optional(),
+    source: z
+      .strictObject({
+        file: z.string(),
+        generatedAt: z.string(),
+        codeHash: Unsigned.optional().describe("Code hash of the build these labels were generated from"),
+      })
+      .optional(),
     slots: z.array(SlotLabelSchema).default([]),
     maps: z.array(z.union([FixedMapGroupSchema, PatternMapGroupSchema])).default([]),
     enums: EnumsSchema.default({}),

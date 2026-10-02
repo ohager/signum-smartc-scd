@@ -88,9 +88,14 @@ export function generateLabels(
     const mc = compiler.getMachineCode();
     const table = (compiler as unknown as { Program?: { memory?: unknown } }).Program?.memory;
     const typed = isMemorySlotTable(table);
-    const codeLabels: CodeLabel[] = (mc.Labels ?? [])
-      .filter((l) => !l.label.startsWith("__"))
-      .map((l) => ({ address: l.address, name: l.label, origin: "compiler" }));
+    // Every compiler label is kept. `__fn_name` marks a function — the most
+    // useful name there is in a disassembly — and M1 dropped it with the rest
+    // of the `__` labels; the display layer shortens it, the data keeps it.
+    const codeLabels: CodeLabel[] = (mc.Labels ?? []).map((l) => ({
+      address: l.address,
+      name: l.label,
+      origin: "compiler",
+    }));
     return {
       ok: true,
       labels: {

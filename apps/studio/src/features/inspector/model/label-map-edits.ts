@@ -99,3 +99,17 @@ export function removeEnum(text: string, name: string): string {
 export function appendCodeLabel(text: string, label: CodeLabel): string {
   return insertAt(text, "codeLabels", current(text).codeLabels.length, label);
 }
+
+export function upsertCodeLabel(text: string, label: CodeLabel): string {
+  const entry = { ...label, origin: label.origin ?? "manual" };
+  const labels = current(text).codeLabels;
+  const at = labels.findIndex((c) => c.address === label.address);
+  if (at >= 0) return editDocument(text, ["codeLabels", at], entry);
+  const before = labels.findIndex((c) => c.address > label.address);
+  return insertAt(text, "codeLabels", before < 0 ? labels.length : before, entry);
+}
+
+export function removeCodeLabel(text: string, address: number): string {
+  const at = current(text).codeLabels.findIndex((c) => c.address === address);
+  return at < 0 ? text : editDocument(text, ["codeLabels", at], undefined);
+}

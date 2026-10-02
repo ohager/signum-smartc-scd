@@ -37,7 +37,7 @@ describe("mergeGenerated", () => {
 
   it("adds the hash once and records the source", () => {
     expect(map.codeHashes).toEqual([{ hash: "1" }, { hash: "2", network: "testnet" }]);
-    expect(map.source).toEqual({ file: "c.smart.c", generatedAt: "2026-09-30T12:00:00.000Z" });
+    expect(map.source).toEqual({ file: "c.smart.c", generatedAt: "2026-09-30T12:00:00.000Z", codeHash: "2" });
     const again = mergeGenerated(map, generated, { sourceFile: "c.smart.c", now: new Date() });
     expect(again.map.codeHashes).toHaveLength(2);
   });
@@ -88,5 +88,12 @@ describe("applyMerge keeps comments the user wrote inside the merged collections
     expect(back.value.codeHashes.map((h) => h.hash)).toEqual(["2"]);
     expect(back.value.codeLabels).toEqual(generated.codeLabels);
     expect(back.value.source?.file).toBe("c.smart.c");
+  });
+});
+
+describe("mergeGenerated records the build", () => {
+  it("stores the generated code hash in source", () => {
+    const { map } = mergeGenerated(existing, generated, { sourceFile: "c.smart.c", now: new Date(0) });
+    expect(map.source?.codeHash).toBe("2");
   });
 });

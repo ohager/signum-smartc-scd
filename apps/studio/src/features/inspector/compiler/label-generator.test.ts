@@ -27,10 +27,10 @@ describe("generateLabels", () => {
     expect(r.labels.slots.some((s) => /^r\d+$/.test(s.name) || s.name.startsWith("f1"))).toBe(false);
   });
 
-  it("emits code labels without compiler-internal ones", () => {
+  it("keeps the compiler's function labels", () => {
     const r = generateLabels(typed);
     if (!r.ok) throw new Error(r.error.message);
-    expect(r.labels.codeLabels.every((l) => !l.name.startsWith("__"))).toBe(true);
+    expect(r.labels.codeLabels).toContainEqual({ address: expect.any(Number), name: "__fn_helper", origin: "compiler" });
   });
 
   it("works on the testbed counter fixture", () => {

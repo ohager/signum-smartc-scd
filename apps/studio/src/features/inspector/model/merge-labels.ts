@@ -53,7 +53,7 @@ export function mergeGenerated(
       slots,
       codeLabels,
       codeHashes,
-      source: { file: meta.sourceFile, generatedAt: meta.now.toISOString() },
+      source: { file: meta.sourceFile, generatedAt: meta.now.toISOString(), codeHash: generated.codeHash },
     },
     conflicts,
   };

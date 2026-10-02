@@ -2,6 +2,8 @@ import { describe, expect, it } from "bun:test";
 import { parseLabelMap } from "./label-map";
 import {
   addCodeHash,
+  removeCodeLabel,
+  upsertCodeLabel,
   removeCodeHash,
   removeMapGroup,
   removeSlot,
@@ -98,5 +100,19 @@ describe("map groups edited by position", () => {
     const out = upsertMapGroup(withGroups, { key1: "7", name: "Seven" });
     expect(parsed(out).maps.map((g) => g.name)).toEqual(["Zero", "Accounts", "Seven"]);
     expect(parsed(out).maps[0]!.key2).toEqual([{ key2: "1", name: "keep" }]);
+  });
+});
+
+describe("code labels", () => {
+  it("inserts by address, replaces an address, removes, and keeps comments", () => {
+    let out = upsertCodeLabel(base, { address: 40, name: "sell" });
+    out = upsertCodeLabel(out, { address: 8, name: "main" });
+    out = upsertCodeLabel(out, { address: 40, name: "sellNft" });
+    expect(parsed(out).codeLabels).toEqual([
+      { address: 8, name: "main", origin: "manual" },
+      { address: 40, name: "sellNft", origin: "manual" },
+    ]);
+    expect(parsed(removeCodeLabel(out, 8)).codeLabels.map((c) => c.address)).toEqual([40]);
+    expect(out).toContain("// top comment");
   });
 });
