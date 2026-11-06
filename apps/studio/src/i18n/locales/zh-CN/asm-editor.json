@@ -54,7 +54,10 @@
     "feeSigna": "交易手续费（SIGNA）",
     "minimum": "最低：",
     "deadline": "期限（分钟）",
-    "deadlineHint": "交易期限，单位为分钟（最大：1440）"
+    "deadlineHint": "交易期限，单位为分钟（最大：1440）",
+    "pathFull": "完整部署",
+    "pathReference": "按引用部署",
+    "fixParams": "请先修正上方的参数再部署。"
   },
   "flow": {
     "connectWallet": "请连接钱包以部署合约",
@@ -139,5 +142,40 @@
       "returnsOne": "返回一个值，一个参数",
       "returnsTwo": "返回一个值，两个参数"
     }
+  },
+  "params": {
+    "title": "参数",
+    "hint": "部署时写入合约数据栈的值。",
+    "none": "此合约没有部署参数。请在其 Label Map 中将槽位标记为参数（`param: true`）。",
+    "overwritten": "首次激活时会被第 {line} 行覆盖",
+    "confirmOverwrite": "我知道此值会被覆盖",
+    "noSourceCheck": "没有源代码，Studio 无法检查顶层代码是否会覆盖这些值。",
+    "placeholderDefault": "留空：{value}",
+    "error": {
+      "invalid": "不是此格式的有效值",
+      "outOfRange": "超出 64 位范围",
+      "tooLong": "文本最多 8 个字节",
+      "tooManyDecimals": "最多 8 位小数",
+      "unknownEnum": "不是该枚举的值之一"
+    },
+    "tooLarge": "数据超出合约的 {slots} 个数据槽位。",
+    "preview": "数据栈",
+    "internal": "内部",
+    "slot": "槽位",
+    "name": "名称",
+    "value": "值",
+    "hex": "Hex"
+  },
+  "reference": {
+    "title": "按引用部署",
+    "hint": "复用链上已有合约的代码。更便宜：只发送数据。",
+    "original": "原始合约",
+    "inherited": "激活金额和内存页沿用原始合约。",
+    "searching": "正在查找此代码的部署…",
+    "connect": "连接 XT Wallet 以查找此代码的现有部署。",
+    "failed": "无法在节点上搜索：{message}",
+    "retry": "重新搜索",
+    "noneYet": "此代码上链后，即可按引用低成本部署更多实例。",
+    "candidate": "{id} · 创建者 {creator} · 区块 {height}"
   }
 }

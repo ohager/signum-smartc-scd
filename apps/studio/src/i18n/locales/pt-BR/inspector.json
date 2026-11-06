@@ -10,7 +10,8 @@
     "enumMissing": "O enum \"{name}\" não está definido em \"enums\"",
     "enumRequired": "O formato \"enum\" precisa de um nome de \"enum\"",
     "other": "{message}",
-    "at": "Linha {line}: {message}"
+    "at": "Linha {line}: {message}",
+    "paramOnArray": "Um parâmetro de implantação deve ser um único slot, não um array"
   },
   "editor": {
     "viewUi": "Inspetor",
@@ -205,5 +206,17 @@
     "inspect": "Inspecionar",
     "inspectHint": "Abrir este contrato no inspetor, com rótulos gerados a partir deste código-fonte",
     "failed": "Não foi possível preparar a inspeção: {message}"
+  },
+  "instance": {
+    "button": "Nova instância",
+    "title": "Nova instância de {name}",
+    "connect": "Conecte a XT Wallet para implantar uma nova instância.",
+    "resolving": "Procurando a implantação original…",
+    "otherNetwork": "A XT Wallet está conectada a um nó que não conhece este contrato. Mude a XT para a rede do contrato.",
+    "noOriginal": "A implantação original deste contrato não foi encontrada neste nó.",
+    "node": "O nó da carteira não respondeu: {message}",
+    "ambiguous": "Vários Label Maps reivindicam este hash do código — fixe um primeiro.",
+    "markParams": "Parâmetros de implantação",
+    "added": "Adicionado à lista de observação"
   }
 }

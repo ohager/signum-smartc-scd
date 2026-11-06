@@ -55,7 +55,10 @@
     "feeSigna": "Commissione della transazione (SIGNA)",
     "minimum": "Minimo:",
     "deadline": "Scadenza (minuti)",
-    "deadlineHint": "Scadenza della transazione in minuti (max: 1440)"
+    "deadlineHint": "Scadenza della transazione in minuti (max: 1440)",
+    "pathFull": "Distribuzione completa",
+    "pathReference": "Per riferimento",
+    "fixParams": "Correggi i parametri qui sopra per distribuire."
   },
   "flow": {
     "connectWallet": "Connetti un wallet per distribuire il contratto",
@@ -141,5 +144,40 @@
       "returnsOne": "restituisce un valore, un argomento",
       "returnsTwo": "restituisce un valore, due argomenti"
     }
+  },
+  "params": {
+    "title": "Parametri",
+    "hint": "Valori scritti nello stack dei dati del contratto alla distribuzione.",
+    "none": "Questo contratto non ha parametri di distribuzione. Segna degli slot come parametri nella sua Label Map (`param: true`).",
+    "overwritten": "Sovrascritto dalla riga {line} alla prima attivazione",
+    "confirmOverwrite": "So che questo valore verrà sovrascritto",
+    "noSourceCheck": "Senza codice sorgente, Studio non può verificare se il codice di primo livello sovrascrive questi valori.",
+    "placeholderDefault": "Vuoto: {value}",
+    "error": {
+      "invalid": "Valore non valido per questo formato",
+      "outOfRange": "Non entra in 64 bit",
+      "tooLong": "Il testo è limitato a 8 byte",
+      "tooManyDecimals": "Al massimo 8 decimali",
+      "unknownEnum": "Non è uno dei valori dell'enum"
+    },
+    "tooLarge": "I dati non entrano nei {slots} slot di dati del contratto.",
+    "preview": "Stack dei dati",
+    "internal": "interno",
+    "slot": "Slot",
+    "name": "Nome",
+    "value": "Valore",
+    "hex": "Hex"
+  },
+  "reference": {
+    "title": "Distribuisci per riferimento",
+    "hint": "Riusa il codice di un contratto già sulla blockchain. Costa meno: vengono inviati solo i dati.",
+    "original": "Originale",
+    "inherited": "L'importo di attivazione e le pagine di memoria vengono dall'originale.",
+    "searching": "Ricerca delle distribuzioni di questo codice…",
+    "connect": "Collega XT Wallet per trovare le distribuzioni esistenti di questo codice.",
+    "failed": "Impossibile cercare sul nodo: {message}",
+    "retry": "Cerca di nuovo",
+    "noneYet": "Quando questo codice sarà sulla blockchain, potrai distribuire altre istanze per riferimento a basso costo.",
+    "candidate": "{id} · di {creator} · blocco {height}"
   }
 }

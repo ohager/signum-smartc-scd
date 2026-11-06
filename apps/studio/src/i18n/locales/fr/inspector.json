@@ -10,7 +10,8 @@
     "enumMissing": "L’enum « {name} » n’est pas défini dans « enums »",
     "enumRequired": "Le format « enum » nécessite un nom d’« enum »",
     "other": "{message}",
-    "at": "Ligne {line} : {message}"
+    "at": "Ligne {line} : {message}",
+    "paramOnArray": "Un paramètre de déploiement doit être un seul emplacement, pas un tableau"
   },
   "editor": {
     "viewUi": "Inspecteur",
@@ -205,5 +206,17 @@
     "inspect": "Inspecter",
     "inspectHint": "Ouvrir ce contrat dans l’inspecteur, avec des étiquettes générées depuis cette source",
     "failed": "Impossible de préparer l’inspection : {message}"
+  },
+  "instance": {
+    "button": "Nouvelle instance",
+    "title": "Nouvelle instance de {name}",
+    "connect": "Connectez XT Wallet pour déployer une nouvelle instance.",
+    "resolving": "Recherche du déploiement d'origine…",
+    "otherNetwork": "XT Wallet est connecté à un nœud qui ne connaît pas ce contrat. Basculez XT sur le réseau du contrat.",
+    "noOriginal": "Le déploiement d'origine de ce contrat est introuvable sur ce nœud.",
+    "node": "Le nœud du portefeuille n'a pas répondu : {message}",
+    "ambiguous": "Plusieurs Label Maps revendiquent ce hash du code — épinglez-en un d'abord.",
+    "markParams": "Paramètres de déploiement",
+    "added": "Ajouté à la liste de suivi"
   }
 }

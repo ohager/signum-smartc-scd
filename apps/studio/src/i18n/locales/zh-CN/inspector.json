@@ -10,7 +10,8 @@
     "enumMissing": "枚举“{name}”未在“enums”中定义",
     "enumRequired": "格式“enum”需要一个“enum”名称",
     "other": "{message}",
-    "at": "第 {line} 行：{message}"
+    "at": "第 {line} 行：{message}",
+    "paramOnArray": "部署参数必须是单个槽位，不能是数组"
   },
   "editor": {
     "viewUi": "检查器",
@@ -203,5 +204,17 @@
     "inspect": "检查",
     "inspectHint": "在检查器中打开此合约，并使用从此源代码生成的标签",
     "failed": "无法准备检查：{message}"
+  },
+  "instance": {
+    "button": "新建实例",
+    "title": "{name} 的新实例",
+    "connect": "连接 XT Wallet 以部署新实例。",
+    "resolving": "正在查找原始部署…",
+    "otherNetwork": "XT Wallet 连接的节点不认识此合约。请将 XT 切换到该合约所在的网络。",
+    "noOriginal": "在此节点上找不到此合约的原始部署。",
+    "node": "钱包的节点没有响应：{message}",
+    "ambiguous": "多个 Label Map 声明了此代码哈希——请先固定其中一个。",
+    "markParams": "部署参数",
+    "added": "已添加到观察列表"
   }
 }

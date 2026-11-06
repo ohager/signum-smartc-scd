@@ -10,7 +10,8 @@
     "enumMissing": "Enum \"{name}\" ist in \"enums\" nicht definiert",
     "enumRequired": "Format \"enum\" braucht einen \"enum\"-Namen",
     "other": "{message}",
-    "at": "Zeile {line}: {message}"
+    "at": "Zeile {line}: {message}",
+    "paramOnArray": "Ein Deploy-Parameter muss ein einzelner Slot sein, kein Array"
   },
   "editor": {
     "viewUi": "Inspector",
@@ -205,5 +206,17 @@
     "inspect": "Inspizieren",
     "inspectHint": "Diesen Contract im Inspector öffnen, mit Labels aus diesem Quellcode",
     "failed": "Die Inspektion konnte nicht vorbereitet werden: {message}"
+  },
+  "instance": {
+    "button": "Neue Instanz",
+    "title": "Neue Instanz von {name}",
+    "connect": "Verbinde XT Wallet, um eine neue Instanz zu deployen.",
+    "resolving": "Suche das ursprüngliche Deployment…",
+    "otherNetwork": "XT Wallet ist mit einem Node verbunden, der diesen Contract nicht kennt. Stelle XT auf das Netzwerk des Contracts um.",
+    "noOriginal": "Das ursprüngliche Deployment dieses Contracts wurde auf diesem Node nicht gefunden.",
+    "node": "Der Node der Wallet hat nicht geantwortet: {message}",
+    "ambiguous": "Mehrere Label Maps beanspruchen diesen Code-Hash — pinne zuerst eine.",
+    "markParams": "Deploy-Parameter",
+    "added": "Zur Watchlist hinzugefügt"
   }
 }

@@ -55,7 +55,10 @@
     "feeSigna": "Taxa da transação (SIGNA)",
     "minimum": "Mínimo:",
     "deadline": "Prazo (minutos)",
-    "deadlineHint": "Prazo da transação em minutos (máx.: 1440)"
+    "deadlineHint": "Prazo da transação em minutos (máx.: 1440)",
+    "pathFull": "Implantação completa",
+    "pathReference": "Por referência",
+    "fixParams": "Corrija os parâmetros acima para implantar."
   },
   "flow": {
     "connectWallet": "Conecte uma carteira para implantar seu contrato",
@@ -141,5 +144,40 @@
       "returnsOne": "retorna um valor, um argumento",
       "returnsTwo": "retorna um valor, dois argumentos"
     }
+  },
+  "params": {
+    "title": "Parâmetros",
+    "hint": "Valores gravados na pilha de dados do contrato na implantação.",
+    "none": "Este contrato não tem parâmetros de implantação. Marque slots como parâmetros no Label Map dele (`param: true`).",
+    "overwritten": "Sobrescrito pela linha {line} na primeira ativação",
+    "confirmOverwrite": "Sei que este valor será sobrescrito",
+    "noSourceCheck": "Sem o código-fonte, o Studio não consegue verificar se o código de nível superior sobrescreve esses valores.",
+    "placeholderDefault": "Vazio: {value}",
+    "error": {
+      "invalid": "Valor inválido para este formato",
+      "outOfRange": "Não cabe em 64 bits",
+      "tooLong": "O texto é limitado a 8 bytes",
+      "tooManyDecimals": "No máximo 8 casas decimais",
+      "unknownEnum": "Não é um dos valores do enum"
+    },
+    "tooLarge": "Os dados não cabem nos {slots} slots de dados do contrato.",
+    "preview": "Pilha de dados",
+    "internal": "interno",
+    "slot": "Slot",
+    "name": "Nome",
+    "value": "Valor",
+    "hex": "Hex"
+  },
+  "reference": {
+    "title": "Implantar por referência",
+    "hint": "Reutiliza o código de um contrato que já está na blockchain. Mais barato: só os dados são enviados.",
+    "original": "Original",
+    "inherited": "O valor de ativação e as páginas de memória vêm do original.",
+    "searching": "Procurando implantações deste código…",
+    "connect": "Conecte a XT Wallet para encontrar implantações existentes deste código.",
+    "failed": "Não foi possível pesquisar no nó: {message}",
+    "retry": "Pesquisar de novo",
+    "noneYet": "Quando este código estiver na blockchain, você poderá implantar mais instâncias por referência, com custo baixo.",
+    "candidate": "{id} · por {creator} · bloco {height}"
   }
 }
