@@ -68,6 +68,8 @@ interface DeploymentFlowProps {
   codeHash: string;
   deadline: number;
   fee: Amount;
+  /** The request is kept for a deploy in progress, but no new one may start from it. */
+  disabled?: boolean;
   /** Rendered under the success message, e.g. "Inspect" — the flow itself knows no project. */
   successAction?: (transactionId: string) => ReactNode;
 }
@@ -77,6 +79,7 @@ export function DeploymentFlow({
   codeHash,
   deadline,
   fee,
+  disabled = false,
   successAction,
 }: DeploymentFlowProps) {
   const [deploymentStep, setDeploymentStep] = useState<DeploymentStep>("idle");
@@ -120,6 +123,7 @@ export function DeploymentFlow({
         codeHash={codeHash}
         deadline={deadline}
         fee={fee}
+        disabled={disabled}
         nodeUrl={status.ledger.service.settings.nodeHost}
         successAction={successAction}
       />
@@ -239,9 +243,7 @@ export function DeploymentFlow({
             ) : (
               <Button
                 onClick={handleDeploy}
-                disabled={
-                  deploymentStep !== "idle" && deploymentStep !== "error"
-                }
+                disabled={disabled || (deploymentStep !== "idle" && deploymentStep !== "error")}
                 className="flex-1"
               >
                 { progress === 0 && (

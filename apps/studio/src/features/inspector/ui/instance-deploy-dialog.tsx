@@ -13,7 +13,8 @@ import { useWalletStatus } from "@/hooks/use-wallet-status.ts";
 import { t } from "@/i18n/runtime";
 import { DeploymentFlow } from "@/features/asm-editor/deployment-view/deployment-flow";
 import { baseFromByteData, buildDataStack, paramSlots } from "@/features/deployment/deploy-params";
-import { referenceDeployMinFeePlanck, type DeployRequest } from "@/features/deployment/deploy-request";
+import { flowRequest, referenceDeployMinFeePlanck, type DeployRequest } from "@/features/deployment/deploy-request";
+import { signaToPlanck } from "@/features/deployment/amounts";
 import { ParameterForm, parametersReady } from "@/features/deployment/ui/parameter-form";
 import { DataStackPreview } from "@/features/deployment/ui/data-stack-preview";
 import type { SlotLabel } from "../model/label-map";
@@ -132,10 +133,14 @@ function InstanceForm({
   const labels = map?.slots ?? [];
   const enums = map?.enums ?? {};
   const stack = buildDataStack({ params, values, ctx: { prefix, enums }, capacity, base, labels });
-  const ready = parametersReady(stack.fields, NO_OVERWRITES, new Set()) && stack.data !== null;
-  const request: DeployRequest | null = ready
+  const feePlanck = signaToPlanck(fee);
+  const ready = parametersReady(stack.fields, NO_OVERWRITES, new Set()) && stack.data !== null && feePlanck !== null;
+  const current: DeployRequest | null = ready
     ? { kind: "reference", reference, name, description, data: stack.data! }
     : null;
+  const lastRequest = useRef<{ request: DeployRequest; fee: string } | null>(null);
+  if (current) lastRequest.current = { request: current, fee: feePlanck! };
+  const flow = flowRequest(current, lastRequest.current?.request ?? null);
 
   const markable = labelTarget(resolution).kind !== "choose";
   const mark = async (index: number, on: boolean) => {
@@ -217,23 +222,31 @@ function InstanceForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="instance-fee">{t("asm-editor.deploy.feeSigna")}</Label>
-          <Input id="instance-fee" type="number" step={0.1} value={fee} onChange={(e) => setFee(e.target.value)} />
+          <Input
+            id="instance-fee"
+            type="number"
+            step={0.1}
+            value={fee}
+            onChange={(e) => setFee(e.target.value)}
+            aria-invalid={feePlanck === null ? true : undefined}
+          />
+          {feePlanck === null && <p className="text-xs text-[var(--mag)]">{t("asm-editor.params.error.invalid")}</p>}
           <p className="text-xs text-muted-foreground">
             {t("asm-editor.deploy.minimum")} <AmountView amount={minFee} isAtomic />
           </p>
         </div>
       </div>
 
-      {request ? (
+      {!flow.live && <p className="text-center text-sm text-muted-foreground">{t("asm-editor.deploy.fixParams")}</p>}
+      {flow.request && (
         <DeploymentFlow
-          request={request}
+          request={flow.request}
           codeHash={contract.machineCodeHashId}
-          fee={Amount.fromSigna(fee || "0")}
+          fee={Amount.fromPlanck(flow.live ? feePlanck! : lastRequest.current!.fee)}
           deadline={1440}
+          disabled={!flow.live}
           successAction={(transactionId) => <AddOnce id={transactionId} onDeployed={onDeployed} />}
         />
-      ) : (
-        <p className="text-center text-sm text-muted-foreground">{t("asm-editor.deploy.fixParams")}</p>
       )}
     </>
   );

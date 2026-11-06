@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import type { MachineData } from "@/features/asm-editor/machine-data";
-import { buildUnsignedDeploy, referenceDeployMinFeePlanck } from "./deploy-request";
+import { buildUnsignedDeploy, flowRequest, referenceDeployMinFeePlanck } from "./deploy-request";
 
 const machine = { ByteCode: "3301", DataPages: 2, CodeStackPages: 1, UserStackPages: 0, MachineCodeHashId: "9" } as MachineData;
 const common = { senderPublicKey: "pk", feePlanck: "40000000", deadline: 1440 };
@@ -43,5 +43,16 @@ describe("referenceDeployMinFeePlanck", () => {
   it("reference fee follows the original's pages", () => {
     expect(referenceDeployMinFeePlanck({ dataPages: 2, callStackPages: 1, userStackPages: 1, minActivationPlanck: "0", initialData: "" })).toBe(40_000_000n);
     expect(referenceDeployMinFeePlanck({ dataPages: 0, callStackPages: 0, userStackPages: 0, minActivationPlanck: "0", initialData: "" })).toBe(1_000_000n);
+  });
+});
+
+describe("flowRequest", () => {
+  const live = { kind: "reference" as const, reference: { fullHash: "aa", contractId: "1" }, name: "N", description: "D", data: [] };
+  const older = { ...live, name: "old" };
+
+  it("keeps the last valid request while the form is invalid, so a running deploy stays on screen", () => {
+    expect(flowRequest(live, older)).toEqual({ request: live, live: true });
+    expect(flowRequest(null, older)).toEqual({ request: older, live: false });
+    expect(flowRequest(null, null)).toEqual({ request: null, live: false });
   });
 });

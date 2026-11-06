@@ -54,6 +54,8 @@ interface LargeContractDeploymentProps {
   deadline: number;
   fee: Amount;
   nodeUrl: string;
+  /** See `DeploymentFlow`: no new deploy may start from a stale request. */
+  disabled?: boolean;
   /** Rendered under the success message, e.g. "Inspect" — the flow itself knows no project. */
   successAction?: (transactionId: string) => ReactNode;
 }
@@ -64,6 +66,7 @@ export function LargeContractDeployment({
   deadline,
   fee,
   nodeUrl,
+  disabled = false,
   successAction,
 }: LargeContractDeploymentProps) {
   const [deploymentStep, setDeploymentStep] = useState<DeploymentStep>("idle");
@@ -344,7 +347,7 @@ export function LargeContractDeployment({
           {/* Action Buttons */}
           <div className="flex gap-3">
             {deploymentStep === "idle" && (
-              <Button onClick={handleStartDeployment} className="flex-1" disabled={contractTooLarge}>
+              <Button onClick={handleStartDeployment} className="flex-1" disabled={contractTooLarge || disabled}>
                 <Zap className="h-4 w-4 mr-2" />
                 {t("asm-editor.large.deployLarge")}
               </Button>
@@ -354,7 +357,7 @@ export function LargeContractDeployment({
               <>
                 <Button
                   onClick={handleDeploy}
-                  disabled={!passphrase.trim()}
+                  disabled={!passphrase.trim() || disabled}
                   className="flex-1"
                 >
                   <Zap className="h-4 w-4 mr-2" />

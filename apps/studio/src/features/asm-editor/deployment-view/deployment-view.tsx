@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { AlertCircle, Loader2, RefreshCw } from "lucide-react";
 import { Amount } from "@signumjs/util";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +18,8 @@ import type { SlotLabel } from "@/features/inspector/model/label-map";
 import { baseFromByteData, buildDataStack, paramSlots } from "@/features/deployment/deploy-params";
 import { compileVerbose, findOverwrittenParams } from "@/features/deployment/overwritten-params";
 import { pickReference } from "@/features/deployment/reference-search";
-import { referenceDeployMinFeePlanck, type DeployRequest } from "@/features/deployment/deploy-request";
+import { flowRequest, referenceDeployMinFeePlanck, type DeployRequest } from "@/features/deployment/deploy-request";
+import { signaToPlanck } from "@/features/deployment/amounts";
 import { useReferenceSearch } from "@/features/deployment/use-reference-search";
 import { ParameterForm, parametersReady } from "@/features/deployment/ui/parameter-form";
 import { DataStackPreview } from "@/features/deployment/ui/data-stack-preview";
@@ -98,8 +99,11 @@ export function DeploymentView({
   const minFeePlanck = effectivePath === "reference" && referenceMinFee ? referenceMinFee : fullMinFee;
   const feeSigna = fee ?? Amount.fromPlanck(minFeePlanck).getSigna();
 
-  const ready = parametersReady(stack.fields, overwrites, confirmed) && stack.data !== null;
-  const request: DeployRequest | null = !ready
+  const feePlanck = signaToPlanck(feeSigna);
+  const activationPlanck = signaToPlanck(activation);
+  const amountsValid = feePlanck !== null && (effectivePath === "reference" || activationPlanck !== null);
+  const ready = parametersReady(stack.fields, overwrites, confirmed) && stack.data !== null && amountsValid;
+  const current: DeployRequest | null = !ready
     ? null
     : effectivePath === "reference" && selected
       ? { kind: "reference", reference: selected, name, description, data: stack.data! }
@@ -108,9 +112,12 @@ export function DeploymentView({
           machine: data,
           name,
           description,
-          activationPlanck: Amount.fromSigna(activation || "0").getPlanck(),
+          activationPlanck: activationPlanck!,
           data: stack.data!,
         };
+  const lastRequest = useRef<{ request: DeployRequest; fee: string } | null>(null);
+  if (current) lastRequest.current = { request: current, fee: feePlanck! };
+  const flow = flowRequest(current, lastRequest.current?.request ?? null);
 
   const choosePath = (next: Path) => {
     setPath(next);
@@ -235,14 +242,20 @@ export function DeploymentView({
                   <div className="space-y-2">
                     <Label htmlFor="activation-amount">{t("asm-editor.deploy.activationSigna")}</Label>
                     {effectivePath === "full" ? (
-                      <Input
-                        id="activation-amount"
-                        type="number"
-                        min={0}
-                        step={0.1}
-                        value={activation}
-                        onChange={(e) => setActivation(e.target.value)}
-                      />
+                      <>
+                        <Input
+                          id="activation-amount"
+                          type="number"
+                          min={0}
+                          step={0.1}
+                          value={activation}
+                          onChange={(e) => setActivation(e.target.value)}
+                          aria-invalid={activationPlanck === null ? true : undefined}
+                        />
+                        {activationPlanck === null && (
+                          <p className="text-xs text-[var(--mag)]">{t("asm-editor.params.error.invalid")}</p>
+                        )}
+                      </>
                     ) : (
                       <>
                         <p className="font-medium">
@@ -266,7 +279,15 @@ export function DeploymentView({
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="fee">{t("asm-editor.deploy.feeSigna")}</Label>
-                    <Input id="fee" type="number" step={0.1} value={feeSigna} onChange={(e) => setFee(e.target.value)} />
+                    <Input
+                      id="fee"
+                      type="number"
+                      step={0.1}
+                      value={feeSigna}
+                      onChange={(e) => setFee(e.target.value)}
+                      aria-invalid={feePlanck === null ? true : undefined}
+                    />
+                    {feePlanck === null && <p className="text-xs text-[var(--mag)]">{t("asm-editor.params.error.invalid")}</p>}
                     <p className="text-xs text-muted-foreground">
                       {t("asm-editor.deploy.minimum")} <AmountView amount={minFeePlanck} isAtomic />
                     </p>
@@ -287,16 +308,18 @@ export function DeploymentView({
             </CardContent>
           </Card>
           <WalletConnection />
-          {request ? (
+          {!flow.live && (
+            <p className="text-sm text-muted-foreground text-center">{t("asm-editor.deploy.fixParams")}</p>
+          )}
+          {flow.request && (
             <DeploymentFlow
-              request={request}
+              request={flow.request}
               codeHash={data.MachineCodeHashId}
-              fee={Amount.fromSigna(feeSigna || "0")}
+              fee={Amount.fromPlanck(flow.live ? feePlanck! : lastRequest.current!.fee)}
               deadline={deadline}
+              disabled={!flow.live}
               successAction={successAction}
             />
-          ) : (
-            <p className="text-sm text-muted-foreground text-center">{t("asm-editor.deploy.fixParams")}</p>
           )}
         </div>
       </div>

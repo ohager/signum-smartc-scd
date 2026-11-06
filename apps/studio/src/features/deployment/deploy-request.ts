@@ -60,3 +60,15 @@ export async function buildUnsignedDeploy(
         });
   return (result as { unsignedTransactionBytes: string }).unsignedTransactionBytes;
 }
+
+/**
+ * What the deployment flow is given. While the form is invalid the flow keeps
+ * the last valid request but may not start: unmounting it would drop a
+ * deploy already waiting in XT Wallet, its success card and "Inspect" with it.
+ */
+export function flowRequest(
+  current: DeployRequest | null,
+  last: DeployRequest | null,
+): { request: DeployRequest | null; live: boolean } {
+  return { request: current ?? last, live: current !== null };
+}
