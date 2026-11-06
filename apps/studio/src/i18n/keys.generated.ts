@@ -417,6 +417,7 @@ export type MessageParams = {
   "inspector.validation.pattern": undefined;
   "inspector.validation.unknownKey": { keys: string | number };
   "inspector.validation.enumMissing": { name: string | number };
+  "inspector.validation.paramOnArray": undefined;
   "inspector.validation.enumRequired": undefined;
   "inspector.validation.other": { message: string | number };
   "inspector.validation.at": { line: string | number; message: string | number };

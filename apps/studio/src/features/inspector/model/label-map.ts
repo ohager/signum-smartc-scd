@@ -22,6 +22,8 @@ const SlotLabelSchema = z.strictObject({
   enum: z.string().optional().describe("Key in 'enums' when format is 'enum'"),
   length: z.int().min(1).optional().describe("Number of consecutive slots (array)"),
   comment: z.string().optional(),
+  param: z.boolean().optional().describe("Shown in the deploy form"),
+  default: Decimal.optional().describe("Value when the deploy form field is left empty"),
   origin: Origin.optional(),
 });
 
@@ -91,7 +93,13 @@ export const LabelMapSchema = z
         });
       }
     };
-    map.slots.forEach((s, i) => check(s, ["slots", i]));
+    map.slots.forEach((s, i) => {
+      check(s, ["slots", i]);
+      // The deploy form fills single slots; an array would need a value per element.
+      if (s.param && (s.length ?? 1) > 1) {
+        ctx.addIssue({ code: "custom", path: ["slots", i, "param"], message: t("inspector.validation.paramOnArray") });
+      }
+    });
     map.maps.forEach((g, i) => {
       check(g, ["maps", i]);
       g.key2?.forEach((k, j) => check(k, ["maps", i, "key2", j]));

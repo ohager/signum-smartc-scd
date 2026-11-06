@@ -8,6 +8,7 @@
     "pattern": "Must be a decimal number",
     "unknownKey": "Unknown field: {keys}",
     "enumMissing": "Enum \"{name}\" is not defined in \"enums\"",
+    "paramOnArray": "A deploy parameter must be a single slot, not an array",
     "enumRequired": "Format \"enum\" needs an \"enum\" name",
     "other": "{message}",
     "at": "Line {line}: {message}"
