@@ -115,8 +115,14 @@ and "inspect after deploying".
 - Name and description are prefilled from `#program`, or from the original, and are
   editable. The activation amount is editable on the full deploy only.
 - A **data stack preview** lists slot, name, value and hex of exactly what will be
-  sent. Internal slots (registers, compiler constants) and non-parameter slots below
-  the highest parameter are greyed out with value 0 (or their `default`).
+  sent. Internal slots (registers, compiler constants) and non-parameter slots are
+  greyed out with their initial value.
+- **Initial memory is the base.** The compiler keeps constants (`f100000000`), array
+  pointers and `const` assignments in its initial memory (`ByteData`), not in code.
+  The data always starts from that memory — `ByteData` with source, the original's
+  creation-bytes data without — and parameters are laid over it. An empty field
+  takes the slot's `default`, then the initial value, then 0. (Today's full deploy
+  sends no data at all, so such contracts start with zeros; this fixes it.)
 
 ### After deploying
 
