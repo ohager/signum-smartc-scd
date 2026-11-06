@@ -38,11 +38,24 @@ export interface DataStackResult {
 const ARRAY_POINTER = "array pointer"; // i18n-ignore — the generator's marker comment
 const INTERNAL = [/^r\d+$/, /^[fn]\d+$/];
 
-/** The parameters of a contract: Label Map entries win over generated ones, slot by slot. */
+/**
+ * The parameters of a contract. A Label Map entry someone wrote wins over the
+ * generator, slot by slot; a stored compiler entry does not — it is an older
+ * copy of what the generator says now, the same rule regeneration follows.
+ */
 export function paramSlots(generated: SlotLabel[] | null, map: LabelMap | null): SlotLabel[] {
   const byIndex = new Map<number, SlotLabel>();
-  for (const slot of generated ?? []) if (slot.length === undefined) byIndex.set(slot.index, slot);
-  for (const slot of map?.slots ?? []) if (slot.length === undefined) byIndex.set(slot.index, slot);
+  const fresh = new Set<number>();
+  for (const slot of generated ?? []) {
+    if (slot.length !== undefined) continue;
+    byIndex.set(slot.index, slot);
+    fresh.add(slot.index);
+  }
+  for (const slot of map?.slots ?? []) {
+    if (slot.length !== undefined) continue;
+    if (slot.origin === "compiler" && fresh.has(slot.index)) continue;
+    byIndex.set(slot.index, slot);
+  }
   // The Label Map cannot tell a pointer from a value; the compiler can.
   const pointers = new Set((generated ?? []).filter((s) => s.comment === ARRAY_POINTER).map((s) => s.index));
   return [...byIndex.values()]

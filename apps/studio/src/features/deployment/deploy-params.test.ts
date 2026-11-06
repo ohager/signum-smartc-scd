@@ -14,6 +14,18 @@ describe("paramSlots", () => {
     expect(paramSlots(generated, map).map((s) => s.name)).toEqual(["owner"]);
   });
 
+  it("a stored compiler entry does not hide a generated suggestion; a manual one decides", () => {
+    const generated = [p(3, { origin: "compiler" }), p(4, { origin: "compiler" })];
+    const map = {
+      ...emptyMap,
+      slots: [
+        { index: 3, name: "p3", format: "long", origin: "compiler" } as SlotLabel,
+        { index: 4, name: "p4", format: "long", origin: "manual" } as SlotLabel,
+      ],
+    };
+    expect(paramSlots(generated, map).map((s) => s.index)).toEqual([3]);
+  });
+
   it("works without a map and without generated labels", () => {
     expect(paramSlots([p(2), p(1)], null).map((s) => s.index)).toEqual([1, 2]);
     expect(paramSlots(null, { ...emptyMap, slots: [p(4)] }).map((s) => s.index)).toEqual([4]);
