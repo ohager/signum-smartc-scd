@@ -43,8 +43,21 @@ original. For a reference deploy the activation amount is therefore shown, not
 editable.
 
 **What counts as an original.** A contract's id is the id of its deploy
-transaction; the reference is that transaction's `fullHash`. Only a deploy
-transaction that carries code is a valid original (§7 spike, item 2).
+transaction. If that transaction has a `referencedTransactionFullHash`, the
+contract is an instance, and that hash points at the original's deploy
+transaction (`getTransactionByFullHash`). Otherwise the contract is itself an
+original, and the reference is its own transaction's `fullHash`. One step is
+always enough: the node rejects a reference to an instance ("Invalid reference
+transaction for the AT code"), because the referenced creation bytes must contain
+code (`TransactionType.java`, AT creation validation).
+
+**Pages and fee come from the original.** The node's `createATProgram` copies
+version, data, code-stack and user-stack pages and the minimum activation amount
+from the referenced creation bytes, and validation requires them to match. The
+minimum fee is `(dataPages + callStackPages + userStackPages) × costPerPage`, with
+no code pages; `costPerPage` is 10 000 000 planck (0.1 SIGNA) at AT version 3. The
+original's creation bytes (header: version, reserved, code, data, code-stack and
+user-stack pages, minimum activation) give pages, data capacity and fee.
 
 **Initial data is contiguous.** `data` is written from slot 0 upwards. Setting slot
 7 means sending slots 0–7.
@@ -67,9 +80,10 @@ and "inspect after deploying".
 `findReferences(codeHash, node)`:
 
 - Asks the node XT Wallet is connected to, via `getAllContractsByCodeHash`.
-- For each hit, loads the deploy transaction and keeps it only if it carries code.
-  Instances deployed by reference are dropped (or traced to their original, if the
-  spike shows the node allows it).
+- For each hit, loads the deploy transaction. An instance (one with
+  `referencedTransactionFullHash`) is traced to its original through that hash, so
+  the original is found even when it is not among the hits. Originals are
+  de-duplicated.
 - **Preselection:** a contract deployed by the connected account, otherwise the
   oldest. The user can switch (contract id, creator, date).
 
@@ -188,11 +202,14 @@ scan; the form says so. The check follows once the inspector's own disassembler
 
 1. Does an instance inherit pages and activation amount as expected, and does its
    data arrive in the right slots?
-2. What happens when the reference points at an instance instead of an original?
-3. What minimum fee does the node require for a deploy by reference?
+2. Confirm that the node rejects a reference to an instance (expected from the node
+   source, §3).
+3. Confirm the minimum fee formula from §3 (accepted at the formula value, refused
+   one planck below).
 4. Does XT Wallet sign the unsigned reference transaction without trouble?
 
-The results go into the plan; item 2 decides whether instances are dropped or traced.
+The results go into the plan. Items 2 and 3 are answered by the node source; the
+spike only confirms them.
 
 ## 8. Testing
 
@@ -205,7 +222,7 @@ All with `bun test`, following the existing patterns.
   and a clean contract.
 - Form model, as a pure function: Label Map + inputs → fields, errors and
   `ContractData[]` (contiguous, internal slots 0).
-- Original selection: own before oldest, instances filtered.
+- Original selection: own before oldest, instances traced to their original.
 - Deploy flow with a fake ledger: `referencedTransactionFullHash` and `data` are set,
   no code is sent.
 - Schema: `param` on an array is invalid; merge rules for `param` / `default`.

@@ -27,12 +27,13 @@
 
 ## Decisions taken while planning
 
-1. **Instances are traced, not just dropped.** `findReferences` drops hits whose deploy transaction has a `referencedTransactionFullHash` (the original is normally among the hits anyway). The inspector dialog, which starts from one specific contract, uses that contract's `referencedTransactionFullHash` as the reference when it is an instance. Both are safe whatever spike item 2 finds; the spike result is recorded for information only.
+1. **Instances are traced to their original, one step.** A contract id is its deploy transaction id. If that transaction has `referencedTransactionFullHash`, the contract is an instance and `getTransactionByFullHash(that hash)` is the original's deploy transaction; otherwise the transaction is the original. One step suffices: the node rejects referencing an instance (spec §3). `findReferences` and the inspector dialog share `traceOriginal` (Task 7). A traced transaction that is not an AT creation (`type !== 22 || subtype !== 0`) or itself carries a reference is dropped.
 2. **Array-pointer check lives in the parameter model, not the schema.** The Label Map does not mark pointers structurally (only by the generator's comment), so the schema rejects `param` with `length > 1`, and `paramSlots` additionally drops indexes the generator reports as array pointers.
 3. **Search breadth:** `findReferences` looks at the first 25 hits for the code hash and loads their deploy transactions with at most 5 requests in flight. Any one valid original is enough to deploy.
 4. **Empty parameter field** means the slot's `default`, or 0. Parameters are not required.
-5. **Data capacity:** a project's capacity is `DataPages * 32` slots (256-byte pages, 8-byte slots); an on-chain original's is `machineData.length / 16`.
+5. **Data capacity:** a project's capacity is `DataPages * 32` slots (256-byte pages, 8-byte slots); an on-chain original's is `header.dataPages * 32`, from its creation bytes (Task 7).
 6. **Overwrite detection** compiles once more with `#pragma verboseAssembly true` appended to the source. The appended pragma overrides an earlier `false`, emits no bytes and shifts no lines (checked against the compiler while planning). Top-level code is everything before the first `PCS` line or `__fn_main:` label.
+7. **Reference deploy fee** is computed, not a constant: `max((dataPages + callStackPages + userStackPages) * 10_000_000n, 1_000_000n)` planck (AT v3 `costPerPage`; code pages are 0 for a reference; the floor is the generic minimum fee). Task 1 confirms it.
 
 ## Review Focus
 
@@ -61,7 +62,7 @@ apps/studio/src/features/
     overwritten-params.ts         CREATE  compileVerbose, findOverwrittenParams
     deploy-params.ts              CREATE  paramSlots, buildDataStack
     reference-search.ts           CREATE  findReferences, pickReference
-    deploy-request.ts             CREATE  DeployRequest, buildUnsignedDeploy, REFERENCE_DEPLOY_MIN_FEE_PLANCK
+    deploy-request.ts             CREATE  DeployRequest, buildUnsignedDeploy, referenceDeployMinFeePlanck
     use-reference-search.ts       CREATE  React hook over findReferences
     ui/parameter-form.tsx         CREATE
     ui/data-stack-preview.tsx     CREATE
@@ -79,23 +80,24 @@ docs/superpowers/notes/carbon-contracts-spike.md   CREATE (Task 1)
 
 ### Task 1: Spike on the local sandbox
 
-Answers spec §7 items 1–3 with a throwaway script; item 4 (XT signing) is answered in Task 12's acceptance run. **Needs the user:** a running Signum Sandbox on `localhost:6876` and the passphrase of a funded sandbox account (the user's forging account works), passed as an environment variable. The script is not committed.
+Answers spec §7 item 1 and confirms items 2–3 (known from the node source) with a throwaway script; item 4 (XT signing) is answered in Task 12's acceptance run. **Needs the user:** a running Signum Sandbox on `localhost:6876` and the passphrase of a funded sandbox account (the user's forging account works), passed as an environment variable. The script is not committed.
 
 **Files:**
 - Create: `docs/superpowers/notes/carbon-contracts-spike.md`
 - Scratch (not committed): `<scratchpad>/carbon-spike.ts`
 
 **Interfaces:**
-- Produces: the value of `REFERENCE_DEPLOY_MIN_FEE_PLANCK` used in Task 8, and confirmation that `Transaction.referencedTransactionFullHash` marks an instance's deploy transaction.
+- Produces: confirmation of the fee formula (Decision 7) used in Task 8, of the creation-bytes header layout used in Task 7, and that `Transaction.referencedTransactionFullHash` marks an instance's deploy transaction.
 
 - [ ] **Step 1: Ask the user** to start the sandbox and provide `SANDBOX_PASSPHRASE` (run as `! SANDBOX_PASSPHRASE='…' bun <script>` so it never lands in a file). Confirm `curl -s 'http://localhost:6876/api?requestType=getConstants' | jq -r .networkName` prints `Signum-LOCAL-MOCK`.
 
-- [ ] **Step 2: Write the script** (run from `apps/studio/` so modules resolve). It compiles a contract with three `long` globals without initialisers, deploys it in full with `publishContract` (`data: []`), waits for a block, then deploys an instance with `publishContractByReference({ referencedTransactionFullHash: <original fullHash>, data: ["7", "18446744073709551615", "3"], name, description, feePlanck, senderPublicKey, senderPrivateKey })`, starting at `feePlanck` = 0.01 SIGNA and halving until the node refuses, then repeating with the last accepted fee. Finally it references the *instance's* full hash once.
+- [ ] **Step 2: Write the script** (run from `apps/studio/` so modules resolve). It compiles a contract with three `long` globals without initialisers, deploys it in full with `publishContract` (`data: []`), waits for a block, then deploys an instance with `publishContractByReference({ referencedTransactionFullHash: <original fullHash>, data: ["7", "18446744073709551615", "3"], name, description, feePlanck, senderPublicKey, senderPrivateKey })`, first with the Decision 7 fee minus 1 planck (expect refusal), then with the Decision 7 fee (expect acceptance). Finally it references the *instance's* full hash once (expect "Invalid reference transaction for the AT code").
 
 - [ ] **Step 3: Run it and record** in the notes file:
   1. instance `machineData` slots 0–2 and the inherited `minActivation`, data pages (from `getContract`) vs. the original's;
-  2. whether referencing the instance was accepted, and `referencedTransactionFullHash` on `getTransaction(instanceId)` vs. `getTransaction(originalId)`;
-  3. the lowest accepted fee in planck.
+  2. the node's answer to referencing the instance, and `referencedTransactionFullHash` on `getTransaction(instanceId)` vs. `getTransaction(originalId)`;
+  3. both fee attempts, and `parseCreationHeader(original.attachment.creationBytes)` against `getContract`.
+  If 2 or 3 differs from the expectation, stop and adjust Decisions 1/7 with the user before Task 7.
 
 - [ ] **Step 4: Commit the notes**
 
@@ -374,19 +376,29 @@ it("rejects data beyond capacity", () => {
 **Interfaces:**
 - Consumes: `classifyNodeError(e: unknown): InspectorError`.
 - Produces:
-  - `interface ReferenceLedger { contract: Pick<ContractApi, "getAllContractsByCodeHash">; transaction: Pick<TransactionApi, "getTransaction"> }`
-  - `interface ReferenceCandidate { contractId: string; name: string; creator: string; height: number; fullHash: string }`
+  - `interface ReferenceLedger { contract: Pick<ContractApi, "getAllContractsByCodeHash">; transaction: Pick<TransactionApi, "getTransaction" | "getTransactionByFullHash"> }`
+  - `interface CreationHeader { dataPages: number; callStackPages: number; userStackPages: number; minActivationPlanck: string }`
+  - `parseCreationHeader(creationBytesHex: string): CreationHeader` — little-endian shorts at byte offsets 6, 8, 10 and the u64 at 12 (after version, reserved, code pages).
+  - `interface ReferenceCandidate { contractId: string; name: string; creator: string; height: number; fullHash: string; header: CreationHeader }` — all from the original's deploy transaction (`transaction`, `attachment.name`, `sender`, `height`, `fullHash`, `attachment.creationBytes`).
+  - `traceOriginal(ledger: ReferenceLedger, contractId: string): Promise<ReferenceCandidate | null>` — one step as in Decision 1; `null` when no valid original.
   - `findReferences(ledger: ReferenceLedger, codeHash: string, signal?: AbortSignal): Promise<ReferenceCandidate[]>` — rejects with `InspectorError`; resolves `[]` when aborted.
   - `pickReference(candidates: ReferenceCandidate[], accountId: string | null): ReferenceCandidate | null`
 
-- [ ] **Step 1: Write the failing tests** with a fake ledger (`ats` of 3 contracts; `getTransaction` returns `{ fullHash, height, sender }`, the third with `referencedTransactionFullHash`):
+- [ ] **Step 1: Write the failing tests** with a fake ledger (`ats` of 3 contracts; `getTransaction` returns AT-creation transactions `{ transaction, fullHash, height, sender, type: 22, subtype: 0, attachment: { name, creationBytes } }`; contract 3 has `referencedTransactionFullHash: "aa"` (contract 1's), contract 4 is not among the hits and is referenced by a hit 5):
 
 ```ts
-it("keeps originals with their deploy transaction", async () => {
+it("keeps originals and folds instances into their original", async () => {
   const found = await findReferences(fake, "123");
   expect(found.map((c) => c.contractId)).toEqual(["1", "2"]);
   expect(found[0]).toMatchObject({ fullHash: "aa", height: 10, creator: "100" });
 });
+it("finds an original that is not among the hits", async () =>
+  expect((await findReferences(fakeWithOutsideOriginal, "123")).map((c) => c.contractId)).toContain("4"));
+it("drops a reference that leads to no AT creation", async () =>
+  expect(await traceOriginal(fakeBrokenRef, "3")).toBeNull());
+it("parseCreationHeader reads pages and activation", () =>
+  expect(parseCreationHeader("0300" + "0000" + "0100" + "0200" + "0100" + "0000" + "00e1f50500000000")).toEqual(
+    { dataPages: 2, callStackPages: 1, userStackPages: 0, minActivationPlanck: "100000000" }));
 it("asks for the first 25 hits", async () => {
   await findReferences(fake, "123");
   expect(fake.lastQuery).toMatchObject({ machineCodeHash: "123", firstIndex: 0, lastIndex: 24 });
@@ -407,7 +419,7 @@ it("node errors become InspectorError", async () =>
 
 - [ ] **Step 2: Run** `bun test src/features/deployment/reference-search.test.ts` — FAIL.
 
-- [ ] **Step 3: Implement.** `getAllContractsByCodeHash({ machineCodeHash, includeDetails: false, firstIndex: 0, lastIndex: 24 })`, then `getTransaction(at)` per hit with at most 5 in flight; drop hits whose transaction has `referencedTransactionFullHash`; check `signal.aborted` after each await and return `[]` once aborted.
+- [ ] **Step 3: Implement.** `getAllContractsByCodeHash({ machineCodeHash, includeDetails: false, firstIndex: 0, lastIndex: 24 })`, then `traceOriginal` per hit with at most 5 in flight; de-duplicate by `contractId`; check `signal.aborted` after each await and return `[]` once aborted.
 
 - [ ] **Step 4: Run** — PASS. Also `bun test src/features/inspector/chain` — still PASS.
 
@@ -426,7 +438,7 @@ it("node errors become InspectorError", async () =>
 **Interfaces:**
 - Consumes: `MachineData`; `ReferenceCandidate` (Task 7).
 - Produces:
-  - `REFERENCE_DEPLOY_MIN_FEE_PLANCK: string` — value from the Task 1 notes.
+  - `referenceDeployMinFeePlanck(header: CreationHeader): bigint` — Decision 7.
   - `type DeployRequest = { kind: "full"; machine: MachineData; name: string; description: string; activationPlanck: string; data: string[] } | { kind: "reference"; reference: Pick<ReferenceCandidate, "fullHash" | "contractId">; name: string; description: string; data: string[] }`
   - `buildUnsignedDeploy(ledger: { contract: Pick<ContractApi, "publishContract" | "publishContractByReference"> }, request: DeployRequest, common: { senderPublicKey: string; feePlanck: string; deadline: number }): Promise<string>` — the unsigned transaction bytes.
   - `DeploymentFlow` props become `{ request: DeployRequest; codeHash: string; deadline: number; fee: Amount; successAction?: (transactionId: string) => ReactNode }`.
@@ -443,6 +455,10 @@ it("reference deploy sends the full hash and data, never code", async () => {
   const args = fake.calls.publishContractByReference[0];
   expect(args).toMatchObject({ referencedTransactionFullHash: "ab", data: ["7"], name: "N", feePlanck: common.feePlanck });
   expect(args).not.toHaveProperty("codeHex");
+});
+it("reference fee follows the original's pages", () => {
+  expect(referenceDeployMinFeePlanck({ dataPages: 2, callStackPages: 1, userStackPages: 1, minActivationPlanck: "0" })).toBe(40_000_000n);
+  expect(referenceDeployMinFeePlanck({ dataPages: 0, callStackPages: 0, userStackPages: 0, minActivationPlanck: "0" })).toBe(1_000_000n);
 });
 ```
 
@@ -521,7 +537,7 @@ it("needs every overwrite confirmed and no field errors", () => {
   - Preselect with `pickReference(candidates, status?.accountId ?? null)`; `ReferencePicker` to change.
   - Parameters: `generated = generateLabels(source)` slots, `map` from `resolveLabelMap(data.MachineCodeHashId, undefined, labelMaps)` when its kind is `"hash"`, `paramSlots(generated, map)`; `buildDataStack` with `capacity: data.DataPages * 32`, `memory: data.Memory`, enums from the map; overwrites from `compileVerbose(source)` + `findOverwrittenParams`; `sourceKnown: true`.
   - Name and description inputs prefilled from `data.PName` / `data.PDescription`; activation amount input (SIGNA) on the full path only, read-only text with `reference.inherited` on the reference path.
-  - Fee: the full path keeps `data.MinimumFeeNQT` as minimum; the reference path uses `REFERENCE_DEPLOY_MIN_FEE_PLANCK`; show both minimums in the summary card.
+  - Fee: the full path keeps `data.MinimumFeeNQT` as minimum; the reference path uses `referenceDeployMinFeePlanck(selected.header)`; capacity on the reference path is `selected.header.dataPages * 32`; show both minimums in the summary card.
   - Deploy is enabled only when `parametersReady(...)` and `data !== null`; build the `DeployRequest` for the chosen path and pass `codeHash={data.MachineCodeHashId}`.
 - [ ] **Step 3: Update `DeployPage`** to pass the loaded `content` as `source`. Delete `data-initialization.tsx`. New copy: `deploy.pathFull` "Full deploy", `deploy.pathReference` "By reference", `deploy.activationEditable` "Activation amount (SIGNA)". `bun run i18n:types`.
 
@@ -541,16 +557,16 @@ it("needs every overwrite confirmed and no field errors", () => {
 **Interfaces:**
 - Consumes: `ReferenceLedger` (Task 7), `DeployRequest`/`DeploymentFlow` (Task 8), `ParameterForm`/`DataStackPreview` (Task 9), `paramSlots`/`buildDataStack` (Task 6), `labelTarget`, `upsertSlot`, `updateFileText`, `createLabelMapFor`, `addContracts`.
 - Produces:
-  - `resolveInstanceReference(ledger: ReferenceLedger & { contract: Pick<ContractApi, "getContract"> }, contractId: string, codeHash: string): Promise<{ ok: true; fullHash: string } | { ok: false; reason: "otherNetwork" | "node"; message?: string }>`
+  - `resolveInstanceReference(ledger: ReferenceLedger & { contract: Pick<ContractApi, "getContract"> }, contractId: string, codeHash: string): Promise<{ ok: true; reference: ReferenceCandidate } | { ok: false; reason: "otherNetwork" | "noOriginal" | "node"; message?: string }>`
   - `ContractView` gains `onInstanceDeployed: (contractId: string) => void`.
 
 - [ ] **Step 1: Write the failing tests**
 
 ```ts
 it("uses the contract's own deploy transaction for an original", async () =>
-  expect(await resolveInstanceReference(fake({ hash: "9", tx: { fullHash: "aa" } }), "1", "9")).toEqual({ ok: true, fullHash: "aa" }));
+  expect(await resolveInstanceReference(fake({ hash: "9", tx: { fullHash: "aa" } }), "1", "9")).toMatchObject({ ok: true, reference: { fullHash: "aa" } }));
 it("traces an instance to its original", async () =>
-  expect(await resolveInstanceReference(fake({ hash: "9", tx: { fullHash: "bb", referencedTransactionFullHash: "aa" } }), "1", "9")).toEqual({ ok: true, fullHash: "aa" }));
+  expect(await resolveInstanceReference(fake({ hash: "9", tx: { fullHash: "bb", referencedTransactionFullHash: "aa" } }), "1", "9")).toMatchObject({ ok: true, reference: { fullHash: "aa" } }));
 it("rejects a missing or different contract on the wallet's node", async () => {
   expect(await resolveInstanceReference(fake({ notFound: true }), "1", "9")).toMatchObject({ ok: false, reason: "otherNetwork" });
   expect(await resolveInstanceReference(fake({ hash: "8", tx: { fullHash: "aa" } }), "1", "9")).toMatchObject({ ok: false, reason: "otherNetwork" });
@@ -559,16 +575,16 @@ it("rejects a missing or different contract on the wallet's node", async () => {
 
 - [ ] **Step 2: Run** `bun test src/features/inspector/instance` — FAIL.
 
-- [ ] **Step 3: Implement `resolveInstanceReference`** — `getContract` on the wallet's ledger (`InspectorError` kind `"not-found"` → `otherNetwork`), compare `machineCodeHashId`, then `getTransaction(contractId)`.
+- [ ] **Step 3: Implement `resolveInstanceReference`** — `getContract` on the wallet's ledger (`InspectorError` kind `"not-found"` → `otherNetwork`), compare `machineCodeHashId`, then `traceOriginal` (Task 7); `null` → `noOriginal`.
 
 - [ ] **Step 4: Implement the dialog and wiring.**
   - `ContractView` shows **New instance** (with `contract` loaded); it opens `InstanceDeployDialog` with `contract`, `resolution`, `folderId`, `prefix`.
   - The dialog needs XT (`useWalletStatus`; otherwise `instance.connect`), calls `resolveInstanceReference` (on `otherNetwork`: `instance.otherNetwork` "XT Wallet is connected to a node that does not know this contract. Switch XT to the contract's network.").
-  - Parameters: `paramSlots(null, resolvedMap)`, `buildDataStack` with `capacity: contract.machineData.length / 16`, `sourceKnown: false`, no overwrites. Name/description prefilled from the contract; activation shown read-only from `contract.minActivation`.
+  - Parameters: `paramSlots(null, resolvedMap)`, `buildDataStack` with `capacity: reference.header.dataPages * 32`, `sourceKnown: false`, no overwrites. Name/description prefilled from the contract; activation shown read-only from `reference.header.minActivationPlanck`.
   - **Mark as parameter:** a list of the slots up to capacity with a checkbox. Checking writes `upsertSlot(text, { ...existingLabel ?? { index, name: `slot${index}`, origin: "manual" }, param: true })` to the file from `labelTarget(resolution)`; target `"create"` first calls `createLabelMapFor`; target `"choose"` disables the list with `instance.ambiguous` "Several Label Maps claim this code hash — pin one first."
-  - Deploy via `DeploymentFlow` with `{ kind: "reference", … }`, `codeHash={contract.machineCodeHashId}`, fee minimum `REFERENCE_DEPLOY_MIN_FEE_PLANCK`; its `successAction` calls `onInstanceDeployed(transactionId)`.
+  - Deploy via `DeploymentFlow` with `{ kind: "reference", … }`, `codeHash={contract.machineCodeHashId}`, fee minimum `referenceDeployMinFeePlanck(reference.header)`; its `successAction` calls `onInstanceDeployed(transactionId)`.
   - `InspectorEditor` implements `onInstanceDeployed` as `write((text) => addContracts(text, [{ id, network: selected.network }]))` and selects the new entry.
-  - New copy in `inspector.json`: `instance.button` "New instance", `instance.title` "New instance of {name}", `instance.connect`, `instance.otherNetwork`, `instance.ambiguous`, `instance.markParams` "Deploy parameters", `instance.added` "Added to the watchlist". `bun run i18n:types`.
+  - New copy in `inspector.json`: `instance.button` "New instance", `instance.title` "New instance of {name}", `instance.connect`, `instance.otherNetwork`, `instance.ambiguous`, `instance.noOriginal` "The original deployment of this contract could not be found on this node.", `instance.markParams` "Deploy parameters", `instance.added` "Added to the watchlist". `bun run i18n:types`.
 
 - [ ] **Step 5: Verify** `bun test` (all) and the typecheck (Global Constraints) — PASS.
 
