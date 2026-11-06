@@ -1,5 +1,4 @@
 import { useState, type ReactNode } from "react";
-import type { ContractData } from "@signumjs/contracts";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,7 +22,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useWalletStatus } from "@/hooks/use-wallet-status.ts";
 import { announceDeployment } from "@/features/workflow/deployment-watch";
-import type { MachineData } from "@/features/asm-editor/machine-data.ts";
+import { buildUnsignedDeploy, type DeployRequest } from "@/features/deployment/deploy-request";
 import { toast } from "sonner";
 import { wallet } from "@/lib/wallet.ts";
 import type { ConfirmedTransaction } from "@signumjs/wallets";
@@ -63,8 +62,10 @@ type DeploymentStep =
   | "error";
 
 interface DeploymentFlowProps {
-  data: MachineData;
-  initialData: ContractData[];
+  /** A full deploy (code and pages) or a deploy by reference to an original. */
+  request: DeployRequest;
+  /** Announced with the deployment so "inspect after deploying" finds the Label Map. */
+  codeHash: string;
   deadline: number;
   fee: Amount;
   /** Rendered under the success message, e.g. "Inspect" — the flow itself knows no project. */
@@ -72,8 +73,8 @@ interface DeploymentFlowProps {
 }
 
 export function DeploymentFlow({
-  data,
-  initialData,
+  request,
+  codeHash,
   deadline,
   fee,
   successAction,
@@ -85,9 +86,10 @@ export function DeploymentFlow({
   const [errorMessage, setErrorMessage] = useState("");
   const status = useWalletStatus();
 
-  // Check if contract exceeds the absolute maximum size
-  if (isTooLarge(data)) {
-    const contractSize = calculateContractSize(data);
+  // Size limits are about the code; a reference deploy sends none.
+  const machine = request.kind === "full" ? request.machine : null;
+  if (machine && isTooLarge(machine)) {
+    const contractSize = calculateContractSize(machine);
     return (
       <Card>
         <CardHeader>
@@ -111,11 +113,11 @@ export function DeploymentFlow({
     );
   }
 
-  if (status && isLargeContract(data)) {
+  if (status && request.kind === "full" && isLargeContract(request.machine)) {
     return (
       <LargeContractDeployment
-        data={data}
-        initialData={initialData}
+        request={request}
+        codeHash={codeHash}
         deadline={deadline}
         fee={fee}
         nodeUrl={status.ledger.service.settings.nodeHost}
@@ -132,36 +134,22 @@ export function DeploymentFlow({
     try {
       setErrorMessage("");
       setDeploymentStep("preparing");
-      console.log("Deploying contract...");
 
-      const unsignedTx = await status.ledger.contract.publishContract({
-        data: initialData,
-        codeHex: data.ByteCode,
-        description: data.PDescription,
-        name: data.PName,
-        deadline,
-        activationAmountPlanck: data.PActivationAmount,
+      const unsignedTransactionBytes = await buildUnsignedDeploy(status.ledger, request, {
         senderPublicKey: status.publicKey,
-        dataPages: data.DataPages,
-        callStackPages: data.CodeStackPages,
-        userStackPages: data.UserStackPages,
         feePlanck: fee.getPlanck(),
-        skipAdditionalSecurityCheck: true
+        deadline,
       });
 
-      console.log("Unsigned Transaction Bytes:", unsignedTx.unsignedTransactionBytes);
-
       setDeploymentStep("wallet_confirmation");
-      setUnsignedBytes(unsignedTx.unsignedTransactionBytes);
-      const tx = await wallet.signTransaction(
-        unsignedTx.unsignedTransactionBytes,
-      );
+      setUnsignedBytes(unsignedTransactionBytes);
+      const tx = await wallet.signTransaction(unsignedTransactionBytes);
 
       setDeploymentStep("broadcasting");
       await waitForBroadcastedTx(tx.transactionId, status.ledger);
       announceDeployment({
         nodeHost: status.ledger.service.settings.nodeHost,
-        codeHash: data.MachineCodeHashId,
+        codeHash,
         transactionId: tx.transactionId,
       });
 

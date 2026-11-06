@@ -1,3 +1,5 @@
+import { baseFromByteData } from "@/features/deployment/deploy-params";
+import { toContractData } from "@/features/inspector/model/encode";
 import {
   Card,
   CardContent,
@@ -153,7 +155,20 @@ export function DeploymentView({
             </CardContent>
           </Card>
           <WalletConnection />
-          <DeploymentFlow data={data} fee={Amount.fromSigna(minimumFee)} deadline={deadline} initialData={[]} successAction={successAction}/>
+          <DeploymentFlow
+            request={{
+              kind: "full",
+              machine: data,
+              name: data.PName,
+              description: data.PDescription,
+              activationPlanck: String(data.PActivationAmount),
+              data: baseFromByteData(data.ByteData).map(toContractData),
+            }}
+            codeHash={data.MachineCodeHashId}
+            fee={Amount.fromSigna(minimumFee)}
+            deadline={deadline}
+            successAction={successAction}
+          />
         </div>
       </div>
     </AdaptiveScrollArea>
