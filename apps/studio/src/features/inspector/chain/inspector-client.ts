@@ -100,7 +100,7 @@ export function filterSummaries(rows: ContractSummary[], query: string): Contrac
 }
 
 /** Node error codes 4 ("Incorrect …") and 5 ("Unknown …") both mean: no such contract. */
-function classify(e: unknown): InspectorError {
+export function classifyNodeError(e: unknown): InspectorError {
   const error = e as { status?: number; data?: { errorCode?: number; errorDescription?: string }; message?: string };
   const code = error?.data?.errorCode;
   const message = error?.data?.errorDescription ?? error?.message ?? String(e);
@@ -113,7 +113,7 @@ async function call<T>(work: () => Promise<T>): Promise<T> {
   try {
     return await work();
   } catch (e) {
-    throw classify(e);
+    throw classifyNodeError(e);
   }
 }
 
