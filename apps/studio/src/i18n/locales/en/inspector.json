@@ -206,5 +206,17 @@
     "inspect": "Inspect",
     "inspectHint": "Open this contract in the inspector, with labels generated from this source",
     "failed": "Could not prepare the inspection: {message}"
+  },
+  "instance": {
+    "button": "New instance",
+    "title": "New instance of {name}",
+    "connect": "Connect XT Wallet to deploy a new instance.",
+    "resolving": "Looking up the original deployment…",
+    "otherNetwork": "XT Wallet is connected to a node that does not know this contract. Switch XT to the contract's network.",
+    "noOriginal": "The original deployment of this contract could not be found on this node.",
+    "node": "The wallet's node did not answer: {message}",
+    "ambiguous": "Several Label Maps claim this code hash — pin one first.",
+    "markParams": "Deploy parameters",
+    "added": "Added to the watchlist"
   }
 }

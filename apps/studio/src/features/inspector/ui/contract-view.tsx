@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { RefreshCw } from "lucide-react";
+import { CopyPlus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,6 +16,7 @@ import { OverviewTab } from "./overview-tab";
 import { DataStackTab } from "./data-stack-tab";
 import { MapsTab } from "./maps-tab";
 import { useContract } from "./use-contract";
+import { InstanceDeployDialog } from "./instance-deploy-dialog";
 
 /**
  * One contract: fetched from its node, labelled by whichever Label Map the
@@ -27,12 +28,15 @@ export function ContractView({
   folderId,
   onPin,
   onMoveNetwork,
+  onInstanceDeployed,
 }: {
   entry: WatchEntry;
   folderId: string;
   onPin: (path: string) => void;
   /** Reads the same contract through another node — the way out when a node is down. */
   onMoveNetwork: (to: Network) => void;
+  /** A new instance of this contract was deployed; the watchlist takes it in. */
+  onInstanceDeployed: (contractId: string) => void;
 }) {
   const fs = useFileSystem();
   const labelMaps = useLabelMaps();
@@ -60,6 +64,7 @@ export function ContractView({
 
   const [tab, setTab] = useState("data");
   const [nodeDraft, setNodeDraft] = useState<Network | null>(null);
+  const [instancing, setInstancing] = useState(false);
 
   /** The file a new label is written to; see `labelTarget` for why ambiguity never creates one. */
   const ensureLabelMap = async (): Promise<string | null> => {
@@ -75,9 +80,14 @@ export function ContractView({
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       <SurfaceToolbar
         verbs={
-          <ToolbarButton onClick={refresh} disabled={state === "loading"}>
-            <RefreshCw className="h-4 w-4" /> {t("inspector.editor.refresh")}
-          </ToolbarButton>
+          <>
+            <ToolbarButton onClick={refresh} disabled={state === "loading"}>
+              <RefreshCw className="h-4 w-4" /> {t("inspector.editor.refresh")}
+            </ToolbarButton>
+            <ToolbarButton onClick={() => setInstancing(true)} disabled={!contract}>
+              <CopyPlus className="h-4 w-4" /> {t("inspector.instance.button")}
+            </ToolbarButton>
+          </>
         }
         context={
           state === "ready" && !active ? (
@@ -142,6 +152,17 @@ export function ContractView({
             <MapsTab contract={contract} client={client} labelMap={active} prefix={prefix} ensureLabelMap={ensureLabelMap} revision={revision} />
           </TabsContent>
         </Tabs>
+      )}
+      {contract && (
+        <InstanceDeployDialog
+          open={instancing}
+          onOpenChange={setInstancing}
+          contract={contract}
+          resolution={resolution}
+          ensureLabelMap={ensureLabelMap}
+          prefix={prefix}
+          onDeployed={onInstanceDeployed}
+        />
       )}
     </div>
   );

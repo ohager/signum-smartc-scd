@@ -609,6 +609,16 @@ export type MessageParams = {
   "inspector.deploy.inspect": undefined;
   "inspector.deploy.inspectHint": undefined;
   "inspector.deploy.failed": { message: string | number };
+  "inspector.instance.button": undefined;
+  "inspector.instance.title": { name: string | number };
+  "inspector.instance.connect": undefined;
+  "inspector.instance.resolving": undefined;
+  "inspector.instance.otherNetwork": undefined;
+  "inspector.instance.noOriginal": undefined;
+  "inspector.instance.node": { message: string | number };
+  "inspector.instance.ambiguous": undefined;
+  "inspector.instance.markParams": undefined;
+  "inspector.instance.added": undefined;
 };
 
 export type MessageKey = keyof MessageParams;
