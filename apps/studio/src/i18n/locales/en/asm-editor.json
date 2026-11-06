@@ -141,5 +141,40 @@
       "returnsOne": "returns a value, one argument",
       "returnsTwo": "returns a value, two arguments"
     }
+  },
+  "params": {
+    "title": "Parameters",
+    "hint": "Values written into the contract's data stack at deployment.",
+    "none": "This contract has no deploy parameters. Mark slots as parameters in its Label Map (`param: true`).",
+    "overwritten": "Overwritten by line {line} on first activation",
+    "confirmOverwrite": "I know this value will be overwritten",
+    "noSourceCheck": "Without source code, Studio cannot check whether top-level code overwrites these values.",
+    "placeholderDefault": "Empty: {value}",
+    "error": {
+      "invalid": "Not a valid value for this format",
+      "outOfRange": "Does not fit into 64 bits",
+      "tooLong": "Text is limited to 8 bytes",
+      "tooManyDecimals": "At most 8 decimal places",
+      "unknownEnum": "Not one of the enum's values"
+    },
+    "tooLarge": "The data does not fit into the contract's {slots} data slots.",
+    "preview": "Data stack",
+    "internal": "internal",
+    "slot": "Slot",
+    "name": "Name",
+    "value": "Value",
+    "hex": "Hex"
+  },
+  "reference": {
+    "title": "Deploy by reference",
+    "hint": "Reuses the code of a contract already on chain. Cheaper: only the data is sent.",
+    "original": "Original",
+    "inherited": "Activation amount and memory pages come from the original.",
+    "searching": "Looking for deployments of this code…",
+    "connect": "Connect XT Wallet to find existing deployments of this code.",
+    "failed": "Could not search the node: {message}",
+    "retry": "Search again",
+    "noneYet": "Once this code is on chain, you can deploy more instances cheaply by reference.",
+    "candidate": "{id} · by {creator} · block {height}"
   }
 }
