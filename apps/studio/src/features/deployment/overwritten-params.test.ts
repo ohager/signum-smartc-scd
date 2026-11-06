@@ -30,3 +30,21 @@ describe("findOverwrittenParams", () => {
 
   it("returns null for a source that does not compile", () => expect(compileVerbose("long x = ;")).toBeNull());
 });
+
+describe("findOverwrittenParams through calls", () => {
+  it("follows a function called from top-level code", () => {
+    const source = "long owner;\nlong other;\nsetup();\nvoid main(void) { other++; }\nvoid setup(void) { owner = 3; }\n";
+    expect(detect(source, ["owner", "other"])).toEqual([{ index: indexOf(source, "owner"), line: 3 }]);
+  });
+
+  it("follows nested calls and survives recursion", () => {
+    const source =
+      "long owner;\nouter();\nvoid main(void) { }\nvoid outer(void) { inner(); }\nvoid inner(void) { if (owner == 0) { inner(); } owner = 1; }\n";
+    expect(detect(source, ["owner"])).toEqual([{ index: indexOf(source, "owner"), line: 2 }]);
+  });
+
+  it("does not count functions called only from main", () => {
+    const source = "long owner;\nvoid main(void) { setup(); }\nvoid setup(void) { owner = 3; }\n";
+    expect(detect(source, ["owner"])).toEqual([]);
+  });
+});
