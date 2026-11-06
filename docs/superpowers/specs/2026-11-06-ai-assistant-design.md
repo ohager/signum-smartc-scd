@@ -44,10 +44,12 @@ IndexedDB/localStorage), while the agents run locally in a terminal and speak MC
 
 ## 3. Scope and roadmap
 
+Numbers name the sub-projects; **carbon contracts (2) are built first**, then R1.
+
 | # | Sub-project | Depends on |
 |---|---|---|
 | **1** | **R1 — assistant bridge + write → compile → test loop**, incl. gas analysis and lint in the editor (this spec) | — |
-| 2 | **Carbon contracts in the Studio** — deploy a contract *by reference* (`publishContractByReference` in `@signumjs/core`: `referencedTransactionFullHash` + initial `data`), signed by the user, on every network. A Studio feature in its own right, independent of the assistant. | — |
+| 2 | **Carbon contracts in the Studio** — deploy by reference with a parameter form, signed by the user, on every network. A Studio feature in its own right. Spec: `2026-11-06-carbon-contracts-design.md`. | — |
 | 3 | **Assistant sandbox** — instance deploys by reference, dev accounts and transactions on the local sandbox | 1, 2 |
 | 4 | **Assistant inspection** — watchlists, data stack, maps, Label Map generation (read-only) | 1 |
 | 5 | **Inspector M2 disassembly** + assistant tools for it | 1, inspector M2 |
@@ -246,6 +248,7 @@ finding has a rule id, severity (`error`, `warning`, `info`), line and a fix hin
 | 5 | `switch` dispatch **without `default`** — unknown methods are accepted silently | warning |
 | 6 | Missing `#pragma version` / `optimizationLevel`, or a version different from the Studio's compiler | info |
 | 7 | **No global error handler** — no `void catch()` (no `ERR :label` in assembly) | info; warning if the contract calls `send*` |
+| 8 | A deploy parameter (`param: true` in the Label Map, or a TESTBED-convention variable) **written by top-level code** — the deployed value is overwritten on first activation. Reuses `findOverwrittenParams` from the carbon contracts spec §5. | warning |
 
 **Rule 7 in detail.** Without a handler, a fatal fault (division by zero, stack
 overflow, out of gas) leaves the contract **dead** for good. The hint offers both
