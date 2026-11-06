@@ -341,6 +341,9 @@ export type MessageParams = {
   "asm-editor.deploy.minimum": undefined;
   "asm-editor.deploy.deadline": undefined;
   "asm-editor.deploy.deadlineHint": undefined;
+  "asm-editor.deploy.pathFull": undefined;
+  "asm-editor.deploy.pathReference": undefined;
+  "asm-editor.deploy.fixParams": undefined;
   "asm-editor.flow.connectWallet": undefined;
   "asm-editor.flow.title": undefined;
   "asm-editor.flow.subtitle": undefined;

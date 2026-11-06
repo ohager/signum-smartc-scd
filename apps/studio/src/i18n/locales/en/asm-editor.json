@@ -55,7 +55,10 @@
     "feeSigna": "Transaction Fee (SIGNA)",
     "minimum": "Minimum:",
     "deadline": "Deadline (minutes)",
-    "deadlineHint": "Transaction deadline in minutes (max: 1440)"
+    "deadlineHint": "Transaction deadline in minutes (max: 1440)",
+    "pathFull": "Full deploy",
+    "pathReference": "By reference",
+    "fixParams": "Fix the parameters above to deploy."
   },
   "flow": {
     "connectWallet": "Please connect to a wallet to deploy your contract",
