@@ -41,6 +41,7 @@
         "@signumjs/http": "^3.3.4",
         "@signumjs/util": "^3.3.4",
         "@signumjs/wallets": "^3.3.4",
+        "@smartc-studio/assistant-protocol": "workspace:*",
         "@vitest/expect": "^4.1.11",
         "acorn": "^8.18.0",
         "bun-plugin-tailwind": "^0.0.14",
@@ -77,6 +78,13 @@
         "@types/lodash.set": "^4.3.9",
         "@types/react": "^19",
         "@types/react-dom": "^19",
+      },
+    },
+    "packages/assistant-protocol": {
+      "name": "@smartc-studio/assistant-protocol",
+      "version": "0.0.0",
+      "dependencies": {
+        "zod": "^4",
       },
     },
   },
@@ -200,6 +208,8 @@
     "@signumjs/util": ["@signumjs/util@3.3.4", "", { "dependencies": { "bignumber.js": "^9.1.2", "js-base64": "^3.7.7" } }, "sha512-ZBFKGQ2KS1UKsJdEh7mQB2RIJgXtMw6F6NwSRa1o3VCtDYQfEGrT0v8MjPftZobOywIpHMUJcOunzliMg4aBeQ=="],
 
     "@signumjs/wallets": ["@signumjs/wallets@3.3.4", "", { "dependencies": { "@signumjs/standards": "*", "@signumjs/util": "*", "nanoid": "^3.3.11" }, "peerDependencies": { "@signumjs/core": "^3.3.4", "@signumjs/crypto": "^3.3.4" } }, "sha512-JvbQqq8sRG+onir5BfzVFHTVXhOh3UuV5roDkhtOnIOCPo5Bk6R294Ov++ds5cbSMuXPn0Tlqu1T2quuN0UGhg=="],
+
+    "@smartc-studio/assistant-protocol": ["@smartc-studio/assistant-protocol@workspace:packages/assistant-protocol"],
 
     "@standard-schema/spec": ["@standard-schema/spec@1.1.0", "", {}, "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w=="],
 
@@ -431,10 +441,14 @@
 
     "zod": ["zod@4.6.5", "", {}, "sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q=="],
 
+    "@signum-smartc-scd/studio/@types/bun": ["@types/bun@1.4.4", "", { "dependencies": { "bun-types": "1.4.4" } }, "sha512-9wkRDXUXK124pEnAutE6n/l18j+i9GC5IAHK8TmX/2nlySETmky0OU6yL5U8pW1AoKh++AN9auDCr647BfurjQ=="],
+
     "bun-plugin-tailwind/tailwindcss": ["tailwindcss@4.0.0-beta.9", "", {}, "sha512-96KpsfQi+/sFIOfyFnGzyy5pobuzf1iMBD9NVtelerPM/lPI2XUS4Kikw9yuKRniXXw77ov1sl7gCSKLsn6CJA=="],
 
     "log-update/slice-ansi": ["slice-ansi@7.1.2", "", { "dependencies": { "ansi-styles": "^6.2.1", "is-fullwidth-code-point": "^5.0.0" } }, "sha512-iOBWFgUX7caIZiuutICxVgX1SdxwAVFFKwt1EvMYYec/NWO5meOJ6K5uQxhrYBdQJne4KxiqZc+KptFOWFSI9w=="],
 
     "wrap-ansi/string-width": ["string-width@7.2.0", "", { "dependencies": { "emoji-regex": "^10.3.0", "get-east-asian-width": "^1.0.0", "strip-ansi": "^7.1.0" } }, "sha512-tsaTIkKW9b4N+AEj+SVA+WhJzV7/zMhcSu78mLKWSk7cXMOSHsBKFWUs0fWwq8QyK3MgJBQRX6Gbi4kYbdvGkQ=="],
+
+    "@signum-smartc-scd/studio/@types/bun/bun-types": ["bun-types@1.4.4", "", { "dependencies": { "@types/node": "*", "undici-types": "*" } }, "sha512-yjrJh5oGX7mMPKGd19YXyIjmEuj4G4zNC30bs7PM9Az7NQ3ndF3j6hbeRdvJTRQEhJ/FYQwW0a2moweEi2hMxQ=="],
   }
 }
