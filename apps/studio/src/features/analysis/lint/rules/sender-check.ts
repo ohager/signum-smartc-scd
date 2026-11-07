@@ -32,6 +32,12 @@ function finding(handler: FunctionSpan, effects: Effects): LintFinding {
     line: handler.startLine,
     message: `Handler \`${handler.name}\` ${what} without checking who sent the transaction.`,
     hint: HINT,
+    data: {
+      handler: handler.name,
+      globals: effects.globals.join(", "),
+      mapWrites: effects.mapWrites ? 1 : 0,
+      sends: effects.sends ? 1 : 0,
+    },
   };
 }
 

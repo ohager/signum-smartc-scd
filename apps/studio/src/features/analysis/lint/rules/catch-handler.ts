@@ -34,6 +34,7 @@ export const noCatch: Rule = (ctx) => {
         ? "No `catch` handler: after a fatal fault the contract stays dead, with its balance locked in it."
         : "No `catch` handler: after a fatal fault the contract stays dead.",
       hint: `Add a global error handler. ${RESUME_HINT} ${WIND_DOWN_HINT}`,
+      data: { sends: sends ? 1 : 0 },
     },
   ];
 };
@@ -111,6 +112,7 @@ export const catchRecurringFault: Rule = (ctx) => {
       severity: "warning",
       line: site.line,
       message: "A fault here recurs on every activation and burns gas until the balance is gone.",
+      data: { what: site.what },
       hint: `The \`catch\` handler resumes at \`main\`, which runs this ${site.what === "division" ? "division" : "recursive call"} again. Guard it (check the divisor, bound the recursion), move it into a handler, or wind down instead: \`void catch() { sendBalance(getCreator()); exit; }\`.`,
     });
   }

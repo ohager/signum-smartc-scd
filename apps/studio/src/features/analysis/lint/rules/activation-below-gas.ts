@@ -42,6 +42,18 @@ export const activationBelowGas: Rule = (ctx) => {
       ? `The worst case costs ${cost}, but activationAmount is ${formatSigna(report.activationAmountPlanck)} SIGNA.`
       : `No activationAmount set; the worst case costs ${cost}.`,
     hint: hints.join(" "),
+    data: {
+      hasDirective: hasDirective ? 1 : 0,
+      atLeast: report.worstCaseComplete ? 0 : 1,
+      worstCase: formatSigna(report.worstCasePlanck),
+      activation: formatSigna(report.activationAmountPlanck),
+      required: required.toString(),
+      requiredSigna: formatSigna(required),
+      handler: report.worstCase.handler ?? "",
+      method: report.worstCase.method ?? "",
+      capHit: report.capHit ? 1 : 0,
+      loopCap: report.analysis.loopCap,
+    },
   };
   return [finding];
 };

@@ -59,6 +59,7 @@ export const sendWithoutCheck: Rule = (ctx) => {
         severity: "warning",
         line: fn.startLine + lineAt(fn.body, call.index!) - 1,
         message: `\`${call[1]}\` is not preceded by a balance or amount check.`,
+        data: { call: call[1]! },
         hint:
           call[1] === "sendAmount"
             ? "Check the funds first: `if (getCurrentBalance() >= amount) { sendAmount(amount, recipient); }`."

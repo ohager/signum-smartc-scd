@@ -1,6 +1,7 @@
 import type * as Monaco from "monaco-editor";
 import { scanSymbols } from "./symbol-scanner";
 import { analyzeWithCompiler } from "./compiler-symbols";
+import { ANALYSIS_OWNER, analysisMarkers } from "@/features/analysis/diagnostics";
 import { type SmartCSymbols, emptySymbols, mergeSymbols } from "./symbols";
 
 const cache = new Map<string, SmartCSymbols>();
@@ -40,8 +41,24 @@ export function updateModel(
     });
   }
   monaco.editor.setModelMarkers(model, "smartc", markers);
+  monaco.editor.setModelMarkers(model, ANALYSIS_OWNER, lintMarkers(monaco, source));
+}
+
+/**
+ * A lint crash must not cost the user the compile markers or the symbol
+ * cache, which are already set by now.
+ */
+function lintMarkers(monaco: typeof Monaco, source: string): Monaco.editor.IMarkerData[] {
+  try {
+    const { Error, Warning, Info } = monaco.MarkerSeverity;
+    return analysisMarkers(source, { Error, Warning, Info });
+  } catch (e) {
+    console.error("smartc lint failed", e);
+    return [];
+  }
 }
 
 export function clearModel(model: Monaco.editor.ITextModel): void {
   cache.delete(model.uri.toString());
+  // Analysis markers need no clearing here: Monaco drops every owner's markers when the model is disposed.
 }

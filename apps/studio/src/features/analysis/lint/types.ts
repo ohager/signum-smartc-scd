@@ -27,6 +27,11 @@ export interface LintFinding {
   line: number;
   message: string;
   hint: string;
+  /**
+   * The values interpolated into `message`/`hint`, kept structured so the
+   * editor can translate them. Agents read the English text; the UI reads this.
+   */
+  data?: Record<string, string | number>;
 }
 
 /** A function, or a `case` body treated like one. Lines are 1-based and inclusive. */

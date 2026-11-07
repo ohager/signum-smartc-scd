@@ -15,6 +15,7 @@ export const overwrittenParam: Rule = (ctx) => {
       severity: "warning",
       line,
       message: `\`${names.get(index)}\` is a deploy parameter, but this line writes it before \`main\` runs, so the deployed value is replaced on first activation.`,
+      data: { name: String(names.get(index)) },
       hint: "Drop the write, or only assign when the slot is still unset (`if (x == 0) { x = … }`) inside `main`.",
     }),
   );
