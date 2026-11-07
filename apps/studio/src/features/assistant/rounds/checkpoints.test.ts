@@ -154,6 +154,15 @@ describe("MemoryCheckpointStore", () => {
     expect(await store.get("nope")).toBeUndefined();
   });
 
+  it("breaks createdAt ties by insertion order, newest first", async () => {
+    const store = new MemoryCheckpointStore();
+    await store.put(cp("first", "a", 5));
+    await store.put(cp("second", "a", 5));
+    expect((await store.list("a")).map((c) => c.id)).toEqual(["second", "first"]);
+    await store.prune("a", 1);
+    expect((await store.list("a")).map((c) => c.id)).toEqual(["second"]);
+  });
+
   it("keeps the last 20 per project", async () => {
     expect(MAX_CHECKPOINTS).toBe(20);
     const store = new MemoryCheckpointStore();

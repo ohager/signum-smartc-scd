@@ -28,18 +28,25 @@ export const MAX_CHECKPOINTS = 20;
 
 export class MemoryCheckpointStore implements CheckpointStore {
   private readonly byId = new Map<string, Checkpoint>();
+  /* Timestamps can tie (coarse clocks), so insertion order decides "newest". */
+  private readonly seq = new Map<string, number>();
+  private counter = 0;
 
   async put(cp: Checkpoint) {
     this.byId.set(cp.id, cp);
+    this.seq.set(cp.id, this.counter++);
   }
   async get(id: string) {
     return this.byId.get(id);
   }
   async list(projectId: string) {
-    return [...this.byId.values()].filter((c) => c.projectId === projectId).sort((a, b) => b.createdAt - a.createdAt);
+    return [...this.byId.values()].filter((c) => c.projectId === projectId).sort((a, b) => b.createdAt - a.createdAt || this.seq.get(b.id)! - this.seq.get(a.id)!);
   }
   async prune(projectId: string, keep: number) {
-    for (const old of (await this.list(projectId)).slice(keep)) this.byId.delete(old.id);
+    for (const old of (await this.list(projectId)).slice(keep)) {
+      this.byId.delete(old.id);
+      this.seq.delete(old.id);
+    }
   }
 }
 

@@ -36,20 +36,28 @@ let tracker: RoundTracker;
 let starts: string[];
 let ends: { projectId: string; roundId: string; reason: string }[];
 let startGate: Promise<void> | null;
+let endGate: Promise<void> | null;
+let log: string[];
 
 beforeEach(() => {
   clock = new FakeClock();
   starts = [];
   ends = [];
   startGate = null;
+  endGate = null;
+  log = [];
   const hooks: RoundHooks = {
     async start(projectId) {
       starts.push(projectId);
+      log.push(`start${starts.length}`);
       if (startGate) await startGate;
       return { roundId: `r${starts.length}`, checkpointId: `c${starts.length}` };
     },
     async end(projectId, roundId, reason) {
+      log.push(`end-begin:${roundId}`);
+      if (endGate) await endGate;
       ends.push({ projectId, roundId, reason });
+      log.push(`end-done:${roundId}`);
     },
   };
   tracker = new RoundTracker({ idleMs: 60_000, clock, hooks });
@@ -224,5 +232,51 @@ describe("RoundTracker", () => {
     expect(tracker.active("a")).toBeNull();
     clock.advance(120_000);
     expect(ends).toHaveLength(2);
+  });
+  describe("interruption while start is pending", () => {
+    it("a takeover during a pending start ends the round and rejects the write", async () => {
+      let open!: () => void;
+      startGate = new Promise<void>((r) => (open = r));
+      const pending = tracker.begin("a", "write");
+      const waiter = tracker.begin("a", "write");
+      const outcomes = Promise.all([rejection(pending), rejection(waiter)]);
+      await tracker.takeOver("a");
+      open();
+      const failures = await outcomes;
+      expect(failures.map((f) => f.code)).toEqual(["user_took_over", "user_took_over"]);
+      expect(ends).toEqual([{ projectId: "a", roundId: "r1", reason: "takeover" }]);
+      expect(tracker.active("a")).toBeNull();
+
+      // The flag was consumed by the rejected write, so a later write starts afresh.
+      await tracker.begin("a", "write");
+      expect(starts).toEqual(["a", "a"]);
+      expect(tracker.active("a")?.roundId).toBe("r2");
+    });
+
+    it("endAll during a pending start ends with disconnect and rejects with studio_disconnected", async () => {
+      let open!: () => void;
+      startGate = new Promise<void>((r) => (open = r));
+      const outcome = rejection(tracker.begin("a", "write"));
+      await tracker.endAll("disconnect");
+      open();
+      expect((await outcome).code).toBe("studio_disconnected");
+      expect(ends).toEqual([{ projectId: "a", roundId: "r1", reason: "disconnect" }]);
+      expect(tracker.active("a")).toBeNull();
+    });
+  });
+
+  it("a new start waits for the previous round's end to finish", async () => {
+    await tracker.begin("a", "write");
+    tracker.finish("a");
+    let open!: () => void;
+    endGate = new Promise<void>((r) => (open = r));
+    clock.advance(60_000); // idle end begins, gated
+    const next = tracker.begin("a", "write");
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(log).toEqual(["start1", "end-begin:r1"]);
+    open();
+    await next;
+    expect(log).toEqual(["start1", "end-begin:r1", "end-done:r1", "start2"]);
   });
 });
