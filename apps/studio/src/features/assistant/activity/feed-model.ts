@@ -154,3 +154,15 @@ export function feedReducer(state: FeedState, event: FeedEvent): FeedState {
 export function hasActivity(state: FeedState): boolean {
   return state.rounds.length > 0 || state.loose.length > 0;
 }
+
+/*
+ * Restoring a round puts the whole project back to that round's start, so every newer
+ * round of the same project is undone with it; the confirm dialog must say so.
+ * `rounds` is newest first, so newer rounds sit before this one.
+ */
+export function hasLaterRound(state: FeedState, roundId: string): boolean {
+  const i = state.rounds.findIndex((r) => r.roundId === roundId);
+  if (i < 0) return false;
+  const projectId = state.rounds[i]!.projectId;
+  return state.rounds.slice(0, i).some((r) => r.projectId === projectId);
+}

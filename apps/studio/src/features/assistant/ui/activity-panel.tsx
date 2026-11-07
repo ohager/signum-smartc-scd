@@ -10,7 +10,7 @@ import { FileSystem } from "@/lib/file-system";
 import { formatDate, t } from "@/i18n/runtime";
 import { useAssistant } from "../bridge/use-assistant";
 import type { RestorePlan } from "../activity/restore-round";
-import type { FeedEntry, FeedRound, FeedSummary } from "../activity/feed-model";
+import { hasLaterRound, type FeedEntry, type FeedRound, type FeedSummary } from "../activity/feed-model";
 import { feedAtom, lastRestoreAtom } from "../state";
 import { RoundDiffDialog, type RoundDiffTarget } from "./round-diff-dialog";
 
@@ -182,6 +182,7 @@ export function ActivityPanel({ open, onOpenChange }: { open: boolean; onOpenCha
         confirmText={t("assistant.restore.confirm")}
         variant="destructive"
       >
+        {pending && hasLaterRound(feed, pending.round.roundId) && <p className="text-sm">{t("assistant.restore.laterRounds")}</p>}
         {plan && plan.needsConfirm.length > 0 && (
           <ul className="list-disc pl-5 text-sm">
             {plan.needsConfirm.map((f) => (

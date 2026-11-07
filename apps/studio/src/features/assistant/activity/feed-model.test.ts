@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test";
 import type { ToolOutcome } from "@smartc-studio/assistant-protocol";
-import { feedReducer, hasActivity, summarize, LOOSE_CAP, ROUND_ENTRY_CAP, type FeedEvent, type FeedState } from "./feed-model";
+import { feedReducer, hasActivity, hasLaterRound, summarize, LOOSE_CAP, ROUND_ENTRY_CAP, type FeedEvent, type FeedState } from "./feed-model";
 
 const empty: FeedState = { rounds: [], loose: [] };
 const run = (events: FeedEvent[], from: FeedState = empty) => events.reduce(feedReducer, from);
@@ -69,6 +69,16 @@ describe("feedReducer", () => {
     const inRound = run([roundStart(), ...Array.from({ length: ROUND_ENTRY_CAP + 3 }, (_, i) => callStart(`c${i}`, "p1", "compile"))]);
     expect(inRound.rounds[0]!.entries).toHaveLength(ROUND_ENTRY_CAP);
     expect(inRound.rounds[0]!.entries[0]!.callId).toBe("c3");
+  });
+});
+
+describe("hasLaterRound", () => {
+  it("is true only when the same project has a newer round", () => {
+    const s = run([roundStart("r1", "p1", 1), roundStart("r2", "p2", 2), roundStart("r3", "p1", 3)]);
+    expect(hasLaterRound(s, "r1")).toBe(true);
+    expect(hasLaterRound(s, "r3")).toBe(false);
+    expect(hasLaterRound(s, "r2")).toBe(false);
+    expect(hasLaterRound(s, "unknown")).toBe(false);
   });
 });
 

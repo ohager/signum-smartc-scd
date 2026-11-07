@@ -84,7 +84,7 @@ After a round, the editor marks lines against the checkpoint taken at the start 
 
 Open **Activity** in the connection status to see what the assistant did, grouped by round, with the result of each call (compile, tests, lint, gas). **View changes** shows a diff for a written file.
 
-**Restore to before this round** returns the project to its state at the start of that round. Files created later are removed and deleted files come back. If you changed files after the round, Studio lists them before you confirm. Restore takes a checkpoint first, so the toast offers **Undo restore**.
+**Restore to before this round** returns the project to its state at the start of that round. Files created later are removed and deleted files come back. Restoring an older round also discards the later assistant rounds of that project, and Studio says so; files changed since the round are listed before you confirm. Restore takes a checkpoint first, so the toast offers **Undo restore**, and the round keeps an **Undo restore** button until you restore that project again. An undo takes its own checkpoint, so it can be redone. After a restore or an undo, the assistant's next write fails with `user_took_over`, so it re-reads the files first.
 
 The activity feed lives in memory for the session; only checkpoints persist.
 

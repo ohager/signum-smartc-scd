@@ -711,6 +711,7 @@ export type MessageParams = {
   "assistant.restore.title": undefined;
   "assistant.restore.body": undefined;
   "assistant.restore.userChanges": undefined;
+  "assistant.restore.laterRounds": undefined;
   "assistant.restore.confirm": undefined;
   "assistant.restore.done": undefined;
   "assistant.restore.undo": undefined;
