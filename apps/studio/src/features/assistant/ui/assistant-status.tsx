@@ -73,6 +73,12 @@ export function AssistantStatus() {
           {t("assistant.status.reload")}
         </Button>
       )}
+      {(state.kind === "connecting" || state.kind === "awaiting-approval") && (
+        /* A relay that never answers must not leave the user waiting without a way out. */
+        <Button size="sm" variant="outline" onClick={disconnect}>
+          {t("assistant.status.cancel")}
+        </Button>
+      )}
       {activityButton}
       {activityPanel}
       {state.kind !== "connecting" && state.kind !== "awaiting-approval" && (

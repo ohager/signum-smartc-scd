@@ -23,6 +23,7 @@
   "status": {
     "connected": "{client} connected",
     "connecting": "Connecting on port {port}…",
+    "cancel": "Cancel",
     "disconnect": "Disconnect",
     "activity": "Activity",
     "takenOver": "Another tab took over the assistant.",

@@ -25,9 +25,11 @@ export interface ConnectionDeps {
   onDisconnected: () => void;
   studioVersion: string;
   catalogHash: string;
-  /* Injected so tests drive the backoff deterministically. */
+  /* Injected so tests drive the backoff and handshake timeouts deterministically. */
   setTimeout?: (fn: () => void, ms: number) => unknown;
   clearTimeout?: (handle: unknown) => void;
+  /** Developer diagnostics (catalog drift); defaults to console.warn. */
+  warn?: (message: string) => void;
 }
 
 /*
@@ -39,6 +41,12 @@ export function relayUrl(port: number): string {
 }
 
 const BACKOFF_MS = [1000, 2000, 5000];
+
+/*
+ * A relay that accepts the socket but never answers hello or accept (a hung process, a
+ * foreign server on the port) would otherwise leave the status on "Connecting…" forever.
+ */
+export const HANDSHAKE_TIMEOUT_MS = 10_000;
 
 function notConnected(): ToolOutcome {
   return {
@@ -69,6 +77,9 @@ export class AssistantConnection {
   #reconnecting = false;
   #retry = 0;
   #timer: unknown = null;
+  /* The pending hello's or accept's deadline; separate from the backoff timer. */
+  #handshakeTimer: unknown = null;
+  #warnedCatalog = false;
   #accepting = false;
   /* The user's allow decision and the client it applied to, to re-accept silently after a drop. */
   #allowed = false;
@@ -109,6 +120,12 @@ export class AssistantConnection {
     this.#rpc?.notify(METHODS.deny, {});
     this.#allowed = false;
     this.#clearTimer();
+    if (this.#accepting) {
+      /* Deny after Allow is a cancel: the accept may still land, so drop the socket with it. */
+      this.#teardown();
+      this.#set({ kind: "idle" });
+      return;
+    }
     /*
      * The socket stays open on purpose: the relay answers later tool calls with
      * rejected_by_user only while the denied tab is still attached, which tells the
@@ -145,6 +162,24 @@ export class AssistantConnection {
   #clearTimer(): void {
     if (this.#timer !== null) (this.#deps.clearTimeout ?? clearTimeout)(this.#timer as never);
     this.#timer = null;
+    this.#clearHandshakeTimer();
+  }
+
+  #clearHandshakeTimer(): void {
+    if (this.#handshakeTimer !== null) (this.#deps.clearTimeout ?? clearTimeout)(this.#handshakeTimer as never);
+    this.#handshakeTimer = null;
+  }
+
+  /* Gives the pending hello or accept on `sock` HANDSHAKE_TIMEOUT_MS before failing as closed. */
+  #armHandshakeTimer(sock: SocketLike): void {
+    this.#clearHandshakeTimer();
+    this.#handshakeTimer = (this.#deps.setTimeout ?? setTimeout)(() => {
+      this.#handshakeTimer = null;
+      if (this.#sock !== sock) return;
+      this.#reconnecting = false;
+      this.#teardown();
+      this.#set({ kind: "failed", reason: "closed" });
+    }, HANDSHAKE_TIMEOUT_MS);
   }
 
   /** Detaches the socket so late callbacks from it are inert. */
@@ -195,6 +230,7 @@ export class AssistantConnection {
   async #hello(sock: SocketLike): Promise<void> {
     const rpc = this.#rpc!;
     let result: any;
+    this.#armHandshakeTimer(sock);
     try {
       result = await rpc.request(METHODS.hello, {
         supported: SUPPORTED_PROTOCOL_VERSIONS,
@@ -215,6 +251,8 @@ export class AssistantConnection {
       return;
     }
     if (this.#sock !== sock) return;
+    this.#clearHandshakeTimer();
+    this.#checkCatalog(result?.catalogHash);
 
     const client: ClientInfo | null = result?.client ?? null;
     const occupied = result?.occupied === true;
@@ -236,9 +274,11 @@ export class AssistantConnection {
     const rpc = this.#rpc;
     if (!sock || !rpc) return;
     this.#accepting = true;
+    this.#armHandshakeTimer(sock);
     rpc.request(METHODS.accept, { takeover }).then(
       () => {
         if (this.#sock !== sock) return;
+        this.#clearHandshakeTimer();
         this.#accepting = false;
         this.#allowed = true;
         this.#set({ kind: "connected", client: this.#client });
@@ -250,6 +290,17 @@ export class AssistantConnection {
         this.#set({ kind: "failed", reason: "closed" });
       },
     );
+  }
+
+  /*
+   * Same protocol version but a different catalog means the two sides were built from
+   * different tool descriptions or schemas. Calls still work (the Studio re-validates
+   * every call), so this only tells a developer once, instead of refusing to connect.
+   */
+  #checkCatalog(relayHash: unknown): void {
+    if (this.#warnedCatalog || typeof relayHash !== "string" || relayHash === this.#deps.catalogHash) return;
+    this.#warnedCatalog = true;
+    (this.#deps.warn ?? console.warn)(`[assistant] The relay's tool catalog (${relayHash}) differs from this Studio's (${this.#deps.catalogHash}). Update the relay or reload the Studio.`); // i18n-ignore
   }
 
   /** The socket closed or never opened. Decide between retry, failure and silence. */

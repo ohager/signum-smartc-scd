@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { request } from "node:http";
 import { createServer } from "node:net";
 import WebSocket from "ws";
-import { METHODS, MISMATCH_ERROR, PROTOCOL_VERSION, TAKEN_OVER_CLOSE } from "@smartc-studio/assistant-protocol";
+import { METHODS, MISMATCH_ERROR, PROTOCOL_VERSION, TAKEN_OVER_CLOSE, catalogHash } from "@smartc-studio/assistant-protocol";
 import { TabLink } from "./tab-link";
 
 const ORIGIN = "http://localhost:5173";
@@ -24,10 +24,11 @@ function freePort(): Promise<number> {
 /* Most tests connect from a localhost origin, as a Studio dev server would, so they run as --dev. */
 async function startLink(allowOrigins: string[] = [], allowLocalhost = true) {
   const port = await freePort();
-  const link = new TabLink({ port, allowOrigins, allowLocalhost });
+  const lines: string[] = [];
+  const link = new TabLink({ port, allowOrigins, allowLocalhost, log: (l) => void lines.push(l) });
   expect(await link.start()).toBe("listening");
   cleanup.push(() => link.stop());
-  return { link, port };
+  return { link, port, lines };
 }
 
 /* Raw upgrade request: the status line is the same on Node and Bun (Bun's client WebSocket hides it). */
@@ -350,6 +351,26 @@ describe("TabLink", () => {
       probe.listen(port, "127.0.0.1", () => resolve());
     });
     await new Promise<void>((resolve) => probe.close(() => resolve()));
+  });
+
+  test("logs one warning when the Studio's catalog hash differs from the relay's", async () => {
+    const { port, lines } = await startLink();
+    const tab = await Tab.open(port);
+    const res = await tab.hello();
+    expect(res.result.catalogHash).not.toBe("x");
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toContain("catalog");
+    await tab.hello();
+    const second = await Tab.open(port);
+    await second.hello();
+    expect(lines).toHaveLength(1);
+  });
+
+  test("no catalog warning when the hashes match", async () => {
+    const { port, lines } = await startLink();
+    const tab = await Tab.open(port);
+    await tab.request(METHODS.hello, { supported: [PROTOCOL_VERSION], catalogHash: await catalogHash(), studioVersion: "test" });
+    expect(lines).toEqual([]);
   });
 
   test("forwards clientInfo in hello and as session.client after accept", async () => {

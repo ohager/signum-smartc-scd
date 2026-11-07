@@ -44,8 +44,9 @@ class FakeSocket implements SocketLike {
 
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
-function setup(opts: { onCall?: (t: string, a: unknown) => Promise<ToolOutcome> } = {}) {
+function setup(opts: { onCall?: (t: string, a: unknown) => Promise<ToolOutcome>; catalogHash?: string } = {}) {
   const sockets: FakeSocket[] = [];
+  const warnings: string[] = [];
   const timers: { fn: () => void; ms: number; id: number; live: boolean }[] = [];
   let nextTimer = 1;
   const states: ConnectionState[] = [];
@@ -59,7 +60,8 @@ function setup(opts: { onCall?: (t: string, a: unknown) => Promise<ToolOutcome> 
     onCall: opts.onCall ?? (async (tool, args) => ({ ok: true, data: { tool, args } })),
     onDisconnected: () => void disconnected++,
     studioVersion: "9.9.9",
-    catalogHash: "hash123",
+    catalogHash: opts.catalogHash ?? "hash123",
+    warn: (m) => void warnings.push(m),
     setTimeout: (fn, ms) => {
       const t = { fn, ms, id: nextTimer++, live: true };
       timers.push(t);
@@ -77,7 +79,14 @@ function setup(opts: { onCall?: (t: string, a: unknown) => Promise<ToolOutcome> 
     t.fn();
     return t.ms;
   };
-  return { conn, sockets, timers, states, fire, disconnected: () => disconnected, last: () => sockets[sockets.length - 1]! };
+  /* Fires the live timer with exactly this delay (handshake timeouts sit beside backoff timers). */
+  const fireMs = (ms: number) => {
+    const t = timers.find((x) => x.live && x.ms === ms)!;
+    t.live = false;
+    t.fn();
+  };
+  const live = () => timers.filter((t) => t.live);
+  return { conn, sockets, timers, states, fire, fireMs, live, warnings, disconnected: () => disconnected, last: () => sockets[sockets.length - 1]! };
 }
 
 async function connected(h = setup()) {
@@ -125,7 +134,85 @@ describe("AssistantConnection", () => {
     expect(h.conn.state.kind).toBe("idle");
     h.last().dropped();
     expect(h.conn.state.kind).toBe("idle");
-    expect(h.timers).toHaveLength(0);
+    expect(h.live()).toHaveLength(0);
+  });
+
+  describe("handshake timeouts and cancel", () => {
+    test("hello unanswered for 10 s fails as closed and ignores a late reply", async () => {
+      const h = setup();
+      h.conn.connect(6890);
+      h.last().open();
+      expect(h.live().map((t) => t.ms)).toEqual([10_000]);
+      h.fireMs(10_000);
+      expect(h.conn.state).toEqual({ kind: "failed", reason: "closed" });
+      expect(h.last().closedWith).not.toBe("never");
+      h.last().reply(METHODS.hello, { protocolVersion: 1, catalogHash: "hash123", client: null, occupied: false });
+      await tick();
+      expect(h.conn.state).toEqual({ kind: "failed", reason: "closed" });
+      expect(h.live()).toHaveLength(0);
+    });
+
+    test("accept unanswered for 10 s fails as closed", async () => {
+      const h = setup();
+      h.conn.connect(6890);
+      h.last().hello();
+      await tick();
+      expect(h.live()).toHaveLength(0);
+      h.conn.allow();
+      expect(h.live().map((t) => t.ms)).toEqual([10_000]);
+      h.fireMs(10_000);
+      expect(h.conn.state).toEqual({ kind: "failed", reason: "closed" });
+      h.last().reply(METHODS.accept, { ok: true });
+      await tick();
+      expect(h.conn.state).toEqual({ kind: "failed", reason: "closed" });
+    });
+
+    test("answered handshakes leave no timer behind", async () => {
+      const h = await connected();
+      expect(h.live()).toHaveLength(0);
+    });
+
+    test("cancel while connecting goes idle and closes the socket", async () => {
+      const h = setup();
+      h.conn.connect(6890);
+      h.last().open();
+      h.conn.disconnect();
+      expect(h.conn.state.kind).toBe("idle");
+      expect(h.last().closedWith).not.toBe("never");
+      expect(h.live()).toHaveLength(0);
+    });
+
+    test("deny while the accept is pending cancels it: a late accept reply does not connect", async () => {
+      const h = setup();
+      h.conn.connect(6890);
+      h.last().hello();
+      await tick();
+      h.conn.allow();
+      h.conn.deny();
+      expect(h.conn.state.kind).toBe("idle");
+      h.last().reply(METHODS.accept, { ok: true });
+      await tick();
+      expect(h.conn.state.kind).toBe("idle");
+      expect(h.live()).toHaveLength(0);
+    });
+  });
+
+  describe("catalog hash", () => {
+    test("warns once when the relay's catalog hash differs, and still connects", async () => {
+      const h = await connected(setup({ catalogHash: "mine" }));
+      expect(h.warnings).toHaveLength(1);
+      expect(h.warnings[0]).toContain("mine");
+      h.last().dropped();
+      h.fire();
+      h.last().hello();
+      await tick();
+      expect(h.warnings).toHaveLength(1);
+    });
+
+    test("does not warn when the hashes match", async () => {
+      const h = await connected(setup({ catalogHash: "h" }));
+      expect(h.warnings).toEqual([]);
+    });
   });
 
   test("occupied: allow sends takeover true", async () => {
@@ -194,14 +281,14 @@ describe("AssistantConnection", () => {
     h.last().dropped(TAKEN_OVER_CLOSE);
     expect(h.conn.state.kind).toBe("taken-over");
     expect(h.disconnected()).toBe(1);
-    expect(h.timers).toHaveLength(0);
+    expect(h.live()).toHaveLength(0);
   });
 
   test("close code 4001 alone also means taken over", async () => {
     const h = await connected();
     h.last().dropped(TAKEN_OVER_CLOSE);
     expect(h.conn.state.kind).toBe("taken-over");
-    expect(h.timers).toHaveLength(0);
+    expect(h.live()).toHaveLength(0);
   });
 
   test("mismatch: relay newer than supported asks to reload Studio", async () => {
@@ -212,7 +299,7 @@ describe("AssistantConnection", () => {
     await tick();
     expect(h.conn.state).toEqual({ kind: "mismatch", action: "reload-studio" });
     h.last().dropped();
-    expect(h.timers).toHaveLength(0);
+    expect(h.live()).toHaveLength(0);
   });
 
   test("mismatch: relay older asks to update the relay", async () => {
@@ -230,7 +317,7 @@ describe("AssistantConnection", () => {
     h.last().onerror?.();
     h.last().dropped();
     expect(h.conn.state).toEqual({ kind: "failed", reason: "unreachable" });
-    expect(h.timers).toHaveLength(0);
+    expect(h.live()).toHaveLength(0);
   });
 
   test("unexpected close reconnects with 1s, 2s, 5s backoff, then failed: closed", async () => {
@@ -297,7 +384,7 @@ describe("AssistantConnection", () => {
     h.last().dropped();
     h.conn.disconnect();
     expect(h.disconnected()).toBe(1);
-    expect(h.timers).toHaveLength(0);
+    expect(h.live()).toHaveLength(0);
   });
 
   test("disconnect during backoff cancels the pending retry", async () => {

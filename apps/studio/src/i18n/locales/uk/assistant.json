@@ -23,6 +23,7 @@
   "status": {
     "connected": "{client} підключено",
     "connecting": "Підключення до порту {port}…",
+    "cancel": "Скасувати",
     "disconnect": "Відключити",
     "activity": "Активність",
     "takenOver": "Інша вкладка перехопила асистента.",

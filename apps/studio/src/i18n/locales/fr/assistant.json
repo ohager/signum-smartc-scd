@@ -23,6 +23,7 @@
   "status": {
     "connected": "{client} connecté",
     "connecting": "Connexion sur le port {port}…",
+    "cancel": "Annuler",
     "disconnect": "Déconnecter",
     "activity": "Activité",
     "takenOver": "Un autre onglet a pris la main sur l'assistant.",

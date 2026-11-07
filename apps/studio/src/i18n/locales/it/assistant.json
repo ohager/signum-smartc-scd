@@ -23,6 +23,7 @@
   "status": {
     "connected": "{client} collegato",
     "connecting": "Connessione sulla porta {port}…",
+    "cancel": "Annulla",
     "disconnect": "Scollega",
     "activity": "Attività",
     "takenOver": "Un'altra scheda ha preso il controllo dell'assistente.",

@@ -23,6 +23,7 @@
   "status": {
     "connected": "{client} conectado",
     "connecting": "Conectando na porta {port}…",
+    "cancel": "Cancelar",
     "disconnect": "Desconectar",
     "activity": "Atividade",
     "takenOver": "Outra aba assumiu o controle do assistente.",

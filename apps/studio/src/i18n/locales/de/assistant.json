@@ -23,6 +23,7 @@
   "status": {
     "connected": "{client} verbunden",
     "connecting": "Verbindung auf Port {port} wird aufgebaut…",
+    "cancel": "Abbrechen",
     "disconnect": "Trennen",
     "activity": "Aktivität",
     "takenOver": "Ein anderer Tab hat den Assistenten übernommen.",

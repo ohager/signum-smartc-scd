@@ -48,6 +48,7 @@ export class TabLink {
   #server?: WebSocketServer;
   #busy = false;
   #stopped = false;
+  #warnedCatalog = false;
   #retry?: ReturnType<typeof setTimeout>;
   #hash = "";
   #client: ClientInfo | null = null;
@@ -286,12 +287,24 @@ export class TabLink {
       return this.#replyError(socket, id, MISMATCH_ERROR, "Protocol version mismatch", { relayVersion: PROTOCOL_VERSION });
     }
 
+    this.#checkCatalog(params?.catalogHash);
     const occupied = !!this.#active && this.#active !== socket;
     if (this.#active !== socket) {
       this.#candidate = socket;
       this.#candidateState = "pending";
     }
     this.#reply(socket, id, { protocolVersion: PROTOCOL_VERSION, catalogHash: this.#hash, client: this.#client, occupied });
+  }
+
+  /*
+   * Same protocol version, different catalog: relay and Studio were built from different
+   * tool descriptions or schemas. Calls still work (the Studio re-validates them), so
+   * this is a one-time hint for whoever maintains the two, not a refusal.
+   */
+  #checkCatalog(studioHash: unknown) {
+    if (this.#warnedCatalog || typeof studioHash !== "string" || studioHash === this.#hash) return;
+    this.#warnedCatalog = true;
+    (this.#opts.log ?? stderrLog)(`The Studio's tool catalog (${studioHash}) differs from this relay's (${this.#hash}). Update the relay with npx @smartc-studio/mcp@latest or reload the Studio.`);
   }
 
   #onAccept(socket: WebSocket, id: number | string, params: any) {

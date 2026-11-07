@@ -23,6 +23,7 @@
   "status": {
     "connected": "{client} conectado",
     "connecting": "Conectando en el puerto {port}…",
+    "cancel": "Cancelar",
     "disconnect": "Desconectar",
     "activity": "Actividad",
     "takenOver": "Otra pestaña tomó el control del asistente.",
