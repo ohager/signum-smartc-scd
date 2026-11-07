@@ -15,7 +15,7 @@ describe("lintContract", () => {
   test("a compiling contract reports compiled:true and every rule's findings", () => {
     const result = lintContract(fixture("sender-check-fires"));
     expect(result.compiled).toBe(true);
-    expect(result.findings.map((f) => f.rule)).toEqual(["sender-check", "sender-check"]);
+    expect(result.findings.map((f) => f.rule)).toEqual(["activation-below-gas", "sender-check", "no-catch", "sender-check"]);
   });
 
   test("sorts by line, then rule id", () => {

@@ -26,11 +26,11 @@ export function compileVerbose(source: string): { assembly: string; memory: stri
   }
 }
 
-const SOURCE_LINE = /^\s*\^comment line (\d+)\b/;
+export const SOURCE_LINE = /^\s*\^comment line (\d+)\b/;
 /** Mnemonic, then the written operand. `^const` lines are initial data, not code. */
-const WRITE = /^\s*[A-Z]+\s+@(\w+)\b/;
-const CALL = /^\s*JSR\s+:(__fn_\w+)\b/;
-const FUNCTION_LABEL = /^\s*(__fn_\w+):\s*$/;
+export const WRITE = /^\s*[A-Z]+\s+@(\w+)\b/;
+export const CALL = /^\s*JSR\s+:(__fn_\w+)\b/;
+export const FUNCTION_LABEL = /^\s*(__fn_\w+):\s*$/;
 
 export interface FunctionBody {
   writes: Set<string>;
@@ -41,8 +41,8 @@ export interface FunctionBody {
   mapWrites: boolean;
 }
 
-const SEND_API = /^\s*FUN\s+send_/;
-const MAP_WRITE_API = /^\s*FUN\s+set_map_value/;
+export const SEND_API = /^\s*FUN\s+send_/;
+export const MAP_WRITE_API = /^\s*FUN\s+set_map_value/;
 
 /** What each function writes and calls, so a write inside an init-time helper is found too. */
 export function functionBodies(lines: string[]): Map<string, FunctionBody> {

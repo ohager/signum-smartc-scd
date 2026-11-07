@@ -15,7 +15,7 @@ import { useLabelMaps } from "@/features/inspector/workspace/use-label-maps";
 import { resolveLabelMap } from "@/features/inspector/model/resolve-label-map";
 import { generateLabels } from "@/features/inspector/compiler/label-generator";
 import type { SlotLabel } from "@/features/inspector/model/label-map";
-import { baseFromByteData, buildDataStack, paramSlots } from "@/features/deployment/deploy-params";
+import { baseFromByteData, buildDataStack, deployParamsFor } from "@/features/deployment/deploy-params";
 import { compileVerbose, findOverwrittenParams } from "@/features/deployment/overwritten-params";
 import { pickReference } from "@/features/deployment/reference-search";
 import { flowRequest, referenceDeployMinFeePlanck, type DeployRequest } from "@/features/deployment/deploy-request";
@@ -79,7 +79,7 @@ export function DeploymentView({
     const r = generateLabels(source);
     return r.ok ? r.labels.slots : null;
   }, [source]);
-  const params = useMemo(() => paramSlots(generated, map), [generated, map]);
+  const params = useMemo(() => deployParamsFor(source, labelMaps), [source, labelMaps]);
   const overwrites = useMemo(() => {
     const verbose = compileVerbose(source);
     return verbose ? findOverwrittenParams(verbose.assembly, verbose.memory, params.map((p) => p.index)) : [];

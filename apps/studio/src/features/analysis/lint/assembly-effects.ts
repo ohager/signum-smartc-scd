@@ -1,4 +1,11 @@
-import { functionBodies, reachableBodies } from "@/features/deployment/overwritten-params";
+import {
+  functionBodies,
+  MAP_WRITE_API,
+  reachableBodies,
+  SEND_API,
+  SOURCE_LINE,
+  WRITE,
+} from "@/features/deployment/overwritten-params";
 
 /**
  * What a piece of code does to the contract's state, read from the compiler's
@@ -24,10 +31,7 @@ export function changesState(e: Effects): boolean {
   return e.globals.length > 0 || e.sends || e.mapWrites;
 }
 
-const SOURCE_LINE = /^\s*\^comment line (\d+)\b/;
-const WRITE = /^\s*[A-Z]+\s+@(\w+)\b/;
-const SEND = /^\s*FUN\s+send_/;
-const MAP_WRITE = /^\s*FUN\s+set_map_value/;
+/* The instruction patterns live with `functionBodies`, so "what counts as a write" has one definition. */
 
 export function assemblyEffects(verbose: { assembly: string; memory: string[] }, functionNames: string[]): AssemblyEffects {
   const lines = verbose.assembly.split("\n");
@@ -60,8 +64,8 @@ export function assemblyEffects(verbose: { assembly: string; memory: string[] },
         if (line < start || line > end) continue;
         const write = WRITE.exec(text);
         if (write && isGlobal(write[1]!)) globals.add(write[1]!);
-        if (SEND.test(text)) sends = true;
-        if (MAP_WRITE.test(text)) mapWrites = true;
+        if (SEND_API.test(text)) sends = true;
+        if (MAP_WRITE_API.test(text)) mapWrites = true;
       }
       return { globals: [...globals], sends, mapWrites };
     },

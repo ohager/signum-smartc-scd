@@ -1,6 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import type { LabelMap, SlotLabel } from "@/features/inspector/model/label-map";
-import { baseFromByteData, buildDataStack, paramSlots } from "./deploy-params";
+import { generateLabels } from "@/features/inspector/compiler/label-generator";
+import type { IndexedLabelMap } from "@/features/inspector/model/resolve-label-map";
+import { baseFromByteData, buildDataStack, deployParamsFor, paramSlots } from "./deploy-params";
 
 const p = (index: number, extra: Partial<SlotLabel> = {}): SlotLabel =>
   ({ index, name: `p${index}`, format: "long", param: true, ...extra });
@@ -83,4 +85,31 @@ describe("buildDataStack", () => {
 describe("baseFromByteData", () => {
   it("reads little-endian slots and drops trailing zeros", () =>
     expect(baseFromByteData("0000000000000000" + "00e1f50500000000" + "0000000000000000")).toEqual([0n, 100_000_000n]));
+});
+
+describe("deployParamsFor", () => {
+  const testbed = `#pragma version 2.3
+long owner;
+#ifdef TESTBED
+const owner = TESTBED_owner;
+#endif
+long other, fee;
+void main(void) { owner = other; }
+`;
+
+  it("returns the TESTBED-convention parameter without any Label Map", () => {
+    expect(deployParamsFor(testbed, []).map((s) => s.name)).toContain("owner");
+  });
+
+  it("returns the slots a matching Label Map marks param: true", () => {
+    const hash = generateLabels(testbed);
+    if (!hash.ok) throw new Error("fixture must compile");
+    const map: LabelMap = { ...emptyMap, codeHashes: [{ hash: hash.labels.codeHash }] as LabelMap["codeHashes"], slots: [{ index: 1, name: "fee", format: "long", param: true, origin: "manual" } as SlotLabel] };
+    const indexed: IndexedLabelMap = { fileId: "f", path: "p.json", name: "M", map, errors: [] };
+    expect(deployParamsFor(testbed, [indexed]).map((s) => s.index)).toContain(1);
+  });
+
+  it("returns nothing for source that does not compile", () => {
+    expect(deployParamsFor("long a = ;", [])).toEqual([]);
+  });
 });
