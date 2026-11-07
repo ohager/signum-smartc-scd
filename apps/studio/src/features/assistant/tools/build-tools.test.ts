@@ -178,6 +178,14 @@ describe("analyze_gas", () => {
   });
 });
 
+describe("gas report shape", () => {
+  it("survives structuredClone unchanged, as the worker boundary requires", () => {
+    const report = gasReport(GAS_CONTRACT("#program activationAmount 1000000"));
+    expect(report.ok).toBe(true);
+    expect(structuredClone(report)).toEqual(report);
+  });
+});
+
 describe("lint", () => {
   it("returns compiled and findings", async () => {
     await add("l.smart.c", fixture("pragma-fires"));
@@ -213,6 +221,20 @@ describe("lint", () => {
 
     const withMap = (await tools.lint({ path: "/p/l.smart.c" })).result;
     expect(withMap.findings.some((f) => f.rule === "overwritten-param")).toBe(true);
+  });
+
+  it("still lints when the Label Maps cannot be loaded, and says so", async () => {
+    await add("l.smart.c", fixture("pragma-fires"));
+    const broken = createBuildTools(fs, {
+      ...deps(),
+      loadLabelMaps: async () => {
+        throw new Error("storage down");
+      },
+    });
+    const { result } = await broken.lint({ path: "/p/l.smart.c" });
+    expect(result.labelMapsUnavailable).toBe(true);
+    expect(result.findings.some((f) => f.rule === "pragma-version")).toBe(true);
+    expect((await tools.lint({ path: "/p/l.smart.c" })).result.labelMapsUnavailable).toBeUndefined();
   });
 
   it("refuses other paths", async () => {

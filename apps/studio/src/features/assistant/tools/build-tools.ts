@@ -183,12 +183,26 @@ export function createBuildTools(fs: WorkspaceFs, deps: BuildDeps) {
       };
     },
 
-    async lint(args: ToolArgs<"lint">): Promise<{ result: { compiled: boolean; findings: LintFinding[] } }> {
+    async lint(
+      args: ToolArgs<"lint">,
+    ): Promise<{ result: { compiled: boolean; findings: LintFinding[]; labelMapsUnavailable?: true } }> {
       const { source } = await contractAt(args.path);
+      /*
+       * Label Maps only refine which slots count as parameters. If they cannot be
+       * loaded the lint is still useful, so fall back to the TESTBED convention
+       * alone (no maps) and tell the agent the Label Map parameters were skipped.
+       */
+      let maps: IndexedLabelMap[] = [];
+      let unavailable = false;
+      try {
+        maps = await deps.loadLabelMaps();
+      } catch {
+        unavailable = true;
+      }
       // Same parameters the editor's lint sees, so the agent and the user get the same findings.
-      const params = deployParamsFor(source, await deps.loadLabelMaps());
+      const params = deployParamsFor(source, maps);
       const { compiled, findings } = await deps.lint(source, params);
-      return { result: { compiled, findings } };
+      return { result: { compiled, findings, ...(unavailable ? { labelMapsUnavailable: true as const } : {}) } };
     },
   };
 }
