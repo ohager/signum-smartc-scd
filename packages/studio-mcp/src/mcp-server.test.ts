@@ -116,6 +116,8 @@ describe("instructions", () => {
     expect(INSTRUCTIONS).toContain("signum-smartc-skill");
     expect(INSTRUCTIONS).toContain("npx @smartc-studio/mcp");
     expect(INSTRUCTIONS).toContain("user_took_over");
+    /* R1 has no per-change rejection; only the connection can be rejected. */
+    expect(INSTRUCTIONS).not.toContain("rejects a change");
     expect(INSTRUCTIONS.split("\n").length).toBeLessThanOrEqual(65);
   });
 });

@@ -1,5 +1,5 @@
 export const DEFAULT_PORT = 6890;
-/** Ports the Studio dev server and preview use; the relay must not take them. */
+/** The Signum node's ports (6876 peer-to-peer, 6877 API); a local node may hold them, so the relay must not take them. */
 const RESERVED_PORTS = [6876, 6877];
 
 export interface RelayConfig {

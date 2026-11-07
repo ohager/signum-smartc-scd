@@ -26,6 +26,8 @@ export interface ToolRegistryDeps {
 }
 
 const INTERNAL_HINT = "This is a Studio bug; report it and continue with another approach.";
+/* Invalid arguments are the caller's to fix, not a Studio bug. */
+const SCHEMA_HINT = "Fix the arguments and call again.";
 
 function failure(code: AssistantError["code"], message: string, hint: string = DEFAULT_HINTS[code]): ToolOutcome {
   return { ok: false, error: { code, message, hint } };
@@ -193,7 +195,7 @@ export function createToolRegistry(deps: ToolRegistryDeps): { call(tool: string,
       if (!parsed.success) {
         deps.events.callStarted({ callId, tool, projectId, target, at: deps.clock.now() });
         const issues = parsed.error.issues.map((i) => `${i.path.join(".") || "(args)"}: ${i.message}`).join("\n");
-        outcome = failure("internal", `Invalid arguments for ${tool}:\n${issues}`, INTERNAL_HINT);
+        outcome = failure("internal", `Invalid arguments for ${tool}:\n${issues}`, SCHEMA_HINT);
       } else {
         try {
           projectId = deps.projectOf(tool, parsed.data);

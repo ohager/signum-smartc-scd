@@ -58,7 +58,7 @@ A Studio dev server runs on `http://localhost`, and the relay refuses localhost 
 claude mcp add smartc-studio -- npx @smartc-studio/mcp --dev
 ```
 
-To allow just one local origin without `--dev`, name it: `--allow-origin http://localhost:6876`.
+To allow just one local origin without `--dev`, name it: `--allow-origin http://localhost:3000`.
 
 ## Working with the assistant
 

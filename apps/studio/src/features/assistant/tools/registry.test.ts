@@ -189,6 +189,7 @@ describe("createToolRegistry", () => {
     const o = await h.registry.call("write_file", { path: "nope", content: 5, extra: 1 });
     expect(err(o)!.code).toBe("internal");
     expect(err(o)!.message.split("\n").length).toBeGreaterThan(1);
+    expect(err(o)!.hint).toBe("Fix the arguments and call again.");
     expect(h.starts()).toBe(0);
   });
 

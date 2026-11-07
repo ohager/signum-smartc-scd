@@ -22,6 +22,11 @@ describe("catalog", () => {
   it("has no wallet, account, network or deploy tool", () => {
     for (const t of CATALOG) expect(t.name).not.toMatch(/wallet|account|passphrase|network|deploy|send|sign/);
   });
+  it("create_project promises only what it creates: the contract, no test starter", () => {
+    const d = toolDef("create_project")!.description;
+    expect(d).not.toMatch(/test/i);
+    expect(d).toMatch(/contract/i);
+  });
   it("returns undefined for unknown tools", () => {
     expect(toolDef("nope")).toBeUndefined();
   });

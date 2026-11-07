@@ -50,7 +50,7 @@ export const CATALOG: readonly ToolDef[] = [
   def("write_file", "write", 10_000, `Creates or overwrites a file with the given content. Covered by checkpoints, so the user can undo it. ${P}`),
   def("edit_file", "write", 10_000, `Replaces text in a file. 'old' must match exactly once, otherwise the call fails with edit_no_match or edit_ambiguous. ${P}`),
   def("delete_file", "write", 10_000, `Deletes a file. Covered by checkpoints, so the user can undo it. ${P}`),
-  def("create_project", "write", 10_000, "Creates a new project from the SmartC and test starters. Returns the project name and its file paths."),
+  def("create_project", "write", 10_000, "Creates a new project containing one SmartC contract from the starter template. Returns the project name, its path and the contract's path."),
   def("get_editor_context", "global", 10_000, "Returns the file open in the Studio editor, the cursor, the selection and the current diagnostics."),
   def("open_file", "read", 10_000, `Shows a file, optionally at a 1-based line, to the user in the Studio editor. ${P}`),
   def("compile", "read", 30_000, `Compiles a SmartC file. Returns ok or errors [{line, col, message}], code and data page stats, and optionally the assembly. ${P}`),
