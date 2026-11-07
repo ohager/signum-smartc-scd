@@ -5,12 +5,18 @@ import type { LintFinding, Rule } from "../types";
  * Rule 2: sending funds should follow a look at the balance or the amount.
  * Source-level: a condition earlier in the same function that mentions the
  * balance or an amount, or compares the amount being sent.
+ *
+ * `sendBalance(getCreator())` is exempt: it hands the contract's funds to
+ * their owner, and an empty balance makes it a no-op. The rule exists for
+ * funds that could leak to someone else (found on the `pullFunds` handlers of
+ * the example contracts).
  */
 
 const SEND_CALL = /\b(sendAmount|sendBalance)\s*\(/g;
 const CONDITION = /\b(?:if|while)\s*\(/g;
 const MENTIONS_FUNDS = /getCurrentBalance\s*\(|\.amount\b|getAmount\s*\(/;
 const RELATIONAL = /[<>]=?/;
+const SWEEP_TO_CREATOR = /^getCreator\s*\(\s*\)$/;
 
 /** First argument of the call whose `(` is at `open`. */
 function firstArgument(text: string, open: number): string {
@@ -43,7 +49,9 @@ export const sendWithoutCheck: Rule = (ctx) => {
   const findings: LintFinding[] = [];
   for (const fn of ctx.functions) {
     for (const call of fn.body.matchAll(SEND_CALL)) {
-      const amount = call[1] === "sendAmount" ? firstArgument(fn.body, call.index! + call[0].length - 1) : "";
+      const first = firstArgument(fn.body, call.index! + call[0].length - 1);
+      if (call[1] === "sendBalance" && SWEEP_TO_CREATOR.test(first)) continue;
+      const amount = call[1] === "sendAmount" ? first : "";
       const earlier = fn.body.slice(0, call.index!);
       if (conditionsIn(earlier).some((c) => isChecked(c, amount))) continue;
       findings.push({

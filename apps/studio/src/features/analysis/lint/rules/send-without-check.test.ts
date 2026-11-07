@@ -34,6 +34,14 @@ describe("send-without-check", () => {
     expect(run(src)).toHaveLength(1);
   });
 
+  test("sweeping the balance to the creator needs no check", () => {
+    expect(run(fixture("send-without-check-sweep-quiet"))).toEqual([]);
+  });
+
+  test("sweeping the balance to anyone else still does", () => {
+    expect(run(`void b(long to) {\n  sendBalance(to);\n}`)).toHaveLength(1);
+  });
+
   test("ignores sends in comments", () => {
     expect(run(`// sendBalance(x);\nvoid b(void) { }`)).toEqual([]);
   });

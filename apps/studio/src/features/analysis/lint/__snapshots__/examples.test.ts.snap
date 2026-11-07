@@ -1,0 +1,46 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`lint over examples/ findings per example 1`] = `
+[
+  {
+    "file": "certication.smart.c",
+    "line": 8,
+    "rule": "pragma-version",
+  },
+  {
+    "file": "certication.smart.c",
+    "line": 44,
+    "rule": "switch-no-default",
+  },
+  {
+    "file": "collector-token.smart.c",
+    "line": 8,
+    "rule": "pragma-version",
+  },
+  {
+    "file": "collector-token.smart.c",
+    "line": 50,
+    "rule": "switch-no-default",
+  },
+  {
+    "file": "stock.smart.c",
+    "line": 3,
+    "rule": "activation-below-gas",
+  },
+  {
+    "file": "stock.smart.c",
+    "line": 8,
+    "rule": "pragma-version",
+  },
+  {
+    "file": "stock.smart.c",
+    "line": 117,
+    "rule": "no-catch",
+  },
+  {
+    "file": "stock.smart.c",
+    "line": 137,
+    "rule": "switch-no-default",
+  },
+]
+`;
