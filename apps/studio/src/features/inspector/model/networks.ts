@@ -39,7 +39,3 @@ export function networkKey(network: Network): string {
 export function sameNetwork(a: Network, b: Network): boolean {
   return networkKey(a) === networkKey(b);
 }
-
-export function networkFromWallet(network: "MainNet" | "TestNet"): Network {
-  return network === "MainNet" ? "mainnet" : "testnet";
-}

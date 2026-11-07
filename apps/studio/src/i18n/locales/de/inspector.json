@@ -36,6 +36,9 @@
   "network": {
     "mainnet": "Mainnet",
     "testnet": "Testnet",
+    "local": "Lokales Testnet",
+    "wallet": "Node der Wallet",
+    "walletOffline": "Node der Wallet (nicht verbunden)",
     "custom": "Eigener Node"
   },
   "contract": {

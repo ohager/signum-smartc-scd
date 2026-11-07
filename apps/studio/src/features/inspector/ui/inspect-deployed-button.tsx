@@ -4,9 +4,9 @@ import { ScanSearch } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
-import { useWalletStatus } from "@/hooks/use-wallet-status.ts";
 import { t } from "@/i18n/runtime";
-import { networkFromWallet } from "../model/networks";
+import { walletNetwork } from "../model/network-choice";
+import { useWalletNode } from "./use-network-choice";
 import { inspectDeployed } from "../workspace/inspect-deployed";
 
 export function InspectDeployedButton({
@@ -19,7 +19,7 @@ export function InspectDeployedButton({
   contractId: string;
 }) {
   const fs = useFileSystem();
-  const wallet = useWalletStatus();
+  const wallet = useWalletNode();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
 
@@ -37,7 +37,7 @@ export function InspectDeployedButton({
             projectFolderId,
             sourceFileId,
             contractId,
-            network: networkFromWallet(wallet.network),
+            network: walletNetwork(wallet),
           });
           navigate(`/projects/${projectFolderId}/files/${watchlistId}?contract=${contractId}`);
         } catch (e) {

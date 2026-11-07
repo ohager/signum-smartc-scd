@@ -38,6 +38,9 @@
   "network": {
     "mainnet": "Mainnet",
     "testnet": "Testnet",
+    "local": "Локальний тестнет",
+    "wallet": "Вузол гаманця",
+    "walletOffline": "Вузол гаманця (не підключено)",
     "custom": "Власний вузол"
   },
   "contract": {

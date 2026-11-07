@@ -36,6 +36,9 @@
   "network": {
     "mainnet": "Mainnet",
     "testnet": "Testnet",
+    "local": "Testnet local",
+    "wallet": "Nœud du portefeuille",
+    "walletOffline": "Nœud du portefeuille (non connecté)",
     "custom": "Nœud personnalisé"
   },
   "contract": {

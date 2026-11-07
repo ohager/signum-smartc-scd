@@ -35,6 +35,9 @@
   "network": {
     "mainnet": "Mainnet",
     "testnet": "Testnet",
+    "local": "本地测试网",
+    "wallet": "钱包节点",
+    "walletOffline": "钱包节点（未连接）",
     "custom": "自定义节点"
   },
   "contract": {

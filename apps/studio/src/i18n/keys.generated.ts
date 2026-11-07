@@ -468,6 +468,9 @@ export type MessageParams = {
   "inspector.status.dead": undefined;
   "inspector.network.mainnet": undefined;
   "inspector.network.testnet": undefined;
+  "inspector.network.local": undefined;
+  "inspector.network.wallet": undefined;
+  "inspector.network.walletOffline": undefined;
   "inspector.network.custom": undefined;
   "inspector.contract.loading": undefined;
   "inspector.contract.notFound": { id: string | number; node: string | number };

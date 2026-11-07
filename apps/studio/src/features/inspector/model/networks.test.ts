@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { addressPrefixOf, DEFAULT_NODES, networkFromWallet, networkKey, nodeHostOf, sameNetwork } from "./networks";
+import { addressPrefixOf, DEFAULT_NODES, networkKey, nodeHostOf, sameNetwork } from "./networks";
 
 describe("networks", () => {
   it("resolves hosts and prefixes", () => {
@@ -14,6 +14,5 @@ describe("networks", () => {
     expect(sameNetwork({ node: "https://x/" }, { node: "https://x" })).toBe(true);
     expect(sameNetwork("mainnet", "testnet")).toBe(false);
     expect(networkKey("testnet")).toBe("testnet");
-    expect(networkFromWallet("TestNet")).toBe("testnet");
   });
 });

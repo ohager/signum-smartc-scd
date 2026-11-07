@@ -38,6 +38,9 @@
   "network": {
     "mainnet": "Mainnet",
     "testnet": "Testnet",
+    "local": "Локальный тестнет",
+    "wallet": "Узел кошелька",
+    "walletOffline": "Узел кошелька (не подключён)",
     "custom": "Свой узел"
   },
   "contract": {

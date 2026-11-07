@@ -8,6 +8,8 @@ import { useFileSystem } from "@/hooks/use-file-system.ts";
 import { t } from "@/i18n/runtime";
 import { addressPrefixOf, networkKey, type Network } from "../model/networks";
 import { NetworkPicker } from "./network-picker";
+import { choiceOf, resolveChoice, type NetworkChoice } from "../model/network-choice";
+import { useNetworkChoice, useWalletNode } from "./use-network-choice";
 import { labelTarget, resolveLabelMap, type IndexedLabelMap } from "../model/resolve-label-map";
 import type { WatchEntry } from "../model/watchlist";
 import { useLabelMaps } from "../workspace/use-label-maps";
@@ -63,7 +65,9 @@ export function ContractView({
   };
 
   const [tab, setTab] = useState("data");
-  const [nodeDraft, setNodeDraft] = useState<Network | null>(null);
+  const [nodeDraft, setNodeDraft] = useState<NetworkChoice | null>(null);
+  const walletNode = useWalletNode();
+  const [savedChoice, saveChoice] = useNetworkChoice();
   const [instancing, setInstancing] = useState(false);
 
   /** The file a new label is written to; see `labelTarget` for why ambiguity never creates one. */
@@ -111,13 +115,16 @@ export function ContractView({
             {t("inspector.contract.retry")}
           </Button>
           {nodeDraft === null ? (
-            <Button size="sm" variant="ghost" className="self-start" onClick={() => setNodeDraft(entry.network)}>
+            <Button size="sm" variant="ghost" className="self-start" onClick={() => setNodeDraft(choiceOf(entry.network, walletNode, savedChoice.custom))}>
               {t("inspector.contract.otherNode")}
             </Button>
           ) : (
             <div className="flex max-w-md flex-col gap-2">
               <NetworkPicker value={nodeDraft} onChange={setNodeDraft} />
-              <Button size="sm" className="self-start" onClick={() => onMoveNetwork(nodeDraft)}>
+              <Button size="sm" className="self-start" onClick={() => {
+                  saveChoice(nodeDraft);
+                  onMoveNetwork(resolveChoice(nodeDraft, walletNode));
+                }}>
                 {t("inspector.contract.useNode")}
               </Button>
             </div>

@@ -11,9 +11,10 @@ import { createInspectorClient, filterSummaries, type ContractSummary } from "..
 import type { PagedSearch } from "../chain/paged-search";
 import { searchByCodeHash, searchByCreator, verifyContract, type SearchResult } from "../chain/add-flows";
 import { parseContractId } from "../model/contract-input";
-import { networkFromWallet, type Network } from "../model/networks";
+import { resolveChoice } from "../model/network-choice";
 import type { WatchEntry } from "../model/watchlist";
 import { NetworkPicker } from "./network-picker";
+import { useNetworkChoice, useWalletNode } from "./use-network-choice";
 import { ROW_HOVER, ROW_SELECTED } from "./selection";
 import { statusLabel } from "./watchlist-panel";
 
@@ -35,7 +36,10 @@ export function AddContractDialog({
   onAdd: (entries: WatchEntry[]) => void;
 }) {
   const wallet = useWalletStatus();
-  const [network, setNetwork] = useState<Network>(wallet ? networkFromWallet(wallet.network) : "testnet");
+  const walletNode = useWalletNode();
+  const [choice, setChoice] = useNetworkChoice();
+  const network = useMemo(() => resolveChoice(choice, walletNode), [choice, walletNode]);
+  const networkId = JSON.stringify(network);
   const [tab, setTab] = useState<"id" | "creator" | "hash">("id");
   const [input, setInput] = useState("");
   const [hashFilter, setHashFilter] = useState("");
@@ -62,9 +66,9 @@ export function AddContractDialog({
   useEffect(() => {
     if (!open) reset();
   }, [open]);
-  useEffect(reset, [tab, network]);
+  useEffect(reset, [tab, networkId]);
 
-  const client = useMemo(() => createInspectorClient(network), [JSON.stringify(network)]);
+  const client = useMemo(() => createInspectorClient(network), [networkId]);
 
   const run = async (work: (signal: AbortSignal) => Promise<void>) => {
     abort.current?.abort();
@@ -136,7 +140,7 @@ export function AddContractDialog({
           <DialogTitle>{t("inspector.add.title")}</DialogTitle>
         </DialogHeader>
         <Label>{t("inspector.add.network")}</Label>
-        <NetworkPicker value={network} onChange={setNetwork} />
+        <NetworkPicker value={choice} onChange={setChoice} />
         <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="flex min-h-0 flex-1 flex-col">
           <TabsList className="self-start">
             <TabsTrigger value="id">{t("inspector.add.tabs.id")}</TabsTrigger>
