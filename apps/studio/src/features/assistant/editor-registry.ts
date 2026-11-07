@@ -35,7 +35,8 @@ export interface EditorEntry {
   getCursor(): Position;
   getSelection(): EditorSelection | null;
   getDiagnostics(): EditorDiagnostic[];
-  reveal(line: number, highlight?: LineRange[]): void;
+  /* `whenText`: apply only once the editor's text equals it (the saved content has been adopted). */
+  reveal(line: number, highlight?: LineRange[], whenText?: string): void;
 }
 
 export function createEditorRegistry() {
@@ -44,7 +45,7 @@ export function createEditorRegistry() {
   let focusOrder: string[] = [];
   /* Registration order, oldest first: the answer for "which editor?" when nothing was ever focused. */
   let registered: string[] = [];
-  let pending: { fileId: string; line: number; highlight?: LineRange[] } | null = null;
+  let pending: { fileId: string; line: number; highlight?: LineRange[]; whenText?: string } | null = null;
 
   return {
     register(entry: EditorEntry): () => void {
@@ -53,7 +54,7 @@ export function createEditorRegistry() {
       /* A request belongs to one navigation; if another file's editor mounts first, the user went elsewhere. */
       const request = pending;
       pending = null;
-      if (request && request.fileId === entry.fileId) entry.reveal(request.line, request.highlight);
+      if (request && request.fileId === entry.fileId) entry.reveal(request.line, request.highlight, request.whenText);
       return () => {
         // A remount registers the new editor before the old one unregisters; only remove our own entry.
         if (entries.get(entry.fileId) === entry) {
@@ -86,13 +87,13 @@ export function createEditorRegistry() {
     },
 
     /* Reveals now if the file's editor is mounted, otherwise when it registers. One request at a time. */
-    revealWhenReady(fileId: string, line: number, highlight?: LineRange[]): void {
+    revealWhenReady(fileId: string, line: number, highlight?: LineRange[], whenText?: string): void {
       const found = entries.get(fileId);
       if (found) {
         pending = null;
-        found.reveal(line, highlight);
+        found.reveal(line, highlight, whenText);
       } else {
-        pending = { fileId, line, highlight };
+        pending = { fileId, line, highlight, whenText };
       }
     },
 

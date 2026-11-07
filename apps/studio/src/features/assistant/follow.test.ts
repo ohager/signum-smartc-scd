@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { decideFollow, nextBaseline, emptyBaselineState, type BaselineState } from "./follow";
+import { readyToReveal, decideFollow, nextBaseline, emptyBaselineState, type BaselineState } from "./follow";
 import type { CheckpointFile } from "./rounds/checkpoints";
 
 const files = (tag: string): CheckpointFile[] => [{ relPath: `${tag}.c`, type: "smartc", content: tag }];
@@ -53,5 +53,23 @@ describe("nextBaseline", () => {
     const s0 = start(emptyBaselineState, "p1", "r1");
     end(s0, "p1", "r1");
     expect(s0.settled.has("p1")).toBe(false);
+  });
+});
+
+describe("missing checkpoints", () => {
+  it("leaves the baseline alone on a start and removes it on an end", () => {
+    let s = nextBaseline(emptyBaselineState, { type: "roundStarted", projectId: "p1", files: files("r1") });
+    s = nextBaseline(s, { type: "roundStarted", projectId: "p1", files: null });
+    expect(s.baseline.p1).toEqual(files("r1"));
+    s = nextBaseline(s, { type: "roundEnded", projectId: "p1", files: null });
+    expect(s.baseline.p1).toBeUndefined();
+  });
+});
+
+describe("readyToReveal", () => {
+  it("is ready without an expectation or when the text matches (EOL-insensitive)", () => {
+    expect(readyToReveal("old", undefined)).toBe(true);
+    expect(readyToReveal("a\r\nb", "a\nb")).toBe(true);
+    expect(readyToReveal("old", "new")).toBe(false);
   });
 });

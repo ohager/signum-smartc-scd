@@ -16,6 +16,17 @@ export function decideFollow(args: {
   return args.followMode && args.currentProjectId === args.touched.projectId ? "open" : "dot";
 }
 
+/*
+ * Whether an editor may apply a follow reveal yet. The saved content reaches an open
+ * editor through React state a render later; revealing before then would highlight
+ * the old buffer. Line endings are normalised because Monaco's model may use its own EOL.
+ */
+export function readyToReveal(modelText: string, expectedText: string | undefined): boolean {
+  if (expectedText === undefined) return true;
+  const norm = (x: string) => x.replace(/\r\n/g, "\n");
+  return norm(modelText) === norm(expectedText);
+}
+
 export interface BaselineState {
   /* What the gutter compares against, per project. */
   baseline: Readonly<Record<string, CheckpointFile[]>>;
@@ -26,22 +37,25 @@ export interface BaselineState {
 export const emptyBaselineState: BaselineState = { baseline: {}, settled: new Set() };
 
 export type BaselineEvent =
-  | { type: "roundStarted"; projectId: string; files: CheckpointFile[] }
-  | { type: "roundEnded"; projectId: string; files: CheckpointFile[] };
+  | { type: "roundStarted"; projectId: string; files: CheckpointFile[] | null }
+  | { type: "roundEnded"; projectId: string; files: CheckpointFile[] | null };
 
 /*
  * Decision 13: the baseline is the checkpoint of the last ENDED round, so markers
  * stay until the next round of that project ends. Only before any round has ended
  * does the running round's checkpoint serve, so the first round already shows its changes.
- * `files` is always the checkpoint of the round the event is about.
+ * `files` is the checkpoint of the round the event is about; null means it could not be
+ * loaded, which must read as "no baseline" (never as an empty project, which would show
+ * every line as added).
  */
 export function nextBaseline(state: BaselineState, event: BaselineEvent): BaselineState {
   if (event.type === "roundStarted") {
-    if (state.settled.has(event.projectId)) return state;
+    if (event.files === null || state.settled.has(event.projectId)) return state;
     return { ...state, baseline: { ...state.baseline, [event.projectId]: event.files } };
   }
+  const { [event.projectId]: _dropped, ...rest } = state.baseline;
   return {
-    baseline: { ...state.baseline, [event.projectId]: event.files },
+    baseline: event.files === null ? rest : { ...rest, [event.projectId]: event.files },
     settled: new Set(state.settled).add(event.projectId),
   };
 }

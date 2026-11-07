@@ -29,14 +29,7 @@ export interface FollowDeps {
   /* Mirrors of the jotai atoms, so tests need no store. */
   setBaseline: (baseline: Readonly<Record<string, CheckpointFile[]>>) => void;
   markTouched: (fileId: string) => void;
-  setTimeout: (fn: () => void, ms: number) => unknown;
 }
-
-/*
- * An already-open editor adopts the saved content through React state, one render
- * after the write; revealing at once would measure against the stale buffer.
- */
-const ADOPT_DELAY_MS = 100;
 
 function relPathOf(fs: FollowDeps["fs"], projectId: string, path: string): string {
   return path.slice(fs.getFolder(projectId).path.length).replace(/^\//, "");
@@ -47,12 +40,15 @@ async function changesIn(deps: FollowDeps, fileId: string, projectId: string, fi
   const meta = deps.fs.getFileMetadata(fileId);
   if (!meta) return null;
   const { content } = await deps.fs.loadFile<unknown>(fileId);
-  if (typeof content !== "string") return { line: 1, highlight: [] as LineRange[] };
+  if (typeof content !== "string") return { line: 1, highlight: [] as LineRange[], text: undefined };
+  /* Without a baseline there is nothing to compare against; a diff against "" would flag every line. */
+  if (!files) return { line: 1, highlight: [] as LineRange[], text: content };
   const before = files?.find((f) => f.relPath === relPathOf(deps.fs, projectId, meta.path))?.content;
   const changes = diffLines(typeof before === "string" ? before : "", content);
   return {
     line: changes[0]?.startLine ?? 1,
     highlight: changes.map((c) => ({ from: c.startLine, to: c.endLine })),
+    text: content,
   };
 }
 
@@ -71,16 +67,18 @@ export function wireFollow(deps: FollowDeps): Pick<RuntimeEventListener, "onRoun
   return {
     onRoundStarted(e) {
       queue = queue.then(async () => {
-        const files = (await deps.checkpointStore.get(e.checkpointId))?.files ?? [];
-        roundFiles.set(e.projectId, files);
+        /* A checkpoint that cannot be read means "no baseline", not an empty project. */
+        const files = (await deps.checkpointStore.get(e.checkpointId).catch(() => undefined))?.files ?? null;
+        if (files) roundFiles.set(e.projectId, files);
+        else roundFiles.delete(e.projectId);
         apply({ type: "roundStarted", projectId: e.projectId, files });
       }).catch(() => {});
     },
 
     onRoundEnded(e) {
       queue = queue.then(() => {
-        apply({ type: "roundEnded", projectId: e.projectId, files: roundFiles.get(e.projectId) ?? [] });
-      });
+        apply({ type: "roundEnded", projectId: e.projectId, files: roundFiles.get(e.projectId) ?? null });
+      }).catch(() => {});
     },
 
     onCallEnded(e) {
@@ -111,13 +109,12 @@ export function wireFollow(deps: FollowDeps): Pick<RuntimeEventListener, "onRoun
     await queue;
     const where = await changesIn(deps, fileId, projectId, roundFiles.get(projectId)).catch(() => null);
     if (!where) return;
-    const reveal = () => deps.registry.revealWhenReady(fileId, where.line, where.highlight);
-    if (alreadyOpen) {
-      deps.setTimeout(reveal, ADOPT_DELAY_MS);
-      return;
-    }
-    // Registered before navigating: if the editor mounts first, the request is applied on registration.
-    reveal();
-    deps.navigate(`/projects/${folderId}/files/${fileId}`);
+    /*
+     * Registered before navigating: if the editor mounts first, the request is applied on
+     * registration. The editor itself waits until its text equals `where.text`, so an
+     * already-open file is revealed only once it has adopted the written content.
+     */
+    deps.registry.revealWhenReady(fileId, where.line, where.highlight, where.text);
+    if (!alreadyOpen) deps.navigate(`/projects/${folderId}/files/${fileId}`);
   }
 }

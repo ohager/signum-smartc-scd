@@ -110,12 +110,12 @@ describe("editor registry", () => {
   it("passes the highlight range through, now or when the editor registers", () => {
     const r = createEditorRegistry();
     const seen: unknown[] = [];
-    const e = (id: string): EditorEntry => ({ ...entry(id), reveal: (line, hl) => void seen.push([line, hl]) });
+    const e = (id: string): EditorEntry => ({ ...entry(id), reveal: (line, hl, text) => void seen.push([line, hl, text]) });
     r.register(e("a"));
-    r.revealWhenReady("a", 3, [{ from: 3, to: 5 }]);
+    r.revealWhenReady("a", 3, [{ from: 3, to: 5 }], "txt");
     r.revealWhenReady("b", 9, [{ from: 9, to: 9 }]);
     r.register(e("b"));
-    expect(seen).toEqual([[3, [{ from: 3, to: 5 }]], [9, [{ from: 9, to: 9 }]]]);
+    expect(seen).toEqual([[3, [{ from: 3, to: 5 }], "txt"], [9, [{ from: 9, to: 9 }], undefined]]);
   });
 
   it("falls back to the most recently registered editor when none ever had focus", () => {

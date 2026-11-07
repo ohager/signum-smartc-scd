@@ -67,7 +67,6 @@ function buildRuntime(hash: string, navigate: (path: string) => void, route: () 
       followMode: () => jotaiStore.get(followModeAtom),
       setBaseline: (baseline) => jotaiStore.set(baselineAtom, { ...baseline }),
       markTouched: (fileId) => jotaiStore.set(touchedFilesAtom, (prev) => new Set(prev).add(fileId)),
-      setTimeout: (fn, ms) => setTimeout(fn, ms),
     }),
   );
   runtime.connection.subscribe((s) => jotaiStore.set(connectionStateAtom, s));

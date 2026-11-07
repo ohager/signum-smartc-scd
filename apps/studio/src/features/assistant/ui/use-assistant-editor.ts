@@ -7,7 +7,11 @@ import type { File } from "@/lib/file-system";
 import { findProjectOfFolder } from "@/features/project/project-root";
 import { editorRegistry, type EditorDiagnostic } from "../editor-registry";
 import { lockedProjectsAtom } from "../state";
+import { readyToReveal } from "../follow";
 import { useGutterMarkers } from "./use-gutter-markers";
+
+/* A reveal that never sees its expected text (the user edited meanwhile) gives up silently. */
+const ADOPT_TIMEOUT_MS = 1000;
 
 /* How long a followed change stays highlighted. */
 const HIGHLIGHT_MS = 1500;
@@ -71,6 +75,7 @@ export function useAssistantEditor({
     if (!editor || !monaco) return;
     const flashes = new Set<ReturnType<typeof setTimeout>>();
     const flashing = editor.createDecorationsCollection();
+    const waiting = new Set<() => void>();
     const unregister = editorRegistry.register({
       fileId,
       path,
@@ -89,24 +94,43 @@ export function useAssistantEditor({
         };
       },
       getDiagnostics: () => diagnosticsOf(editor, monaco),
-      reveal: (line, highlight) => {
-        const target = Math.min(Math.max(1, line), editor.getModel()?.getLineCount() ?? line);
-        editor.revealLineInCenter(target);
-        editor.setPosition({ lineNumber: target, column: 1 });
-        editor.focus();
-        if (!highlight?.length) return;
-        const count = editor.getModel()?.getLineCount() ?? 1;
-        flashing.set(
-          highlight.map((r) => ({
-            range: new monaco.Range(Math.min(Math.max(1, r.from), count), 1, Math.min(Math.max(1, r.to), count), 1),
-            options: { isWholeLine: true, className: "assistant-follow-highlight" },
-          })),
-        );
-        const timer = setTimeout(() => {
-          flashes.delete(timer);
-          flashing.clear();
-        }, HIGHLIGHT_MS);
-        flashes.add(timer);
+      reveal: (line, highlight, whenText) => {
+        const apply = () => {
+          const target = Math.min(Math.max(1, line), editor.getModel()?.getLineCount() ?? line);
+          editor.revealLineInCenter(target);
+          editor.setPosition({ lineNumber: target, column: 1 });
+          editor.focus();
+          if (!highlight?.length) return;
+          const count = editor.getModel()?.getLineCount() ?? 1;
+          flashing.set(
+            highlight.map((r) => ({
+              range: new monaco.Range(Math.min(Math.max(1, r.from), count), 1, Math.min(Math.max(1, r.to), count), 1),
+              options: { isWholeLine: true, className: "assistant-follow-highlight" },
+            })),
+          );
+          const timer = setTimeout(() => {
+            flashes.delete(timer);
+            flashing.clear();
+          }, HIGHLIGHT_MS);
+          flashes.add(timer);
+        };
+        const model = editor.getModel();
+        if (!model || readyToReveal(model.getValue(), whenText)) return apply();
+        /* The saved content reaches the model a render later; applying before would highlight the old buffer. */
+        const sub = editor.onDidChangeModelContent(() => {
+          if (!readyToReveal(model.getValue(), whenText)) return;
+          done();
+          apply();
+        });
+        const giveUp = setTimeout(() => done(), ADOPT_TIMEOUT_MS);
+        const done = () => {
+          clearTimeout(giveUp);
+          flashes.delete(giveUp);
+          sub.dispose();
+          waiting.delete(done);
+        };
+        flashes.add(giveUp);
+        waiting.add(done);
       },
     });
     // The editor that already has focus when it registers is the active one.
@@ -115,6 +139,7 @@ export function useAssistantEditor({
     return () => {
       focus.dispose();
       unregister();
+      for (const stop of [...waiting]) stop();
       for (const timer of flashes) clearTimeout(timer);
       flashing.clear();
     };
