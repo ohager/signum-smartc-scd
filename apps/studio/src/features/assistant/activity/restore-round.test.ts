@@ -51,8 +51,11 @@ beforeEach(async () => {
       return endSnapshots.get(id);
     },
     hasActiveRound: (projectId) => newerRunning || [...running].some((id) => rounds.get(id)?.projectId === projectId),
+    markTookOver: (projectId) => {
+      order.push(`markTookOver:${projectId === p ? "p" : projectId}`);
+    },
     takeOver: async (projectId) => {
-      order.push("takeOver");
+      order.push(`takeOver:${await read("/p/a.smart.c")}`);
       newerRunning = false;
       for (const id of [...running]) {
         if (rounds.get(id)?.projectId === projectId) {
@@ -114,7 +117,7 @@ describe("restoreRound", () => {
       false,
     );
     const plan = await restoreRound(deps, "r1");
-    expect(order).toEqual(["takeOver", "endSnapshotOf"]);
+    expect(order).toEqual(["takeOver:agent", "endSnapshotOf"]);
     expect(plan.needsConfirm).toEqual([]);
     await plan.confirm();
     expect(await read("/p/a.smart.c")).toBe("original");
@@ -126,7 +129,7 @@ describe("restoreRound", () => {
     });
     newerRunning = true;
     const plan = await restoreRound(deps, "r1");
-    expect(order).toEqual(["takeOver", "endSnapshotOf"]);
+    expect(order).toEqual(["takeOver:agent", "endSnapshotOf"]);
     await plan.confirm();
     expect(await read("/p/a.smart.c")).toBe("original");
   });
@@ -137,11 +140,71 @@ describe("restoreRound", () => {
     expect(order).toEqual(["endSnapshotOf"]);
   });
 
+  it("re-checks at confirm: a round that started after the plan is taken over before any write", async () => {
+    await playRound("r1", async () => {
+      await fs.saveFile(fs.getFileIdByPath("/p/a.smart.c")!, "agent");
+    });
+    const plan = await restoreRound(deps, "r1");
+    newerRunning = true;
+    order = [];
+    await plan.confirm();
+    expect(order).toEqual(["takeOver:agent", "markTookOver:p"]);
+    expect(await read("/p/a.smart.c")).toBe("original");
+  });
+
+  it("marks the project took-over after a restore so the agent's next write must re-read", async () => {
+    await playRound("r1", async () => {
+      await fs.saveFile(fs.getFileIdByPath("/p/a.smart.c")!, "agent");
+    });
+    const plan = await restoreRound(deps, "r1");
+    order = [];
+    await plan.confirm();
+    expect(order).toEqual(["markTookOver:p"]);
+  });
+
   it("fails clearly when the round or its checkpoint is unknown", async () => {
     await expect(restoreRound(deps, "nope")).rejects.toThrow();
     rounds.set("r2", { projectId: p, checkpointId: "missing" });
     endSnapshots.set("r2", []);
     await expect(restoreRound(deps, "r2")).rejects.toThrow();
+  });
+});
+
+describe("undoRestore", () => {
+  async function restored() {
+    await playRound("r1", async () => {
+      await fs.saveFile(fs.getFileIdByPath("/p/a.smart.c")!, "agent");
+    });
+    const { undoCheckpointId } = await (await restoreRound(deps, "r1")).confirm();
+    order = [];
+    return undoCheckpointId;
+  }
+
+  it("checkpoints first, so the undo itself can be undone", async () => {
+    const first = await restored();
+    const { undoCheckpointId: second } = await undoRestore(deps, first);
+    expect(second).not.toBe(first);
+    expect(await read("/p/a.smart.c")).toBe("agent");
+    const cp = await store.get(second);
+    expect(cp?.reason).toBe("before-restore");
+    expect(cp?.files.find((f) => f.relPath === "a.smart.c")?.content).toBe("original");
+
+    await undoRestore(deps, second);
+    expect(await read("/p/a.smart.c")).toBe("original");
+  });
+
+  it("takes over a live round first and marks the project took-over after", async () => {
+    const id = await restored();
+    newerRunning = true;
+    await undoRestore(deps, id);
+    expect(order).toEqual(["takeOver:original", "markTookOver:p"]);
+    expect(await read("/p/a.smart.c")).toBe("agent");
+  });
+
+  it("does not take over when no round is live", async () => {
+    const id = await restored();
+    await undoRestore(deps, id);
+    expect(order).toEqual(["markTookOver:p"]);
   });
 });
 

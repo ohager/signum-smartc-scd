@@ -74,6 +74,8 @@
     "done": "Projet restauré.",
     "undo": "Annuler la restauration",
     "undone": "Restauration annulée.",
+    "redo": "Rétablir la restauration",
+    "redone": "Restauration rétablie.",
     "failed": "Impossible de restaurer le projet.",
     "fileDeleted": "Le fichier a été supprimé"
   }

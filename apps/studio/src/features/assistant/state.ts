@@ -24,3 +24,10 @@ export const assistantPortAtom = atomWithStorage("scd:assistant-port", 6890);
 
 /* Everything the agent did this session, grouped by round; deliberately never persisted. */
 export const feedAtom = atom<FeedState>({ rounds: [], loose: [] });
+
+/*
+ * The last restore per project, so its undo stays one click away in the activity panel
+ * until the next restore of that project (a toast alone is easy to miss). `undone` flips
+ * on each undo, whose own checkpoint makes the undo reversible in turn.
+ */
+export const lastRestoreAtom = atom<Record<string, { roundId: string; undoCheckpointId: string; undone: boolean }>>({});

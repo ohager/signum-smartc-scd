@@ -715,6 +715,8 @@ export type MessageParams = {
   "assistant.restore.done": undefined;
   "assistant.restore.undo": undefined;
   "assistant.restore.undone": undefined;
+  "assistant.restore.redo": undefined;
+  "assistant.restore.redone": undefined;
   "assistant.restore.failed": undefined;
   "assistant.restore.fileDeleted": undefined;
 };

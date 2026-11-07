@@ -129,6 +129,7 @@ export function createAssistantRuntime(deps: AssistantRuntimeDeps) {
     endSnapshotOf: (roundId: string) => endSnapshots.get(roundId),
     hasActiveRound: (projectId: string) => rounds.active(projectId) !== null,
     takeOver: (projectId: string) => rounds.takeOver(projectId),
+    markTookOver: (projectId: string) => rounds.markTookOver(projectId),
   };
 
   return {

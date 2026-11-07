@@ -74,6 +74,8 @@
     "done": "Projekt zurückgesetzt.",
     "undo": "Zurücksetzen rückgängig machen",
     "undone": "Zurücksetzen rückgängig gemacht.",
+    "redo": "Zurücksetzen wiederholen",
+    "redone": "Zurücksetzen wiederholt.",
     "failed": "Das Projekt konnte nicht zurückgesetzt werden.",
     "fileDeleted": "Datei wurde gelöscht"
   }

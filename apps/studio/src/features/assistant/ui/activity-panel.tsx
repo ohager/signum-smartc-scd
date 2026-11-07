@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useStore } from "jotai";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { formatDate, t } from "@/i18n/runtime";
 import { useAssistant } from "../bridge/use-assistant";
 import type { RestorePlan } from "../activity/restore-round";
 import type { FeedEntry, FeedRound, FeedSummary } from "../activity/feed-model";
-import { feedAtom } from "../state";
+import { feedAtom, lastRestoreAtom } from "../state";
 import { RoundDiffDialog, type RoundDiffTarget } from "./round-diff-dialog";
 
 const TIME: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit", second: "2-digit" };
@@ -60,33 +60,55 @@ function Entry({ entry, onDiff }: { entry: FeedEntry; onDiff?: () => void }) {
   );
 }
 
+interface PendingRestore {
+  plan: RestorePlan;
+  round: FeedRound;
+}
+
 /* Opened from the connection status. Rounds are newest first; loose calls (no round) sit apart. */
 export function ActivityPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const feed = useAtomValue(feedAtom);
   const { restore, undoRestore } = useAssistant();
-  const [plan, setPlan] = useState<RestorePlan | null>(null);
+  const [pending, setPlan] = useState<PendingRestore | null>(null);
+  const plan = pending?.plan ?? null;
   const [diff, setDiff] = useState<RoundDiffTarget | null>(null);
+
+  /*
+   * Read and written through the store, not the render closure: the toast's undo can be
+   * clicked long after this render, even after the panel unmounted.
+   */
+  const store = useStore();
+  const lastRestore = useAtomValue(lastRestoreAtom);
 
   async function startRestore(round: FeedRound) {
     try {
-      setPlan(await restore(round.roundId));
+      setPlan({ plan: await restore(round.roundId), round });
     } catch {
       toast.error(t("assistant.restore.failed"));
     }
   }
 
-  async function confirmRestore(current: RestorePlan) {
+  async function undo(projectId: string, expected?: string) {
+    const last = store.get(lastRestoreAtom)[projectId];
+    /* A toast's undo is stale once the panel undid, or a newer restore replaced, that restore. */
+    if (!last || (expected !== undefined && last.undoCheckpointId !== expected)) return;
+    try {
+      const { undoCheckpointId } = await undoRestore(last.undoCheckpointId);
+      store.set(lastRestoreAtom, (all) => ({ ...all, [projectId]: { ...last, undoCheckpointId, undone: !last.undone } }));
+      toast(t(last.undone ? "assistant.restore.redone" : "assistant.restore.undone"));
+    } catch {
+      toast.error(t("assistant.restore.failed"));
+    }
+  }
+
+  async function confirmRestore({ plan: current, round }: PendingRestore) {
     try {
       const { undoCheckpointId } = await current.confirm();
+      store.set(lastRestoreAtom, (all) => ({ ...all, [round.projectId]: { roundId: round.roundId, undoCheckpointId, undone: false } }));
+      /* No auto-dismiss: the undo must not vanish while the user is still looking. */
       toast(t("assistant.restore.done"), {
-        action: {
-          label: t("assistant.restore.undo"),
-          onClick: () =>
-            void undoRestore(undoCheckpointId).then(
-              () => toast(t("assistant.restore.undone")),
-              () => toast.error(t("assistant.restore.failed")),
-            ),
-        },
+        duration: Infinity,
+        action: { label: t("assistant.restore.undo"), onClick: () => void undo(round.projectId, undoCheckpointId) },
       });
     } catch {
       toast.error(t("assistant.restore.failed"));
@@ -124,9 +146,16 @@ export function ActivityPanel({ open, onOpenChange }: { open: boolean; onOpenCha
                       />
                     ))}
                   </ul>
-                  <Button size="sm" variant="outline" className="self-start" onClick={() => void startRestore(round)}>
-                    {t("assistant.restore.action")}
-                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="outline" onClick={() => void startRestore(round)}>
+                      {t("assistant.restore.action")}
+                    </Button>
+                    {lastRestore[round.projectId]?.roundId === round.roundId && (
+                      <Button size="sm" variant="outline" onClick={() => void undo(round.projectId)}>
+                        {t(lastRestore[round.projectId].undone ? "assistant.restore.redo" : "assistant.restore.undo")}
+                      </Button>
+                    )}
+                  </div>
                 </section>
               ))}
               {feed.loose.length > 0 && (
@@ -147,7 +176,7 @@ export function ActivityPanel({ open, onOpenChange }: { open: boolean; onOpenCha
       <ConfirmationDialog
         open={plan !== null}
         onOpenChange={(o) => !o && setPlan(null)}
-        onConfirm={() => plan && void confirmRestore(plan)}
+        onConfirm={() => pending && void confirmRestore(pending)}
         title={t("assistant.restore.title")}
         description={plan && plan.needsConfirm.length > 0 ? t("assistant.restore.userChanges") : t("assistant.restore.body")}
         confirmText={t("assistant.restore.confirm")}

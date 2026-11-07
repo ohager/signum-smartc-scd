@@ -74,6 +74,8 @@
     "done": "Proyecto restaurado.",
     "undo": "Deshacer restauración",
     "undone": "Restauración deshecha.",
+    "redo": "Rehacer restauración",
+    "redone": "Restauración rehecha.",
     "failed": "No se pudo restaurar el proyecto.",
     "fileDeleted": "El archivo fue eliminado"
   }

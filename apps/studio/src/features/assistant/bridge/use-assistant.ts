@@ -21,7 +21,8 @@ export interface UseAssistant {
   takeOver(projectId: string): Promise<void>;
   /** Prepares a restore (taking over a running round); nothing is written until `confirm()`. */
   restore(roundId: string): Promise<RestorePlan>;
-  undoRestore(undoCheckpointId: string): Promise<void>;
+  /** Undoes a restore; the result is the checkpoint that undoes this undo. */
+  undoRestore(undoCheckpointId: string): Promise<{ undoCheckpointId: string }>;
   loadDiff(checkpointId: string, projectId: string, relPath: string): ReturnType<AssistantRuntime["loadDiff"]>;
 }
 
@@ -40,7 +41,10 @@ export function useAssistant(): UseAssistant {
       if (!runtime) throw new Error("Assistant is not ready");
       return runtime.restoreRound(roundId);
     },
-    undoRestore: async (id) => void (await runtime?.undoRestore(id)),
+    undoRestore: async (id) => {
+      if (!runtime) throw new Error("Assistant is not ready");
+      return runtime.undoRestore(id);
+    },
     loadDiff: async (checkpointId, projectId, relPath) => {
       if (!runtime) throw new Error("Assistant is not ready");
       return runtime.loadDiff(checkpointId, projectId, relPath);

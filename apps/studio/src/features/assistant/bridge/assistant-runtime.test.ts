@@ -112,4 +112,20 @@ describe("createAssistantRuntime", () => {
     expect(out.ok).toBe(false);
     expect(out.error.code).toBe("user_took_over");
   });
+
+  it("after a restore and after its undo, the agent's next write gets user_took_over", async () => {
+    const { runtime, relay, p } = await setup();
+    let roundId = "";
+    runtime.events.subscribe({ onRoundStarted: (e) => void (roundId = e.roundId) });
+    await relay.call("write_file", { path: "/p/a.ts", content: "two" });
+    await runtime.takeOver(p);
+    expect((await relay.call("write_file", { path: "/p/a.ts", content: "x" })).error.code).toBe("user_took_over");
+
+    const { undoCheckpointId } = await (await runtime.restoreRound(roundId)).confirm();
+    expect((await relay.call("write_file", { path: "/p/a.ts", content: "three" })).error.code).toBe("user_took_over");
+
+    await runtime.undoRestore(undoCheckpointId);
+    expect((await relay.call("write_file", { path: "/p/a.ts", content: "four" })).error.code).toBe("user_took_over");
+    expect((await relay.call("write_file", { path: "/p/a.ts", content: "five" })).ok).toBe(true);
+  });
 });

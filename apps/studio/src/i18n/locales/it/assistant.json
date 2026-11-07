@@ -74,6 +74,8 @@
     "done": "Progetto ripristinato.",
     "undo": "Annulla ripristino",
     "undone": "Ripristino annullato.",
+    "redo": "Ripeti ripristino",
+    "redone": "Ripristino ripetuto.",
     "failed": "Impossibile ripristinare il progetto.",
     "fileDeleted": "Il file è stato eliminato"
   }

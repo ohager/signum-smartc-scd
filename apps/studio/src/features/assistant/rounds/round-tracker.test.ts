@@ -161,6 +161,17 @@ describe("RoundTracker", () => {
     expect(starts).toEqual(["a"]);
   });
 
+  it("markTookOver rejects the next write once without ending anything", async () => {
+    tracker.markTookOver("a");
+    expect(ends).toEqual([]);
+    await tracker.begin("a", "read");
+    tracker.finish("a");
+    expect((await rejection(tracker.begin("a", "write"))).code).toBe("user_took_over");
+    await tracker.begin("a", "write");
+    expect(starts).toEqual(["a"]);
+    expect(tracker.active("a")?.roundId).toBe("r1");
+  });
+
   it("a finish after the round ended is a no-op", async () => {
     await tracker.begin("a", "write");
     await tracker.takeOver("a");

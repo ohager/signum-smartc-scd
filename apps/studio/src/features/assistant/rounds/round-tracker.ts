@@ -127,6 +127,15 @@ export class RoundTracker {
     await this.endRound(projectId, s, "takeover");
   }
 
+  /*
+   * A restore (or its undo) rewrites the project under the agent's feet without a round
+   * to end. Only the flag is set: the agent's next write fails with `user_took_over`, so
+   * it re-reads instead of patching files it no longer knows.
+   */
+  markTookOver(projectId: string): void {
+    this.state(projectId).tookOver = true;
+  }
+
   async endAll(reason: "disconnect"): Promise<void> {
     await Promise.all(
       [...this.projects.entries()].map(([id, s]) => {

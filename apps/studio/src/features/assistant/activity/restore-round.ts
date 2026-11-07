@@ -1,4 +1,4 @@
-import { restoreProject, restoreWithUndo, userChangesSince, type CheckpointFile, type CheckpointStore } from "../rounds/checkpoints";
+import { restoreWithUndo, userChangesSince, type Checkpoint, type CheckpointFile, type CheckpointStore } from "../rounds/checkpoints";
 import type { Clock } from "../rounds/round-tracker";
 import type { WorkspaceFs } from "../tools/paths";
 
@@ -11,6 +11,8 @@ export interface RestoreDeps {
   /** Whether an agent round is live on the project, whichever round that is. */
   hasActiveRound(projectId: string): boolean;
   takeOver(projectId: string): Promise<unknown>;
+  /** Makes the agent's next write on the project fail with `user_took_over`. */
+  markTookOver(projectId: string): void;
 }
 
 export interface RestorePlan {
@@ -22,7 +24,9 @@ export interface RestorePlan {
 /*
  * Two steps so the UI can ask before anything is written. A live round is taken over
  * first: that ends it, which captures the end snapshot the user-change check needs and
- * unlocks the editors, so the restore never races the agent.
+ * unlocks the editors, so the restore never races the agent. The confirm dialog can stay
+ * open for a long time, so `confirm()` checks again: the agent may have started a new
+ * round meanwhile.
  */
 export async function restoreRound(deps: RestoreDeps, roundId: string): Promise<RestorePlan> {
   const round = deps.checkpointOf(roundId);
@@ -40,15 +44,32 @@ export async function restoreRound(deps: RestoreDeps, roundId: string): Promise<
   const needsConfirm = await userChangesSince(deps.fs, round.projectId, endSnapshot);
   return {
     needsConfirm,
-    confirm: () => restoreWithUndo({ fs: deps.fs, store: deps.store, clock: deps.clock }, round.projectId, target),
+    confirm: () => rewriteProject(deps, round.projectId, target),
   };
 }
 
-/* Puts the project back as it was right before a restore; the undo checkpoint is not consumed. */
-export async function undoRestore(deps: Pick<RestoreDeps, "fs" | "store">, undoCheckpointId: string): Promise<void> {
+type RewriteDeps = Pick<RestoreDeps, "fs" | "store" | "clock" | "hasActiveRound" | "takeOver" | "markTookOver">;
+
+/*
+ * Shared by restore and undo: never write underneath a live round, always leave a
+ * `before-restore` checkpoint, and afterwards make the agent re-read, since the files it
+ * last saw are gone.
+ */
+async function rewriteProject(deps: RewriteDeps, projectId: string, target: Checkpoint): Promise<{ undoCheckpointId: string }> {
+  if (deps.hasActiveRound(projectId)) await deps.takeOver(projectId);
+  const result = await restoreWithUndo({ fs: deps.fs, store: deps.store, clock: deps.clock }, projectId, target);
+  deps.markTookOver(projectId);
+  return result;
+}
+
+/*
+ * Puts the project back as it was right before a restore; the undo checkpoint is not
+ * consumed. The undo takes its own checkpoint first, so it can be undone in turn.
+ */
+export async function undoRestore(deps: RewriteDeps, undoCheckpointId: string): Promise<{ undoCheckpointId: string }> {
   const cp = await deps.store.get(undoCheckpointId);
   if (!cp) throw new Error(`Checkpoint ${undoCheckpointId} is gone`);
-  await restoreProject(deps.fs, cp.projectId, cp.files);
+  return rewriteProject(deps, cp.projectId, cp);
 }
 
 function asText(content: unknown): string {
