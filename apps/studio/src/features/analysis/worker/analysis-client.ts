@@ -12,35 +12,54 @@ export interface WorkerLike {
 }
 
 interface Job {
+  key: string;
   source: string;
   params: SlotLabel[];
   resolve: (result: LintResult | null) => void;
 }
 
 /**
- * Latest request wins, one job at a time. A job already running is never
- * killed (the lint cannot be interrupted, and restarting a worker costs more
- * than waiting); it finishes and resolves `null` if something newer arrived,
- * and only the newest waiting request is kept.
+ * One job at a time, latest request wins per key (a model's URI). Pending
+ * requests wait in insertion order, so every model gets its turn; a newer
+ * request for a key replaces only that key's pending one. A job already
+ * running is never killed (the lint cannot be interrupted, and restarting a
+ * worker costs more than waiting): if its key is requested again it resolves
+ * `null` when it answers, and the new request waits behind it.
  */
 export function createAnalysisClient(openWorker: () => WorkerLike) {
   let worker: WorkerLike | null = null;
   let nextId = 0;
   let running: { id: number; job: Job; superseded: boolean } | null = null;
-  let queued: Job | null = null;
-  let logged = false;
+  const pending = new Map<string, Job>();
+  const logged = new Set<string>();
+
+  const logOnce = (what: string, detail: unknown) => {
+    const text = detail instanceof Error ? detail.message : String(detail);
+    if (logged.has(text)) return;
+    logged.add(text);
+    console.error(what, detail);
+  };
+
+  const dropAll = () => {
+    running?.job.resolve(null);
+    pending.forEach((j) => j.resolve(null));
+    running = null;
+    pending.clear();
+  };
 
   const fail = (e: unknown) => {
-    if (!logged) {
-      logged = true;
-      console.error("smartc analysis worker failed", e);
-    }
+    logOnce("smartc analysis worker failed", e);
     worker?.terminate();
     worker = null; // reopened on the next request
-    running?.job.resolve(null);
-    queued?.resolve(null);
-    running = null;
-    queued = null;
+    dropAll();
+  };
+
+  const startNext = () => {
+    const first = pending.entries().next();
+    if (first.done) return;
+    const [key, job] = first.value;
+    pending.delete(key);
+    start(job);
   };
 
   const start = (job: Job) => {
@@ -52,10 +71,9 @@ export function createAnalysisClient(openWorker: () => WorkerLike) {
           if (!running || msg.id !== running.id) return;
           const done = running;
           running = null;
+          if (msg.error !== undefined) logOnce("smartc analysis failed", msg.error);
           done.job.resolve(done.superseded || msg.error !== undefined ? null : (msg.result ?? null));
-          const next = queued;
-          queued = null;
-          if (next) start(next);
+          startNext();
         };
         worker.onerror = fail;
       }
@@ -69,22 +87,21 @@ export function createAnalysisClient(openWorker: () => WorkerLike) {
   };
 
   return {
-    lint(source: string, params: SlotLabel[]): Promise<LintResult | null> {
+    lint(key: string, source: string, params: SlotLabel[]): Promise<LintResult | null> {
       return new Promise((resolve) => {
-        const job = { source, params, resolve };
+        const job = { key, source, params, resolve };
         if (!running) return start(job);
-        running.superseded = true;
-        queued?.resolve(null);
-        queued = job;
+        if (running.job.key === key) running.superseded = true;
+        // Delete first so the replacement queues behind older keys.
+        pending.get(key)?.resolve(null);
+        pending.delete(key);
+        pending.set(key, job);
       });
     },
     dispose(): void {
       worker?.terminate();
       worker = null;
-      running?.job.resolve(null);
-      queued?.resolve(null);
-      running = null;
-      queued = null;
+      dropAll();
     },
   };
 }

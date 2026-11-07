@@ -62,7 +62,7 @@ function requestAnalysis(monaco: typeof Monaco, model: Monaco.editor.ITextModel,
   });
   const version = model.getVersionId();
   void analysisClient()
-    .lint(source, lintParams(source))
+    .lint(model.uri.toString(), source, lintParams(source))
     .then((result) => {
       if (!result || model.isDisposed() || model.getVersionId() !== version) return;
       const { Error, Warning, Info } = monaco.MarkerSeverity;
