@@ -18,15 +18,28 @@ let generation = 0;
 
 export const getCachedLabelMaps = (): IndexedLabelMap[] => cached;
 
+const listeners = new Set<() => void>();
+
+/** Called when a refresh actually changed the maps. Returns an unsubscribe. */
+export function onLabelMapsChanged(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+const signature = (maps: IndexedLabelMap[]) => JSON.stringify(maps);
+
+function apply(mine: number, next: IndexedLabelMap[]): void {
+  if (mine !== generation) return;
+  const changed = signature(next) !== signature(cached);
+  cached = next;
+  if (changed) listeners.forEach((l) => l());
+}
+
 function reload(fs: LabelMapSource): void {
   const mine = ++generation;
   loadLabelMaps(fs)
-    .then((next) => {
-      if (mine === generation) cached = next;
-    })
-    .catch(() => {
-      if (mine === generation) cached = [];
-    });
+    .then((next) => apply(mine, next))
+    .catch(() => apply(mine, []));
 }
 
 /** Idempotent: loads once, then follows `file:*` and `fs:reloaded`. */

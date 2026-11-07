@@ -2,8 +2,8 @@ import type * as Monaco from "monaco-editor";
 import { FileSystem } from "@/lib/file-system";
 import { deployParamsFor } from "@/features/deployment/deploy-params";
 import { t } from "@/i18n/runtime";
+import type { SlotLabel } from "@/features/inspector/model/label-map";
 import { ensureLabelMapCache, getCachedLabelMaps } from "./label-map-cache";
-import { lintContract } from "./lint/lint";
 import type { LintFinding, RuleId } from "./lint/types";
 
 /** Its own owner, so the compile markers under "smartc" are never touched. */
@@ -91,12 +91,11 @@ export function toMarkers(findings: LintFinding[], severity: SeverityMap): Monac
 }
 
 /**
- * Lint the source for the editor. Deploy parameters come from the cached Label
- * Maps; the cache loads on first use, so the very first run labels parameters
- * from the TESTBED convention only.
+ * The deploy parameters the lint needs, derived on the main thread because
+ * the Label Maps live here (one compile, a few ms). The cache loads on first
+ * use, so the very first call labels parameters from the TESTBED convention only.
  */
-export function analysisMarkers(source: string, severity: SeverityMap): Monaco.editor.IMarkerData[] {
+export function lintParams(source: string): SlotLabel[] {
   ensureLabelMapCache(FileSystem.getInstance());
-  const { findings } = lintContract(source, { params: deployParamsFor(source, getCachedLabelMaps()) });
-  return toMarkers(findings, severity);
+  return deployParamsFor(source, getCachedLabelMaps());
 }

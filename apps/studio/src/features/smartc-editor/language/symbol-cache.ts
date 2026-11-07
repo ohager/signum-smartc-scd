@@ -1,7 +1,9 @@
 import type * as Monaco from "monaco-editor";
 import { scanSymbols } from "./symbol-scanner";
 import { analyzeWithCompiler } from "./compiler-symbols";
-import { ANALYSIS_OWNER, analysisMarkers } from "@/features/analysis/diagnostics";
+import { ANALYSIS_OWNER, lintParams, toMarkers } from "@/features/analysis/diagnostics";
+import { onLabelMapsChanged } from "@/features/analysis/label-map-cache";
+import { analysisClient } from "@/features/analysis/worker/analysis-client";
 import { type SmartCSymbols, emptySymbols, mergeSymbols } from "./symbols";
 
 const cache = new Map<string, SmartCSymbols>();
@@ -41,24 +43,36 @@ export function updateModel(
     });
   }
   monaco.editor.setModelMarkers(model, "smartc", markers);
-  monaco.editor.setModelMarkers(model, ANALYSIS_OWNER, lintMarkers(monaco, source));
+  requestAnalysis(monaco, model, source);
 }
 
+const analysed = new Set<Monaco.editor.ITextModel>();
+let unsubscribe: (() => void) | null = null;
+
 /**
- * A lint crash must not cost the user the compile markers or the symbol
- * cache, which are already set by now.
+ * The lint runs in a worker (the gas rule takes seconds on a big contract), so
+ * its answer can arrive after the user has typed on. Markers are applied only
+ * if the model is still alive and still at the version that was linted.
  */
-function lintMarkers(monaco: typeof Monaco, source: string): Monaco.editor.IMarkerData[] {
-  try {
-    const { Error, Warning, Info } = monaco.MarkerSeverity;
-    return analysisMarkers(source, { Error, Warning, Info });
-  } catch (e) {
-    console.error("smartc lint failed", e);
-    return [];
-  }
+function requestAnalysis(monaco: typeof Monaco, model: Monaco.editor.ITextModel, source: string): void {
+  analysed.add(model);
+  // A Label Map change renames deploy parameters, so open models are linted again.
+  unsubscribe ??= onLabelMapsChanged(() => {
+    for (const m of analysed) if (!m.isDisposed()) requestAnalysis(monaco, m, m.getValue());
+  });
+  const version = model.getVersionId();
+  void analysisClient()
+    .lint(source, lintParams(source))
+    .then((result) => {
+      if (!result || model.isDisposed() || model.getVersionId() !== version) return;
+      const { Error, Warning, Info } = monaco.MarkerSeverity;
+      monaco.editor.setModelMarkers(model, ANALYSIS_OWNER, toMarkers(result.findings, { Error, Warning, Info }));
+    })
+    .catch((e) => console.error("smartc lint failed", e));
 }
 
 export function clearModel(model: Monaco.editor.ITextModel): void {
   cache.delete(model.uri.toString());
-  // Analysis markers need no clearing here: Monaco drops every owner's markers when the model is disposed.
+  // Monaco drops every owner's markers when the model is disposed.
+  analysed.delete(model);
 }
