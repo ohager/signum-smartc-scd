@@ -42,6 +42,7 @@ describe("gasReport", () => {
     expect(r.worstCasePlanck).toBe(BigInt(r.worstCaseSteps) * PLANCK_PER_STEP);
     expect(r.worstCase.handler).toBe("handleA");
     expect(r.capHit).toBe(true);
+    expect(r.worstCaseComplete).toBe(true);
   });
 
   it("accepts a sufficient activation amount", () => {
@@ -83,5 +84,26 @@ void main() {
     if (r.ok) return;
     expect(r.error.line).toBeGreaterThan(0);
     expect(r.error.message.length).toBeGreaterThan(0);
+  });
+
+  it("marks the worst case incomplete without a switch dispatcher", () => {
+    const src = `
+#program name IfElse
+#program activationAmount 1000000
+#pragma optimizationLevel 3
+#pragma maxAuxVars 3
+long total;
+struct TXINFO { long txId; long sender; long msg[4]; long amount; } cur;
+void main() {
+    while ((cur.txId = getNextTx()) != 0) {
+        readMessage(cur.txId, 0, cur.msg);
+        if (cur.msg[0] == 1) { total += 1; } else { total += 2; }
+    }
+}
+`;
+    const r = gasReport(src);
+    if (!r.ok) throw new Error(r.error.message);
+    expect(r.analysis.methods.length).toBe(0);
+    expect(r.worstCaseComplete).toBe(false);
   });
 });

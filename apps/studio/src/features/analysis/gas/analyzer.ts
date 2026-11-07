@@ -11,7 +11,7 @@
  * executed instructions — hence the MIN/MAX cost in SIGNA (0.001 SIGNA per
  * instruction).
  *
- * Scope decisions (see scripts/gas-analysis.js for rationale):
+ * Scope decisions (see the original skill's gas-analysis script for rationale):
  *   - No multi-tx activation: each tx is its own single run through the
  *     getNextTx() loop, so the tx-loop back-edge is treated as an activation
  *     exit and never multiplied. main()'s post-loop effects (after the loop)

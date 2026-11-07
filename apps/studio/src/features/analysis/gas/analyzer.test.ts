@@ -60,7 +60,7 @@ describe("gas analyzer", () => {
 
     it("reports a single-pass (1×loop) estimate between Min and Max", () => {
         const a = analyzeContract(PROBE).handlers.find((h) => h.name === "handleA")!;
-        // handleA"s loop: Min skips it (3), 1× runs it once, Max runs it 10× (43).
+        // handleA's loop: Min skips it (3), 1× runs it once, Max runs it 10× (43).
         // CLR + 1×(BLT+ADD+INC+JMP) + BLT+RET = 7 steps.
         expect(a.oneRunSteps).toBe(7);
         expect(a.minSteps).toBeLessThanOrEqual(a.oneRunSteps!);
@@ -106,7 +106,7 @@ describe("gas analyzer", () => {
     });
 
     it("has no post-loop cost when main() ends at the tx loop", () => {
-        // PROBE"s while loop is the last thing in main() — nothing runs after it.
+        // PROBE's while loop is the last thing in main() — nothing runs after it.
         expect(analyzeContract(PROBE).postLoop).toBeNull();
     });
 

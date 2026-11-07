@@ -13,6 +13,13 @@ export interface GasReport {
   worstCaseSteps: number;
   worstCasePlanck: bigint;
   worstCase: { method: number | null; handler: string | null };
+  /*
+   * true when at least one method was decoded from a switch dispatcher, so
+   * worstCaseSteps covers preamble + dispatch + handler (+ post-loop). false
+   * (if/else dispatch, no reachable handlers): the tx-loop body is not modelled
+   * and worstCaseSteps/worstCasePlanck are only a lower bound.
+   */
+  worstCaseComplete: boolean;
   activationTooLow: boolean;
   capHit: boolean;
 }
@@ -30,18 +37,17 @@ function findActivationLine(source: string): number | null {
 }
 
 export function gasReport(source: string, opts: { loopCap?: number } = {}): GasReport | { ok: false; error: ParsedError } {
-  let assembly: string;
+  let analysis: GasAnalysis;
   let amount: string;
   try {
     const compiler = new SmartC({ language: "C", sourceCode: source });
     compiler.compile();
-    assembly = compiler.getAssemblyCode();
     amount = compiler.getMachineCode().PActivationAmount;
+    analysis = analyzeAssembly(compiler.getAssemblyCode(), opts);
   } catch (e: any) {
     return { ok: false, error: parseCompileError(e?.message ?? "") };
   }
 
-  const analysis = analyzeAssembly(assembly, opts);
   const postSteps = analysis.postLoop?.maxSteps ?? 0;
 
   /*
@@ -79,6 +85,7 @@ export function gasReport(source: string, opts: { loopCap?: number } = {}): GasR
     worstCaseSteps,
     worstCasePlanck,
     worstCase,
+    worstCaseComplete: analysis.methods.length > 0,
     activationTooLow: activationAmountPlanck < worstCasePlanck,
     capHit: rows.some((r) => r.capHit),
   };
