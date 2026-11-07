@@ -117,7 +117,38 @@ export function createToolRegistry(deps: ToolRegistryDeps): { call(tool: string,
     }
   }
 
-  async function execute(tool: ToolName, kind: "global" | "read" | "write", args: unknown, projectId: string | null): Promise<{ outcome: ToolOutcome; touched: TouchedFile[] }> {
+  type Executed = { outcome: ToolOutcome; touched: TouchedFile[] };
+
+  /*
+   * The relay gives up on a call after the tool's `timeoutMs` and tells the agent so. A
+   * call still waiting in the project queue by then must not run anyway: the agent
+   * already believes it failed and may retry, and a late write would land behind its
+   * back. So each queued job gets the same deadline, measured from arrival; one that
+   * has not started by then resolves `timeout` and is skipped when its turn comes (no
+   * handler, no round). Once started, a job runs to completion: stopping a handler
+   * halfway would be worse than a late answer.
+   */
+  function enqueueWithDeadline(projectId: string, tool: ToolName, timeoutMs: number, job: () => Promise<Executed>): Promise<Executed> {
+    return new Promise((resolve) => {
+      let state: "waiting" | "started" | "expired" = "waiting";
+      const timer = deps.clock.setTimeout(() => {
+        if (state !== "waiting") return;
+        state = "expired";
+        resolve({
+          outcome: failure("timeout", `${tool} waited ${Math.round(timeoutMs / 1000)} s behind other calls on this project and was not run.`),
+          touched: [],
+        });
+      }, timeoutMs);
+      void enqueue(projectId, async () => {
+        if (state === "expired") return;
+        state = "started";
+        deps.clock.clearTimeout(timer);
+        resolve(await job());
+      });
+    });
+  }
+
+  async function execute(tool: ToolName, kind: "global" | "read" | "write", timeoutMs: number, args: unknown, projectId: string | null): Promise<Executed> {
     try {
       const handler = deps.handlers[tool] as (a: unknown) => Promise<{ result: unknown; touched?: TouchedFile[] }>;
       if (kind === "global" || projectId === null) {
@@ -132,7 +163,7 @@ export function createToolRegistry(deps: ToolRegistryDeps): { call(tool: string,
         }
         return { outcome: { ok: true, data: out.result }, touched };
       }
-      return await enqueue(projectId, async () => {
+      return await enqueueWithDeadline(projectId, tool, timeoutMs, async () => {
         try {
           const out = await withRound(projectId, kind, () => handler(args));
           return { outcome: { ok: true, data: out.result } as ToolOutcome, touched: out.touched ?? [] };
@@ -173,7 +204,7 @@ export function createToolRegistry(deps: ToolRegistryDeps): { call(tool: string,
           return o;
         }
         deps.events.callStarted({ callId, tool, projectId, target, at: deps.clock.now() });
-        ({ outcome, touched } = await execute(tool, def.kind, parsed.data, projectId));
+        ({ outcome, touched } = await execute(tool, def.kind, def.timeoutMs, parsed.data, projectId));
       }
       deps.events.callEnded({ callId, outcome, touched, at: deps.clock.now() });
       return outcome;

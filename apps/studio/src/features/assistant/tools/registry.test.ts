@@ -18,7 +18,36 @@ const clock: Clock = {
   clearTimeout: () => {},
 };
 
-function harness(overrides: Partial<Record<ToolName, (args: any) => Promise<any>>> = {}, projectOf?: (t: ToolName, a: any) => string | null) {
+/* Timers fire only when the test advances time, so a queue wait is deterministic. */
+class FakeClock implements Clock {
+  private t = 0;
+  private nextId = 1;
+  private timers = new Map<number, { at: number; fn: () => void }>();
+  now() {
+    return this.t;
+  }
+  setTimeout(fn: () => void, ms: number) {
+    const id = this.nextId++;
+    this.timers.set(id, { at: this.t + ms, fn });
+    return id;
+  }
+  clearTimeout(handle: unknown) {
+    this.timers.delete(handle as number);
+  }
+  advance(ms: number) {
+    this.t += ms;
+    for (const [id, timer] of [...this.timers].sort((a, b) => a[1].at - b[1].at)) {
+      if (timer.at > this.t) break;
+      this.timers.delete(id);
+      timer.fn();
+    }
+  }
+  pending() {
+    return this.timers.size;
+  }
+}
+
+function harness(overrides: Partial<Record<ToolName, (args: any) => Promise<any>>> = {}, projectOf?: (t: ToolName, a: any) => string | null, registryClock: Clock = clock) {
   const log: string[] = [];
   let starts = 0;
   const hooks: RoundHooks = {
@@ -42,7 +71,7 @@ function harness(overrides: Partial<Record<ToolName, (args: any) => Promise<any>
     rounds: tracker,
     projectOf: projectOf ?? ((tool, args: any) => (tool === "create_project" || tool === "list_projects" || tool === "get_editor_context" ? null : "p1")),
     events: ev,
-    clock,
+    clock: registryClock,
   });
   return { registry, tracker, log, events, starts: () => starts };
 }
@@ -161,6 +190,67 @@ describe("createToolRegistry", () => {
     expect(err(o)!.code).toBe("internal");
     expect(err(o)!.message.split("\n").length).toBeGreaterThan(1);
     expect(h.starts()).toBe(0);
+  });
+
+  describe("queue deadline", () => {
+    const tick = () => new Promise((r) => setTimeout(r, 0));
+
+    function blockedBehindTests() {
+      const fake = new FakeClock();
+      let release!: () => void;
+      const gate = new Promise<void>((r) => (release = r));
+      const writes: string[] = [];
+      const h = harness(
+        {
+          run_tests: async () => {
+            await gate;
+            return { result: "tests" };
+          },
+          write_file: async (a: any) => {
+            writes.push(a.path);
+            return { result: {} };
+          },
+        },
+        undefined,
+        fake,
+      );
+      return { h, fake, release, writes };
+    }
+
+    it("a queued call that has not started within its tool's timeout resolves timeout without running", async () => {
+      const { h, fake, release, writes } = blockedBehindTests();
+      const tests = h.registry.call("run_tests", { project: "p" });
+      const write = h.registry.call("write_file", { path: "/p/a", content: "x" });
+      await tick();
+      fake.advance(10_000);
+      const o = await write;
+      expect(err(o)!.code).toBe("timeout");
+      expect(err(o)!.message).toContain("was not run");
+      expect(h.events.ended.map((e) => e.outcome.ok)).toEqual([false]);
+
+      release();
+      expect((await tests).ok).toBe(true);
+      await tick();
+      expect(writes).toEqual([]);
+      expect(h.starts()).toBe(0);
+      /* The queue is still alive. */
+      expect((await h.registry.call("write_file", { path: "/p/b", content: "y" })).ok).toBe(true);
+      expect(writes).toEqual(["/p/b"]);
+    });
+
+    it("a queued call that starts in time runs normally and its deadline is dropped", async () => {
+      const { h, fake, release, writes } = blockedBehindTests();
+      const tests = h.registry.call("run_tests", { project: "p" });
+      const write = h.registry.call("write_file", { path: "/p/a", content: "x" });
+      await tick();
+      fake.advance(9_999);
+      release();
+      expect((await tests).ok).toBe(true);
+      expect((await write).ok).toBe(true);
+      expect(writes).toEqual(["/p/a"]);
+      fake.advance(60_000);
+      expect(h.events.ended.every((e) => e.outcome.ok)).toBe(true);
+    });
   });
 
   it("projectOf failure is the outcome, without round or queue", async () => {
