@@ -10,7 +10,8 @@
     "enumMissing": "L'enum \"{name}\" non è definito in \"enums\"",
     "enumRequired": "Il formato \"enum\" richiede un nome di \"enum\"",
     "other": "{message}",
-    "at": "Riga {line}: {message}"
+    "at": "Riga {line}: {message}",
+    "paramOnArray": "Un parametro di distribuzione deve essere un singolo slot, non un array"
   },
   "editor": {
     "viewUi": "Inspector",
@@ -205,5 +206,17 @@
     "inspect": "Ispeziona",
     "inspectHint": "Apri questo contratto nell'inspector, con etichette generate da questo sorgente",
     "failed": "Impossibile preparare l'ispezione: {message}"
+  },
+  "instance": {
+    "button": "Nuova istanza",
+    "title": "Nuova istanza di {name}",
+    "connect": "Collega XT Wallet per distribuire una nuova istanza.",
+    "resolving": "Ricerca della distribuzione originale…",
+    "otherNetwork": "XT Wallet è collegato a un nodo che non conosce questo contratto. Passa XT alla rete del contratto.",
+    "noOriginal": "La distribuzione originale di questo contratto non è stata trovata su questo nodo.",
+    "node": "Il nodo del wallet non ha risposto: {message}",
+    "ambiguous": "Più Label Map rivendicano questo hash del codice — fissane prima una.",
+    "markParams": "Parametri di distribuzione",
+    "added": "Aggiunto alla watchlist"
   }
 }

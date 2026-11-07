@@ -55,7 +55,10 @@
     "feeSigna": "Comisión de la transacción (SIGNA)",
     "minimum": "Mínimo:",
     "deadline": "Plazo (minutos)",
-    "deadlineHint": "Plazo de la transacción en minutos (máx.: 1440)"
+    "deadlineHint": "Plazo de la transacción en minutos (máx.: 1440)",
+    "pathFull": "Despliegue completo",
+    "pathReference": "Por referencia",
+    "fixParams": "Corrige los parámetros de arriba para desplegar."
   },
   "flow": {
     "connectWallet": "Conecta una billetera para desplegar tu contrato",
@@ -141,5 +144,40 @@
       "returnsOne": "devuelve un valor, un argumento",
       "returnsTwo": "devuelve un valor, dos argumentos"
     }
+  },
+  "params": {
+    "title": "Parámetros",
+    "hint": "Valores que se escriben en la pila de datos del contrato al desplegarlo.",
+    "none": "Este contrato no tiene parámetros de despliegue. Marca ranuras como parámetros en su Label Map (`param: true`).",
+    "overwritten": "La línea {line} lo sobrescribe en la primera activación",
+    "confirmOverwrite": "Sé que este valor se sobrescribirá",
+    "noSourceCheck": "Sin código fuente, Studio no puede comprobar si el código de nivel superior sobrescribe estos valores.",
+    "placeholderDefault": "Vacío: {value}",
+    "error": {
+      "invalid": "No es un valor válido para este formato",
+      "outOfRange": "No cabe en 64 bits",
+      "tooLong": "El texto está limitado a 8 bytes",
+      "tooManyDecimals": "Como máximo 8 decimales",
+      "unknownEnum": "No es uno de los valores del enum"
+    },
+    "tooLarge": "Los datos no caben en las {slots} ranuras de datos del contrato.",
+    "preview": "Pila de datos",
+    "internal": "interno",
+    "slot": "Ranura",
+    "name": "Nombre",
+    "value": "Valor",
+    "hex": "Hex"
+  },
+  "reference": {
+    "title": "Desplegar por referencia",
+    "hint": "Reutiliza el código de un contrato que ya está en la cadena. Más barato: solo se envían los datos.",
+    "original": "Original",
+    "inherited": "El importe de activación y las páginas de memoria vienen del original.",
+    "searching": "Buscando despliegues de este código…",
+    "connect": "Conecta XT Wallet para encontrar despliegues existentes de este código.",
+    "failed": "No se pudo buscar en el nodo: {message}",
+    "retry": "Buscar de nuevo",
+    "noneYet": "Cuando este código esté en la cadena, podrás desplegar más instancias por referencia a bajo coste.",
+    "candidate": "{id} · de {creator} · bloque {height}"
   }
 }

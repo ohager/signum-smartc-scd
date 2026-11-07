@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import type { ContractData } from "@signumjs/contracts";
+import { generateDataStack } from "@signumjs/contracts";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -24,7 +24,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import type { MachineData } from "@/features/asm-editor/machine-data.ts";
+import type { DeployRequest } from "@/features/deployment/deploy-request";
 import { toast } from "sonner";
 import type { Amount } from "@signumjs/util";
 import { ExplorerLink } from "@/components/ui/explorer-link.tsx";
@@ -49,20 +49,24 @@ type DeploymentStep =
   | "error";
 
 interface LargeContractDeploymentProps {
-  data: MachineData;
-  initialData: ContractData[];
+  request: Extract<DeployRequest, { kind: "full" }>;
+  codeHash: string;
   deadline: number;
   fee: Amount;
   nodeUrl: string;
+  /** See `DeploymentFlow`: no new deploy may start from a stale request. */
+  disabled?: boolean;
   /** Rendered under the success message, e.g. "Inspect" — the flow itself knows no project. */
   successAction?: (transactionId: string) => ReactNode;
 }
 
 export function LargeContractDeployment({
-  data,
+  request,
+  codeHash,
   deadline,
   fee,
   nodeUrl,
+  disabled = false,
   successAction,
 }: LargeContractDeploymentProps) {
   const [deploymentStep, setDeploymentStep] = useState<DeploymentStep>("idle");
@@ -71,6 +75,7 @@ export function LargeContractDeployment({
   const [transactionId, setTransactionId] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
+  const data = request.machine;
   const contractSize = calculateContractSize(data);
   const contractTooLarge = isTooLarge(data);
 
@@ -91,14 +96,14 @@ export function LargeContractDeployment({
       // Prepare form data for POST request
       const formData = new URLSearchParams();
       formData.append("requestType", "createATProgram");
-      formData.append("name", data.PName);
-      formData.append("description", data.PDescription);
+      formData.append("name", request.name);
+      formData.append("description", request.description);
       formData.append("code", data.ByteCode);
-      formData.append("data", data.ByteData);
+      formData.append("data", generateDataStack(request.data));
       formData.append("dpages", data.DataPages.toString());
       formData.append("cspages", data.CodeStackPages.toString());
       formData.append("uspages", data.UserStackPages.toString());
-      formData.append("minActivationAmountNQT", data.PActivationAmount);
+      formData.append("minActivationAmountNQT", request.activationPlanck);
       formData.append("secretPhrase", passphrase);
       formData.append("feeNQT", fee.getPlanck());
       formData.append("deadline", deadline.toString());
@@ -129,7 +134,7 @@ export function LargeContractDeployment({
       setTransactionId(result.transaction);
       announceDeployment({
         nodeHost: nodeUrl,
-        codeHash: data.MachineCodeHashId,
+        codeHash,
         transactionId: result.transaction,
       });
       setDeploymentStep("success");
@@ -342,7 +347,7 @@ export function LargeContractDeployment({
           {/* Action Buttons */}
           <div className="flex gap-3">
             {deploymentStep === "idle" && (
-              <Button onClick={handleStartDeployment} className="flex-1" disabled={contractTooLarge}>
+              <Button onClick={handleStartDeployment} className="flex-1" disabled={contractTooLarge || disabled}>
                 <Zap className="h-4 w-4 mr-2" />
                 {t("asm-editor.large.deployLarge")}
               </Button>
@@ -352,7 +357,7 @@ export function LargeContractDeployment({
               <>
                 <Button
                   onClick={handleDeploy}
-                  disabled={!passphrase.trim()}
+                  disabled={!passphrase.trim() || disabled}
                   className="flex-1"
                 >
                   <Zap className="h-4 w-4 mr-2" />

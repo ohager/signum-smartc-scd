@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { generateLabels, slotsFromNames } from "./label-generator";
+import { generateLabels, slotsFromNames, suggestFormat, testbedParams } from "./label-generator";
 
 const typed = readFileSync(join(import.meta.dir, "__fixtures__/typed.smart.c"), "utf8");
 const counter = readFileSync(join(import.meta.dir, "../../testbed/__fixtures__/counter.smart.c"), "utf8");
@@ -51,5 +51,34 @@ describe("fallback", () => {
       { index: 1, name: "counter", origin: "compiler" },
       { index: 2, name: "rate", origin: "compiler" },
     ]);
+  });
+});
+
+describe("deploy parameter suggestions", () => {
+  const params = readFileSync(join(import.meta.dir, "__fixtures__/params.smart.c"), "utf8");
+
+  it("marks TESTBED-convention variables as parameters", () => {
+    const r = generateLabels(params);
+    if (!r.ok) throw new Error(r.error.message);
+    const by = Object.fromEntries(r.labels.slots.map((s) => [s.name, s]));
+    expect(by.owner).toMatchObject({ param: true, format: "address" });
+    expect(by.maxSupply).toMatchObject({ param: true, format: "long" });
+    expect(by.rate?.param).toBeUndefined(); // the #else branch is not TESTBED
+    expect(by.feeAccount).toMatchObject({ format: "address" });
+    expect(by.tokenId).toMatchObject({ format: "address" });
+    expect(by.rate).toMatchObject({ format: "fixed" });
+    expect(r.labels.slots.filter((s) => s.name === "prices").every((s) => !s.param)).toBe(true);
+  });
+
+  it("testbedParams ignores commented and #else lines", () => {
+    expect([...testbedParams("#ifdef TESTBED\n// const a = TESTBED_a;\nconst b = TESTBED_b;\n#else\nconst c = TESTBED_c;\n#endif")]).toEqual(["b"]);
+  });
+
+  it("suggestFormat only turns long into address", () => {
+    expect(suggestFormat("admin", "long")).toBe("address");
+    expect(suggestFormat("creatorId", "long")).toBe("address");
+    expect(suggestFormat("ownerCount", "long")).toBe("long");
+    expect(suggestFormat("ownerId", "fixed")).toBe("fixed");
+    expect(suggestFormat("x", undefined)).toBeUndefined();
   });
 });
