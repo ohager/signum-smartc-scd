@@ -22,6 +22,10 @@ To run for production:
 bun start
 ```
 
+## AI Assistant
+
+Studio can let a coding agent such as Claude Code or Codex work on your projects. See the [AI Assistant guide](../../docs/assistant.md).
+
 ## Languages
 
 Studio speaks English, Deutsch, Português (Brasil), Français, Español, Italiano,
@@ -39,6 +43,7 @@ sentences with elements in them. Terms follow `src/i18n/GLOSSARY.md`.
 regenerate `locales/en/editor-docs.json`. Other locales translate that file.
 
 **Adding a language:**
+
 1. Copy `src/i18n/locales/en` to `src/i18n/locales/<id>` and translate the JSON
    files. Keep every key, `{placeholder}`, `<tag>` and `` `code` `` as it is.
 2. `bun test src/i18n` — fails on broken placeholders, tags or code spans.
@@ -53,7 +58,6 @@ Compiler, assembler and test-runner messages are not translated.
 
 ## ShadCN components
 
-
 This project uses [ShadCDN](https://ui.shadcn.com/) as component "library." If needed you should use
 
 ```bash
@@ -61,4 +65,3 @@ bunx --bun shadcn@latest add <component-name>
 ```
 
 to install base components to the project.
-
