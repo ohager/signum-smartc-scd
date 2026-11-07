@@ -127,6 +127,7 @@ describe("runTests", () => {
     const done = runTests(emptyRequest, transport, (e) => seen.push(e), { signal: controller.signal });
     send({ type: "run:end", durationMs: 0 });
     await done;
+    send({ type: "test:start", id: "a#0", name: "t", path: ["t"], file: "a" });
     controller.abort();
     expect(seen.map((e) => e.type)).toEqual(["run:end"]);
   });

@@ -39,8 +39,27 @@ describe("testVerdictsByFile", () => {
     expect(testVerdictsByFile(state, ["/p/a.test.ts"])).toEqual({ "/p/a.test.ts": { passed: 0, failed: 1 } });
   });
 
-  it("reports an entry file that produced no rows as zero/zero", () => {
+  it("leaves a clean run with no rows at zero/zero", () => {
     expect(testVerdictsByFile(initialRunState(), ["/p/a.test.ts"])).toEqual({ "/p/a.test.ts": { passed: 0, failed: 0 } });
+  });
+
+  it("fails the file a collect error names, and only that file", () => {
+    const state = reduceEvent(stateOf([["/p/b.test.ts", "passed"]]), { type: "collect:error", file: "/p/a.test.ts", message: "x" });
+    const v = testVerdictsByFile(state, ["/p/a.test.ts", "/p/b.test.ts"]);
+    expect(v["/p/a.test.ts"]!.failed).toBe(1);
+    expect(v["/p/b.test.ts"]).toEqual({ passed: 1, failed: 0 });
+  });
+
+  it("fails every entry file on a harness error that names no file", () => {
+    const state = reduceEvent(initialRunState(), { type: "collect:error", file: "(project)", message: "transpile" });
+    const v = testVerdictsByFile(state, ["/p/a.test.ts", "/p/b.test.ts"]);
+    expect(v["/p/a.test.ts"]!.failed).toBeGreaterThanOrEqual(1);
+    expect(v["/p/b.test.ts"]!.failed).toBeGreaterThanOrEqual(1);
+  });
+
+  it("counts a hook error as a failure", () => {
+    const state = reduceEvent(initialRunState(), { type: "hook:error", file: "/p/a.test.ts", suite: [], phase: "beforeAll", message: "x" });
+    expect(testVerdictsByFile(state, ["/p/a.test.ts"])["/p/a.test.ts"]!.failed).toBe(1);
   });
 });
 

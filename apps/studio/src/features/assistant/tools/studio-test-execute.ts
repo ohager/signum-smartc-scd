@@ -22,6 +22,9 @@ export function createStudioTestExecute(): TestToolDeps["execute"] {
   return async (projectFolderId, options) => {
     // The editor may never have been opened, so Monaco is loaded on demand.
     const monaco = (await loader.init()) as unknown as typeof Monaco;
+    // The run's start, fixed once: a refreshed stamp would let a streaming agent
+    // run mask a newer run the user started in an open editor.
+    const at = Date.now();
     const state = await executeTestRun(
       {
         fs: FileSystem.getInstance(),
@@ -37,7 +40,7 @@ export function createStudioTestExecute(): TestToolDeps["execute"] {
           projectFolderId,
           entryPaths: options.entryPath ? [options.entryPath] : [],
           state: next,
-          at: Date.now(),
+          at,
           source: "assistant",
         });
       },

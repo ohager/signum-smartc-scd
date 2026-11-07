@@ -73,6 +73,9 @@ export function runTests(
     };
 
     transport.onEvent((event) => {
+      // A late event from a terminated worker must neither re-arm the watchdog
+      // nor reach the consumer after `run:end`.
+      if (finished) return;
       arm();
       if (event.type === "test:start") {
         inFlightTestId = event.id;

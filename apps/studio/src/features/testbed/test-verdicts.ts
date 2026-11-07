@@ -10,8 +10,8 @@ import type { RunState } from "./test-run-model";
  * Counted from rows rather than `state.counts`: a run may span several files and
  * a verdict belongs to one. A timeout is a failure the user needs to see as one;
  * skipped and todo tests say nothing either way. A file that produced no rows
- * (it failed to collect) is still listed, as zero/zero, so it overwrites a stale
- * verdict instead of leaving it standing.
+ * is still listed so it overwrites a stale verdict instead of leaving it
+ * standing; collect and hook errors count as failures (see below).
  */
 export function testVerdictsByFile(
   state: RunState,
@@ -25,6 +25,17 @@ export function testVerdictsByFile(
     if (!verdict) continue;
     if (row.status === "passed") verdict.passed++;
     else if (row.status === "failed" || row.status === "timedout") verdict.failed++;
+  }
+
+  /*
+   * A file that could not be collected or whose hook threw has no rows to count,
+   * yet it must not read as green (0 failed). An error naming an entry file fails
+   * that file; one naming nothing we know (`(project)`, a harness failure such as
+   * a transpile error) means no file's result can be trusted, so it fails them all.
+   */
+  for (const { file } of [...state.collectErrors, ...state.hookErrors]) {
+    if (verdicts[file]) verdicts[file].failed++;
+    else for (const verdict of Object.values(verdicts)) verdict.failed++;
   }
   return verdicts;
 }
