@@ -1,14 +1,29 @@
 {
   "name": "@smartc-studio/mcp",
   "version": "0.0.0",
+  "description": "MCP relay connecting coding agents to SmartC Studio",
   "type": "module",
   "license": "Apache-2.0",
-  "dependencies": {
-    "@smartc-studio/assistant-protocol": "workspace:*"
+  "bin": {
+    "smartc-studio-mcp": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "bun build src/cli.ts --target node --external bufferutil --external utf-8-validate --banner \"#!/usr/bin/env node\" --outfile dist/cli.js && chmod +x dist/cli.js"
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@smartc-studio/assistant-protocol": "workspace:*",
     "@types/node": "^20.19.0",
     "@types/ws": "^8.18.1",
-    "ws": "^8.18.3"
+    "ws": "^8.18.3",
+    "zod": "^4"
   }
 }
