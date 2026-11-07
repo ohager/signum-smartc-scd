@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
-import { DiffEditor } from "@monaco-editor/react";
+import { useEffect, useRef, useState } from "react";
+import { DiffEditor, type DiffOnMount } from "@monaco-editor/react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { t } from "@/i18n/runtime";
 import { registerSmartC, SMARTC_LANGUAGE_ID } from "@/features/smartc-editor/language/register";
 import { EDITOR_SCROLLBAR } from "@/theme/monaco-themes";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import { useAssistant } from "../bridge/use-assistant";
+import { diffModelPaths } from "./diff-model-paths";
 
 export interface RoundDiffTarget {
   checkpointId: string;
@@ -56,18 +57,57 @@ export function RoundDiffDialog({ target, onClose }: { target: RoundDiffTarget |
         </DialogHeader>
         <div className="min-h-0 flex-1">
           {target && diff && (
-            <DiffEditor
-              height="100%"
-              language={languageOf(target.path)}
-              original={diff.original}
-              modified={diff.modified}
-              theme={monacoTheme}
-              beforeMount={(monaco) => registerSmartC(monaco)}
-              options={{ readOnly: true, originalEditable: false, renderSideBySide: true, minimap: { enabled: false }, scrollbar: EDITOR_SCROLLBAR, scrollBeyondLastLine: false, fontSize: 13 }}
-            />
+            <RoundDiff checkpointId={target.checkpointId} relPath={relPathInProject(target.path)} language={languageOf(target.path)} diff={diff} theme={monacoTheme} />
           )}
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+let openings = 0;
+
+/*
+ * Unmount order matters. DiffEditor's own cleanup disposes both models first and the
+ * widget after, and Monaco throws "TextModel got disposed before DiffEditorWidget model
+ * got reset". So DiffEditor is told to keep its models (keepCurrent*Model) and we tear down
+ * ourselves: detach the models from the widget with setModel(null), only then dispose them.
+ * The widget itself is disposed afterwards by DiffEditor's cleanup, which is then harmless.
+ * Each mount gets its own model paths, so a reopen never finds a disposed model.
+ */
+function RoundDiff({ checkpointId, relPath, language, diff, theme }: { checkpointId: string; relPath: string; language: string; diff: { original: string; modified: string }; theme: string }) {
+  const editorRef = useRef<Parameters<DiffOnMount>[0] | null>(null);
+  const [paths] = useState(() => diffModelPaths(checkpointId, relPath, ++openings));
+
+  useEffect(
+    () => () => {
+      const editor = editorRef.current;
+      editorRef.current = null;
+      if (!editor) return;
+      const models = editor.getModel();
+      editor.setModel(null);
+      models?.original.dispose();
+      models?.modified.dispose();
+    },
+    [],
+  );
+
+  return (
+    <DiffEditor
+      height="100%"
+      language={language}
+      original={diff.original}
+      modified={diff.modified}
+      originalModelPath={paths.original}
+      modifiedModelPath={paths.modified}
+      keepCurrentOriginalModel
+      keepCurrentModifiedModel
+      theme={theme}
+      beforeMount={(monaco) => registerSmartC(monaco)}
+      onMount={(editor) => {
+        editorRef.current = editor;
+      }}
+      options={{ readOnly: true, originalEditable: false, renderSideBySide: true, minimap: { enabled: false }, scrollbar: EDITOR_SCROLLBAR, scrollBeyondLastLine: false, fontSize: 13 }}
+    />
   );
 }
