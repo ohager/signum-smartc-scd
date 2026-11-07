@@ -21,10 +21,10 @@ function setup(over: Partial<Parameters<typeof createRoundHooks>[0]> = {}) {
 }
 
 describe("createRoundHooks", () => {
-  it("starts flush -> capture -> lock, then notifies", async () => {
+  it("starts lock -> flush -> capture, then notifies", async () => {
     const { hooks, log } = setup();
     const r = await hooks.start("p");
-    expect(log).toEqual(["flush", "capture", "lock", "started:cp-1"]);
+    expect(log).toEqual(["lock", "flush", "capture", "started:cp-1"]);
     expect(r.checkpointId).toBe("cp-1");
     expect(r.roundId).toMatch(/^[0-9a-f-]{36}$/);
   });
@@ -35,19 +35,37 @@ describe("createRoundHooks", () => {
     expect(log).toEqual(["endSnapshot", "unlock", "ended:idle"]);
   });
 
-  it("does not lock when capture throws", async () => {
-    const log: string[] = [];
-    const { hooks } = setup({
-      flush: async () => void log.push("flush"),
+  it("still unlocks and notifies when endSnapshot throws, then propagates", async () => {
+    const { hooks, log } = setup({
+      endSnapshot: async () => {
+        log.push("endSnapshot");
+        throw new Error("snap failed");
+      },
+    });
+    await expect(hooks.end("p", "r1", "idle")).rejects.toThrow("snap failed");
+    expect(log).toEqual(["endSnapshot", "unlock", "ended:idle"]);
+  });
+
+  it("unlocks when capture throws, without notifying", async () => {
+    const { hooks, log } = setup({
       capture: async () => {
         log.push("capture");
         throw new Error("boom");
       },
-      lock: () => void log.push("lock"),
-      unlock: () => void log.push("unlock"),
     });
     await expect(hooks.start("p")).rejects.toThrow("boom");
-    expect(log).toEqual(["flush", "capture"]);
+    expect(log).toEqual(["lock", "flush", "capture", "unlock"]);
+  });
+
+  it("unlocks when flush throws, without capturing", async () => {
+    const { hooks, log } = setup({
+      flush: async () => {
+        log.push("flush");
+        throw new Error("flush failed");
+      },
+    });
+    await expect(hooks.start("p")).rejects.toThrow("flush failed");
+    expect(log).toEqual(["lock", "flush", "unlock"]);
   });
 
   it("unlocks when lock throws, then propagates without notifying", async () => {
@@ -60,7 +78,7 @@ describe("createRoundHooks", () => {
     });
     await expect(hooks.start("p")).rejects.toThrow("lock failed");
     expect(calls).toEqual(["unlock:p"]);
-    expect(log).toEqual(["flush", "capture"]);
+    expect(log).toEqual([]);
   });
 
   it("still propagates the lock error if unlock also throws", async () => {

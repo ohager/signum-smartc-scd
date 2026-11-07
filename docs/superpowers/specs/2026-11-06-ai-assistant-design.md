@@ -275,11 +275,17 @@ working on two projects runs two independent rounds; all other projects stay fre
 
 **At round start** Studio, in this order:
 
-1. flushes pending editor saves (`flushPendingSaves()` from `lib/pending-saves`),
-2. snapshots the contents of every file in the project as a checkpoint
-   (IndexedDB; the last 20 per project are kept),
-3. sets **every editor of the project read-only**, including ones opened during
-   the round.
+1. sets **every editor of the project read-only**, including ones opened during
+   the round; from here on a save into the project is a no-op, and an open editor
+   adopts agent writes even with unsaved text,
+2. flushes pending editor saves (`flushPendingSaves()` from `lib/pending-saves`;
+   the one write the lock lets through),
+3. snapshots the contents of every file in the project as a checkpoint
+   (IndexedDB; the last 20 per project are kept).
+
+Locking first closes the window in which an autosave timer firing after the
+checkpoint could overwrite the agent's first write. If the flush or the snapshot
+fails, the project is unlocked again.
 
 **Lock.** A banner above the editor says "AI Assistant is working on this project"
 with **[Take over]**; Monaco's `readOnlyMessage` repeats it when the user tries to

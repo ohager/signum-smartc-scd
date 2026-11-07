@@ -6,6 +6,7 @@ import type { File } from "@/lib/file-system";
 import { downloadBlob } from "@/lib/download.ts";
 import { registerPendingSave } from "@/lib/pending-saves";
 import { t } from "@/i18n/runtime";
+import { writesBack } from "./should-adopt.ts";
 
 /**
  * The open buffer of a file: its text, whether it differs from what is
@@ -45,6 +46,12 @@ interface Options {
   file: File;
   /** Runs after a successful write, with the text that was written. */
   onSaved?: (text: string) => void;
+  /**
+   * Whether the file's project is locked by an AI Assistant round. Read at
+   * save time, not render time: the lock lands between renders. While locked,
+   * saves are a quiet no-op except the round-start flush (`writesBack`).
+   */
+  isLocked?: () => boolean;
 }
 
 export interface EditorFile {
@@ -55,8 +62,12 @@ export interface EditorFile {
   /** Monaco's `onChange` handler. */
   onChange: (value: string | undefined) => void;
   isDirty: boolean;
-  /** `silent` writes without the confirmation toast, for saves the user did not ask for. */
-  save: (options?: { silent?: boolean }) => Promise<void>;
+  /**
+   * `silent` writes without the confirmation toast, for saves the user did not
+   * ask for. `flushing` marks the pending-save flush, the one write a locked
+   * project still accepts.
+   */
+  save: (options?: { silent?: boolean; flushing?: boolean }) => Promise<void>;
   /** What the save button and ⌘S call: drops a pending autosave, then writes. */
   saveNow: () => Promise<void>;
   download: () => void;
@@ -68,7 +79,9 @@ export interface EditorFile {
   adopt: (text: string) => void;
 }
 
-export function useEditorFile({ file, onSaved }: Options): EditorFile {
+const NEVER_LOCKED = () => false;
+
+export function useEditorFile({ file, onSaved, isLocked = NEVER_LOCKED }: Options): EditorFile {
   const fs = useFileSystem();
   // A file whose content write never landed reads back as undefined, and
   // Monaco turns uncontrolled the moment its value is not a string.
@@ -78,9 +91,14 @@ export function useEditorFile({ file, onSaved }: Options): EditorFile {
   const textRef = useRef(text);
   textRef.current = text;
   const [isDirty, setIsDirty] = useState(false);
+  const isLockedRef = useRef(isLocked);
+  isLockedRef.current = isLocked;
+  /* Whether an autosave is waiting; the round-start flush writes only then. */
+  const pendingRef = useRef(false);
 
   const save = useCallback(
-    async ({ silent = false }: { silent?: boolean } = {}) => {
+    async ({ silent = false, flushing = false }: { silent?: boolean; flushing?: boolean } = {}) => {
+      if (!writesBack({ locked: isLockedRef.current(), flushing })) return;
       const written = textRef.current;
       try {
         await fs.saveFile(file.metadata.id, written);
@@ -102,7 +120,11 @@ export function useEditorFile({ file, onSaved }: Options): EditorFile {
   saveRef.current = save;
 
   const autosave = useMemo(
-    () => debounce(() => saveRef.current({ silent: true }), AUTOSAVE_PAUSE_MS),
+    () =>
+      debounce(() => {
+        pendingRef.current = false;
+        return saveRef.current({ silent: true });
+      }, AUTOSAVE_PAUSE_MS),
     [],
   );
 
@@ -111,6 +133,7 @@ export function useEditorFile({ file, onSaved }: Options): EditorFile {
       if (value === undefined) return;
       setText(value);
       setIsDirty(true);
+      pendingRef.current = true;
       autosave();
     },
     [autosave],
@@ -118,6 +141,7 @@ export function useEditorFile({ file, onSaved }: Options): EditorFile {
 
   const saveNow = useCallback(async () => {
     autosave.cancel();
+    pendingRef.current = false;
     await save();
   }, [autosave, save]);
 
@@ -125,7 +149,19 @@ export function useEditorFile({ file, onSaved }: Options): EditorFile {
   useEffect(() => () => void autosave.flush(), [autosave]);
 
   // A language switch reloads the page; it waits for this before it does.
-  useEffect(() => registerPendingSave(() => autosave.flush()), [autosave]);
+  // An AI Assistant round start runs it too, right after locking the project:
+  // that write is the user's last one before the checkpoint, so it is the one
+  // save a lock lets through.
+  useEffect(
+    () =>
+      registerPendingSave(() => {
+        if (!pendingRef.current) return;
+        autosave.cancel();
+        pendingRef.current = false;
+        return saveRef.current({ silent: true, flushing: true });
+      }),
+    [autosave],
+  );
 
   const download = useCallback(
     () =>
@@ -155,6 +191,7 @@ export function useEditorFile({ file, onSaved }: Options): EditorFile {
   const adopt = useCallback(
     (next: string) => {
       autosave.cancel();
+      pendingRef.current = false;
       textRef.current = next;
       setText(next);
       setIsDirty(false);
