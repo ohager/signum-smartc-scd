@@ -27,7 +27,10 @@ Then open SmartC Studio and click **Connect assistant**. Update with `npx @smart
 | Option | Environment | Default | |
 |---|---|---|---|
 | `--port <n>` | `SMARTC_STUDIO_PORT` | `6890` | Local WebSocket port the Studio connects to. Ports 6876 and 6877 are reserved. |
-| `--allow-origin <origin>` | | | Additional browser origin allowed to connect (repeatable), e.g. a self-hosted Studio. Localhost origins are always allowed. |
+| `--allow-origin <origin>` | | | Additional browser origin allowed to connect (repeatable), e.g. a self-hosted Studio or one local dev server like `http://localhost:6876`. |
+| `--dev` | `SMARTC_STUDIO_DEV=1` | off | Also accept `http://localhost` and `http://127.0.0.1` origins on any port, for developing Studio locally. |
+
+Localhost origins are refused unless you pass `--dev` or name one with `--allow-origin`: any local web server can serve a page from localhost, and without this gate such a page could connect in the Studio's place and ask for your Allow.
 
 The relay listens on `127.0.0.1` only and accepts a single Studio session at a time.
 

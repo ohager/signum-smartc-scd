@@ -1,4 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
+import { request } from "node:http";
 import { createServer } from "node:net";
 import { fileURLToPath } from "node:url";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -25,7 +26,7 @@ const cli = fileURLToPath(new URL("./cli.ts", import.meta.url));
 
 test("round-trips a tool call from the MCP client to the fake tab", async () => {
   const port = await freePort();
-  const transport = new StdioClientTransport({ command: "bun", args: [cli, "--port", String(port)], stderr: "pipe" });
+  const transport = new StdioClientTransport({ command: "bun", args: [cli, "--port", String(port), "--dev"], stderr: "pipe" });
   const client = new Client({ name: "it", version: "0" });
   cleanup.push(() => client.close());
   await client.connect(transport);
@@ -60,6 +61,38 @@ test("round-trips a tool call from the MCP client to the fake tab", async () => 
   const res: any = await client.callTool({ name: "list_projects", arguments: {} });
   expect(res.isError).toBeFalsy();
   expect(JSON.parse(res.content[0].text)).toEqual({ projects: [{ name: "demo" }], tool: "list_projects" });
+}, 20_000);
+
+test("without --dev the relay refuses a localhost origin", async () => {
+  const port = await freePort();
+  const transport = new StdioClientTransport({ command: "bun", args: [cli, "--port", String(port)], stderr: "pipe" });
+  const client = new Client({ name: "it", version: "0" });
+  cleanup.push(() => client.close());
+  await client.connect(transport);
+
+  /* Raw upgrade request: Bun's client WebSocket hides the status code. */
+  const upgrade = (origin: string) =>
+    new Promise<number>((resolve, reject) => {
+      const req = request({ host: "127.0.0.1", port, headers: { Connection: "Upgrade", Upgrade: "websocket", "Sec-WebSocket-Version": "13", "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==", Origin: origin } });
+      req.on("response", (res) => resolve(res.statusCode ?? 0));
+      req.on("upgrade", (_res, socket) => {
+        socket.destroy();
+        resolve(101);
+      });
+      req.on("error", reject);
+      req.end();
+    });
+  let status = 0;
+  for (let i = 0; ; i++) {
+    try {
+      status = await upgrade("http://localhost:3000");
+      break;
+    } catch (e) {
+      if (i > 50) throw e;
+      await new Promise((r) => setTimeout(r, 100));
+    }
+  }
+  expect(status).toBe(403);
 }, 20_000);
 
 test("exits non-zero naming a reserved port", async () => {

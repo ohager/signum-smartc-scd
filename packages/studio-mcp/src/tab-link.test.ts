@@ -21,12 +21,27 @@ function freePort(): Promise<number> {
   });
 }
 
-async function startLink(allowOrigins: string[] = []) {
+/* Most tests connect from a localhost origin, as a Studio dev server would, so they run as --dev. */
+async function startLink(allowOrigins: string[] = [], allowLocalhost = true) {
   const port = await freePort();
-  const link = new TabLink({ port, allowOrigins });
+  const link = new TabLink({ port, allowOrigins, allowLocalhost });
   expect(await link.start()).toBe("listening");
   cleanup.push(() => link.stop());
   return { link, port };
+}
+
+/* Raw upgrade request: the status line is the same on Node and Bun (Bun's client WebSocket hides it). */
+function upgradeStatus(port: number, origin: string): Promise<number> {
+  return new Promise<number>((resolve, reject) => {
+    const req = request({ host: "127.0.0.1", port, headers: { Connection: "Upgrade", Upgrade: "websocket", "Sec-WebSocket-Version": "13", "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==", Origin: origin } });
+    req.on("response", (res) => resolve(res.statusCode ?? 0));
+    req.on("upgrade", (_res, socket) => {
+      socket.destroy();
+      resolve(101);
+    });
+    req.on("error", reject);
+    req.end();
+  });
 }
 
 class Tab {
@@ -105,21 +120,20 @@ async function activeTab(port: number, link: TabLink): Promise<Tab> {
 describe("TabLink", () => {
   test("rejects a foreign origin with 403", async () => {
     const { port } = await startLink();
-    // Raw upgrade request: the status line is the same on Node and Bun.
-    const status = await new Promise<number>((resolve, reject) => {
-      const req = request({ host: "127.0.0.1", port, headers: { Connection: "Upgrade", Upgrade: "websocket", "Sec-WebSocket-Version": "13", "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==", Origin: "https://evil.example" } });
-      req.on("response", (res) => resolve(res.statusCode ?? 0));
-      req.on("upgrade", () => resolve(101));
-      req.on("error", reject);
-      req.end();
-    });
-    expect(status).toBe(403);
+    expect(await upgradeStatus(port, "https://evil.example")).toBe(403);
   });
 
   test("accepts localhost and extra allowed origins", async () => {
     const { port } = await startLink(["https://x.test"]);
     await Tab.open(port, ORIGIN);
     await Tab.open(port, "https://x.test");
+  });
+
+  test("rejects localhost without --dev, unless it is an explicit extra origin", async () => {
+    const { port } = await startLink([ORIGIN], false);
+    expect(await upgradeStatus(port, "http://localhost:3000")).toBe(403);
+    expect(await upgradeStatus(port, "http://127.0.0.1:5173")).toBe(403);
+    expect(await upgradeStatus(port, ORIGIN)).toBe(101);
   });
 
   test("answers studio_not_connected without a tab", async () => {
@@ -303,7 +317,7 @@ describe("TabLink", () => {
   test("busy relay retries and takes the port once the other relay stops", async () => {
     const { link: first, port } = await startLink();
     const lines: string[] = [];
-    const second = new TabLink({ port, allowOrigins: [], busyRetryMs: 20, log: (l) => void lines.push(l) });
+    const second = new TabLink({ port, allowOrigins: [], allowLocalhost: true, busyRetryMs: 20, log: (l) => void lines.push(l) });
     cleanup.push(() => second.stop());
     expect(await second.start()).toBe("busy");
     await new Promise((r) => setTimeout(r, 70));
@@ -382,7 +396,7 @@ describe("TabLink", () => {
 
   test("stop fails in-flight calls and closes tabs", async () => {
     const port = await freePort();
-    const link = new TabLink({ port, allowOrigins: [] });
+    const link = new TabLink({ port, allowOrigins: [], allowLocalhost: true });
     await link.start();
     const tab = await Tab.open(port);
     tab.onCall = () => undefined;

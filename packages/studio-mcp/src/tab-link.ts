@@ -18,6 +18,8 @@ export type TabLinkState = "idle" | "pending" | "active" | "denied" | "mismatch"
 export interface TabLinkOptions {
   port: number;
   allowOrigins: string[];
+  /** Also accept http://localhost and http://127.0.0.1 origins (the relay's --dev). */
+  allowLocalhost?: boolean;
   host?: "127.0.0.1";
   /** How often a busy relay tries to take the port again. */
   busyRetryMs?: number;
@@ -120,7 +122,7 @@ export class TabLink {
         port: this.#opts.port,
         host: this.#opts.host ?? "127.0.0.1",
         verifyClient: (info: { origin: string }, done: (ok: boolean, code?: number, message?: string) => void) =>
-          isAllowedOrigin(info.origin, this.#opts.allowOrigins) ? done(true) : done(false, 403, "Forbidden origin"),
+          isAllowedOrigin(info.origin, this.#opts.allowOrigins, { allowLocalhost: this.#opts.allowLocalhost }) ? done(true) : done(false, 403, "Forbidden origin"),
       });
       server.once("error", (err: NodeJS.ErrnoException) => {
         if (err.code === "EADDRINUSE") {

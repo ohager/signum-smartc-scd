@@ -10,7 +10,20 @@ export const PREVIEW_ORIGINS: readonly RegExp[] = [];
 
 const LOCAL = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
-export function isAllowedOrigin(origin: string | undefined, extra: readonly string[] = []): boolean {
+/*
+ * Localhost origins are off by default. Any local dev server (another project's Vite,
+ * a malicious npm script's HTTP server) serves from localhost, so allowing them all
+ * would let such a page connect in the Studio's place and, once the user clicks Allow
+ * in what looks like the usual dialog, drive the agent's tools. Developing the Studio
+ * itself needs them, so the relay opts in with --dev; one explicit extra origin keeps
+ * working without it.
+ */
+export function isAllowedOrigin(origin: string | undefined, extra: readonly string[] = [], opts: { allowLocalhost?: boolean } = {}): boolean {
   if (!origin) return false;
-  return STUDIO_ORIGINS.includes(origin) || PREVIEW_ORIGINS.some((r) => r.test(origin)) || LOCAL.test(origin) || extra.includes(origin);
+  return (
+    STUDIO_ORIGINS.includes(origin) ||
+    PREVIEW_ORIGINS.some((r) => r.test(origin)) ||
+    (opts.allowLocalhost === true && LOCAL.test(origin)) ||
+    extra.includes(origin)
+  );
 }

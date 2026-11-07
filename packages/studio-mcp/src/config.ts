@@ -5,6 +5,8 @@ const RESERVED_PORTS = [6876, 6877];
 export interface RelayConfig {
   port: number;
   allowOrigins: string[];
+  /** Accept localhost origins, for developing the Studio itself (`--dev` or `SMARTC_STUDIO_DEV=1`). */
+  dev: boolean;
 }
 
 function parsePort(raw: string): number {
@@ -18,8 +20,13 @@ function parsePort(raw: string): number {
 export function parseConfig(argv: string[], env: Record<string, string | undefined>): RelayConfig {
   let flagPort: string | undefined;
   const allowOrigins: string[] = [];
+  let dev = env.SMARTC_STUDIO_DEV === "1";
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]!;
+    if (arg === "--dev") {
+      dev = true;
+      continue;
+    }
     const [name, inline] = arg.startsWith("--") && arg.includes("=") ? [arg.slice(0, arg.indexOf("=")), arg.slice(arg.indexOf("=") + 1)] : [arg, undefined];
     if (name !== "--port" && name !== "--allow-origin") continue;
     const value = inline ?? argv[++i];
@@ -28,5 +35,5 @@ export function parseConfig(argv: string[], env: Record<string, string | undefin
     else allowOrigins.push(value);
   }
   const raw = flagPort ?? env.SMARTC_STUDIO_PORT;
-  return { port: raw === undefined ? DEFAULT_PORT : parsePort(raw), allowOrigins };
+  return { port: raw === undefined ? DEFAULT_PORT : parsePort(raw), allowOrigins, dev };
 }

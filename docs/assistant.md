@@ -8,7 +8,7 @@ The assistant can read and edit project files, compile, lint, analyse gas and ru
 
 It can never touch wallets, passphrases, accounts or networks, and it cannot deploy. Those tools do not exist, so they cannot be called, however an agent is prompted. Restoring a round belongs to you, not to the agent.
 
-The relay listens on `127.0.0.1` only. Only the Studio's own origins (and local development origins) may connect to it.
+The relay listens on `127.0.0.1` only. Only the Studio's own origins may connect to it; localhost origins only when the relay runs with `--dev`.
 
 ## Setup
 
@@ -49,6 +49,16 @@ Use another port with `--port <n>` or `SMARTC_STUDIO_PORT`, and enter the same p
 command = "npx"
 args = ["@smartc-studio/mcp", "--allow-origin", "https://studio.example.com"]
 ```
+
+### Developing Studio locally
+
+A Studio dev server runs on `http://localhost`, and the relay refuses localhost origins by default. Any local web server can serve a page from localhost (another project's dev server, a script from a package you installed), and such a page could then connect in Studio's place and ask for your Allow. When you work on Studio itself, start the relay with `--dev` (or `SMARTC_STUDIO_DEV=1`) to accept `http://localhost` and `http://127.0.0.1` on any port:
+
+```sh
+claude mcp add smartc-studio -- npx @smartc-studio/mcp --dev
+```
+
+To allow just one local origin without `--dev`, name it: `--allow-origin http://localhost:6876`.
 
 ## Working with the assistant
 
