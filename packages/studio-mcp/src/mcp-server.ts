@@ -1,3 +1,12 @@
+/*
+ * The low-level Server is deliberately used although the SDK marks it @deprecated in
+ * favour of McpServer. The relay is a generic, catalog-driven proxy, which is the
+ * "advanced use case" the deprecation note allows. McpServer validates arguments itself
+ * and answers invalid arguments or unknown tools with its own plain-text isError
+ * ("Input validation error: ...", createToolError in mcp.js). That would break the
+ * single error shape {code, message, hint} that spec section 9 promises the agent.
+ * Revisit if a future SDK lets McpServer customise those errors.
+ */
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { CallToolRequestSchema, GetPromptRequestSchema, ListPromptsRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { CATALOG, DEFAULT_HINTS, toolDef, type AssistantError, type ClientInfo } from "@smartc-studio/assistant-protocol";
