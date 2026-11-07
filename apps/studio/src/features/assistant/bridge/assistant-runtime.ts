@@ -7,6 +7,7 @@ import { composeHandlers, createProjectOf, createToolRegistry, type RegistryEven
 import { createBuildTools, type BuildDeps } from "../tools/build-tools";
 import { createTestTools, type TestToolDeps } from "../tools/test-tools";
 import { createWorkspaceTools } from "../tools/workspace-tools";
+import { loadRoundDiff, restoreRound, undoRestore } from "../activity/restore-round";
 import { AssistantConnection } from "./connection";
 import type { SocketLike } from "./rpc";
 
@@ -120,6 +121,16 @@ export function createAssistantRuntime(deps: AssistantRuntimeDeps) {
     catalogHash: deps.catalogHash,
   });
 
+  const restoreDeps = {
+    fs: deps.fs,
+    store: deps.checkpointStore,
+    clock: deps.clock,
+    checkpointOf: (roundId: string) => roundCheckpoints.get(roundId),
+    endSnapshotOf: (roundId: string) => endSnapshots.get(roundId),
+    isRunning: (roundId: string) => roundCheckpoints.has(roundId) && !endSnapshots.has(roundId),
+    takeOver: (projectId: string) => rounds.takeOver(projectId),
+  };
+
   return {
     connection,
     rounds,
@@ -130,7 +141,14 @@ export function createAssistantRuntime(deps: AssistantRuntimeDeps) {
         return () => void listeners.delete(listener);
       },
     },
-    /* Read-only views for Task 18 (activity feed, restore). */
+    /*
+     * A round is running exactly until its end snapshot exists, so no caller has to
+     * pass (and possibly get wrong) whether it is still live.
+     */
+    restoreRound: (roundId: string) => restoreRound(restoreDeps, roundId),
+    undoRestore: (undoCheckpointId: string) => undoRestore(restoreDeps, undoCheckpointId),
+    loadDiff: (checkpointId: string, projectId: string, relPath: string) => loadRoundDiff(restoreDeps, checkpointId, projectId, relPath),
+    /* Read-only views for the activity feed. */
     endSnapshotOf: (roundId: string): CheckpointFile[] | undefined => endSnapshots.get(roundId),
     checkpointOf: (roundId: string): { projectId: string; checkpointId: string } | undefined => roundCheckpoints.get(roundId),
   };

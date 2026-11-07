@@ -14,7 +14,8 @@ import { editorRegistry } from "../editor-registry";
 import { createEditorTools } from "../tools/editor-tools";
 import { assistantGas, assistantLint } from "../tools/analysis-adapters";
 import { createStudioRecordVerdicts, createStudioTestExecute } from "../tools/studio-test-execute";
-import { connectionStateAtom, lockedProjectsAtom } from "../state";
+import { connectionStateAtom, feedAtom, lockedProjectsAtom } from "../state";
+import { feedReducer, type FeedEvent } from "../activity/feed-model";
 import { ApprovalDialog } from "./approval-dialog";
 
 function setLocked(projectId: string, locked: boolean) {
@@ -45,6 +46,14 @@ function buildRuntime(hash: string, navigate: (path: string) => void): Assistant
       execute: createStudioTestExecute(),
       recordVerdicts: createStudioRecordVerdicts(),
     },
+  });
+  /* The end snapshot is captured before roundEnded fires, so it can be read right here. */
+  const dispatch = (event: FeedEvent) => jotaiStore.set(feedAtom, (feed) => feedReducer(feed, event));
+  runtime.events.subscribe({
+    onRoundStarted: (e) => dispatch({ type: "round:start", ...e }),
+    onRoundEnded: (e) => dispatch({ type: "round:end", roundId: e.roundId, at: e.at, endSnapshot: runtime.endSnapshotOf(e.roundId) ?? null }),
+    onCallStarted: (e) => dispatch({ type: "call:start", ...e }),
+    onCallEnded: (e) => dispatch({ type: "call:end", ...e }),
   });
   runtime.connection.subscribe((s) => jotaiStore.set(connectionStateAtom, s));
   return runtime;

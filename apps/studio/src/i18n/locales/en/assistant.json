@@ -37,5 +37,32 @@
     "takeOver": "Take over",
     "readOnly": "AI Assistant is working on this project. Take over to edit.",
     "blocked": "AI Assistant is working on this project. Take over to edit."
+  },
+  "feed": {
+    "title": "Assistant activity",
+    "description": "What the assistant did in this session, grouped by round.",
+    "empty": "The assistant has not done anything yet.",
+    "running": "running",
+    "loose": "Other calls",
+    "unknownProject": "Unknown project",
+    "compile": "compile",
+    "tests": "{passed}/{total} tests",
+    "lint": "lint: {count}",
+    "gas": "gas: activation too low",
+    "error": "error: {code}",
+    "viewDiff": "View changes",
+    "diffTitle": "Changes in {path}"
+  },
+  "restore": {
+    "action": "Restore to before this round",
+    "title": "Restore to before this round?",
+    "body": "The project goes back to how it was when this round started.",
+    "userChanges": "You changed these files after this round. Restoring discards those changes:",
+    "confirm": "Restore",
+    "done": "Project restored.",
+    "undo": "Undo restore",
+    "undone": "Restore undone.",
+    "failed": "Could not restore the project.",
+    "fileDeleted": "File was deleted"
   }
 }

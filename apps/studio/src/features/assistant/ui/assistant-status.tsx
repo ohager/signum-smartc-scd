@@ -6,6 +6,7 @@ import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { t } from "@/i18n/runtime";
 import { useAssistant } from "../bridge/use-assistant";
 import { assistantPortAtom } from "../state";
+import { ActivityPanel } from "./activity-panel";
 import { ConnectDialog } from "./connect-dialog";
 import { RichText } from "./rich-text";
 
@@ -14,6 +15,7 @@ export function AssistantStatus() {
   const { state, disconnect } = useAssistant();
   const port = useAtomValue(assistantPortAtom);
   const [open, setOpen] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
 
   if (state.kind === "connected") {
     return (
@@ -26,11 +28,11 @@ export function AssistantStatus() {
           <Button size="sm" variant="outline" onClick={disconnect}>
             {t("assistant.status.disconnect")}
           </Button>
-          {/* Task 18: the activity feed; a disabled placeholder until then. */}
-          <Button size="sm" variant="outline" disabled>
+          <Button size="sm" variant="outline" onClick={() => setActivityOpen(true)}>
             {t("assistant.status.activity")}
           </Button>
         </div>
+        <ActivityPanel open={activityOpen} onOpenChange={setActivityOpen} />
       </div>
     );
   }

@@ -1,6 +1,7 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import type { ConnectionState } from "./bridge/connection";
+import type { FeedState } from "./activity/feed-model";
 import type { CheckpointFile } from "./rounds/checkpoints";
 
 /* The connection state machine's current state, mirrored here for React. */
@@ -20,3 +21,6 @@ export const touchedFilesAtom = atom<ReadonlySet<string>>(new Set<string>());
 
 /* The relay port the user last used; jotai's storage already tolerates unavailable storage. */
 export const assistantPortAtom = atomWithStorage("scd:assistant-port", 6890);
+
+/* Everything the agent did this session, grouped by round; deliberately never persisted. */
+export const feedAtom = atom<FeedState>({ rounds: [], loose: [] });
