@@ -2,7 +2,6 @@ import type { ToolOutcome } from "@smartc-studio/assistant-protocol";
 import { MAX_CHECKPOINTS, captureProject, type Checkpoint, type CheckpointFile, type CheckpointStore } from "../rounds/checkpoints";
 import { createRoundHooks } from "../rounds/round-hooks";
 import { RoundTracker, type Clock } from "../rounds/round-tracker";
-import { editorToolsStub } from "../tools/editor-tools-stub";
 import type { WorkspaceFs } from "../tools/paths";
 import { composeHandlers, createProjectOf, createToolRegistry, type RegistryEvents } from "../tools/registry";
 import { createBuildTools, type BuildDeps } from "../tools/build-tools";
@@ -41,8 +40,8 @@ export interface AssistantRuntimeDeps {
     execute: TestToolDeps["execute"];
     recordVerdicts: TestToolDeps["recordVerdicts"];
   };
-  /* Task 17 supplies the real editor tools; until then the stub answers. */
-  editor?: Parameters<typeof composeHandlers>[0]["editor"];
+  /* The editor tools talk to mounted Monaco editors and the router, so the UI layer supplies them. */
+  editor: Parameters<typeof composeHandlers>[0]["editor"];
 }
 
 export const IDLE_MS = 60_000;
@@ -106,7 +105,7 @@ export function createAssistantRuntime(deps: AssistantRuntimeDeps) {
   const test = createTestTools({ fs: deps.fs, execute: deps.tools.execute, recordVerdicts: deps.tools.recordVerdicts });
 
   const registry = createToolRegistry({
-    handlers: composeHandlers({ workspace, build, test, editor: deps.editor ?? editorToolsStub }),
+    handlers: composeHandlers({ workspace, build, test, editor: deps.editor }),
     rounds,
     projectOf: createProjectOf(deps.fs),
     events: { callStarted: (e) => emit("onCallStarted", e), callEnded: (e) => emit("onCallEnded", e) },

@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { SmartC } from "smartc-signum-compiler";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { useAssistantEditor, useEditorHandles } from "@/features/assistant/ui/use-assistant-editor";
 import { type File, FileSystem } from "@/lib/file-system";
 import { FileTypes } from "@/features/project/filetype-icons.tsx";
 import { findProjectOfFolder } from "@/features/project/project-root";
@@ -149,7 +150,11 @@ function SmartCEditor({ file }: Props) {
     return updateAssemblyFile(existingFile.id, code);
   }, [code, baseName]);
 
+  const assistant = useEditorHandles();
+  useAssistantEditor({ ...assistant, file });
+
   const handleEditorDidMount: OnMount = (editor, monaco) => {
+    assistant.capture(editor, monaco);
     editor.addAction({
       id: ActionType.Compile,
       // TODO: this is not good... we need to use events

@@ -682,6 +682,10 @@ export type MessageParams = {
   "assistant.status.mismatchUpdate": undefined;
   "assistant.status.failed": { port: string | number };
   "assistant.status.closed": undefined;
+  "assistant.lock.banner": undefined;
+  "assistant.lock.takeOver": undefined;
+  "assistant.lock.readOnly": undefined;
+  "assistant.lock.blocked": undefined;
 };
 
 export type MessageKey = keyof MessageParams;

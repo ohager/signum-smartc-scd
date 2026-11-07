@@ -12,6 +12,7 @@ import { Play, StepForward } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate, useParams } from "react-router";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { useAssistantEditor, useEditorHandles } from "@/features/assistant/ui/use-assistant-editor";
 import { findProjectOfFolder } from "@/features/project/project-root";
 import {
   ResizableHandle,
@@ -135,7 +136,11 @@ export function TestFileEditor({ file }: Props) {
     };
   }, [code, file.metadata.path, editorReady]);
 
+  const assistant = useEditorHandles();
+  useAssistantEditor({ ...assistant, file });
+
   const onMount: OnMount = (editor, monaco) => {
+    assistant.capture(editor, monaco);
     // @ts-ignore — @monaco-editor/react resolves its own nested monaco-editor
     // version, which structurally diverges from the root one; see the same
     // workaround in debug-view.tsx's onMount.

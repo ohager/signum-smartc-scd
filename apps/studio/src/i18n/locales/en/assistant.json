@@ -31,5 +31,11 @@
     "mismatchUpdate": "The assistant relay is outdated. Update it with `npx @smartc-studio/mcp@latest` and restart your agent.",
     "failed": "Could not reach the relay on port {port}.",
     "closed": "The assistant connection was closed."
+  },
+  "lock": {
+    "banner": "AI Assistant is working on this project",
+    "takeOver": "Take over",
+    "readOnly": "AI Assistant is working on this project. Take over to edit.",
+    "blocked": "AI Assistant is working on this project. Take over to edit."
   }
 }

@@ -1,3 +1,5 @@
+import { createEditorRegistry } from "../editor-registry";
+import { createEditorTools } from "../tools/editor-tools";
 import { describe, it, expect } from "bun:test";
 import { METHODS } from "@smartc-studio/assistant-protocol";
 import { MemoryCheckpointStore } from "../rounds/checkpoints";
@@ -65,6 +67,7 @@ async function setup() {
     unlock: (id) => void locked.delete(id),
     catalogHash: "h",
     studioVersion: "test",
+    editor: createEditorTools({ registry: createEditorRegistry(), navigate: () => {}, fs }),
     tools: {
       loadLabelMaps: async () => [],
       lint: async () => ({}) as never,

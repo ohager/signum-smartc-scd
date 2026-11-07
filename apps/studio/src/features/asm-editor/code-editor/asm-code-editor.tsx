@@ -8,6 +8,7 @@ import {
   ToolbarDiagnostic,
 } from "@/components/ui/surface-toolbar.tsx";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { useAssistantEditor, useEditorHandles } from "@/features/assistant/ui/use-assistant-editor";
 import { findProjectOfFolder } from "@/features/project/project-root";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import {
@@ -69,7 +70,11 @@ function AsmCodeEditor({ file, onSave }: Props) {
     setValidationError(error ?? "");
   };
 
+  const assistant = useEditorHandles();
+  useAssistantEditor({ ...assistant, file });
+
   const handleEditorDidMount: OnMount = (editor, monaco) => {
+    assistant.capture(editor, monaco);
     registerEditorFileActions(editor, monaco, { onDownload: download });
   };
   return (

@@ -1,4 +1,5 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useNavigate } from "react-router";
 import { catalogHash } from "@smartc-studio/assistant-protocol";
 import { FileSystem } from "@/lib/file-system";
 import { flushPendingSaves } from "@/lib/pending-saves";
@@ -9,6 +10,8 @@ import { AssistantContext } from "../bridge/use-assistant";
 import { createAssistantRuntime, type AssistantRuntime } from "../bridge/assistant-runtime";
 import type { SocketLike } from "../bridge/rpc";
 import { IdbCheckpointStore } from "../rounds/idb-checkpoint-store";
+import { editorRegistry } from "../editor-registry";
+import { createEditorTools } from "../tools/editor-tools";
 import { assistantGas, assistantLint } from "../tools/analysis-adapters";
 import { createStudioRecordVerdicts, createStudioTestExecute } from "../tools/studio-test-execute";
 import { connectionStateAtom, lockedProjectsAtom } from "../state";
@@ -22,7 +25,7 @@ function setLocked(projectId: string, locked: boolean) {
 }
 
 /* The real collaborators, built once; everything testable lives in createAssistantRuntime. */
-function buildRuntime(hash: string): AssistantRuntime {
+function buildRuntime(hash: string, navigate: (path: string) => void): AssistantRuntime {
   const fs = FileSystem.getInstance();
   const runtime = createAssistantRuntime({
     fs,
@@ -32,6 +35,7 @@ function buildRuntime(hash: string): AssistantRuntime {
     flush: flushPendingSaves,
     lock: (id) => setLocked(id, true),
     unlock: (id) => setLocked(id, false),
+    editor: createEditorTools({ registry: editorRegistry, navigate, fs }),
     catalogHash: hash,
     studioVersion: APP_VERSION,
     tools: {
@@ -48,6 +52,13 @@ function buildRuntime(hash: string): AssistantRuntime {
 
 export function AssistantProvider({ children }: { children: ReactNode }) {
   const [runtime, setRuntime] = useState<AssistantRuntime | null>(null);
+  /*
+   * The runtime is built once, but react-router's navigate may change identity, so the
+   * runtime calls through a ref. AssistantProvider sits under AppLayout, inside the router.
+   */
+  const navigate = useNavigate();
+  const navigateRef = useRef(navigate);
+  navigateRef.current = navigate;
 
   useEffect(() => {
     let cancelled = false;
@@ -55,7 +66,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     // The hash is async, so the runtime appears once it is ready and Connect stays disabled until then.
     void catalogHash().then((hash) => {
       if (cancelled) return;
-      built = buildRuntime(hash);
+      built = buildRuntime(hash, (path) => void navigateRef.current(path));
       setRuntime(built);
     });
     return () => {
