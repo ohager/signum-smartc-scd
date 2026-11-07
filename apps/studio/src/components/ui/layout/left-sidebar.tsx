@@ -19,6 +19,7 @@ import {
   HouseIcon,
 } from "lucide-react";
 import { Button } from "../button";
+import { AssistantStatus } from "@/features/assistant/ui/assistant-status";
 import { Dialog, DialogTrigger } from "../dialog";
 import { NewProjectDialog } from "@/features/project/new-project-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip";
@@ -238,6 +239,7 @@ export function LeftSidebar() {
       <SidebarFooter>
         <hr />
         <WalletStatusCard />
+        <AssistantStatus />
         {/*<SidebarMenu>*/}
         {/*  {footerItems.map((item) => (*/}
         {/*    <SidebarMenuItem key={item.title}>*/}

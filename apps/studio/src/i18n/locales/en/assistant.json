@@ -1,0 +1,35 @@
+{
+  "connect": {
+    "action": "Connect assistant",
+    "title": "Connect assistant",
+    "description": "Let an AI assistant work on your projects through a local relay on this computer.",
+    "port": "Port",
+    "portInvalid": "Enter a whole number from 1 to 65535, other than 6876 or 6877.",
+    "hint": "Start the relay with `npx @smartc-studio/mcp`, then connect.",
+    "submit": "Connect",
+    "preparing": "Preparing…"
+  },
+  "approval": {
+    "title": "Assistant access",
+    "request": "**{client}** wants to access your workspace.",
+    "unknownClient": "An assistant",
+    "allow": "Allow",
+    "deny": "Deny",
+    "occupiedTitle": "Assistant already connected",
+    "occupied": "Another Studio tab is connected to the assistant. Take over here?",
+    "takeOver": "Take over",
+    "cancel": "Cancel"
+  },
+  "status": {
+    "connected": "{client} connected",
+    "connecting": "Connecting on port {port}…",
+    "disconnect": "Disconnect",
+    "activity": "Activity",
+    "takenOver": "Another tab took over the assistant.",
+    "mismatchReload": "Reload Studio to use this assistant version.",
+    "reload": "Reload",
+    "mismatchUpdate": "The assistant relay is outdated. Update it with `npx @smartc-studio/mcp@latest` and restart your agent.",
+    "failed": "Could not reach the relay on port {port}.",
+    "closed": "The assistant connection was closed."
+  }
+}

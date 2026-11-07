@@ -1,0 +1,22 @@
+import { atom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
+import type { ConnectionState } from "./bridge/connection";
+import type { CheckpointFile } from "./rounds/checkpoints";
+
+/* The connection state machine's current state, mirrored here for React. */
+export const connectionStateAtom = atom<ConnectionState>({ kind: "idle" });
+
+/* Projects with an active round; editors become read-only while listed. */
+export const lockedProjectsAtom = atom<ReadonlySet<string>>(new Set<string>());
+
+/* Whether the editor follows the files the assistant touches. */
+export const followModeAtom = atom(true);
+
+/* Project snapshots taken at round start, keyed by project, for the diff gutter. */
+export const baselineAtom = atom<Record<string, CheckpointFile[]>>({});
+
+/* File ids the assistant touched in the current round. */
+export const touchedFilesAtom = atom<ReadonlySet<string>>(new Set<string>());
+
+/* The relay port the user last used; jotai's storage already tolerates unavailable storage. */
+export const assistantPortAtom = atomWithStorage("scd:assistant-port", 6890);
