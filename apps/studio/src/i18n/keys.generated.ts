@@ -686,6 +686,13 @@ export type MessageParams = {
   "assistant.lock.takeOver": undefined;
   "assistant.lock.readOnly": undefined;
   "assistant.lock.blocked": undefined;
+  "assistant.follow.label": undefined;
+  "assistant.follow.hint": undefined;
+  "assistant.gutter.added": undefined;
+  "assistant.gutter.changed": undefined;
+  "assistant.gutter.deleted": undefined;
+  "assistant.gutter.previous": undefined;
+  "assistant.touched": undefined;
   "assistant.feed.title": undefined;
   "assistant.feed.description": undefined;
   "assistant.feed.empty": undefined;

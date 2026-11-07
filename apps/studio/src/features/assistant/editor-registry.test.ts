@@ -13,12 +13,6 @@ function entry(fileId: string, reveals: number[] = []): EditorEntry {
 }
 
 describe("editor registry", () => {
-  it("has no active editor until one is focused", () => {
-    const r = createEditorRegistry();
-    r.register(entry("a"));
-    expect(r.active()).toBeNull();
-  });
-
   it("follows focus", () => {
     const r = createEditorRegistry();
     r.register(entry("a"));
@@ -75,8 +69,6 @@ describe("editor registry", () => {
     const r = createEditorRegistry();
     const reveals: number[] = [];
     r.revealWhenReady("a", 12);
-    r.register(entry("b", reveals));
-    expect(reveals).toEqual([]);
     const off = r.register(entry("a", reveals));
     expect(reveals).toEqual([12]);
     off();
@@ -84,13 +76,62 @@ describe("editor registry", () => {
     expect(reveals).toEqual([12]);
   });
 
-  it("a later pending reveal replaces an earlier one", () => {
+  it("drops a pending reveal when another file's editor registers first", () => {
+    const r = createEditorRegistry();
+    const reveals: number[] = [];
+    r.revealWhenReady("a", 12);
+    r.register(entry("b", reveals));
+    r.register(entry("a", reveals));
+    expect(reveals).toEqual([]);
+  });
+
+  it("a newer pending reveal replaces an earlier one", () => {
     const r = createEditorRegistry();
     const reveals: number[] = [];
     r.revealWhenReady("a", 1);
     r.revealWhenReady("b", 2);
     r.register(entry("a", reveals));
     r.register(entry("b", reveals));
-    expect(reveals).toEqual([2]);
+    expect(reveals).toEqual([]);
+    r.revealWhenReady("c", 3);
+    r.register(entry("c", reveals));
+    expect(reveals).toEqual([3]);
+  });
+
+  it("cancelReveal drops the pending request", () => {
+    const r = createEditorRegistry();
+    const reveals: number[] = [];
+    r.revealWhenReady("a", 5);
+    r.cancelReveal();
+    r.register(entry("a", reveals));
+    expect(reveals).toEqual([]);
+  });
+
+  it("passes the highlight range through, now or when the editor registers", () => {
+    const r = createEditorRegistry();
+    const seen: unknown[] = [];
+    const e = (id: string): EditorEntry => ({ ...entry(id), reveal: (line, hl) => void seen.push([line, hl]) });
+    r.register(e("a"));
+    r.revealWhenReady("a", 3, [{ from: 3, to: 5 }]);
+    r.revealWhenReady("b", 9, [{ from: 9, to: 9 }]);
+    r.register(e("b"));
+    expect(seen).toEqual([[3, [{ from: 3, to: 5 }]], [9, [{ from: 9, to: 9 }]]]);
+  });
+
+  it("falls back to the most recently registered editor when none ever had focus", () => {
+    const r = createEditorRegistry();
+    r.register(entry("a"));
+    const offB = r.register(entry("b"));
+    expect(r.active()?.fileId).toBe("b");
+    offB();
+    expect(r.active()?.fileId).toBe("a");
+  });
+
+  it("focus still wins over registration order", () => {
+    const r = createEditorRegistry();
+    r.register(entry("a"));
+    r.register(entry("b"));
+    r.setActive("a");
+    expect(r.active()?.fileId).toBe("a");
   });
 });

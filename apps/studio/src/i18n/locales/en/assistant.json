@@ -38,6 +38,17 @@
     "readOnly": "AI Assistant is working on this project. Take over to edit.",
     "blocked": "AI Assistant is working on this project. Take over to edit."
   },
+  "follow": {
+    "label": "Follow",
+    "hint": "Open the files the assistant changes in this project"
+  },
+  "gutter": {
+    "added": "Added by the assistant",
+    "changed": "Changed by the assistant. Click to show the previous text.",
+    "deleted": "Removed by the assistant. Click to show the removed text.",
+    "previous": "Previous text"
+  },
+  "touched": "Changed by the assistant",
   "feed": {
     "title": "Assistant activity",
     "description": "What the assistant did in this session, grouped by round.",

@@ -1,0 +1,57 @@
+import { describe, it, expect } from "bun:test";
+import { decideFollow, nextBaseline, emptyBaselineState, type BaselineState } from "./follow";
+import type { CheckpointFile } from "./rounds/checkpoints";
+
+const files = (tag: string): CheckpointFile[] => [{ relPath: `${tag}.c`, type: "smartc", content: tag }];
+const touched = { fileId: "f1", projectId: "p1" };
+
+describe("decideFollow", () => {
+  it("dots when follow mode is off", () => {
+    expect(decideFollow({ followMode: false, currentProjectId: "p1", touched })).toBe("dot");
+  });
+  it("dots when the user is in another project or none", () => {
+    expect(decideFollow({ followMode: true, currentProjectId: "p2", touched })).toBe("dot");
+    expect(decideFollow({ followMode: true, currentProjectId: null, touched })).toBe("dot");
+  });
+  it("opens when follow mode is on and the user is in that project", () => {
+    expect(decideFollow({ followMode: true, currentProjectId: "p1", touched })).toBe("open");
+  });
+});
+
+describe("nextBaseline", () => {
+  const start = (s: BaselineState, projectId: string, tag: string) => nextBaseline(s, { type: "roundStarted", projectId, files: files(tag) });
+  const end = (s: BaselineState, projectId: string, tag: string) => nextBaseline(s, { type: "roundEnded", projectId, files: files(tag) });
+
+  it("uses the running round's checkpoint while no round of the project has ended", () => {
+    const s = start(emptyBaselineState, "p1", "r1");
+    expect(s.baseline.p1).toEqual(files("r1"));
+  });
+
+  it("keeps the last ended round's checkpoint while the next round runs", () => {
+    let s = start(emptyBaselineState, "p1", "r1");
+    s = end(s, "p1", "r1");
+    s = start(s, "p1", "r2");
+    expect(s.baseline.p1).toEqual(files("r1"));
+  });
+
+  it("switches only when the next round ends", () => {
+    let s = start(emptyBaselineState, "p1", "r1");
+    s = end(s, "p1", "r1");
+    s = start(s, "p1", "r2");
+    s = end(s, "p1", "r2");
+    expect(s.baseline.p1).toEqual(files("r2"));
+  });
+
+  it("keeps projects independent", () => {
+    let s = start(emptyBaselineState, "p1", "a");
+    s = start(s, "p2", "b");
+    s = end(s, "p1", "a");
+    expect(s.baseline).toEqual({ p1: files("a"), p2: files("b") });
+  });
+
+  it("does not mutate the previous state", () => {
+    const s0 = start(emptyBaselineState, "p1", "r1");
+    end(s0, "p1", "r1");
+    expect(s0.settled.has("p1")).toBe(false);
+  });
+});

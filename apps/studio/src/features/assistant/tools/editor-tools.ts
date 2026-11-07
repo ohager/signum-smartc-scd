@@ -7,7 +7,7 @@ const MAX_SELECTION_CHARS = 2000;
 const MAX_DIAGNOSTICS = 100;
 
 export interface EditorToolsDeps {
-  registry: Pick<EditorRegistry, "active" | "revealWhenReady">;
+  registry: Pick<EditorRegistry, "active" | "revealWhenReady" | "cancelReveal">;
   /* Injected so the tools stay router-free; the provider passes react-router's navigate. */
   navigate: (path: string, line?: number) => void;
   fs: WorkspaceFs;
@@ -39,6 +39,7 @@ export function createEditorTools({ registry, navigate, fs }: EditorToolsDeps) {
       if (!fileId) throw new AssistantFailure("file_not_found", `No file at ${args.path}.`);
       // Registered before navigating: if the editor mounts first, the request is applied on registration.
       if (args.line !== undefined) registry.revealWhenReady(fileId, args.line);
+      else registry.cancelReveal();
       navigate(`/projects/${projectId}/files/${fileId}`, args.line);
       return { opened: args.path };
     },

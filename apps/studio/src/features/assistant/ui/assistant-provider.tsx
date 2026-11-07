@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { catalogHash } from "@smartc-studio/assistant-protocol";
 import { FileSystem } from "@/lib/file-system";
 import { flushPendingSaves } from "@/lib/pending-saves";
@@ -14,7 +14,9 @@ import { editorRegistry } from "../editor-registry";
 import { createEditorTools } from "../tools/editor-tools";
 import { assistantGas, assistantLint } from "../tools/analysis-adapters";
 import { createStudioRecordVerdicts, createStudioTestExecute } from "../tools/studio-test-execute";
-import { connectionStateAtom, feedAtom, lockedProjectsAtom } from "../state";
+import { baselineAtom, connectionStateAtom, feedAtom, followModeAtom, lockedProjectsAtom, touchedFilesAtom } from "../state";
+import { findProjectOfFolder } from "@/features/project/project-root";
+import { wireFollow, type FollowRoute } from "./follow-wiring";
 import { feedReducer, type FeedEvent } from "../activity/feed-model";
 import { ApprovalDialog } from "./approval-dialog";
 
@@ -26,11 +28,12 @@ function setLocked(projectId: string, locked: boolean) {
 }
 
 /* The real collaborators, built once; everything testable lives in createAssistantRuntime. */
-function buildRuntime(hash: string, navigate: (path: string) => void): AssistantRuntime {
+function buildRuntime(hash: string, navigate: (path: string) => void, route: () => FollowRoute): AssistantRuntime {
   const fs = FileSystem.getInstance();
+  const checkpointStore = new IdbCheckpointStore();
   const runtime = createAssistantRuntime({
     fs,
-    checkpointStore: new IdbCheckpointStore(),
+    checkpointStore,
     clock: { now: () => Date.now(), setTimeout: (fn, ms) => setTimeout(fn, ms), clearTimeout: (h) => clearTimeout(h as number) },
     openSocket: (url) => new WebSocket(url) as unknown as SocketLike, // a browser WebSocket satisfies the subset the bridge uses
     flush: flushPendingSaves,
@@ -54,6 +57,19 @@ function buildRuntime(hash: string, navigate: (path: string) => void): Assistant
     onCallStarted: (e) => dispatch({ type: "call:start", ...e }),
     onCallEnded: (e) => dispatch({ type: "call:end", ...e }),
   });
+  runtime.events.subscribe(
+    wireFollow({
+      fs,
+      checkpointStore,
+      registry: editorRegistry,
+      navigate,
+      route,
+      followMode: () => jotaiStore.get(followModeAtom),
+      setBaseline: (baseline) => jotaiStore.set(baselineAtom, { ...baseline }),
+      markTouched: (fileId) => jotaiStore.set(touchedFilesAtom, (prev) => new Set(prev).add(fileId)),
+      setTimeout: (fn, ms) => setTimeout(fn, ms),
+    }),
+  );
   runtime.connection.subscribe((s) => jotaiStore.set(connectionStateAtom, s));
   return runtime;
 }
@@ -67,6 +83,13 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const navigateRef = useRef(navigate);
   navigateRef.current = navigate;
+  /*
+   * Follow mode needs to know which project the user is in. The route's folder id may be
+   * a subfolder (the files page rewrites it to the file's parent), so it is mapped to the project.
+   */
+  const { pathname } = useLocation();
+  const pathnameRef = useRef(pathname);
+  pathnameRef.current = pathname;
 
   useEffect(() => {
     let cancelled = false;
@@ -74,7 +97,15 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     // The hash is async, so the runtime appears once it is ready and Connect stays disabled until then.
     void catalogHash().then((hash) => {
       if (cancelled) return;
-      built = buildRuntime(hash, (path) => void navigateRef.current(path));
+      built = buildRuntime(
+        hash,
+        (path) => void navigateRef.current(path),
+        () => {
+          const match = /^\/projects\/([^/]+)\/files\/([^/]+)/.exec(pathnameRef.current);
+          if (!match) return { projectId: null, fileId: null };
+          return { projectId: findProjectOfFolder(FileSystem.getInstance(), match[1]!), fileId: match[2]! };
+        },
+      );
       setRuntime(built);
     });
     return () => {

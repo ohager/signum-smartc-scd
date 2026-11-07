@@ -1,11 +1,15 @@
 import { BotIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { t } from "@/i18n/runtime";
+import { useAtom } from "jotai";
+import { Checkbox } from "@/components/ui/checkbox";
+import { followModeAtom } from "../state";
 import { useAssistant } from "../bridge/use-assistant";
 
 /* Shown above every editor of a project while an agent works on it. */
 export function LockBanner({ projectId }: { projectId: string }) {
   const { takeOver } = useAssistant();
+  const [follow, setFollow] = useAtom(followModeAtom);
   return (
     <div
       role="status"
@@ -14,7 +18,10 @@ export function LockBanner({ projectId }: { projectId: string }) {
       <BotIcon className="h-4 w-4 shrink-0" />
       <span className="truncate">{t("assistant.lock.banner")}</span>
       <div className="ml-auto flex items-center gap-2">
-        {/* Task 19: follow switch */}
+        <label className="flex cursor-pointer items-center gap-1.5" title={t("assistant.follow.hint")}>
+          <Checkbox checked={follow} onCheckedChange={(v) => setFollow(v === true)} />
+          {t("assistant.follow.label")}
+        </label>
         <Button size="sm" variant="outline" onClick={() => void takeOver(projectId)}>
           {t("assistant.lock.takeOver")}
         </Button>
