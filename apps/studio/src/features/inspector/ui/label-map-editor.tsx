@@ -21,7 +21,7 @@ import {
   upsertSlot,
 } from "../model/label-map-edits";
 import { applyMerge } from "../model/merge-labels";
-import { useFollowedFile } from "../workspace/use-followed-file";
+import { useFollowedFile } from "@/components/ui/editor/use-followed-file.ts";
 import { enumToLines, parseEnumLines } from "./enum-lines";
 import { GenerateLabelsDialog } from "./generate-labels-dialog";
 import { JsoncSourceEditor } from "./jsonc-source-editor";

@@ -7,7 +7,7 @@ import {
   EditorFileActions,
   registerEditorFileActions,
 } from "@/components/ui/editor/file-actions.tsx";
-import { useEditorFile } from "@/components/ui/editor/use-editor-file.ts";
+import { useFollowedFile } from "@/components/ui/editor/use-followed-file.ts";
 import {
   SurfaceToolbar,
   ToolbarButton,
@@ -94,8 +94,7 @@ function SmartCEditor({ file }: Props) {
     onChange: handleEditorChange,
     saveNow: saveSmartCFile,
     download,
-  } = useEditorFile({
-    file,
+  } = useFollowedFile(file, {
     // The rail's Write cell reports this, and `handleValidate` is the wrong
     // place for it: Monaco validates the *buffer*, while `lastModified`
     // describes the *save*. Filing a buffer verdict under a save timestamp

@@ -26,7 +26,7 @@ import {
   EditorFileActions,
   registerEditorFileActions,
 } from "@/components/ui/editor/file-actions.tsx";
-import { useEditorFile } from "@/components/ui/editor/use-editor-file.ts";
+import { useFollowedFile } from "@/components/ui/editor/use-followed-file.ts";
 import type { File } from "@/lib/file-system";
 import { serializeScenario } from "@/features/simulator/scenario/scenario-io";
 import { configureTypeScriptForTests } from "../monaco-setup";
@@ -65,7 +65,7 @@ export function TestFileEditor({ file }: Props) {
     save,
     saveNow,
     download,
-  } = useEditorFile({ file });
+  } = useFollowedFile(file);
   const { state, isRunning, run } = useTestRun();
   const [foundTests, setFoundTests] = useState<FoundTest[]>([]);
   // Monaco and the editor arrive via onMount, after the first render. Without a

@@ -14,7 +14,7 @@ import {
   EditorFileActions,
   registerEditorFileActions,
 } from "@/components/ui/editor/file-actions.tsx";
-import { useEditorFile } from "@/components/ui/editor/use-editor-file.ts";
+import { useFollowedFile } from "@/components/ui/editor/use-followed-file.ts";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
 import { registerAsmLanguage } from "./language-definitions/asm-language-definitions.ts";
 import { type File } from "@/lib/file-system";
@@ -58,7 +58,7 @@ function AsmCodeEditor({ file, onSave }: Props) {
     onChange: handleEditorChange,
     saveNow: saveAsmFile,
     download,
-  } = useEditorFile({ file, onSaved: reportMachineCode });
+  } = useFollowedFile(file, { onSaved: reportMachineCode });
 
   const handleEditorBeforeMount: BeforeMount = (monaco) => {
     registerAsmLanguage(monaco);

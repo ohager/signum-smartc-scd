@@ -19,7 +19,7 @@ import {
   EditorFileActions,
   registerEditorFileActions,
 } from "@/components/ui/editor/file-actions.tsx";
-import { useEditorFile } from "@/components/ui/editor/use-editor-file.ts";
+import { useFollowedFile } from "@/components/ui/editor/use-followed-file.ts";
 import { registerStudioJson } from "@/features/inspector/monaco/register-json";
 import { t } from "@/i18n/runtime";
 
@@ -43,7 +43,7 @@ export function ScenarioEditor({ file }: { file: File }) {
     save,
     saveNow,
     download,
-  } = useEditorFile({ file });
+  } = useFollowedFile(file);
   const navigate = useNavigate();
   const fs = useFileSystem();
   const projectId = findProjectOfFolder(fs, file.metadata.folderId);

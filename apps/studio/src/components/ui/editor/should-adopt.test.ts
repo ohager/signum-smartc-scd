@@ -12,6 +12,10 @@ describe("shouldAdopt", () => {
     expect(shouldAdopt({ ...base, isDirty: true })).toBe(false);
   });
 
+  it("ignores another file's event", () => {
+    expect(shouldAdopt({ ...base, eventFileId: "g" })).toBe(false);
+  });
+
   it("ignores other files, echoes of its own save, and unreadable content", () => {
     expect(shouldAdopt({ ...base, eventFileId: "g" })).toBe(false);
     expect(shouldAdopt({ ...base, stored: "old" })).toBe(false);
@@ -24,6 +28,7 @@ describe("reloadsOn", () => {
     expect(reloadsOn("file:updated", { id: "f" }, "f")).toBe(true);
     expect(reloadsOn("file:updated", { id: "g" }, "f")).toBe(false);
     expect(reloadsOn("fs:reloaded", undefined, "f")).toBe(true);
+    expect(reloadsOn("fs:reloaded", { id: "g" }, "f")).toBe(true);
     expect(reloadsOn("file:renamed", { id: "f" }, "f")).toBe(false);
   });
 });

@@ -6,7 +6,7 @@ import { EditorFileActions } from "@/components/ui/editor/file-actions.tsx";
 import type { File } from "@/lib/file-system";
 import { t } from "@/i18n/runtime";
 import { addContracts, moveContract, parseWatchlist, removeContract, updateContract, type WatchEntry } from "../model/watchlist";
-import { useFollowedFile } from "../workspace/use-followed-file";
+import { useFollowedFile } from "@/components/ui/editor/use-followed-file.ts";
 import { JsoncSourceEditor } from "./jsonc-source-editor";
 import { writeThrough } from "./write-through";
 import { ContractView } from "./contract-view";
