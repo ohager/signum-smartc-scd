@@ -25,7 +25,7 @@ export interface AssistantError {
 export const DEFAULT_HINTS: Record<ErrorCode, string> = {
   studio_not_connected: "Ask the user to open SmartC Studio and click Connect assistant.",
   studio_disconnected: "The Studio tab closed or lost the connection. Ask the user to reconnect, then retry.",
-  another_session_connected: "Another agent session is already connected to the Studio. Ask the user to disconnect it first.",
+  another_session_connected: "Another agent session holds the relay port. Close that session, or start this one with --port <n> and use the same port in the Studio.",
   rejected_by_user: "The user rejected the connection or the change. Do not retry; ask what they want instead.",
   user_took_over: "The user took over. Re-read the files and ask before writing again.",
   path_not_allowed: "Use an absolute path inside a Studio project, like /my-contract/contract.smart.c. Call list_projects to see valid projects.",

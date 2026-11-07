@@ -300,6 +300,44 @@ describe("TabLink", () => {
     expect(out.error.code).toBe("another_session_connected");
   });
 
+  test("busy relay retries and takes the port once the other relay stops", async () => {
+    const { link: first, port } = await startLink();
+    const lines: string[] = [];
+    const second = new TabLink({ port, allowOrigins: [], busyRetryMs: 20, log: (l) => void lines.push(l) });
+    cleanup.push(() => second.stop());
+    expect(await second.start()).toBe("busy");
+    await new Promise((r) => setTimeout(r, 70));
+    expect(second.state).toBe("busy");
+    expect(lines).toEqual([]);
+
+    await first.stop();
+    for (let i = 0; i < 100 && second.state === "busy"; i++) await new Promise((r) => setTimeout(r, 10));
+    expect(second.state).toBe("idle");
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toContain(String(port));
+    const tab = await activeTab(port, second);
+    tab.onCall = () => ({ ok: true, data: "hi" });
+    expect(await second.call("list_projects", {}, 1000)).toEqual({ ok: true, data: "hi" });
+  });
+
+  test("a busy relay stops retrying after stop()", async () => {
+    const { link: first, port } = await startLink();
+    const lines: string[] = [];
+    const second = new TabLink({ port, allowOrigins: [], busyRetryMs: 20, log: (l) => void lines.push(l) });
+    expect(await second.start()).toBe("busy");
+    await second.stop();
+    await first.stop();
+    await new Promise((r) => setTimeout(r, 80));
+    expect(lines).toEqual([]);
+    /* Nobody re-took the port. */
+    const probe = createServer();
+    await new Promise<void>((resolve, reject) => {
+      probe.once("error", reject);
+      probe.listen(port, "127.0.0.1", () => resolve());
+    });
+    await new Promise<void>((resolve) => probe.close(() => resolve()));
+  });
+
   test("forwards clientInfo in hello and as session.client after accept", async () => {
     const { link, port } = await startLink();
     link.setClient({ name: "Claude Code", version: "1" });

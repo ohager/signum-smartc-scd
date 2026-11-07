@@ -89,7 +89,7 @@ The assistant uses the same checks through its `lint` and `analyze_gas` tools.
 
 ## Troubleshooting
 
-**Port busy / `another_session_connected`.** Another relay (for example from a second agent session) already holds the port, so your agent's calls fail with `another_session_connected`. Close the other session, or give this one another port with `--port` and enter it in the Connect dialog.
+**Port busy / `another_session_connected`.** Another relay (for example from a second agent session) already holds the port, so your agent's calls fail with `another_session_connected`. Close the other session, or give this one another port with `--port` and enter it in the Connect dialog. A busy relay retries every 3 seconds and takes the port by itself once the other session ends.
 
 **Outdated relay or Studio / `protocol_mismatch`.** Relay and Studio speak different protocol versions. If Studio says the relay is outdated, run `npx @smartc-studio/mcp@latest` and restart your agent. If it asks you to reload, reload the Studio tab.
 

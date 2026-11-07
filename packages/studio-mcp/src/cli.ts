@@ -7,7 +7,7 @@ import { TabLink } from "./tab-link";
 const log = (msg: string) => process.stderr.write(`[smartc-studio-mcp] ${msg}\n`);
 
 export async function startRelay(config: RelayConfig): Promise<void> {
-  const link = new TabLink({ port: config.port, allowOrigins: config.allowOrigins });
+  const link = new TabLink({ port: config.port, allowOrigins: config.allowOrigins, log });
   const server = createMcpServer(link);
 
   let stopping = false;
@@ -24,7 +24,7 @@ export async function startRelay(config: RelayConfig): Promise<void> {
   process.stdin.on("close", shutdown);
 
   const state = await link.start();
-  if (state === "busy") log(`Port ${config.port} is already in use, probably by another relay. Tool calls will report another_session_connected.`);
+  if (state === "busy") log(`Port ${config.port} is already in use, probably by another relay. Tool calls report another_session_connected until it is free; retrying every 3 s.`);
   else log(`Waiting for SmartC Studio on ws://127.0.0.1:${config.port}`);
 
   await server.connect(new StdioServerTransport());

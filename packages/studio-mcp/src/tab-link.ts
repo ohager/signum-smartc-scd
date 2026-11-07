@@ -19,7 +19,14 @@ export interface TabLinkOptions {
   port: number;
   allowOrigins: string[];
   host?: "127.0.0.1";
+  /** How often a busy relay tries to take the port again. */
+  busyRetryMs?: number;
+  /** Human-readable lines; stdout belongs to MCP, so the default writes to stderr. */
+  log?: (line: string) => void;
 }
+
+const BUSY_RETRY_MS = 3000;
+const stderrLog = (line: string) => void process.stderr.write(`[smartc-studio-mcp] ${line}\n`);
 
 interface Pending {
   socket: WebSocket;
@@ -38,6 +45,8 @@ export class TabLink {
   #opts: TabLinkOptions;
   #server?: WebSocketServer;
   #busy = false;
+  #stopped = false;
+  #retry?: ReturnType<typeof setTimeout>;
   #hash = "";
   #client: ClientInfo | null = null;
   /** The accepted session. */
@@ -62,7 +71,50 @@ export class TabLink {
   }
 
   async start(): Promise<"listening" | "busy"> {
+    this.#stopped = false;
     this.#hash = await catalogHash();
+    const server = await this.#listen();
+    if (server) {
+      this.#adopt(server);
+      return "listening";
+    }
+    this.#busy = true;
+    this.#scheduleRetry();
+    return "busy";
+  }
+
+  /*
+   * A busy port usually means another agent session's relay. Once that session ends
+   * its port is free, but nothing would tell this relay, and every call would keep
+   * failing with another_session_connected until the agent restarts. So a busy relay
+   * keeps trying to listen and quietly becomes a normal one when it gets the port.
+   */
+  #scheduleRetry() {
+    if (this.#stopped) return;
+    this.#retry = setTimeout(async () => {
+      this.#retry = undefined;
+      const server = await this.#listen().catch(() => null);
+      if (this.#stopped) {
+        server?.close();
+        return;
+      }
+      if (!server) return this.#scheduleRetry();
+      this.#adopt(server);
+      this.#busy = false;
+      (this.#opts.log ?? stderrLog)(`Port ${this.#opts.port} is free now. Waiting for SmartC Studio on ws://127.0.0.1:${this.#opts.port}`);
+    }, this.#opts.busyRetryMs ?? BUSY_RETRY_MS);
+    // A retry alone must not keep the process alive once MCP is gone.
+    this.#retry.unref?.();
+  }
+
+  #adopt(server: WebSocketServer) {
+    this.#server = server;
+    server.on("error", () => {});
+    server.on("connection", (socket) => this.#onConnection(socket));
+  }
+
+  /** Resolves the listening server, or null when the port is taken. */
+  #listen(): Promise<WebSocketServer | null> {
     return new Promise((resolve, reject) => {
       const server = new WebSocketServer({
         port: this.#opts.port,
@@ -72,21 +124,18 @@ export class TabLink {
       });
       server.once("error", (err: NodeJS.ErrnoException) => {
         if (err.code === "EADDRINUSE") {
-          this.#busy = true;
           server.close();
-          resolve("busy");
+          resolve(null);
         } else reject(err);
       });
-      server.once("listening", () => {
-        this.#server = server;
-        server.on("error", () => {});
-        server.on("connection", (socket) => this.#onConnection(socket));
-        resolve("listening");
-      });
+      server.once("listening", () => resolve(server));
     });
   }
 
   async stop(): Promise<void> {
+    this.#stopped = true;
+    clearTimeout(this.#retry);
+    this.#retry = undefined;
     for (const [id, p] of this.#calls) this.#settle(id, p, fail("studio_disconnected", "The relay is shutting down."));
     const server = this.#server;
     this.#server = undefined;
