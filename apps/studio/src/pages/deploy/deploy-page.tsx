@@ -27,6 +27,7 @@ export function DeployPage() {
   const contract = choice?.contract ?? null;
 
   const [machineData, setMachineData] = useState<MachineData | null>(null);
+  const [source, setSource] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -41,6 +42,7 @@ export function DeployPage() {
       try {
         const compiler = new SmartC({ language: "C", sourceCode: content ?? "" });
         setMachineData(compiler.compile().getMachineCode());
+        setSource(content ?? "");
         setError(null);
       } catch (e: any) {
         setError(e.message);
@@ -74,6 +76,7 @@ export function DeployPage() {
         {machineData && (
           <DeploymentView
             data={machineData}
+            source={source}
             successAction={(transactionId) => (
               <InspectDeployedButton
                 projectFolderId={projectId}

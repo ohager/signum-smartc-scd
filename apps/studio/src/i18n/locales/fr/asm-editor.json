@@ -55,7 +55,10 @@
     "feeSigna": "Frais de transaction (SIGNA)",
     "minimum": "Minimum :",
     "deadline": "Échéance (minutes)",
-    "deadlineHint": "Échéance de la transaction en minutes (max. : 1440)"
+    "deadlineHint": "Échéance de la transaction en minutes (max. : 1440)",
+    "pathFull": "Déploiement complet",
+    "pathReference": "Par référence",
+    "fixParams": "Corrigez les paramètres ci-dessus pour déployer."
   },
   "flow": {
     "connectWallet": "Connectez un portefeuille pour déployer votre contrat",
@@ -141,5 +144,40 @@
       "returnsOne": "renvoie une valeur, un argument",
       "returnsTwo": "renvoie une valeur, deux arguments"
     }
+  },
+  "params": {
+    "title": "Paramètres",
+    "hint": "Valeurs écrites dans la pile de données du contrat lors du déploiement.",
+    "none": "Ce contrat n'a pas de paramètres de déploiement. Marquez des emplacements comme paramètres dans son Label Map (`param: true`).",
+    "overwritten": "Écrasé par la ligne {line} à la première activation",
+    "confirmOverwrite": "Je sais que cette valeur sera écrasée",
+    "noSourceCheck": "Sans code source, Studio ne peut pas vérifier si le code de premier niveau écrase ces valeurs.",
+    "placeholderDefault": "Vide : {value}",
+    "error": {
+      "invalid": "Valeur non valide pour ce format",
+      "outOfRange": "Ne tient pas sur 64 bits",
+      "tooLong": "Le texte est limité à 8 octets",
+      "tooManyDecimals": "8 décimales au maximum",
+      "unknownEnum": "Ne fait pas partie des valeurs de l'enum"
+    },
+    "tooLarge": "Les données ne tiennent pas dans les {slots} emplacements de données du contrat.",
+    "preview": "Pile de données",
+    "internal": "interne",
+    "slot": "Emplacement",
+    "name": "Nom",
+    "value": "Valeur",
+    "hex": "Hex"
+  },
+  "reference": {
+    "title": "Déployer par référence",
+    "hint": "Réutilise le code d'un contrat déjà sur la blockchain. Moins cher : seules les données sont envoyées.",
+    "original": "Original",
+    "inherited": "Le montant d'activation et les pages mémoire proviennent de l'original.",
+    "searching": "Recherche des déploiements de ce code…",
+    "connect": "Connectez XT Wallet pour trouver les déploiements existants de ce code.",
+    "failed": "Impossible de rechercher sur le nœud : {message}",
+    "retry": "Rechercher à nouveau",
+    "noneYet": "Une fois ce code sur la blockchain, vous pourrez déployer d'autres instances à moindre coût par référence.",
+    "candidate": "{id} · par {creator} · bloc {height}"
   }
 }

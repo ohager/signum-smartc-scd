@@ -90,3 +90,25 @@ describe("applyMerge keeps comments the user wrote inside the merged collections
     expect(back.value.source?.file).toBe("c.smart.c");
   });
 });
+
+describe("mergeGenerated with deploy parameters", () => {
+  it("keeps a manual param entry and replaces compiler param suggestions", () => {
+    const before: LabelMap = {
+      ...existing,
+      slots: [
+        { index: 1, name: "owner", param: true, origin: "manual" },
+        { index: 2, name: "fee", param: true, origin: "compiler" },
+      ],
+    };
+    const fresh = {
+      ...generated,
+      slots: [
+        { index: 1, name: "owner", format: "address" as const, origin: "compiler" as const },
+        { index: 2, name: "fee", format: "long" as const, origin: "compiler" as const },
+      ],
+    };
+    const { map } = mergeGenerated(before, fresh, { sourceFile: "c.smart.c", now: new Date(0) });
+    expect(map.slots[0]).toMatchObject({ index: 1, param: true, origin: "manual" });
+    expect(map.slots[1]).toEqual(fresh.slots[1]!);
+  });
+});

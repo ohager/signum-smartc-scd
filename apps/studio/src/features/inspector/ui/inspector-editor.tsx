@@ -90,6 +90,11 @@ export function InspectorEditor({ file }: { file: File }) {
                 write((text) => moveContract(text, selected.id, selected.network, to));
                 select(entryKey({ ...selected, network: to }));
               }}
+              onInstanceDeployed={(id) => {
+                write((text) => addContracts(text, [{ id, network: selected.network }]));
+                toast.success(t("inspector.instance.added"));
+                select(entryKey({ id, network: selected.network }));
+              }}
             />
           ) : (
             <p className="p-4 text-sm text-muted-foreground">{t("inspector.editor.select")}</p>

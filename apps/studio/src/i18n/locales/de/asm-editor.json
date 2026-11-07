@@ -55,7 +55,10 @@
     "feeSigna": "Transaktionsgebühr (SIGNA)",
     "minimum": "Minimum:",
     "deadline": "Frist (Minuten)",
-    "deadlineHint": "Frist der Transaktion in Minuten (max.: 1440)"
+    "deadlineHint": "Frist der Transaktion in Minuten (max.: 1440)",
+    "pathFull": "Vollständiges Deployment",
+    "pathReference": "Per Referenz",
+    "fixParams": "Korrigiere die Parameter oben, um zu deployen."
   },
   "flow": {
     "connectWallet": "Bitte verbinde ein Wallet, um deinen Contract zu deployen",
@@ -141,5 +144,40 @@
       "returnsOne": "liefert einen Wert, ein Argument",
       "returnsTwo": "liefert einen Wert, zwei Argumente"
     }
+  },
+  "params": {
+    "title": "Parameter",
+    "hint": "Werte, die beim Deployment in den Data Stack des Contracts geschrieben werden.",
+    "none": "Dieser Contract hat keine Deploy-Parameter. Markiere Slots in seiner Label Map als Parameter (`param: true`).",
+    "overwritten": "Wird bei der ersten Aktivierung von Zeile {line} überschrieben",
+    "confirmOverwrite": "Mir ist klar, dass dieser Wert überschrieben wird",
+    "noSourceCheck": "Ohne Quellcode kann Studio nicht prüfen, ob Code auf oberster Ebene diese Werte überschreibt.",
+    "placeholderDefault": "Leer: {value}",
+    "error": {
+      "invalid": "Kein gültiger Wert für dieses Format",
+      "outOfRange": "Passt nicht in 64 Bit",
+      "tooLong": "Text ist auf 8 Bytes begrenzt",
+      "tooManyDecimals": "Höchstens 8 Nachkommastellen",
+      "unknownEnum": "Keiner der Werte des Enums"
+    },
+    "tooLarge": "Die Daten passen nicht in die {slots} Daten-Slots des Contracts.",
+    "preview": "Data Stack",
+    "internal": "intern",
+    "slot": "Slot",
+    "name": "Name",
+    "value": "Wert",
+    "hex": "Hex"
+  },
+  "reference": {
+    "title": "Deployment per Referenz",
+    "hint": "Verwendet den Code eines Contracts, der schon on chain ist. Günstiger: Nur die Daten werden gesendet.",
+    "original": "Original",
+    "inherited": "Aktivierungsbetrag und Speicherseiten kommen vom Original.",
+    "searching": "Suche nach Deployments dieses Codes…",
+    "connect": "Verbinde XT Wallet, um vorhandene Deployments dieses Codes zu finden.",
+    "failed": "Suche auf dem Node fehlgeschlagen: {message}",
+    "retry": "Erneut suchen",
+    "noneYet": "Sobald dieser Code on chain ist, kannst du weitere Instanzen günstig per Referenz deployen.",
+    "candidate": "{id} · von {creator} · Block {height}"
   }
 }

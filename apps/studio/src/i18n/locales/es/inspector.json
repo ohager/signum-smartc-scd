@@ -10,7 +10,8 @@
     "enumMissing": "El enum \"{name}\" no está definido en \"enums\"",
     "enumRequired": "El formato \"enum\" necesita un nombre de \"enum\"",
     "other": "{message}",
-    "at": "Línea {line}: {message}"
+    "at": "Línea {line}: {message}",
+    "paramOnArray": "Un parámetro de despliegue debe ser una sola ranura, no un array"
   },
   "editor": {
     "viewUi": "Inspector",
@@ -205,5 +206,17 @@
     "inspect": "Inspeccionar",
     "inspectHint": "Abrir este contrato en el inspector, con etiquetas generadas desde este código fuente",
     "failed": "No se pudo preparar la inspección: {message}"
+  },
+  "instance": {
+    "button": "Nueva instancia",
+    "title": "Nueva instancia de {name}",
+    "connect": "Conecta XT Wallet para desplegar una nueva instancia.",
+    "resolving": "Buscando el despliegue original…",
+    "otherNetwork": "XT Wallet está conectada a un nodo que no conoce este contrato. Cambia XT a la red del contrato.",
+    "noOriginal": "No se encontró el despliegue original de este contrato en este nodo.",
+    "node": "El nodo de la billetera no respondió: {message}",
+    "ambiguous": "Varios Label Maps reclaman este hash del código: fija uno primero.",
+    "markParams": "Parámetros de despliegue",
+    "added": "Añadido a la lista de seguimiento"
   }
 }

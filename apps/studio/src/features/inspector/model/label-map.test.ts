@@ -78,3 +78,23 @@ describe("emptyLabelMap", () => {
     expect(r.ok && r.value.codeHashes).toEqual([{ hash: "1" }]);
   });
 });
+
+describe("deploy parameters", () => {
+  const mapWith = (slot: object) =>
+    JSON.stringify({ version: 1, name: "P", codeHashes: [], slots: [slot] });
+
+  it("accepts param and default on a slot", () => {
+    const r = parseLabelMap(mapWith({ index: 3, name: "owner", format: "address", param: true, default: "0" }));
+    expect(r.ok && r.value.slots[0]).toMatchObject({ param: true, default: "0" });
+  });
+
+  it("rejects param on an array entry", () => {
+    const r = parseLabelMap(mapWith({ index: 4, name: "prices", length: 3, param: true }));
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errors[0]!.path).toEqual(["slots", 0, "param"]);
+  });
+
+  it("rejects a non-decimal default", () => {
+    expect(parseLabelMap(mapWith({ index: 1, name: "fee", default: "0x10" })).ok).toBe(false);
+  });
+});

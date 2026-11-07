@@ -79,6 +79,47 @@ export function slotsFromNames(names: string[]): SlotLabel[] {
     .filter((s) => !REGISTER.test(s.name));
 }
 
+/**
+ * Variables the `signum-smartc` convention marks as deploy-time values:
+ * `const <name> = TESTBED_<x>;` inside `#ifdef TESTBED`. The testbed sets them
+ * at deploy, so on chain they are exactly the slots a deployer fills.
+ */
+export function testbedParams(source: string): Set<string> {
+  const names = new Set<string>();
+  let inTestbed = false;
+  for (const raw of source.split("\n")) {
+    const line = raw.replace(/\/\/.*$/, "");
+    const directive = /^\s*#\s*(ifdef|ifndef|else|endif)\b\s*(\w*)/.exec(line);
+    if (directive) {
+      if (directive[1] === "ifdef") inTestbed = directive[2] === "TESTBED";
+      else inTestbed = false;
+      continue;
+    }
+    if (!inTestbed) continue;
+    const m = /^\s*const\s+(\w+)\s*=\s*TESTBED_\w+\s*;/.exec(line);
+    if (m) names.add(m[1]!);
+  }
+  return names;
+}
+
+/** Ids are longs to the compiler; names say when one is an account or contract. */
+export function suggestFormat(name: string, compilerFormat: ValueFormat | undefined): ValueFormat | undefined {
+  if (compilerFormat !== "long") return compilerFormat;
+  return /^(owner|admin|creator)$/i.test(name) || /(Account|Address|Id)$/.test(name) ? "address" : compilerFormat;
+}
+
+function withSuggestions(slots: SlotLabel[], params: Set<string>): SlotLabel[] {
+  return slots.map((slot) => {
+    const format = suggestFormat(slot.name, slot.format);
+    const single = !slot.name.includes(".") && slot.length === undefined && slot.comment !== "array pointer"; // i18n-ignore
+    return {
+      ...slot,
+      ...(format ? { format } : {}),
+      ...(single && params.has(slot.name) ? { param: true } : {}),
+    };
+  });
+}
+
 export function generateLabels(
   source: string,
 ): { ok: true; labels: GeneratedLabels } | { ok: false; error: ParsedError } {
@@ -94,7 +135,10 @@ export function generateLabels(
     return {
       ok: true,
       labels: {
-        slots: typed ? slotsFromMemoryTable(table) : slotsFromNames(mc.Memory ?? []),
+        slots: withSuggestions(
+          typed ? slotsFromMemoryTable(table) : slotsFromNames(mc.Memory ?? []),
+          testbedParams(source),
+        ),
         codeLabels,
         codeHash: mc.MachineCodeHashId,
         typed,
