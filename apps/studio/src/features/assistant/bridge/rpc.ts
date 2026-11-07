@@ -88,7 +88,7 @@ export function createRpc(socket: SocketLike, handlers: RpcHandlers): Rpc {
     if (!p) return;
     pending.delete(msg.id);
     if (msg.error && typeof msg.error === "object") {
-      p.reject(new RpcError(String(msg.error.message ?? "RPC error"), Number(msg.error.code), msg.error.data));
+      p.reject(new RpcError(String(msg.error.message ?? "RPC error"), Number(msg.error.code), msg.error.data)); // i18n-ignore
     } else {
       p.resolve(msg.result);
     }

@@ -1,0 +1,80 @@
+{
+  "connect": {
+    "action": "Assistent verbinden",
+    "title": "Assistent verbinden",
+    "description": "Lass einen KI-Assistenten über ein lokales Relay auf diesem Computer an deinen Projekten arbeiten.",
+    "port": "Port",
+    "portInvalid": "Gib eine ganze Zahl von 1 bis 65535 ein, außer 6876 oder 6877.",
+    "hint": "Starte das Relay mit `npx @smartc-studio/mcp` und verbinde dich dann.",
+    "submit": "Verbinden",
+    "preparing": "Wird vorbereitet…"
+  },
+  "approval": {
+    "title": "Zugriff des Assistenten",
+    "request": "**{client}** möchte auf deinen Arbeitsbereich zugreifen.",
+    "unknownClient": "Ein Assistent",
+    "allow": "Erlauben",
+    "deny": "Ablehnen",
+    "occupiedTitle": "Assistent bereits verbunden",
+    "occupied": "Ein anderer Studio-Tab ist mit dem Assistenten verbunden. Hier übernehmen?",
+    "takeOver": "Übernehmen",
+    "cancel": "Abbrechen"
+  },
+  "status": {
+    "connected": "{client} verbunden",
+    "connecting": "Verbindung auf Port {port} wird aufgebaut…",
+    "disconnect": "Trennen",
+    "activity": "Aktivität",
+    "takenOver": "Ein anderer Tab hat den Assistenten übernommen.",
+    "mismatchReload": "Lade Studio neu, um diese Assistenten-Version zu verwenden.",
+    "reload": "Neu laden",
+    "mismatchUpdate": "Das Assistenten-Relay ist veraltet. Aktualisiere es mit `npx @smartc-studio/mcp@latest` und starte deinen Agenten neu.",
+    "failed": "Das Relay auf Port {port} ist nicht erreichbar.",
+    "closed": "Die Verbindung zum Assistenten wurde geschlossen."
+  },
+  "lock": {
+    "banner": "Der KI-Assistent arbeitet an diesem Projekt",
+    "takeOver": "Übernehmen",
+    "readOnly": "Der KI-Assistent arbeitet an diesem Projekt. Übernimm, um zu bearbeiten.",
+    "blocked": "Der KI-Assistent arbeitet an diesem Projekt. Übernimm, um zu bearbeiten."
+  },
+  "follow": {
+    "label": "Folgen",
+    "hint": "Dateien dieses Projekts öffnen, die der Assistent ändert"
+  },
+  "gutter": {
+    "added": "Vom Assistenten hinzugefügt",
+    "changed": "Vom Assistenten geändert. Klicken, um den vorherigen Text anzuzeigen.",
+    "deleted": "Vom Assistenten entfernt. Klicken, um den entfernten Text anzuzeigen.",
+    "previous": "Vorheriger Text"
+  },
+  "touched": "Vom Assistenten geändert",
+  "feed": {
+    "title": "Aktivität des Assistenten",
+    "description": "Was der Assistent in dieser Sitzung getan hat, nach Runden gruppiert.",
+    "empty": "Der Assistent hat noch nichts getan.",
+    "running": "läuft",
+    "loose": "Weitere Aufrufe",
+    "unknownProject": "Unbekanntes Projekt",
+    "compile": "kompilieren",
+    "tests": "{passed}/{total} Tests",
+    "lint": "Lint: {count}",
+    "gas": "Gas: Aktivierungsbetrag zu niedrig",
+    "error": "Fehler: {code}",
+    "viewDiff": "Änderungen anzeigen",
+    "diffTitle": "Änderungen in {path}",
+    "noTests": "0 Tests"
+  },
+  "restore": {
+    "action": "Auf Stand vor dieser Runde zurücksetzen",
+    "title": "Auf Stand vor dieser Runde zurücksetzen?",
+    "body": "Das Projekt kehrt zu dem Stand zurück, den es beim Start dieser Runde hatte.",
+    "userChanges": "Du hast diese Dateien nach dieser Runde geändert. Beim Zurücksetzen gehen diese Änderungen verloren:",
+    "confirm": "Zurücksetzen",
+    "done": "Projekt zurückgesetzt.",
+    "undo": "Zurücksetzen rückgängig machen",
+    "undone": "Zurücksetzen rückgängig gemacht.",
+    "failed": "Das Projekt konnte nicht zurückgesetzt werden.",
+    "fileDeleted": "Datei wurde gelöscht"
+  }
+}

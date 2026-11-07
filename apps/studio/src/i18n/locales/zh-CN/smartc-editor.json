@@ -23,5 +23,67 @@
     "keyword": "**SmartC 关键字**",
     "variable": "SmartC 变量（第 {line} 行）",
     "userFunction": "SmartC 函数"
+  },
+  "analysis": {
+    "senderCheck": {
+      "message": "处理程序 `{handler}` {what}，却没有检查是谁发送了交易。",
+      "writesGlobals": "写入 {globals}",
+      "writesMaps": "写入 map 值",
+      "sendsFunds": "发送资金",
+      "and": "并且",
+      "hint": "修改状态前，请将发送者与所有者比较：在分发循环中使用 `if (getSender(currentTX.txId) != owner) { continue; }`，或在处理程序开头使用 `if (currentTX.sender != getCreator()) { return; }`。"
+    },
+    "sendWithoutCheck": {
+      "message": "`{call}` 之前没有余额或金额检查。",
+      "hintAmount": "请先检查资金：`if (getCurrentBalance() >= amount) { sendAmount(amount, recipient); }`。",
+      "hintBalance": "请先检查资金：`if (getCurrentBalance() > 0) { sendBalance(recipient); }`。"
+    },
+    "unboundedLoop": {
+      "message": "此循环没有可识别的上界；条件不依赖循环体所修改的任何内容。",
+      "hint": "计数到条件所检测的上限：`for (i = 0; i < 10; i++) { … }`，或将工作移入 `getNextTx` 循环，使每次激活只做有限的工作量。"
+    },
+    "activationBelowGas": {
+      "message": "最坏情况花费 {cost}，但 activationAmount 为 {activation} SIGNA。",
+      "messageNoDirective": "未设置 activationAmount；最坏情况花费 {cost}。",
+      "cost": "{worstCase} SIGNA{where}",
+      "costAtLeast": "至少 {worstCase} SIGNA{where}",
+      "where": "（处理程序 `{handler}`）",
+      "whereMethod": "（处理程序 `{handler}`，方法 {method}）",
+      "hint": "请设置 `#program activationAmount {required}`（{requiredSigna} SIGNA，即最坏情况向上取整到 0.01 SIGNA）。",
+      "hintLoopCap": "分析假定循环运行 {loopCap} 次；运行次数更多的循环花费更高。",
+      "hintNoSwitch": "合约没有 `switch` 分发器，因此分析无法跟踪每条路径，实际最大值可能更高。"
+    },
+    "switchNoDefault": {
+      "message": "此 `switch` 没有 `default:`，因此未知方法会被静默接受。",
+      "hint": "添加一个拒绝或退款的 `default:`，例如 `default: sendAmount(currentTX.amount, currentTX.sender); break;`。"
+    },
+    "pragmaVersion": {
+      "missing": {
+        "message": "缺少 `#pragma version`。",
+        "hint": "固定编译器版本：在文件开头加入 `#pragma version {recommended}`。"
+      },
+      "differs": {
+        "message": "`#pragma version {found}` 与 Studio 的编译器（{compiler}）不一致。",
+        "hint": "改为 `#pragma version {recommended}` 并重新测试，或使用匹配的编译器编译。"
+      },
+      "missingOptimization": {
+        "message": "缺少 `#pragma optimizationLevel`。",
+        "hint": "显式设置，例如 `#pragma optimizationLevel 2`，使输出不依赖编译器默认值。"
+      }
+    },
+    "noCatch": {
+      "message": "没有 `catch` 处理程序：发生致命错误后合约将停止运行。",
+      "messageSends": "没有 `catch` 处理程序：发生致命错误后合约将停止运行，其余额被锁在其中。",
+      "hint": "添加全局错误处理程序。继续运行：`void catch() { asm { JMP :__fn_main } }`——出错的交易已被 `getNextTx` 消耗，合约会继续处理下一笔。终止运行：`void catch() { sendBalance(getCreator()); exit; }`。"
+    },
+    "catchRecurringFault": {
+      "message": "此处的错误会在每次激活时重复出现，并不断消耗 gas，直到余额耗尽。",
+      "hintDivision": "`catch` 处理程序会从 `main` 恢复，而 `main` 会再次执行这个除法。请加以保护（检查除数、限制递归），将其移入处理程序，或改为终止运行：`void catch() { sendBalance(getCreator()); exit; }`。",
+      "hintRecursion": "`catch` 处理程序会从 `main` 恢复，而 `main` 会再次执行这个递归调用。请加以保护（检查除数、限制递归），将其移入处理程序，或改为终止运行：`void catch() { sendBalance(getCreator()); exit; }`。"
+    },
+    "overwrittenParam": {
+      "message": "`{name}` 是部署参数，但这一行在 `main` 运行之前就写入了它，因此部署的值会在首次激活时被替换。",
+      "hint": "删除该写入，或仅在槽位尚未设置时才在 `main` 中赋值（`if (x == 0) { x = … }`）。"
+    }
   }
 }

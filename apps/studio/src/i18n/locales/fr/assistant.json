@@ -1,0 +1,80 @@
+{
+  "connect": {
+    "action": "Connecter l'assistant",
+    "title": "Connecter l'assistant",
+    "description": "Laissez un assistant IA travailler sur vos projets via un relais local sur cet ordinateur.",
+    "port": "Port",
+    "portInvalid": "Saisissez un entier de 1 à 65535, autre que 6876 ou 6877.",
+    "hint": "Démarrez le relais avec `npx @smartc-studio/mcp`, puis connectez-vous.",
+    "submit": "Connecter",
+    "preparing": "Préparation…"
+  },
+  "approval": {
+    "title": "Accès de l'assistant",
+    "request": "**{client}** souhaite accéder à votre espace de travail.",
+    "unknownClient": "Un assistant",
+    "allow": "Autoriser",
+    "deny": "Refuser",
+    "occupiedTitle": "Assistant déjà connecté",
+    "occupied": "Un autre onglet Studio est connecté à l'assistant. Prendre la main ici ?",
+    "takeOver": "Prendre la main",
+    "cancel": "Annuler"
+  },
+  "status": {
+    "connected": "{client} connecté",
+    "connecting": "Connexion sur le port {port}…",
+    "disconnect": "Déconnecter",
+    "activity": "Activité",
+    "takenOver": "Un autre onglet a pris la main sur l'assistant.",
+    "mismatchReload": "Rechargez Studio pour utiliser cette version de l'assistant.",
+    "reload": "Recharger",
+    "mismatchUpdate": "Le relais de l'assistant est obsolète. Mettez-le à jour avec `npx @smartc-studio/mcp@latest` et redémarrez votre agent.",
+    "failed": "Impossible de joindre le relais sur le port {port}.",
+    "closed": "La connexion à l'assistant a été fermée."
+  },
+  "lock": {
+    "banner": "L'assistant IA travaille sur ce projet",
+    "takeOver": "Prendre la main",
+    "readOnly": "L'assistant IA travaille sur ce projet. Prenez la main pour modifier.",
+    "blocked": "L'assistant IA travaille sur ce projet. Prenez la main pour modifier."
+  },
+  "follow": {
+    "label": "Suivre",
+    "hint": "Ouvrir les fichiers de ce projet que l'assistant modifie"
+  },
+  "gutter": {
+    "added": "Ajouté par l'assistant",
+    "changed": "Modifié par l'assistant. Cliquez pour afficher le texte précédent.",
+    "deleted": "Supprimé par l'assistant. Cliquez pour afficher le texte supprimé.",
+    "previous": "Texte précédent"
+  },
+  "touched": "Modifié par l'assistant",
+  "feed": {
+    "title": "Activité de l'assistant",
+    "description": "Ce que l'assistant a fait pendant cette session, regroupé par tour.",
+    "empty": "L'assistant n'a encore rien fait.",
+    "running": "en cours",
+    "loose": "Autres appels",
+    "unknownProject": "Projet inconnu",
+    "compile": "compiler",
+    "tests": "{passed}/{total} tests",
+    "lint": "lint : {count}",
+    "gas": "gas : montant d'activation trop bas",
+    "error": "erreur : {code}",
+    "viewDiff": "Voir les modifications",
+    "diffTitle": "Modifications dans {path}",
+    "noTests": "0 test"
+  },
+  "restore": {
+    "action": "Restaurer l'état précédant ce tour",
+    "title": "Restaurer l'état précédant ce tour ?",
+    "body": "Le projet revient à son état au début de ce tour.",
+    "userChanges": "Vous avez modifié ces fichiers après ce tour. La restauration annule ces modifications :",
+    "confirm": "Restaurer",
+    "done": "Projet restauré.",
+    "undo": "Annuler la restauration",
+    "undone": "Restauration annulée.",
+    "failed": "Impossible de restaurer le projet.",
+    "fileDeleted": "Le fichier a été supprimé"
+  }
+}

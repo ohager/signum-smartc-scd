@@ -58,12 +58,12 @@ export const sendWithoutCheck: Rule = (ctx) => {
         rule: "send-without-check",
         severity: "warning",
         line: fn.startLine + lineAt(fn.body, call.index!) - 1,
-        message: `\`${call[1]}\` is not preceded by a balance or amount check.`,
+        message: `\`${call[1]}\` is not preceded by a balance or amount check.`, // i18n-ignore
         data: { call: call[1]! },
         hint:
           call[1] === "sendAmount"
-            ? "Check the funds first: `if (getCurrentBalance() >= amount) { sendAmount(amount, recipient); }`."
-            : "Check the funds first: `if (getCurrentBalance() > 0) { sendBalance(recipient); }`.",
+            ? "Check the funds first: `if (getCurrentBalance() >= amount) { sendAmount(amount, recipient); }`." // i18n-ignore
+            : "Check the funds first: `if (getCurrentBalance() > 0) { sendBalance(recipient); }`.", // i18n-ignore
       });
     }
   }

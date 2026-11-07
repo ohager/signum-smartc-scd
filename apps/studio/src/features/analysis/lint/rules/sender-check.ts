@@ -21,8 +21,8 @@ const HINT =
 function finding(handler: FunctionSpan, effects: Effects): LintFinding {
   const what = [
     effects.globals.length > 0 ? `writes ${effects.globals.join(", ")}` : null,
-    effects.mapWrites ? "writes map values" : null,
-    effects.sends ? "sends funds" : null,
+    effects.mapWrites ? "writes map values" : null, // i18n-ignore
+    effects.sends ? "sends funds" : null, // i18n-ignore
   ]
     .filter(Boolean)
     .join(" and ");
@@ -30,7 +30,7 @@ function finding(handler: FunctionSpan, effects: Effects): LintFinding {
     rule: "sender-check",
     severity: "warning",
     line: handler.startLine,
-    message: `Handler \`${handler.name}\` ${what} without checking who sent the transaction.`,
+    message: `Handler \`${handler.name}\` ${what} without checking who sent the transaction.`, // i18n-ignore
     hint: HINT,
     data: {
       handler: handler.name,

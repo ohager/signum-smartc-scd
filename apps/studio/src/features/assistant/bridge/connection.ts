@@ -45,7 +45,7 @@ function notConnected(): ToolOutcome {
     ok: false,
     error: {
       code: "studio_not_connected",
-      message: "The Studio connection is not active.",
+      message: "The Studio connection is not active.", // i18n-ignore
       hint: DEFAULT_HINTS.studio_not_connected,
     },
   };

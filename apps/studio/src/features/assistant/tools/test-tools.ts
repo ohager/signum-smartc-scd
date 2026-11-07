@@ -55,7 +55,7 @@ function summarizeFailure(row: RunState["rows"][number]): TestFailureSummary {
     file: row.file,
     test: row.path,
     // A timeout has no failure record: the watchdog ended the test, not an assertion.
-    message: failure?.message ?? "The test made no progress and was stopped.",
+    message: failure?.message ?? "The test made no progress and was stopped.", // i18n-ignore
     console,
   };
   if (failure?.line !== undefined) summary.line = failure.line;

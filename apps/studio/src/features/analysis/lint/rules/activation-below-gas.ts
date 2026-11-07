@@ -25,7 +25,7 @@ export const activationBelowGas: Rule = (ctx) => {
 
   const required = roundUp(report.worstCasePlanck);
   const where = report.worstCase.handler ? ` (handler \`${report.worstCase.handler}\`${report.worstCase.method === null ? "" : `, method ${report.worstCase.method}`})` : "";
-  const cost = `${report.worstCaseComplete ? "" : "at least "}${formatSigna(report.worstCasePlanck)} SIGNA${where}`;
+  const cost = `${report.worstCaseComplete ? "" : "at least "}${formatSigna(report.worstCasePlanck)} SIGNA${where}`; // i18n-ignore
   const hasDirective = report.activationLine !== null;
 
   const hints = [`Set \`#program activationAmount ${required}\` (${formatSigna(required)} SIGNA, the worst case rounded up to 0.01 SIGNA).`];
@@ -39,8 +39,8 @@ export const activationBelowGas: Rule = (ctx) => {
     severity: "error",
     line: report.activationLine ?? 1,
     message: hasDirective
-      ? `The worst case costs ${cost}, but activationAmount is ${formatSigna(report.activationAmountPlanck)} SIGNA.`
-      : `No activationAmount set; the worst case costs ${cost}.`,
+      ? `The worst case costs ${cost}, but activationAmount is ${formatSigna(report.activationAmountPlanck)} SIGNA.` // i18n-ignore
+      : `No activationAmount set; the worst case costs ${cost}.`, // i18n-ignore
     hint: hints.join(" "),
     data: {
       hasDirective: hasDirective ? 1 : 0,

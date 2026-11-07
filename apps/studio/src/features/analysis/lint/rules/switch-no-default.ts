@@ -8,6 +8,6 @@ export const switchNoDefault: Rule = (ctx) =>
       rule: "switch-no-default" as const,
       severity: "warning" as const,
       line: sw.line,
-      message: "This `switch` has no `default:`, so unknown methods are accepted silently.",
+      message: "This `switch` has no `default:`, so unknown methods are accepted silently.", // i18n-ignore
       hint: "Add a `default:` that rejects or refunds, e.g. `default: sendAmount(currentTX.amount, currentTX.sender); break;`.",
     }));

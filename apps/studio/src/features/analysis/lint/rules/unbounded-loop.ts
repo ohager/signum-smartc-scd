@@ -110,7 +110,7 @@ export const unboundedLoop: Rule = (ctx) => {
       rule: "unbounded-loop",
       severity: "warning",
       line: loop.line,
-      message: "This loop has no recognisable bound; the condition is not driven by anything the body changes.",
+      message: "This loop has no recognisable bound; the condition is not driven by anything the body changes.", // i18n-ignore
       hint: "Count towards a limit the condition tests: `for (i = 0; i < 10; i++) { … }`, or move the work into the `getNextTx` loop so each activation does a bounded amount.",
     });
   }

@@ -1,0 +1,80 @@
+{
+  "connect": {
+    "action": "Collega assistente",
+    "title": "Collega assistente",
+    "description": "Lascia che un assistente IA lavori sui tuoi progetti tramite un relay locale su questo computer.",
+    "port": "Porta",
+    "portInvalid": "Inserisci un numero intero da 1 a 65535, diverso da 6876 e 6877.",
+    "hint": "Avvia il relay con `npx @smartc-studio/mcp`, poi collegati.",
+    "submit": "Collega",
+    "preparing": "Preparazione…"
+  },
+  "approval": {
+    "title": "Accesso dell'assistente",
+    "request": "**{client}** vuole accedere al tuo spazio di lavoro.",
+    "unknownClient": "Un assistente",
+    "allow": "Consenti",
+    "deny": "Nega",
+    "occupiedTitle": "Assistente già collegato",
+    "occupied": "Un'altra scheda di Studio è collegata all'assistente. Prendere il controllo qui?",
+    "takeOver": "Prendi il controllo",
+    "cancel": "Annulla"
+  },
+  "status": {
+    "connected": "{client} collegato",
+    "connecting": "Connessione sulla porta {port}…",
+    "disconnect": "Scollega",
+    "activity": "Attività",
+    "takenOver": "Un'altra scheda ha preso il controllo dell'assistente.",
+    "mismatchReload": "Ricarica Studio per usare questa versione dell'assistente.",
+    "reload": "Ricarica",
+    "mismatchUpdate": "Il relay dell'assistente è obsoleto. Aggiornalo con `npx @smartc-studio/mcp@latest` e riavvia il tuo agente.",
+    "failed": "Impossibile raggiungere il relay sulla porta {port}.",
+    "closed": "La connessione all'assistente è stata chiusa."
+  },
+  "lock": {
+    "banner": "L'assistente IA sta lavorando su questo progetto",
+    "takeOver": "Prendi il controllo",
+    "readOnly": "L'assistente IA sta lavorando su questo progetto. Prendi il controllo per modificare.",
+    "blocked": "L'assistente IA sta lavorando su questo progetto. Prendi il controllo per modificare."
+  },
+  "follow": {
+    "label": "Segui",
+    "hint": "Apri i file di questo progetto che l'assistente modifica"
+  },
+  "gutter": {
+    "added": "Aggiunto dall'assistente",
+    "changed": "Modificato dall'assistente. Clicca per mostrare il testo precedente.",
+    "deleted": "Rimosso dall'assistente. Clicca per mostrare il testo rimosso.",
+    "previous": "Testo precedente"
+  },
+  "touched": "Modificato dall'assistente",
+  "feed": {
+    "title": "Attività dell'assistente",
+    "description": "Cosa ha fatto l'assistente in questa sessione, raggruppato per round.",
+    "empty": "L'assistente non ha ancora fatto nulla.",
+    "running": "in corso",
+    "loose": "Altre chiamate",
+    "unknownProject": "Progetto sconosciuto",
+    "compile": "compilazione",
+    "tests": "{passed}/{total} test",
+    "lint": "lint: {count}",
+    "gas": "gas: importo di attivazione troppo basso",
+    "error": "errore: {code}",
+    "viewDiff": "Mostra modifiche",
+    "diffTitle": "Modifiche in {path}",
+    "noTests": "0 test"
+  },
+  "restore": {
+    "action": "Ripristina allo stato precedente a questo round",
+    "title": "Ripristinare lo stato precedente a questo round?",
+    "body": "Il progetto torna com'era all'inizio di questo round.",
+    "userChanges": "Hai modificato questi file dopo questo round. Il ripristino scarta quelle modifiche:",
+    "confirm": "Ripristina",
+    "done": "Progetto ripristinato.",
+    "undo": "Annulla ripristino",
+    "undone": "Ripristino annullato.",
+    "failed": "Impossibile ripristinare il progetto.",
+    "fileDeleted": "Il file è stato eliminato"
+  }
+}
