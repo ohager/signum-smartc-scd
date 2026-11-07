@@ -47,11 +47,10 @@ function buildRuntime(hash: string, navigate: (path: string) => void): Assistant
       recordVerdicts: createStudioRecordVerdicts(),
     },
   });
-  /* The end snapshot is captured before roundEnded fires, so it can be read right here. */
   const dispatch = (event: FeedEvent) => jotaiStore.set(feedAtom, (feed) => feedReducer(feed, event));
   runtime.events.subscribe({
     onRoundStarted: (e) => dispatch({ type: "round:start", ...e }),
-    onRoundEnded: (e) => dispatch({ type: "round:end", roundId: e.roundId, at: e.at, endSnapshot: runtime.endSnapshotOf(e.roundId) ?? null }),
+    onRoundEnded: (e) => dispatch({ type: "round:end", roundId: e.roundId, at: e.at }),
     onCallStarted: (e) => dispatch({ type: "call:start", ...e }),
     onCallEnded: (e) => dispatch({ type: "call:end", ...e }),
   });

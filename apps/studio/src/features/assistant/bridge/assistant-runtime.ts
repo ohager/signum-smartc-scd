@@ -127,7 +127,7 @@ export function createAssistantRuntime(deps: AssistantRuntimeDeps) {
     clock: deps.clock,
     checkpointOf: (roundId: string) => roundCheckpoints.get(roundId),
     endSnapshotOf: (roundId: string) => endSnapshots.get(roundId),
-    isRunning: (roundId: string) => roundCheckpoints.has(roundId) && !endSnapshots.has(roundId),
+    hasActiveRound: (projectId: string) => rounds.active(projectId) !== null,
     takeOver: (projectId: string) => rounds.takeOver(projectId),
   };
 
@@ -141,10 +141,6 @@ export function createAssistantRuntime(deps: AssistantRuntimeDeps) {
         return () => void listeners.delete(listener);
       },
     },
-    /*
-     * A round is running exactly until its end snapshot exists, so no caller has to
-     * pass (and possibly get wrong) whether it is still live.
-     */
     restoreRound: (roundId: string) => restoreRound(restoreDeps, roundId),
     undoRestore: (undoCheckpointId: string) => undoRestore(restoreDeps, undoCheckpointId),
     loadDiff: (checkpointId: string, projectId: string, relPath: string) => loadRoundDiff(restoreDeps, checkpointId, projectId, relPath),

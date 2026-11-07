@@ -699,6 +699,7 @@ export type MessageParams = {
   "assistant.feed.error": { code: string | number };
   "assistant.feed.viewDiff": undefined;
   "assistant.feed.diffTitle": { path: string | number };
+  "assistant.feed.noTests": undefined;
   "assistant.restore.action": undefined;
   "assistant.restore.title": undefined;
   "assistant.restore.body": undefined;

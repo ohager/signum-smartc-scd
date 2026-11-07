@@ -13,6 +13,7 @@ let p: string;
 let rounds: Map<string, { projectId: string; checkpointId: string }>;
 let endSnapshots: Map<string, CheckpointFile[]>;
 let running: Set<string>;
+let newerRunning: boolean;
 let order: string[];
 let deps: RestoreDeps;
 
@@ -38,6 +39,7 @@ beforeEach(async () => {
   rounds = new Map();
   endSnapshots = new Map();
   running = new Set();
+  newerRunning = false;
   order = [];
   deps = {
     fs,
@@ -48,9 +50,10 @@ beforeEach(async () => {
       order.push("endSnapshotOf");
       return endSnapshots.get(id);
     },
-    isRunning: (id) => running.has(id),
+    hasActiveRound: (projectId) => newerRunning || [...running].some((id) => rounds.get(id)?.projectId === projectId),
     takeOver: async (projectId) => {
       order.push("takeOver");
+      newerRunning = false;
       for (const id of [...running]) {
         if (rounds.get(id)?.projectId === projectId) {
           endSnapshots.set(id, await captureProject(fs, projectId));
@@ -113,6 +116,17 @@ describe("restoreRound", () => {
     const plan = await restoreRound(deps, "r1");
     expect(order).toEqual(["takeOver", "endSnapshotOf"]);
     expect(plan.needsConfirm).toEqual([]);
+    await plan.confirm();
+    expect(await read("/p/a.smart.c")).toBe("original");
+  });
+
+  it("takes over a newer live round on the same project before restoring an older one", async () => {
+    await playRound("r1", async () => {
+      await fs.saveFile(fs.getFileIdByPath("/p/a.smart.c")!, "agent");
+    });
+    newerRunning = true;
+    const plan = await restoreRound(deps, "r1");
+    expect(order).toEqual(["takeOver", "endSnapshotOf"]);
     await plan.confirm();
     expect(await read("/p/a.smart.c")).toBe("original");
   });

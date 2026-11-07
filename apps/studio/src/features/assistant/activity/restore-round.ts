@@ -8,7 +8,8 @@ export interface RestoreDeps {
   clock: Clock;
   checkpointOf(roundId: string): { projectId: string; checkpointId: string } | undefined;
   endSnapshotOf(roundId: string): CheckpointFile[] | undefined;
-  isRunning(roundId: string): boolean;
+  /** Whether an agent round is live on the project, whichever round that is. */
+  hasActiveRound(projectId: string): boolean;
   takeOver(projectId: string): Promise<unknown>;
 }
 
@@ -19,14 +20,18 @@ export interface RestorePlan {
 }
 
 /*
- * Two steps so the UI can ask before anything is written. A running round is taken over
+ * Two steps so the UI can ask before anything is written. A live round is taken over
  * first: that ends it, which captures the end snapshot the user-change check needs and
  * unlocks the editors, so the restore never races the agent.
  */
 export async function restoreRound(deps: RestoreDeps, roundId: string): Promise<RestorePlan> {
   const round = deps.checkpointOf(roundId);
   if (!round) throw new Error(`Unknown round ${roundId}`);
-  if (deps.isRunning(roundId)) await deps.takeOver(round.projectId);
+  /*
+   * Any live round of the project, not only this one: restoring an older round while a
+   * newer one runs would otherwise write underneath the agent.
+   */
+  if (deps.hasActiveRound(round.projectId)) await deps.takeOver(round.projectId);
   const endSnapshot = deps.endSnapshotOf(roundId);
   if (!endSnapshot) throw new Error(`Round ${roundId} has no end snapshot`);
   const target = await deps.store.get(round.checkpointId);

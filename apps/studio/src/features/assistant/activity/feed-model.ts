@@ -1,5 +1,4 @@
 import type { ErrorCode, ToolName, ToolOutcome } from "@smartc-studio/assistant-protocol";
-import type { CheckpointFile } from "../rounds/checkpoints";
 import type { TouchedFile } from "../tools/registry";
 
 export type FeedSummary =
@@ -28,7 +27,6 @@ export interface FeedRound {
   startedAt: number;
   endedAt: number | null;
   checkpointId: string;
-  endSnapshot: CheckpointFile[] | null;
   entries: FeedEntry[];
 }
 
@@ -39,7 +37,7 @@ export interface FeedState {
 
 export type FeedEvent =
   | { type: "round:start"; roundId: string; projectId: string; checkpointId: string; at: number }
-  | { type: "round:end"; roundId: string; at: number; endSnapshot: CheckpointFile[] | null }
+  | { type: "round:end"; roundId: string; at: number }
   | { type: "call:start"; callId: string; tool: ToolName; projectId: string | null; target: string | null; at: number }
   | { type: "call:end"; callId: string; outcome: ToolOutcome; touched: TouchedFile[]; at: number };
 
@@ -108,7 +106,6 @@ export function feedReducer(state: FeedState, event: FeedEvent): FeedState {
         startedAt: event.at,
         endedAt: null,
         checkpointId: event.checkpointId,
-        endSnapshot: null,
         entries: capped(adopted.map(({ projectId: _p, ...e }) => e), ROUND_ENTRY_CAP),
       };
       return { rounds: [round, ...state.rounds], loose: adopted.length ? state.loose.filter((e) => !adopted.includes(e)) : state.loose };
@@ -116,7 +113,7 @@ export function feedReducer(state: FeedState, event: FeedEvent): FeedState {
     case "round:end": {
       const i = state.rounds.findIndex((r) => r.roundId === event.roundId);
       if (i < 0) return state;
-      return { ...state, rounds: mapRound(state.rounds, i, (r) => ({ ...r, endedAt: event.at, endSnapshot: event.endSnapshot })) };
+      return { ...state, rounds: mapRound(state.rounds, i, (r) => ({ ...r, endedAt: event.at })) };
     }
     case "call:start": {
       const entry: FeedEntry = { callId: event.callId, at: event.at, tool: event.tool, target: event.target, status: "running", summary: { kind: "plain" } };
@@ -151,4 +148,9 @@ export function feedReducer(state: FeedState, event: FeedEvent): FeedState {
       return { ...state, loose: state.loose.map((e) => (e === looseEntry ? finished : e)) };
     }
   }
+}
+
+/* The feed and restore must stay reachable after the session ends, until there is nothing to show. */
+export function hasActivity(state: FeedState): boolean {
+  return state.rounds.length > 0 || state.loose.length > 0;
 }

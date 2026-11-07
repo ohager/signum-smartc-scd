@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { t } from "@/i18n/runtime";
 import { useAssistant } from "../bridge/use-assistant";
-import { assistantPortAtom } from "../state";
+import { hasActivity } from "../activity/feed-model";
+import { assistantPortAtom, feedAtom } from "../state";
 import { ActivityPanel } from "./activity-panel";
 import { ConnectDialog } from "./connect-dialog";
 import { RichText } from "./rich-text";
@@ -14,8 +15,18 @@ import { RichText } from "./rich-text";
 export function AssistantStatus() {
   const { state, disconnect } = useAssistant();
   const port = useAtomValue(assistantPortAtom);
+  const feed = useAtomValue(feedAtom);
   const [open, setOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
+
+  /* The feed outlives the connection, so Restore stays reachable until there is nothing to show. */
+  const showActivity = hasActivity(feed);
+  const activityButton = showActivity && (
+    <Button size="sm" variant="outline" onClick={() => setActivityOpen(true)}>
+      {t("assistant.status.activity")}
+    </Button>
+  );
+  const activityPanel = showActivity && <ActivityPanel open={activityOpen} onOpenChange={setActivityOpen} />;
 
   if (state.kind === "connected") {
     return (
@@ -28,11 +39,9 @@ export function AssistantStatus() {
           <Button size="sm" variant="outline" onClick={disconnect}>
             {t("assistant.status.disconnect")}
           </Button>
-          <Button size="sm" variant="outline" onClick={() => setActivityOpen(true)}>
-            {t("assistant.status.activity")}
-          </Button>
+          {activityButton}
         </div>
-        <ActivityPanel open={activityOpen} onOpenChange={setActivityOpen} />
+        {activityPanel}
       </div>
     );
   }
@@ -64,6 +73,8 @@ export function AssistantStatus() {
           {t("assistant.status.reload")}
         </Button>
       )}
+      {activityButton}
+      {activityPanel}
       {state.kind !== "connecting" && state.kind !== "awaiting-approval" && (
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>

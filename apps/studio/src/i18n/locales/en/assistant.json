@@ -51,7 +51,8 @@
     "gas": "gas: activation too low",
     "error": "error: {code}",
     "viewDiff": "View changes",
-    "diffTitle": "Changes in {path}"
+    "diffTitle": "Changes in {path}",
+    "noTests": "0 tests"
   },
   "restore": {
     "action": "Restore to before this round",

@@ -30,6 +30,7 @@ function summaryText(s: FeedSummary): string | null {
     case "compile":
       return `${s.ok ? "✓" : "✗"} ${t("assistant.feed.compile")}`; // i18n-ignore
     case "tests":
+      if (s.total === 0) return t("assistant.feed.noTests");
       return `${s.passed === s.total ? "✓" : "✗"} ${t("assistant.feed.tests", { passed: s.passed, total: s.total })}`; // i18n-ignore
     case "lint":
       return s.count > 0 ? `⚠ ${t("assistant.feed.lint", { count: s.count })}` : `✓ ${t("assistant.feed.lint", { count: 0 })}`; // i18n-ignore

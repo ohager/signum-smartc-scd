@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test";
 import type { ToolOutcome } from "@smartc-studio/assistant-protocol";
-import { feedReducer, summarize, LOOSE_CAP, ROUND_ENTRY_CAP, type FeedEvent, type FeedState } from "./feed-model";
+import { feedReducer, hasActivity, summarize, LOOSE_CAP, ROUND_ENTRY_CAP, type FeedEvent, type FeedState } from "./feed-model";
 
 const empty: FeedState = { rounds: [], loose: [] };
 const run = (events: FeedEvent[], from: FeedState = empty) => events.reduce(feedReducer, from);
@@ -57,11 +57,9 @@ describe("feedReducer", () => {
     expect(s.rounds[0]!.entries[0]!.callId).toBe("1");
   });
 
-  it("round:end records the end time and snapshot", () => {
-    const snap = [{ relPath: "a", type: "t", content: "x" }];
-    const s = run([roundStart(), { type: "round:end", roundId: "r1", at: 9, endSnapshot: snap }]);
+  it("round:end records the end time", () => {
+    const s = run([roundStart(), { type: "round:end", roundId: "r1", at: 9 }]);
     expect(s.rounds[0]!.endedAt).toBe(9);
-    expect(s.rounds[0]!.endSnapshot).toBe(snap);
   });
 
   it("caps loose and per-round entries, dropping the oldest", () => {
@@ -71,6 +69,14 @@ describe("feedReducer", () => {
     const inRound = run([roundStart(), ...Array.from({ length: ROUND_ENTRY_CAP + 3 }, (_, i) => callStart(`c${i}`, "p1", "compile"))]);
     expect(inRound.rounds[0]!.entries).toHaveLength(ROUND_ENTRY_CAP);
     expect(inRound.rounds[0]!.entries[0]!.callId).toBe("c3");
+  });
+});
+
+describe("hasActivity", () => {
+  it("is false only for an empty feed", () => {
+    expect(hasActivity(empty)).toBe(false);
+    expect(hasActivity(run([callStart("1", null, "list_projects", null)]))).toBe(true);
+    expect(hasActivity(run([roundStart()]))).toBe(true);
   });
 });
 
@@ -106,5 +112,11 @@ describe("summarize", () => {
   });
   it("everything else is plain", () => {
     expect(summarize("list_projects", ok([]), [], null)).toEqual({ kind: "plain" });
+  });
+});
+
+describe("summarize edge", () => {
+  it("run_tests with nothing run totals 0", () => {
+    expect(summarize("run_tests", { ok: true, data: { passed: 0, failed: 0 } }, [], null)).toEqual({ kind: "tests", passed: 0, total: 0 });
   });
 });
