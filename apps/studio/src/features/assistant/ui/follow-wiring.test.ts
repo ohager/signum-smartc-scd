@@ -4,11 +4,11 @@ import type { CheckpointFile } from "../rounds/checkpoints";
 
 const CP: CheckpointFile[] = [{ relPath: "src/a.smart.c", type: "smartc", content: "l1\nl2\nl3" }];
 
-function setup(opts: { store?: FollowDeps["checkpointStore"]; route?: { projectId: string | null; fileId: string | null }; follow?: boolean; exists?: boolean } = {}) {
+function setup(opts: { store?: FollowDeps["checkpointStore"]; route?: { projectId: string | null; fileId: string | null }; follow?: boolean; exists?: boolean; type?: string } = {}) {
   const log = { nav: [] as string[], reveals: [] as unknown[], touched: [] as string[], baselines: [] as unknown[] };
   const deps: FollowDeps = {
     fs: {
-      getFileMetadata: (id: string) => (opts.exists === false ? null : ({ id, folderId: "src", path: "/p/src/a.smart.c" } as never)),
+      getFileMetadata: (id: string) => (opts.exists === false ? null : ({ id, folderId: "src", path: "/p/src/a.smart.c", type: opts.type ?? "smartc" } as never)),
       getFolder: () => ({ path: "/p" }) as never,
       loadFile: (async () => ({ content: "l1\nL2\nl3\nl4" })) as never,
     },
@@ -40,6 +40,14 @@ describe("wireFollow", () => {
 
   it("only dots when the user is in another project, without navigating", async () => {
     const { log, call, settle } = setup({ route: { projectId: "p2", fileId: "x" } });
+    call();
+    await settle();
+    expect(log.nav).toEqual([]);
+    expect(log.touched).toEqual(["f1"]);
+  });
+
+  it("only dots a file type the Studio has no editor for", async () => {
+    const { log, call, settle } = setup({ type: "doc" });
     call();
     await settle();
     expect(log.nav).toEqual([]);

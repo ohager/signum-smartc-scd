@@ -92,7 +92,7 @@ export function wireFollow(deps: FollowDeps): Pick<RuntimeEventListener, "onRoun
         const meta = deps.fs.getFileMetadata(touched.fileId);
         if (!meta) continue;
         const route = deps.route();
-        const decision = decideFollow({ followMode: deps.followMode(), currentProjectId: route.projectId, touched });
+        const decision = decideFollow({ followMode: deps.followMode(), currentProjectId: route.projectId, touched: { ...touched, type: meta.type } });
         /* One navigation per call: several "open" files would fight, so the rest get dots. */
         if (decision === "open" && !opened) {
           opened = true;

@@ -1,9 +1,9 @@
 import { describe, it, expect } from "bun:test";
-import { readyToReveal, decideFollow, nextBaseline, emptyBaselineState, type BaselineState } from "./follow";
+import { readyToReveal, decideFollow, isFollowable, nextBaseline, emptyBaselineState, type BaselineState } from "./follow";
 import type { CheckpointFile } from "./rounds/checkpoints";
 
 const files = (tag: string): CheckpointFile[] => [{ relPath: `${tag}.c`, type: "smartc", content: tag }];
-const touched = { fileId: "f1", projectId: "p1" };
+const touched = { fileId: "f1", projectId: "p1", type: "smartc" };
 
 describe("decideFollow", () => {
   it("dots when follow mode is off", () => {
@@ -15,6 +15,22 @@ describe("decideFollow", () => {
   });
   it("opens when follow mode is on and the user is in that project", () => {
     expect(decideFollow({ followMode: true, currentProjectId: "p1", touched })).toBe("open");
+  });
+});
+
+describe("decideFollow by file type", () => {
+  it("dots a Doc file in the user's project, since files-page has no editor for it", () => {
+    expect(decideFollow({ followMode: true, currentProjectId: "p1", touched: { ...touched, type: "doc" } })).toBe("dot");
+  });
+  it("opens a SmartC file in the user's project", () => {
+    expect(decideFollow({ followMode: true, currentProjectId: "p1", touched: { ...touched, type: "smartc" } })).toBe("open");
+  });
+});
+
+describe("isFollowable", () => {
+  it("is true for every type files-page renders an editor for and false otherwise", () => {
+    for (const t of ["smartc", "asm", "scenario", "test", "inspect", "labels"]) expect(isFollowable(t)).toBe(true);
+    for (const t of ["doc", "unknown", ""]) expect(isFollowable(t)).toBe(false);
   });
 });
 
