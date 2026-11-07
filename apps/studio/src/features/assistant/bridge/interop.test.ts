@@ -55,7 +55,8 @@ function tab(port: number, calls: unknown[] = []) {
 
 async function relay() {
   const port = await freePort();
-  const link = new TabLink({ port, allowOrigins: [] });
+  // The tab connects from a localhost origin, so the relay runs as --dev.
+  const link = new TabLink({ port, allowOrigins: [], allowLocalhost: true });
   expect(await link.start()).toBe("listening");
   cleanup.push(() => link.stop());
   return { link, port };
