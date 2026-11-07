@@ -10,6 +10,12 @@ export interface RunnerTransport {
 export interface RunOptions {
   /** Give up when no event has arrived for this long. Default 5000ms. */
   noProgressTimeoutMs?: number;
+  /**
+   * Cancels the run from outside — the assistant's overall deadline. Ends it the
+   * way the watchdog does (in-flight test timed out, `run:end`, terminate), so
+   * consumers need no second code path for "the run was cut short".
+   */
+  signal?: AbortSignal;
 }
 
 /**
@@ -31,13 +37,28 @@ export function runTests(
     let inFlightTestId: string | null = null;
     let timer: ReturnType<typeof setTimeout>;
     let finished = false;
+    let inFlightSince = 0;
+    const startedAt = Date.now();
+
+    const { signal } = options;
 
     const finish = () => {
       if (finished) return;
       finished = true;
       clearTimeout(timer);
+      signal?.removeEventListener("abort", onAbort);
       transport.terminate();
       resolve();
+    };
+
+    const onAbort = () => {
+      if (finished) return;
+      const elapsed = Date.now() - inFlightSince;
+      if (inFlightTestId) {
+        emit({ type: "test:end", id: inFlightTestId, status: "timedout", durationMs: elapsed });
+      }
+      emit({ type: "run:end", durationMs: Date.now() - startedAt });
+      finish();
     };
 
     const arm = () => {
@@ -53,12 +74,22 @@ export function runTests(
 
     transport.onEvent((event) => {
       arm();
-      if (event.type === "test:start") inFlightTestId = event.id;
+      if (event.type === "test:start") {
+        inFlightTestId = event.id;
+        inFlightSince = Date.now();
+      }
       if (event.type === "test:end") inFlightTestId = null;
       emit(event);
       if (event.type === "run:end") finish();
     });
 
+    // `finish` terminates the transport, so an already-aborted run must end
+    // before anything is posted to it.
+    if (signal?.aborted) {
+      onAbort();
+      return;
+    }
+    signal?.addEventListener("abort", onAbort, { once: true });
     arm();
     transport.post(request);
   });

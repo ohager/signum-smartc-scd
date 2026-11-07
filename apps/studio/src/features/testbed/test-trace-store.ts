@@ -1,5 +1,6 @@
 import { atom } from "jotai";
 import type { FileTrace, LineTrace, TestTrace } from "./runner/trace";
+import type { RunState } from "./test-run-model";
 
 /** Every test's trace from the most recent run, keyed by test id. */
 export const tracesAtom = atom<Record<string, TestTrace>>({});
@@ -53,3 +54,19 @@ export const resetTracesAtom = atom(null, (_get, set) => {
   set(activeTestIdAtom, null);
   set(inspectedLineAtom, null);
 });
+
+export interface LatestRun {
+  projectFolderId: string;
+  /** Test files the run covered. Empty means every test file in the project. */
+  entryPaths: string[];
+  state: RunState;
+  at: number;
+  source: "user" | "assistant";
+}
+
+/**
+ * The most recent run that did not start in a test editor — today, the
+ * assistant's. A test editor that covers the run's files shows it, so what the
+ * agent ran is visible exactly like a run the user pressed.
+ */
+export const latestRunAtom = atom<LatestRun | null>(null);
