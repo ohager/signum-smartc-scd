@@ -32,14 +32,26 @@ const WRITE = /^\s*[A-Z]+\s+@(\w+)\b/;
 const CALL = /^\s*JSR\s+:(__fn_\w+)\b/;
 const FUNCTION_LABEL = /^\s*(__fn_\w+):\s*$/;
 
+export interface FunctionBody {
+  writes: Set<string>;
+  calls: Set<string>;
+  /** Uses a `send_*` API call (sendAmount, sendBalance, sendMessage …). */
+  sends: boolean;
+  /** Uses a `set_map_value_*` API call: state that lives outside the memory slots. */
+  mapWrites: boolean;
+}
+
+const SEND_API = /^\s*FUN\s+send_/;
+const MAP_WRITE_API = /^\s*FUN\s+set_map_value/;
+
 /** What each function writes and calls, so a write inside an init-time helper is found too. */
-function functionBodies(lines: string[]): Map<string, { writes: Set<string>; calls: Set<string> }> {
-  const bodies = new Map<string, { writes: Set<string>; calls: Set<string> }>();
-  let current: { writes: Set<string>; calls: Set<string> } | null = null;
+export function functionBodies(lines: string[]): Map<string, FunctionBody> {
+  const bodies = new Map<string, FunctionBody>();
+  let current: FunctionBody | null = null;
   for (const text of lines) {
     const label = FUNCTION_LABEL.exec(text);
     if (label) {
-      current = { writes: new Set(), calls: new Set() };
+      current = { writes: new Set(), calls: new Set(), sends: false, mapWrites: false };
       bodies.set(label[1]!, current);
       continue;
     }
@@ -47,6 +59,8 @@ function functionBodies(lines: string[]): Map<string, { writes: Set<string>; cal
     const call = CALL.exec(text);
     if (call) current.calls.add(call[1]!);
     else {
+      if (SEND_API.test(text)) current.sends = true;
+      if (MAP_WRITE_API.test(text)) current.mapWrites = true;
       const write = WRITE.exec(text);
       if (write) current.writes.add(write[1]!);
     }
@@ -54,15 +68,17 @@ function functionBodies(lines: string[]): Map<string, { writes: Set<string>; cal
   return bodies;
 }
 
-function writesOf(fn: string, bodies: ReturnType<typeof functionBodies>, seen = new Set<string>()): Set<string> {
-  const out = new Set<string>();
-  if (seen.has(fn)) return out;
+/** The function itself plus everything it calls, directly or not. */
+export function reachableBodies(fn: string, bodies: Map<string, FunctionBody>, seen = new Set<string>()): FunctionBody[] {
+  if (seen.has(fn)) return [];
   seen.add(fn);
   const body = bodies.get(fn);
-  if (!body) return out;
-  body.writes.forEach((w) => out.add(w));
-  body.calls.forEach((c) => writesOf(c, bodies, seen).forEach((w) => out.add(w)));
-  return out;
+  if (!body) return [];
+  return [body, ...[...body.calls].flatMap((c) => reachableBodies(c, bodies, seen))];
+}
+
+export function writesOf(fn: string, bodies: Map<string, FunctionBody>): Set<string> {
+  return new Set(reachableBodies(fn, bodies).flatMap((b) => [...b.writes]));
 }
 
 export function findOverwrittenParams(assembly: string, memory: string[], paramIndexes: number[]): Overwrite[] {
