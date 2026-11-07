@@ -52,6 +52,12 @@ describe("resolveWorkspacePath", () => {
     expect(e.hint).toContain("Folders cannot be created");
   });
 
+  it("reports a missing parent folder as file_not_found when reading", () => {
+    const e = code(() => resolveWorkspacePath(fs, "/p/missing/a.ts", "read"));
+    expect(e.code).toBe("file_not_found");
+    expect(e.hint).toBe("Check the path with list_files.");
+  });
+
   it("allows reading .asm but not writing it", () => {
     expect(resolveWorkspacePath(fs, "/p/a.asm", "read").name).toBe("a.asm");
     expect(code(() => resolveWorkspacePath(fs, "/p/a.asm", "write")).code).toBe("path_not_allowed");

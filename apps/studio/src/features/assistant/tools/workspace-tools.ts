@@ -148,7 +148,11 @@ export function createWorkspaceTools(fs: WorkspaceFs) {
       const { content } = await fs.loadFile<unknown>(fileId);
       if (typeof content !== "string") {
         // Replacing inside a serialised object would store a string where the Studio expects an object.
-        throw new AssistantFailure("internal", `${args.path} does not hold text and cannot be edited; use write_file.`);
+        throw new AssistantFailure(
+          "edit_no_match",
+          `${args.path} does not hold text and cannot be edited.`,
+          "This file is not plain text; read it and use write_file to replace it.",
+        );
       }
 
       const first = content.indexOf(args.old);

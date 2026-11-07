@@ -1,3 +1,4 @@
+import { gasReport } from "../gas/gas-report";
 import { lintContract } from "../lint/lint";
 import type { SlotLabel } from "@/features/inspector/model/label-map";
 
@@ -8,13 +9,20 @@ import type { SlotLabel } from "@/features/inspector/model/label-map";
  * the Label Maps, which live on the main thread.
  */
 const scope = self as unknown as {
-  onmessage: ((e: { data: { id: number; source: string; params: SlotLabel[] } }) => void) | null;
+  onmessage: ((e: { data: { id: number } & (
+      | { kind?: "lint"; source: string; params: SlotLabel[] }
+      | { kind: "gas"; source: string; loopCap: number | undefined }
+    ) }) => void) | null;
   postMessage(message: unknown): void;
 };
 
 scope.onmessage = ({ data }) => {
   try {
-    scope.postMessage({ id: data.id, result: lintContract(data.source, { params: data.params }) });
+    const result =
+      data.kind === "gas"
+        ? gasReport(data.source, { loopCap: data.loopCap })
+        : lintContract(data.source, { params: data.params });
+    scope.postMessage({ id: data.id, result });
   } catch (e) {
     scope.postMessage({ id: data.id, error: e instanceof Error ? e.message : String(e) });
   }

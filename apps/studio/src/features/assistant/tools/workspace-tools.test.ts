@@ -95,6 +95,14 @@ describe("edit_file", () => {
     expect((await fs.loadFile<string>(id)).content).toBe("one\n$&2\nthree");
   });
 
+  it("refuses non-text content with edit_no_match and a write_file hint", async () => {
+    const id = await fs.addFile(p, "a.scenario.json", "scenario", { a: 1 });
+    const e = await failure(tools.edit_file({ path: "/p/a.scenario.json", old: "a", new: "b" }));
+    expect(e.code).toBe("edit_no_match");
+    expect(e.hint).toBe("This file is not plain text; read it and use write_file to replace it.");
+    expect((await fs.loadFile<unknown>(id)).content).toEqual({ a: 1 });
+  });
+
   it("fails with file_not_found for a missing file", async () => {
     expect((await failure(tools.edit_file({ path: "/p/no.ts", old: "a", new: "b" }))).code).toBe("file_not_found");
   });

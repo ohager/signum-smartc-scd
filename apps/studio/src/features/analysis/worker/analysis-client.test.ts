@@ -124,4 +124,39 @@ describe("analysis client", () => {
       console.error = original;
     }
   });
+
+  it("keeps lint and gas jobs for one key apart", async () => {
+    const { client, workers } = setup();
+    const running = client.lint("m", "L1", []);
+    const gas = client.gas("m", "G", undefined);
+    const lint2 = client.lint("m", "L2", []);
+    const w = workers[0]!;
+    w.answer(0);
+    expect(await running).toBeNull(); // superseded by lint2, as before
+    expect(w.posted.map((m) => m.source)).toEqual(["L1", "G"]);
+    w.onmessage!({ data: { id: w.posted[1]!.id, result: { ok: false, error: { line: 1, column: 1, message: "x" } } } });
+    expect(await gas).toEqual({ ok: false, error: { line: 1, column: 1, message: "x" } });
+    w.answer(2);
+    expect((await lint2)?.compiled).toBe(true);
+  });
+
+  it("sends gas requests with kind and loopCap, and keeps bigint through structured clone", async () => {
+    const workers: FakeWorker[] = [];
+    class CloningWorker extends FakeWorker {
+      override postMessage(m: unknown) {
+        super.postMessage(structuredClone(m));
+      }
+    }
+    const client = createAnalysisClient(() => {
+      const w = new CloningWorker();
+      workers.push(w);
+      return w;
+    });
+    const p = client.gas("k", "src", 7);
+    const w = workers[0]!;
+    expect(w.posted[0]).toMatchObject({ kind: "gas", source: "src", loopCap: 7 });
+    const result = structuredClone({ ok: true, worstCasePlanck: 123456789012345678901n });
+    w.onmessage!({ data: { id: w.posted[0]!.id, result } });
+    expect(((await p) as any).worstCasePlanck).toBe(123456789012345678901n);
+  });
 });

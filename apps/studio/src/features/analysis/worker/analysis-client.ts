@@ -1,7 +1,15 @@
 import type { SlotLabel } from "@/features/inspector/model/label-map";
+import type { ParsedError } from "@/features/smartc-editor/language/compiler-symbols";
+import type { GasReport } from "../gas/gas-report";
 import type { LintFinding } from "../lint/types";
 
 export type LintResult = { compiled: boolean; findings: LintFinding[] };
+export type GasResult = GasReport | { ok: false; error: ParsedError };
+
+/** What the worker is asked to do; `id` is added when the job starts. */
+export type AnalysisRequest =
+  | { kind: "lint"; source: string; params: SlotLabel[] }
+  | { kind: "gas"; source: string; loopCap: number | undefined };
 
 /** The slice of `Worker` the client uses, so tests can fake it. */
 export interface WorkerLike {
@@ -12,10 +20,10 @@ export interface WorkerLike {
 }
 
 interface Job {
+  /** Namespaced by job kind, so a lint and a gas run for one model never supersede each other. */
   key: string;
-  source: string;
-  params: SlotLabel[];
-  resolve: (result: LintResult | null) => void;
+  request: AnalysisRequest;
+  resolve: (result: unknown) => void;
 }
 
 /**
@@ -67,7 +75,7 @@ export function createAnalysisClient(openWorker: () => WorkerLike) {
       if (!worker) {
         worker = openWorker();
         worker.onmessage = ({ data }) => {
-          const msg = data as { id: number; result?: LintResult; error?: string };
+          const msg = data as { id: number; result?: unknown; error?: string };
           if (!running || msg.id !== running.id) return;
           const done = running;
           running = null;
@@ -78,7 +86,7 @@ export function createAnalysisClient(openWorker: () => WorkerLike) {
         worker.onerror = fail;
       }
       running = { id: nextId++, job, superseded: false };
-      worker.postMessage({ id: running.id, source: job.source, params: job.params });
+      worker.postMessage({ id: running.id, ...job.request });
     } catch (e) {
       running = null;
       job.resolve(null);
@@ -86,18 +94,26 @@ export function createAnalysisClient(openWorker: () => WorkerLike) {
     }
   };
 
+  const submit = <T>(key: string, request: AnalysisRequest): Promise<T | null> =>
+    new Promise((resolve) => {
+      const job: Job = { key, request, resolve };
+      if (!running) return start(job);
+      if (running.job.key === key) running.superseded = true;
+      // Delete first so the replacement queues behind older keys.
+      pending.get(key)?.resolve(null);
+      pending.delete(key);
+      pending.set(key, job);
+    });
+
   return {
-    lint(key: string, source: string, params: SlotLabel[]): Promise<LintResult | null> {
-      return new Promise((resolve) => {
-        const job = { key, source, params, resolve };
-        if (!running) return start(job);
-        if (running.job.key === key) running.superseded = true;
-        // Delete first so the replacement queues behind older keys.
-        pending.get(key)?.resolve(null);
-        pending.delete(key);
-        pending.set(key, job);
-      });
-    },
+    lint: (key: string, source: string, params: SlotLabel[]) =>
+      submit<LintResult>(`lint:${key}`, { kind: "lint", source, params }),
+    /*
+     * Gas takes over a second on a real contract; as a job here it stays off
+     * the main thread, and the plain bigint planck values survive structured clone.
+     */
+    gas: (key: string, source: string, loopCap: number | undefined) =>
+      submit<GasResult>(`gas:${key}`, { kind: "gas", source, loopCap }),
     dispose(): void {
       worker?.terminate();
       worker = null;

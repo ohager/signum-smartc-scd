@@ -73,6 +73,14 @@ export function resolveWorkspacePath(fs: WorkspaceFs, path: string, mode: "read"
   for (const segment of segments.slice(1, -1)) {
     const next = fs.listFolderContents(folderId).folders.find((f) => f.metadata.name === segment);
     if (!next) {
+      // Reading a path under a folder that is not there is a plain miss; only writing is a policy refusal.
+      if (mode === "read") {
+        throw new AssistantFailure(
+          "file_not_found",
+          `Folder "${segment}" does not exist in "${path}".`,
+          "Check the path with list_files.",
+        );
+      }
       rejected(
         `Folder "${segment}" does not exist in "${path}".`,
         "Folders cannot be created by the assistant. Write into an existing folder (see list_files) or the project root.",
