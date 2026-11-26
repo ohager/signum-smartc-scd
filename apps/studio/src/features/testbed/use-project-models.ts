@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import type * as Monaco from "monaco-editor";
 import type { FileSystem } from "@/lib/file-system";
-import { planModelSync } from "./model-sync";
+import { ensureModel, planModelSync } from "./model-sync";
 
 export type ProjectModelsFs = Pick<FileSystem, "listFilesRecursive" | "loadFile" | "addEventListener" | "removeEventListener">;
 
@@ -38,12 +38,8 @@ export function useProjectModels(monaco: typeof Monaco | null, fs: ProjectModels
         const meta = byPath.get(path)!;
         const text = String((await fs.loadFile(meta.id)).content ?? "");
         if (disposed) return;
-        const uri = uriOf(path);
         // A run may already have created this model (transpile.ts); adopt it instead of creating a duplicate.
-        const existing = monaco.editor.getModel(uri);
-        if (existing) {
-          if (existing.getValue() !== text) existing.setValue(text);
-        } else monaco.editor.createModel(text, "typescript", uri);
+        ensureModel(monaco.editor, uriOf(path), text);
         owned.set(path, meta.lastModified);
       }
       for (const path of plan.dispose) {

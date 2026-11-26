@@ -28,6 +28,8 @@ export function importSuggestions(openFilePath: string, typed: string, workspace
   if (!typed.startsWith("./") && !typed.startsWith("../")) return [];
 
   const folder = segments(openFilePath).slice(0, -1);
+  // Not inside a project: "./" would list every project.
+  if (folder.length === 0) return [];
   for (const segment of segments(typed.slice(0, typed.lastIndexOf("/") + 1))) {
     if (segment === ".") continue;
     if (segment === "..") {

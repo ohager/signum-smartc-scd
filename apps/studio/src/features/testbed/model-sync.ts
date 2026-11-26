@@ -1,3 +1,5 @@
+import type * as Monaco from "monaco-editor";
+
 export interface SyncPlan {
   create: string[];
   update: string[];
@@ -25,4 +27,16 @@ export function planModelSync(
   }
   for (const path of owned.keys()) if (!desiredPaths.has(path)) plan.dispose.push(path);
   return plan;
+}
+
+/*
+ * Get-or-create a TypeScript model with this text. Shared by the model mirror and
+ * transpileAll, which calls it again right before each emit: an editor closing mid-run
+ * disposes its mirrored models, and the run must not fail with "Could not find source file".
+ */
+export function ensureModel(editor: Pick<typeof Monaco.editor, "getModel" | "createModel">, uri: Monaco.Uri, text: string): void {
+  const existing = editor.getModel(uri);
+  if (existing) {
+    if (existing.getValue() !== text) existing.setValue(text);
+  } else editor.createModel(text, "typescript", uri);
 }

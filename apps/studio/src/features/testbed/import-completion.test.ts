@@ -7,6 +7,7 @@ describe("importSpecifierAt", () => {
   it("side-effect import", () => expect(importSpecifierAt('import "./')).toBe("./"));
   it("type import", () => expect(importSpecifierAt('import type { T } from "../t')).toBe("../t"));
   it("re-export", () => expect(importSpecifierAt('export { x } from "./')).toBe("./"));
+  it("closing line of a multi-line import", () => expect(importSpecifierAt('} from "./')).toBe("./"));
   it("empty specifier", () => expect(importSpecifierAt('import {} from "')).toBe(""));
   it("ordinary string", () => expect(importSpecifierAt('const s = "./foo')).toBeNull());
   it("string in an export declaration", () => expect(importSpecifierAt('export const s = "./foo')).toBeNull());

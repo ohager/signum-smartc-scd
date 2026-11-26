@@ -3,9 +3,10 @@ import { importSuggestions, type ImportSuggestionKind } from "./import-suggestio
 
 /*
  * `import "…`, `import … from "…` or `export … from "…`, with the cursor still inside the
- * quotes. `export` needs `from`, or `export const s = "./x` would count as an import.
+ * quotes. `export` needs `from`, or `export const s = "./x` would count as an import. A line
+ * starting with `} from "…` closes a multi-line import, the usual shape after formatting.
  */
-const SPECIFIER = /^\s*(?:import\s*|(?:import|export)\b[^"'`]*?\bfrom\s*)(["'])([^"']*)$/;
+const SPECIFIER = /^\s*(?:import\s*|(?:import|export)\b[^"'`]*?\bfrom\s*|\}\s*from\s*)(["'])([^"']*)$/;
 
 /** The specifier typed so far, when the cursor is inside an import's quotes on this line; otherwise null. */
 export function importSpecifierAt(lineUntilCursor: string): string | null {

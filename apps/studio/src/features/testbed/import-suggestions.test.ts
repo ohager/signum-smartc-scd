@@ -41,6 +41,8 @@ describe("importSuggestions", () => {
     expect(importSuggestions("/proj/c.ts", "../", paths)).toEqual([]);
   });
 
+  it("nothing for a file outside any project", () => expect(importSuggestions("/a.test.ts", "./", paths)).toEqual([]));
+
   it("nothing for bare specifiers", () => {
     expect(importSuggestions(open, "vitest", paths)).toEqual([]);
     expect(importSuggestions(open, "", paths)).toEqual([]);
