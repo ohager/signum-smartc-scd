@@ -14,7 +14,7 @@ import { editorRegistry } from "../editor-registry";
 import { createEditorTools } from "../tools/editor-tools";
 import { assistantGas, assistantLint } from "../tools/analysis-adapters";
 import { createStudioRecordVerdicts, createStudioTestExecute } from "../tools/studio-test-execute";
-import { baselineAtom, connectionStateAtom, feedAtom, followModeAtom, lockedProjectsAtom, touchedFilesAtom } from "../state";
+import { baselineAtom, feedAtom, followModeAtom, lockedProjectsAtom, touchedFilesAtom, recordConnectionState } from "../state";
 import { findProjectOfFolder } from "@/features/project/project-root";
 import { wireFollow, type FollowRoute } from "./follow-wiring";
 import { feedReducer, type FeedEvent } from "../activity/feed-model";
@@ -69,7 +69,7 @@ function buildRuntime(hash: string, navigate: (path: string) => void, route: () 
       markTouched: (fileId) => jotaiStore.set(touchedFilesAtom, (prev) => new Set(prev).add(fileId)),
     }),
   );
-  runtime.connection.subscribe((s) => jotaiStore.set(connectionStateAtom, s));
+  runtime.connection.subscribe((s) => recordConnectionState(jotaiStore, s));
   return runtime;
 }
 

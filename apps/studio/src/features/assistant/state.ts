@@ -1,9 +1,10 @@
-import { atom } from "jotai";
+import { atom, type createStore } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { DEFAULT_RELAY_PORT } from "@smartc-studio/assistant-protocol";
 import type { ConnectionState } from "./bridge/connection";
 import type { FeedState } from "./activity/feed-model";
 import type { CheckpointFile } from "./rounds/checkpoints";
+import type { AgentTab } from "./setup/setup-commands";
 
 /* The connection state machine's current state, mirrored here for React. */
 export const connectionStateAtom = atom<ConnectionState>({ kind: "idle" });
@@ -22,6 +23,17 @@ export const touchedFilesAtom = atom<ReadonlySet<string>>(new Set<string>());
 
 /* The relay port the user last used; jotai's storage already tolerates unavailable storage. */
 export const assistantPortAtom = atomWithStorage("scd:assistant-port", DEFAULT_RELAY_PORT);
+
+/* The agent tab last picked in the Connect dialog's setup steps. */
+export const setupTabAtom = atomWithStorage<AgentTab>("scd:assistant-setup-tab", "claude");
+
+/* Set by the first real connection, which proves setup worked; the setup steps then start collapsed. */
+export const setupDoneAtom = atomWithStorage("scd:assistant-setup-done", false);
+
+export function recordConnectionState(store: ReturnType<typeof createStore>, state: ConnectionState): void {
+  store.set(connectionStateAtom, state);
+  if (state.kind === "connected") store.set(setupDoneAtom, true);
+}
 
 /* Everything the agent did this session, grouped by round; deliberately never persisted. */
 export const feedAtom = atom<FeedState>({ rounds: [], loose: [] });
