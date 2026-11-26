@@ -3,6 +3,9 @@
  * a WebSocket to localhost, so the Origin header is the gate. Never add a generic
  * *.vercel.app pattern; anyone can deploy there.
  */
+/** The port the relay listens on unless started with --port. */
+export const DEFAULT_RELAY_PORT = 6890;
+
 export const STUDIO_ORIGINS: readonly string[] = ["https://smartc-studio.signum-network.dev"];
 
 /** Preview deployments of the Studio project; filled in once the project's preview URL pattern is known. */
