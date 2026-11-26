@@ -30,6 +30,7 @@ import { useFollowedFile } from "@/components/ui/editor/use-followed-file.ts";
 import type { File } from "@/lib/file-system";
 import { serializeScenario } from "@/features/simulator/scenario/scenario-io";
 import { configureTypeScriptForTests } from "../monaco-setup";
+import { registerImportCompletion } from "../import-completion";
 import { useTestRun } from "../use-test-run";
 import { toDebugScenario } from "../to-debug-scenario";
 import { TestResultsPanel } from "./test-results-panel";
@@ -152,6 +153,7 @@ export function TestFileEditor({ file }: Props) {
     editorRef.current = editor;
     monacoRef.current = monaco;
     configureTypeScriptForTests(monaco);
+    registerImportCompletion(monaco, () => fs.listFilesRecursive().map((f) => f.path));
     registerEditorFileActions(editor, monaco, { onDownload: download });
     setEditorReady(true);
   };
