@@ -62,7 +62,7 @@ export function SetupSteps({ target }: { target: SetupTarget }) {
   const expanded = toggled ?? !setupDone;
 
   return (
-    <section className="flex flex-col gap-2">
+    <section className="mt-3 flex flex-col gap-2">
       <Button variant="ghost" size="sm" className="self-start px-1" onClick={() => setToggled(!expanded)}>
         {expanded ? <ChevronDownIcon className="size-4" /> : <ChevronRightIcon className="size-4" />}
         {expanded ? t("assistant.connect.setup.hide") : t("assistant.connect.setup.show")}

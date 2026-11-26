@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useAtom } from "jotai";
 import { Button } from "@/components/ui/button";
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -26,6 +26,7 @@ export function ConnectDialog({ close }: { close: () => void }) {
   const [raw, setRaw] = useState(String(savedPort));
   const port = parsePort(raw);
   const canSubmit = port !== null && ready;
+  const portRef = useRef<HTMLInputElement>(null);
 
   const submit = () => {
     if (port === null || !ready) return;
@@ -35,7 +36,14 @@ export function ConnectDialog({ close }: { close: () => void }) {
   };
 
   return (
-    <DialogContent className="sm:max-w-xl">
+    <DialogContent
+      className="sm:max-w-xl"
+      /* Radix would focus the first focusable element, now the setup toggle; the port is what people type into. */
+      onOpenAutoFocus={(e) => {
+        e.preventDefault();
+        portRef.current?.focus();
+      }}
+    >
       <SubmitOnEnter onSubmit={submit} isEnabled={canSubmit}>
         <DialogHeader>
           <DialogTitle>{t("assistant.connect.title")}</DialogTitle>
@@ -44,7 +52,7 @@ export function ConnectDialog({ close }: { close: () => void }) {
         <SetupSteps target={{ port, origin: location.origin }} />
         <section className="flex flex-col gap-y-2 my-4 border-t pt-4">
           <Label htmlFor="assistant-port">{t("assistant.connect.port")}</Label>
-          <Input id="assistant-port" inputMode="numeric" value={raw} onChange={(e) => setRaw(e.target.value)} aria-invalid={port === null} autoFocus />
+          <Input id="assistant-port" inputMode="numeric" value={raw} onChange={(e) => setRaw(e.target.value)} aria-invalid={port === null} ref={portRef} />
           {port === null && <p className="text-xs text-destructive">{t("assistant.connect.portInvalid")}</p>}
           <p className="text-xs text-muted-foreground">
             <RichText text={t("assistant.connect.hint")} />
