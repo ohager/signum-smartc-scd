@@ -11,7 +11,7 @@ const byLabel = (a: ImportSuggestion, b: ImportSuggestion) => (a.label < b.label
 
 /* What a relative import may point at: `.ts` modules without extension, contracts as raw text. */
 function fileSuggestion(name: string): ImportSuggestion | null {
-  if (name.endsWith(".smart.c")) return { label: `${name}?raw`, insertText: `${name}?raw`, kind: "contract" };
+  if (name.endsWith(".smart.c")) return { label: `${name}?raw`, insertText: `${name}?raw`, kind: "contract" }; // i18n-ignore — import suffix, not UI text
   if (name.endsWith(".ts")) {
     const module = name.slice(0, -".ts".length);
     return { label: module, insertText: module, kind: "module" };

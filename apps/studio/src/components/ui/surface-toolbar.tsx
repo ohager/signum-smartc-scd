@@ -150,9 +150,12 @@ export function ToolbarReadout({
   return (
     <span className="flex items-stretch border border-[var(--border-1)] font-mono text-[11px] text-[var(--dim)]">
       {items.map(({ label, value, tone }) => (
+        // Bounded like the notes beside it: the readout never shrinks, so one long
+        // value (a replayed test's name) pushed the verbs and the context into each other.
         <span
           key={label || value}
-          className="border-l border-[var(--border-1)] px-2.5 py-1 first:border-l-0"
+          title={value}
+          className="max-w-[16rem] truncate whitespace-nowrap border-l border-[var(--border-1)] px-2.5 py-1 first:border-l-0"
         >
           {label ? `${label} ` : ""}
           <span
