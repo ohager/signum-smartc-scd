@@ -34,6 +34,7 @@ import { useTestRun } from "../use-test-run";
 import { toDebugScenario } from "../to-debug-scenario";
 import { TestResultsPanel } from "./test-results-panel";
 import { useTestDecorations } from "./use-test-decorations";
+import { useProjectModels } from "../use-project-models";
 import { findTests, type FoundTest } from "../instrument/find-tests";
 import { useCursorTest } from "./use-cursor-test";
 import { transpileAll } from "../transpile";
@@ -213,6 +214,9 @@ export function TestFileEditor({ file }: Props) {
     foundTests,
     runSingleTest,
   );
+
+  // Sibling .ts files as models, so imports resolve and complete before any run.
+  useProjectModels(editorReady ? monacoRef.current : null, fs, projectRoot, file.metadata.path);
 
   // The cursor picks the active test, whose values the editor annotates. Rows
   // are matched by name path rather than id: ids are collection-order counters

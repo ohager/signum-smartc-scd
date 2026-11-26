@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { importSuggestions } from "./import-suggestions";
+import { importSuggestions, type ImportSuggestion } from "./import-suggestions";
 
 const paths = [
   "/proj/c.smart.c",
@@ -13,7 +13,7 @@ const paths = [
   "/other/y.smart.c",
 ];
 const open = "/proj/tests/a.test.ts";
-const sameFolder = [
+const sameFolder: ImportSuggestion[] = [
   { label: "sub/", insertText: "sub/", kind: "folder" },
   { label: "b.test", insertText: "b.test", kind: "module" },
   { label: "context", insertText: "context", kind: "module" },
