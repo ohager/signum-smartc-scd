@@ -57,6 +57,10 @@ export function TestFileEditor({ file }: Props) {
   const { projectId = "" } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const fs = useFileSystem();
+  // The route's `:projectId` is the file's own folder (files-page.tsx), so for
+  // `tests/a.test.ts` it is `tests/`. A run must snapshot the whole project, or
+  // `../contract.smart.c?raw` and other files outside that folder are missing.
+  const projectRoot = findProjectOfFolder(fs, projectId) ?? projectId;
   const monacoTheme = useMonacoTheme();
   const monacoRef = useRef<typeof Monaco | null>(null);
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -173,13 +177,13 @@ export function TestFileEditor({ file }: Props) {
       // Save first: the runner reads the project from the file system, not
       // the editor buffer. Quietly — the user asked for a run, not a save.
       await save({ silent: true });
-      return run(monaco, projectId, {
+      return run(monaco, projectRoot, {
         entryPath: file.metadata.path,
         debug: debugRun,
         filter,
       });
     },
-    [save, file.metadata.path, projectId, run, debugRun],
+    [save, file.metadata.path, projectRoot, run, debugRun],
   );
 
   // The rail reports the last run, so the last run has to outlive this editor.
