@@ -1,22 +1,57 @@
 # Changelog
 
-## Unreleased
+## 0.4.0-alpha.1 — 2026-11-26
+
+A coding agent can now work on your contracts inside Studio, and contracts can be
+deployed by reference. Still **experimental**: projects live in your browser's
+storage, so export them as zip regularly.
 
 ### Highlights
 
 - **AI Assistant** — let Claude Code, Codex or another MCP agent work on your
-  projects. Connect it from Studio; see the [setup guide](docs/assistant.md).
+  projects. See the [setup guide](docs/assistant.md).
+  - **Quick start in Studio** — the assistant icon at the top right opens the
+    Connect dialog with copyable setup steps for Claude Code, Codex and other
+    agents: register the relay, install the SmartC skill, restart. The commands
+    are filled in for your port.
   - The agent can read and edit files, compile, lint, analyse gas and run tests.
     It has no access to wallets, accounts, networks or deployment.
   - Every agent round is checkpointed and locks its project. Take over at any
     moment, follow the changes live, see gutter markers, browse the activity
     feed, and restore a round with one click (and undo the restore).
+- **`@smartc-studio/mcp`** — the local MCP relay between your agent and Studio,
+  started by the agent itself (`npx -y @smartc-studio/mcp`).
 - **Gas analysis and lint in the editor** — worst-case gas against
   `activationAmount`, and checks for missing sender checks, unbounded loops,
   missing `default:` and `catch`, pragma drift and more. They work without an
   agent and are translated into all nine languages.
-- **`@smartc-studio/mcp`** — the local MCP relay between your agent and Studio.
-  Start it with `npx @smartc-studio/mcp`.
+- **Carbon contracts** — deploy a contract by reference: it reuses the code of
+  an existing deployment and brings only its own data stack, at a fraction of
+  the cost.
+  - The deploy page offers **deploy by reference** when a contract with your
+    code hash already exists on the network, and a **parameter form** with a
+    data stack preview for deploy parameters.
+  - From the inspector, create a **new instance** of any watched contract, even
+    without its source.
+  - Label Map slots can be marked as deploy parameters; Studio warns when
+    top-level code overwrites one.
+- **Import completion in the test editor** — relative imports suggest the
+  project's folders, test helpers and contracts (`../contract.smart.c?raw`),
+  and imported helpers are fully typed before the first run.
+- **Inspector network picker** — Mainnet, Testnet, Local testnet, the wallet's
+  node or a custom node, with the node URL always visible and the choice
+  remembered.
+
+### Fixes
+
+- Tests in a subfolder (`tests/`) run against the whole project, so
+  `../contract.smart.c?raw` is found.
+- Every file editor follows changes made elsewhere (another tab, the assistant).
+- Amount fields can no longer crash the deploy page; a running deploy stays on
+  screen.
+- An activation amount below the measured gas no longer blocks compiling.
+- A replayed test with a long name no longer squeezes the simulator's toolbar
+  buttons on top of each other.
 
 ## 0.3.0-alpha.1 — 2026-09-30
 

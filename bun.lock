@@ -17,7 +17,7 @@
     },
     "apps/studio": {
       "name": "@signum-smartc-scd/studio",
-      "version": "0.3.0-alpha.1",
+      "version": "0.4.0-alpha.1",
       "dependencies": {
         "@hookform/resolvers": "^5.2.2",
         "@jridgewell/trace-mapping": "^0.3.31",
@@ -89,7 +89,7 @@
     },
     "packages/studio-mcp": {
       "name": "@smartc-studio/mcp",
-      "version": "0.0.0",
+      "version": "0.1.0",
       "bin": {
         "smartc-studio-mcp": "dist/cli.js",
       },
