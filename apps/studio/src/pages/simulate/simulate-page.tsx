@@ -145,7 +145,8 @@ export function SimulatePage() {
               ? [{ name: t("common.pages.replayScenario", { test: replay.testName }), json: replay.scenario }]
               : scenarios
           }
-          sourceLabel={replay ? `recording · ${replay.testName}` : undefined}
+          // The test's name is already in the header badge and the scenario picker.
+          sourceLabel={replay ? "recording" : undefined}
           initialScenario={searchParams.get("scenario") ?? undefined}
           // `replace`, so picking a scenario does not litter the history with
           // entries the back button would have to walk through.
