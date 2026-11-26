@@ -6,21 +6,33 @@ The agent can read and edit project files, compile, lint, analyse gas and run te
 
 ## Setup
 
+The Connect dialog in SmartC Studio (assistant icon, top right) shows these steps with the commands filled in for your port.
+
 Claude Code:
 
 ```sh
-claude mcp add smartc-studio -- npx @smartc-studio/mcp
+claude mcp add smartc-studio -- npx -y @smartc-studio/mcp
 ```
 
-Codex (`~/.codex/config.toml`):
+Codex:
 
-```toml
-[mcp_servers.smartc-studio]
-command = "npx"
-args = ["@smartc-studio/mcp"]
+```sh
+codex mcp add smartc-studio -- npx -y @smartc-studio/mcp
 ```
 
-Then open SmartC Studio, click the assistant icon (top right) and choose **Connect assistant**. Update with `npx @smartc-studio/mcp@latest`.
+Other MCP clients:
+
+```json
+{ "mcpServers": { "smartc-studio": { "command": "npx", "args": ["-y", "@smartc-studio/mcp"] } } }
+```
+
+Install the [signum-smartc skill](https://github.com/ohager/signum-smartc-skill) too (Claude Code, Codex and other agents):
+
+```sh
+npx skills add ohager/signum-smartc-skill
+```
+
+Restart your agent, then open SmartC Studio, click the assistant icon (top right) and choose **Connect assistant**. Update with `npx @smartc-studio/mcp@latest`.
 
 ## Options
 
@@ -33,10 +45,6 @@ Then open SmartC Studio, click the assistant icon (top right) and choose **Conne
 Localhost origins are refused unless you pass `--dev` or name one with `--allow-origin`: any local web server can serve a page from localhost, and without this gate such a page could connect in the Studio's place and ask for your Allow.
 
 The relay listens on `127.0.0.1` only and accepts a single Studio session at a time.
-
-## Recommended
-
-Install the [signum-smartc skill](https://github.com/ohager/signum-smartc-skill) for SmartC language knowledge.
 
 ## License
 

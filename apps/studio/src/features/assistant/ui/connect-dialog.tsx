@@ -9,6 +9,7 @@ import { t } from "@/i18n/runtime";
 import { useAssistant } from "../bridge/use-assistant";
 import { assistantPortAtom } from "../state";
 import { RichText } from "./rich-text";
+import { SetupSteps } from "../setup/setup-steps";
 
 /* The relay's own ports (spec §5); connecting a browser to them can never work. */
 const RESERVED_PORTS = [6876, 6877];
@@ -34,13 +35,14 @@ export function ConnectDialog({ close }: { close: () => void }) {
   };
 
   return (
-    <DialogContent className="sm:max-w-[425px]">
+    <DialogContent className="sm:max-w-xl">
       <SubmitOnEnter onSubmit={submit} isEnabled={canSubmit}>
         <DialogHeader>
           <DialogTitle>{t("assistant.connect.title")}</DialogTitle>
           <DialogDescription>{t("assistant.connect.description")}</DialogDescription>
         </DialogHeader>
-        <section className="flex flex-col gap-y-2 my-4">
+        <SetupSteps target={{ port, origin: location.origin }} />
+        <section className="flex flex-col gap-y-2 my-4 border-t pt-4">
           <Label htmlFor="assistant-port">{t("assistant.connect.port")}</Label>
           <Input id="assistant-port" inputMode="numeric" value={raw} onChange={(e) => setRaw(e.target.value)} aria-invalid={port === null} />
           {port === null && <p className="text-xs text-destructive">{t("assistant.connect.portInvalid")}</p>}

@@ -663,6 +663,17 @@ export type MessageParams = {
   "assistant.connect.hint": undefined;
   "assistant.connect.submit": undefined;
   "assistant.connect.preparing": undefined;
+  "assistant.connect.setup.other": undefined;
+  "assistant.connect.setup.register": undefined;
+  "assistant.connect.setup.registerOther": undefined;
+  "assistant.connect.setup.skill": undefined;
+  "assistant.connect.setup.restart": { agent: string | number };
+  "assistant.connect.setup.restartOther": undefined;
+  "assistant.connect.setup.show": undefined;
+  "assistant.connect.setup.hide": undefined;
+  "assistant.connect.setup.copy": undefined;
+  "assistant.connect.setup.copied": undefined;
+  "assistant.connect.setup.copyFailed": undefined;
   "assistant.approval.title": undefined;
   "assistant.approval.request": { client: string | number };
   "assistant.approval.unknownClient": undefined;

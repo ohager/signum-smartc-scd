@@ -5,9 +5,22 @@
     "description": "Let an AI assistant work on your projects through a local relay on this computer.",
     "port": "Port",
     "portInvalid": "Enter a whole number from 1 to 65535, other than 6876 or 6877.",
-    "hint": "Start the relay with `npx @smartc-studio/mcp`, then connect.",
+    "hint": "Your agent starts the relay itself once it is registered. Then connect here.",
     "submit": "Connect",
-    "preparing": "Preparing…"
+    "preparing": "Preparing…",
+    "setup": {
+      "other": "Other",
+      "register": "Register the relay",
+      "registerOther": "Add this to your agent's MCP configuration",
+      "skill": "Install the SmartC skill",
+      "restart": "Restart {agent} so it picks up both",
+      "restartOther": "Restart your agent so it picks up both",
+      "show": "Show setup",
+      "hide": "Hide setup",
+      "copy": "Copy",
+      "copied": "Copied",
+      "copyFailed": "Could not copy. Select the command and copy it yourself."
+    }
   },
   "approval": {
     "title": "Assistant access",

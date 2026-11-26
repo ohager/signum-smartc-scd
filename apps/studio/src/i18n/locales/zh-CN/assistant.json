@@ -5,9 +5,22 @@
     "description": "通过本机上的本地中继，让 AI 助手处理你的项目。",
     "port": "端口",
     "portInvalid": "请输入 1 到 65535 之间的整数，不能是 6876 或 6877。",
-    "hint": "用 `npx @smartc-studio/mcp` 启动中继，然后连接。",
+    "hint": "注册后，代理会自行启动中继。然后在这里连接。",
     "submit": "连接",
-    "preparing": "准备中…"
+    "preparing": "准备中…",
+    "setup": {
+      "other": "其他",
+      "register": "注册中继",
+      "registerOther": "把以下内容添加到你的代理的 MCP 配置中",
+      "skill": "安装 SmartC 技能",
+      "restart": "重启 {agent}，使其加载两者",
+      "restartOther": "重启你的代理，使其加载两者",
+      "show": "显示设置",
+      "hide": "隐藏设置",
+      "copy": "复制",
+      "copied": "已复制",
+      "copyFailed": "无法复制。请选中命令后自行复制。"
+    }
   },
   "approval": {
     "title": "助手访问",

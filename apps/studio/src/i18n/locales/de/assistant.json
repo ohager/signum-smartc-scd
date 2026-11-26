@@ -5,9 +5,22 @@
     "description": "Lass einen KI-Assistenten über ein lokales Relay auf diesem Computer an deinen Projekten arbeiten.",
     "port": "Port",
     "portInvalid": "Gib eine ganze Zahl von 1 bis 65535 ein, außer 6876 oder 6877.",
-    "hint": "Starte das Relay mit `npx @smartc-studio/mcp` und verbinde dich dann.",
+    "hint": "Sobald das Relay registriert ist, startet dein Agent es selbst. Dann hier verbinden.",
     "submit": "Verbinden",
-    "preparing": "Wird vorbereitet…"
+    "preparing": "Wird vorbereitet…",
+    "setup": {
+      "other": "Andere",
+      "register": "Relay registrieren",
+      "registerOther": "Füge das in die MCP-Konfiguration deines Agenten ein",
+      "skill": "SmartC-Skill installieren",
+      "restart": "{agent} neu starten, damit beides geladen wird",
+      "restartOther": "Agenten neu starten, damit beides geladen wird",
+      "show": "Einrichtung anzeigen",
+      "hide": "Einrichtung ausblenden",
+      "copy": "Kopieren",
+      "copied": "Kopiert",
+      "copyFailed": "Kopieren nicht möglich. Markiere den Befehl und kopiere ihn selbst."
+    }
   },
   "approval": {
     "title": "Zugriff des Assistenten",
