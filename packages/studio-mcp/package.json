@@ -1,6 +1,6 @@
 {
   "name": "@smartc-studio/mcp",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "MCP relay connecting coding agents to SmartC Studio",
   "type": "module",
   "license": "Apache-2.0",

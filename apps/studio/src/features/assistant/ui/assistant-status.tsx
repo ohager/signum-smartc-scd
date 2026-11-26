@@ -2,96 +2,133 @@ import { useState } from "react";
 import { useAtomValue } from "jotai";
 import { BotIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { t } from "@/i18n/runtime";
 import { useAssistant } from "../bridge/use-assistant";
+import type { ConnectionState } from "../bridge/connection";
 import { hasActivity } from "../activity/feed-model";
 import { assistantPortAtom, feedAtom } from "../state";
 import { ActivityPanel } from "./activity-panel";
 import { ConnectDialog } from "./connect-dialog";
 import { RichText } from "./rich-text";
 
-/* Sidebar footer entry: offers Connect when idle, shows the session when connected, explains failures. */
+/* The dot says how the connection stands at a glance; the menu says why. */
+function dotColor(state: ConnectionState): string | null {
+  switch (state.kind) {
+    case "connected":
+      return "var(--green)";
+    case "connecting":
+    case "awaiting-approval":
+      return "var(--accent-2)";
+    case "failed":
+    case "mismatch":
+    case "taken-over":
+      return "var(--mag)";
+    default:
+      return null;
+  }
+}
+
+function statusMessage(state: ConnectionState, port: number): string | null {
+  switch (state.kind) {
+    case "connected":
+      return t("assistant.status.connected", { client: state.client?.name ?? t("assistant.approval.unknownClient") });
+    case "taken-over":
+      return t("assistant.status.takenOver");
+    case "mismatch":
+      return state.action === "reload-studio" ? t("assistant.status.mismatchReload") : t("assistant.status.mismatchUpdate");
+    case "failed":
+      return state.reason === "unreachable" ? t("assistant.status.failed", { port }) : t("assistant.status.closed");
+    case "connecting":
+      return t("assistant.status.connecting", { port: state.port });
+    default:
+      return null;
+  }
+}
+
+/*
+ * Header entry: a bot icon whose dot carries the connection state, and a menu with the
+ * explanation and whatever can be done about it. It is app-wide, not a verb of the page
+ * it sits on, which is why the header renders it itself rather than a feature pushing it in.
+ */
 export function AssistantStatus() {
   const { state, disconnect } = useAssistant();
   const port = useAtomValue(assistantPortAtom);
   const feed = useAtomValue(feedAtom);
-  const [open, setOpen] = useState(false);
+  const [connectOpen, setConnectOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
 
+  const message = statusMessage(state, port);
+  const dot = dotColor(state);
+  const busy = state.kind === "connecting" || state.kind === "awaiting-approval";
   /* The feed outlives the connection, so Restore stays reachable until there is nothing to show. */
   const showActivity = hasActivity(feed);
-  const activityButton = showActivity && (
-    <Button size="sm" variant="outline" onClick={() => setActivityOpen(true)}>
-      {t("assistant.status.activity")}
-    </Button>
-  );
-  const activityPanel = showActivity && <ActivityPanel open={activityOpen} onOpenChange={setActivityOpen} />;
-
-  if (state.kind === "connected") {
-    return (
-      <div className="flex flex-col gap-1 px-1 text-sm">
-        <div className="flex items-center gap-1">
-          <BotIcon className="h-4 w-4" />
-          <span className="truncate">{t("assistant.status.connected", { client: state.client?.name ?? t("assistant.approval.unknownClient") })}</span>
-        </div>
-        <div className="flex gap-1">
-          <Button size="sm" variant="outline" onClick={disconnect}>
-            {t("assistant.status.disconnect")}
-          </Button>
-          {activityButton}
-        </div>
-        {activityPanel}
-      </div>
-    );
-  }
-
-  const message =
-    state.kind === "taken-over"
-      ? t("assistant.status.takenOver")
-      : state.kind === "mismatch"
-        ? state.action === "reload-studio"
-          ? t("assistant.status.mismatchReload")
-          : t("assistant.status.mismatchUpdate")
-        : state.kind === "failed"
-          ? state.reason === "unreachable"
-            ? t("assistant.status.failed", { port })
-            : t("assistant.status.closed")
-          : state.kind === "connecting"
-            ? t("assistant.status.connecting", { port: state.port })
-            : null;
+  const label = message ?? t("assistant.connect.action");
 
   return (
-    <div className="flex flex-col gap-1 px-1">
-      {message && (
-        <p className="text-xs text-muted-foreground">
-          <RichText text={message} />
-        </p>
-      )}
-      {state.kind === "mismatch" && state.action === "reload-studio" && (
-        <Button size="sm" variant="outline" onClick={() => location.reload()}>
-          {t("assistant.status.reload")}
-        </Button>
-      )}
-      {(state.kind === "connecting" || state.kind === "awaiting-approval") && (
-        /* A relay that never answers must not leave the user waiting without a way out. */
-        <Button size="sm" variant="outline" onClick={disconnect}>
-          {t("assistant.status.cancel")}
-        </Button>
-      )}
-      {activityButton}
-      {activityPanel}
-      {state.kind !== "connecting" && state.kind !== "awaiting-approval" && (
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" variant="outline">
+    <>
+      <DropdownMenu>
+        <Tooltip delayDuration={500}>
+          <TooltipTrigger asChild>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative shrink-0" aria-label={label}>
+                <BotIcon className="size-5" />
+                {dot && (
+                  <span
+                    aria-hidden
+                    className={"absolute right-1.5 top-1.5 h-2 w-2 rounded-full ring-2 ring-background" + (busy ? " animate-pulse" : "")}
+                    style={{ background: dot }}
+                  />
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{label}</p>
+          </TooltipContent>
+        </Tooltip>
+        <DropdownMenuContent align="end" className="w-72">
+          {message && (
+            <>
+              <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                <RichText text={message} />
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+            </>
+          )}
+          {state.kind === "mismatch" && state.action === "reload-studio" && (
+            <DropdownMenuItem onSelect={() => location.reload()}>{t("assistant.status.reload")}</DropdownMenuItem>
+          )}
+          {showActivity && (
+            <DropdownMenuItem onSelect={() => setActivityOpen(true)}>{t("assistant.status.activity")}</DropdownMenuItem>
+          )}
+          {/* A relay that never answers must not leave the user waiting without a way out. */}
+          {busy && <DropdownMenuItem onSelect={disconnect}>{t("assistant.status.cancel")}</DropdownMenuItem>}
+          {state.kind === "connected" && (
+            <DropdownMenuItem onSelect={disconnect}>{t("assistant.status.disconnect")}</DropdownMenuItem>
+          )}
+          {state.kind !== "connected" && !busy && (
+            <DropdownMenuItem onSelect={() => setConnectOpen(true)}>
               <BotIcon className="h-4 w-4" />
               {t("assistant.connect.action")}
-            </Button>
-          </DialogTrigger>
-          <ConnectDialog close={() => setOpen(false)} />
-        </Dialog>
-      )}
-    </div>
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      {/* Outside the menu: it unmounts its content on close, and these must outlive it. */}
+      <Dialog open={connectOpen} onOpenChange={setConnectOpen}>
+        <ConnectDialog close={() => setConnectOpen(false)} />
+      </Dialog>
+      {showActivity && <ActivityPanel open={activityOpen} onOpenChange={setActivityOpen} />}
+    </>
   );
 }

@@ -35,7 +35,7 @@ Install the [signum-smartc skill](https://github.com/ohager/signum-smartc-skill)
 ## Connect and Allow
 
 1. Start your agent. It starts the relay on its own.
-2. In Studio, click **Connect assistant**. The default port is `6890`.
+2. In Studio, click the assistant icon at the top right and choose **Connect assistant**. The default port is `6890`. A dot on the icon shows the connection state: green when connected, pulsing while connecting, red when something needs your attention.
 3. Studio shows the name of the agent that wants access. Click **Allow**.
 
 Studio and relay now stay connected until you click **Disconnect** or close the tab.
@@ -107,4 +107,4 @@ The assistant uses the same checks through its `lint` and `analyze_gas` tools.
 
 **Studio could not reach the relay.** Check that your agent is running, that the port matches, and that Studio's origin is allowed (`--allow-origin` for self-hosted Studio).
 
-**Another tab took over.** Only one Studio tab is connected at a time. Click **Connect assistant** in the tab you want and confirm **Take over**.
+**Another tab took over.** Only one Studio tab is connected at a time. Open the assistant menu (top right) in the tab you want, choose **Connect assistant** and confirm **Take over**.

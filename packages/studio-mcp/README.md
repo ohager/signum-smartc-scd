@@ -20,7 +20,7 @@ command = "npx"
 args = ["@smartc-studio/mcp"]
 ```
 
-Then open SmartC Studio and click **Connect assistant**. Update with `npx @smartc-studio/mcp@latest`.
+Then open SmartC Studio, click the assistant icon (top right) and choose **Connect assistant**. Update with `npx @smartc-studio/mcp@latest`.
 
 ## Options
 
