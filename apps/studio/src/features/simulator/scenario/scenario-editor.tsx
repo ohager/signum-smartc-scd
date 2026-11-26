@@ -8,6 +8,7 @@ import {
   ToolbarDiagnostic,
 } from "@/components/ui/surface-toolbar.tsx";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { useAssistantEditor, useEditorHandles } from "@/features/assistant/ui/use-assistant-editor";
 import { findProjectOfFolder } from "@/features/project/project-root";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import { registerClimateThemes, EDITOR_SCROLLBAR } from "@/theme/monaco-themes";
@@ -19,7 +20,7 @@ import {
   EditorFileActions,
   registerEditorFileActions,
 } from "@/components/ui/editor/file-actions.tsx";
-import { useEditorFile } from "@/components/ui/editor/use-editor-file.ts";
+import { useFollowedFile } from "@/components/ui/editor/use-followed-file.ts";
 import { registerStudioJson } from "@/features/inspector/monaco/register-json";
 import { t } from "@/i18n/runtime";
 
@@ -43,7 +44,7 @@ export function ScenarioEditor({ file }: { file: File }) {
     save,
     saveNow,
     download,
-  } = useEditorFile({ file });
+  } = useFollowedFile(file);
   const navigate = useNavigate();
   const fs = useFileSystem();
   const projectId = findProjectOfFolder(fs, file.metadata.folderId);
@@ -89,7 +90,11 @@ export function ScenarioEditor({ file }: { file: File }) {
     setErrors(validationErrors(value ?? ""));
   };
 
+  const assistant = useEditorHandles();
+  useAssistantEditor({ ...assistant, file });
+
   const handleEditorDidMount: OnMount = (editor, monaco) => {
+    assistant.capture(editor, monaco);
     editorRef.current = editor;
     registerEditorFileActions(editor, monaco, { onDownload: download });
   };

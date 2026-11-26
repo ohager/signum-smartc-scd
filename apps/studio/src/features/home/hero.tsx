@@ -5,6 +5,7 @@ import { UploadIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { RegisterMark } from "@/components/brand/register-mark";
 import { t } from "@/i18n/runtime";
+import { AssistantStatus } from "@/features/assistant/ui/assistant-status";
 
 interface Props {
   variant: "full" | "band";
@@ -51,7 +52,11 @@ export function Hero({ variant, onImportClick }: Props) {
             </span>
           </h1>
         </div>
-        {actions}
+        {/* Home has no page header; the assistant takes the same top-right place here. */}
+        <div className="flex items-center gap-2">
+          {actions}
+          <AssistantStatus />
+        </div>
       </section>
     );
   }
@@ -62,6 +67,11 @@ export function Hero({ variant, onImportClick }: Props) {
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute left-1/2 top-[-6rem] h-72 w-[42rem] max-w-[120%] -translate-x-1/2 rounded-full bg-[color-mix(in_srgb,var(--accent-1)_22%,transparent)] blur-[110px]" />
         <div className="absolute inset-0 [background-image:linear-gradient(to_right,var(--grid-line)_1px,transparent_1px),linear-gradient(to_bottom,var(--grid-line)_1px,transparent_1px)] [background-size:40px_40px] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_0%,black,transparent)]" />
+      </div>
+
+      {/* Home has no page header; the assistant takes the same top-right place here. */}
+      <div className="absolute right-4 top-4">
+        <AssistantStatus />
       </div>
 
       <div className="mx-auto flex max-w-2xl flex-col items-center text-center">

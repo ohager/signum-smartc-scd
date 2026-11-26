@@ -1,0 +1,97 @@
+{
+  "connect": {
+    "action": "Connect assistant",
+    "title": "Connect assistant",
+    "description": "Let an AI assistant work on your projects through a local relay on this computer.",
+    "port": "Port",
+    "portInvalid": "Enter a whole number from 1 to 65535, other than 6876 or 6877.",
+    "hint": "Your agent starts the relay itself once it is registered. Then connect here.",
+    "submit": "Connect",
+    "preparing": "Preparing…",
+    "setup": {
+      "other": "Other",
+      "register": "Register the relay",
+      "registerOther": "Add this to your agent's MCP configuration",
+      "skill": "Install the SmartC skill",
+      "restart": "Restart {agent} so it picks up both",
+      "restartOther": "Restart your agent so it picks up both",
+      "show": "Show setup",
+      "hide": "Hide setup",
+      "copy": "Copy",
+      "copied": "Copied",
+      "copyFailed": "Could not copy. Select the command and copy it yourself."
+    }
+  },
+  "approval": {
+    "title": "Assistant access",
+    "request": "**{client}** wants to access your workspace.",
+    "unknownClient": "An assistant",
+    "allow": "Allow",
+    "deny": "Deny",
+    "occupiedTitle": "Assistant already connected",
+    "occupied": "Another Studio tab is connected to the assistant. Take over here?",
+    "takeOver": "Take over",
+    "cancel": "Cancel"
+  },
+  "status": {
+    "connected": "{client} connected",
+    "connecting": "Connecting on port {port}…",
+    "cancel": "Cancel",
+    "disconnect": "Disconnect",
+    "activity": "Activity",
+    "takenOver": "Another tab took over the assistant.",
+    "mismatchReload": "Reload Studio to use this assistant version.",
+    "reload": "Reload",
+    "mismatchUpdate": "The assistant relay is outdated. Update it with `npx @smartc-studio/mcp@latest` and restart your agent.",
+    "failed": "Could not reach the relay on port {port}.",
+    "closed": "The assistant connection was closed."
+  },
+  "lock": {
+    "banner": "AI Assistant is working on this project",
+    "takeOver": "Take over",
+    "readOnly": "AI Assistant is working on this project. Take over to edit.",
+    "blocked": "AI Assistant is working on this project. Take over to edit."
+  },
+  "follow": {
+    "label": "Follow",
+    "hint": "Open the files the assistant changes in this project"
+  },
+  "gutter": {
+    "added": "Added by the assistant",
+    "changed": "Changed by the assistant. Click to show the previous text.",
+    "deleted": "Removed by the assistant. Click to show the removed text.",
+    "previous": "Previous text"
+  },
+  "touched": "Changed by the assistant",
+  "feed": {
+    "title": "Assistant activity",
+    "description": "What the assistant did in this session, grouped by round.",
+    "empty": "The assistant has not done anything yet.",
+    "running": "running",
+    "loose": "Other calls",
+    "unknownProject": "Unknown project",
+    "compile": "compile",
+    "tests": "{passed}/{total} tests",
+    "lint": "lint: {count}",
+    "gas": "gas: activation too low",
+    "error": "error: {code}",
+    "viewDiff": "View changes",
+    "diffTitle": "Changes in {path}",
+    "noTests": "0 tests"
+  },
+  "restore": {
+    "action": "Restore to before this round",
+    "title": "Restore to before this round?",
+    "body": "The project goes back to how it was when this round started.",
+    "userChanges": "Files changed since this round. Restoring discards these changes:",
+    "laterRounds": "Later assistant rounds of this project are discarded too.",
+    "confirm": "Restore",
+    "done": "Project restored.",
+    "undo": "Undo restore",
+    "undone": "Restore undone.",
+    "redo": "Redo restore",
+    "redone": "Restore redone.",
+    "failed": "Could not restore the project.",
+    "fileDeleted": "File was deleted"
+  }
+}

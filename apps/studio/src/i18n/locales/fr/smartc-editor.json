@@ -23,5 +23,67 @@
     "keyword": "**Mot-clé SmartC**",
     "variable": "Variable SmartC (ligne {line})",
     "userFunction": "Fonction SmartC"
+  },
+  "analysis": {
+    "senderCheck": {
+      "message": "Le handler `{handler}` {what} sans vérifier qui a envoyé la transaction.",
+      "writesGlobals": "écrit {globals}",
+      "writesMaps": "écrit des valeurs de map",
+      "sendsFunds": "envoie des fonds",
+      "and": " et ",
+      "hint": "Comparez l'expéditeur au propriétaire avant de modifier l'état : `if (getSender(currentTX.txId) != owner) { continue; }` dans la boucle de dispatch, ou `if (currentTX.sender != getCreator()) { return; }` au début du handler."
+    },
+    "sendWithoutCheck": {
+      "message": "`{call}` n'est pas précédé d'une vérification du solde ou du montant.",
+      "hintAmount": "Vérifiez d'abord les fonds : `if (getCurrentBalance() >= amount) { sendAmount(amount, recipient); }`.",
+      "hintBalance": "Vérifiez d'abord les fonds : `if (getCurrentBalance() > 0) { sendBalance(recipient); }`."
+    },
+    "unboundedLoop": {
+      "message": "Cette boucle n'a pas de borne reconnaissable ; la condition ne dépend de rien de ce que modifie le corps.",
+      "hint": "Comptez jusqu'à une limite testée par la condition : `for (i = 0; i < 10; i++) { … }`, ou déplacez le travail dans la boucle `getNextTx` pour que chaque activation en fasse une quantité bornée."
+    },
+    "activationBelowGas": {
+      "message": "Le pire cas coûte {cost}, mais activationAmount vaut {activation} SIGNA.",
+      "messageNoDirective": "Aucun activationAmount défini ; le pire cas coûte {cost}.",
+      "cost": "{worstCase} SIGNA{where}",
+      "costAtLeast": "au moins {worstCase} SIGNA{where}",
+      "where": " (handler `{handler}`)",
+      "whereMethod": " (handler `{handler}`, méthode {method})",
+      "hint": "Définissez `#program activationAmount {required}` ({requiredSigna} SIGNA, le pire cas arrondi au-dessus à 0,01 SIGNA).",
+      "hintLoopCap": "Les boucles ont été supposées s'exécuter {loopCap} fois ; une boucle plus longue coûte davantage.",
+      "hintNoSwitch": "Le contrat n'a pas de dispatcher `switch`, l'analyse n'a donc pas pu suivre tous les chemins et le maximum réel peut être plus élevé."
+    },
+    "switchNoDefault": {
+      "message": "Ce `switch` n'a pas de `default:`, les méthodes inconnues sont donc acceptées silencieusement.",
+      "hint": "Ajoutez un `default:` qui rejette ou rembourse, p. ex. `default: sendAmount(currentTX.amount, currentTX.sender); break;`."
+    },
+    "pragmaVersion": {
+      "missing": {
+        "message": "`#pragma version` est absent.",
+        "hint": "Fixez le compilateur : `#pragma version {recommended}` en haut du fichier."
+      },
+      "differs": {
+        "message": "`#pragma version {found}` diffère du compilateur de Studio ({compiler}).",
+        "hint": "Remplacez-le par `#pragma version {recommended}` et testez à nouveau, ou compilez avec un compilateur correspondant."
+      },
+      "missingOptimization": {
+        "message": "`#pragma optimizationLevel` est absent.",
+        "hint": "Définissez-le explicitement, p. ex. `#pragma optimizationLevel 2`, pour que la sortie ne dépende pas de la valeur par défaut du compilateur."
+      }
+    },
+    "noCatch": {
+      "message": "Pas de handler `catch` : après une erreur fatale, le contrat reste mort.",
+      "messageSends": "Pas de handler `catch` : après une erreur fatale, le contrat reste mort, avec son solde bloqué dedans.",
+      "hint": "Ajoutez un handler d'erreur global. Reprendre : `void catch() { asm { JMP :__fn_main } }` — la transaction fautive a déjà été consommée par `getNextTx`, le contrat poursuit donc avec la suivante. Arrêter : `void catch() { sendBalance(getCreator()); exit; }`."
+    },
+    "catchRecurringFault": {
+      "message": "Une erreur ici se reproduit à chaque activation et brûle du gas jusqu'à épuisement du solde.",
+      "hintDivision": "Le handler `catch` reprend à `main`, qui exécute à nouveau cette division. Protégez-la (vérifiez le diviseur, bornez la récursion), déplacez-la dans un handler, ou arrêtez plutôt le contrat : `void catch() { sendBalance(getCreator()); exit; }`.",
+      "hintRecursion": "Le handler `catch` reprend à `main`, qui exécute à nouveau cet appel récursif. Protégez-le (vérifiez le diviseur, bornez la récursion), déplacez-le dans un handler, ou arrêtez plutôt le contrat : `void catch() { sendBalance(getCreator()); exit; }`."
+    },
+    "overwrittenParam": {
+      "message": "`{name}` est un paramètre de déploiement, mais cette ligne l'écrit avant l'exécution de `main` ; la valeur déployée est donc remplacée à la première activation.",
+      "hint": "Supprimez l'écriture, ou n'affectez que si l'emplacement n'est pas encore défini (`if (x == 0) { x = … }`) dans `main`."
+    }
   }
 }

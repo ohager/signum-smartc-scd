@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import Editor, { type OnMount } from "@monaco-editor/react";
+import Editor, { type OnMount, type OnValidate } from "@monaco-editor/react";
 import { Code2 } from "lucide-react";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import { registerSmartC, SMARTC_LANGUAGE_ID } from "./language/register.ts";
@@ -7,7 +7,7 @@ import {
   EditorFileActions,
   registerEditorFileActions,
 } from "@/components/ui/editor/file-actions.tsx";
-import { useEditorFile } from "@/components/ui/editor/use-editor-file.ts";
+import { useFollowedFile } from "@/components/ui/editor/use-followed-file.ts";
 import {
   SurfaceToolbar,
   ToolbarButton,
@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { SmartC } from "smartc-signum-compiler";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { useAssistantEditor, useEditorHandles } from "@/features/assistant/ui/use-assistant-editor";
 import { type File, FileSystem } from "@/lib/file-system";
 import { FileTypes } from "@/features/project/filetype-icons.tsx";
 import { findProjectOfFolder } from "@/features/project/project-root";
@@ -24,6 +25,7 @@ import { isContractFile } from "@/features/project/contract";
 import { analyzeWithCompiler } from "./language/compiler-symbols";
 import { EDITOR_SCROLLBAR } from "@/theme/monaco-themes";
 import { t } from "@/i18n/runtime";
+import { firstBlockingMarker } from "@/features/analysis/diagnostics";
 
 async function createAssemblyFile(
   folderId: string,
@@ -94,8 +96,7 @@ function SmartCEditor({ file }: Props) {
     onChange: handleEditorChange,
     saveNow: saveSmartCFile,
     download,
-  } = useEditorFile({
-    file,
+  } = useFollowedFile(file, {
     // The rail's Write cell reports this, and `handleValidate` is the wrong
     // place for it: Monaco validates the *buffer*, while `lastModified`
     // describes the *save*. Filing a buffer verdict under a save timestamp
@@ -150,7 +151,11 @@ function SmartCEditor({ file }: Props) {
     return updateAssemblyFile(existingFile.id, code);
   }, [code, baseName]);
 
+  const assistant = useEditorHandles();
+  useAssistantEditor({ ...assistant, file });
+
   const handleEditorDidMount: OnMount = (editor, monaco) => {
+    assistant.capture(editor, monaco);
     editor.addAction({
       id: ActionType.Compile,
       // TODO: this is not good... we need to use events
@@ -163,13 +168,10 @@ function SmartCEditor({ file }: Props) {
     registerEditorFileActions(editor, monaco, { onDownload: download });
   };
 
-  const handleValidate = (markers: any[]) => {
-    // Only compile errors block save/compile; warnings are informational.
+  const handleValidate: OnValidate = (markers) => {
+    // Only compile errors block save/compile; warnings and analysis markers are informational.
     const MARKER_SEVERITY_ERROR = 8; // monaco.MarkerSeverity.Error
-    const firstError = markers.find(
-      (m) => m.severity === MARKER_SEVERITY_ERROR,
-    );
-    setValidationError(firstError?.message ?? "");
+    setValidationError(firstBlockingMarker(markers, MARKER_SEVERITY_ERROR)?.message ?? "");
   };
 
   return (

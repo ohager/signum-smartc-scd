@@ -12,8 +12,8 @@ import { Play, StepForward } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate, useParams } from "react-router";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { useAssistantEditor, useEditorHandles } from "@/features/assistant/ui/use-assistant-editor";
 import { findProjectOfFolder } from "@/features/project/project-root";
-import { contractOfProject } from "@/features/project/contract";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -26,7 +26,7 @@ import {
   EditorFileActions,
   registerEditorFileActions,
 } from "@/components/ui/editor/file-actions.tsx";
-import { useEditorFile } from "@/components/ui/editor/use-editor-file.ts";
+import { useFollowedFile } from "@/components/ui/editor/use-followed-file.ts";
 import type { File } from "@/lib/file-system";
 import { serializeScenario } from "@/features/simulator/scenario/scenario-io";
 import { configureTypeScriptForTests } from "../monaco-setup";
@@ -44,7 +44,9 @@ import {
   fileTraceAtom,
   activeTestIdAtom,
   inspectedLineAtom,
+  latestRunAtom,
 } from "../test-trace-store";
+import { recordTestVerdicts } from "../test-verdicts";
 import { t } from "@/i18n/runtime";
 
 interface Props {
@@ -65,8 +67,21 @@ export function TestFileEditor({ file }: Props) {
     save,
     saveNow,
     download,
-  } = useEditorFile({ file });
-  const { state, isRunning, run } = useTestRun();
+  } = useFollowedFile(file);
+  const { state: ownState, isRunning, run } = useTestRun();
+  // A run the assistant made is shown like one pressed here, but only while it is
+  // newer than this editor's own last run — whichever ran last is what you see.
+  const latestRun = useAtomValue(latestRunAtom);
+  const ownRunAt = useRef(0);
+  const state =
+    latestRun &&
+    latestRun.at > ownRunAt.current &&
+    findProjectOfFolder(fs, latestRun.projectFolderId) ===
+      findProjectOfFolder(fs, projectId) &&
+    (latestRun.entryPaths.length === 0 ||
+      latestRun.entryPaths.includes(file.metadata.path))
+      ? latestRun.state
+      : ownState;
   const [foundTests, setFoundTests] = useState<FoundTest[]>([]);
   // Monaco and the editor arrive via onMount, after the first render. Without a
   // state flag nothing re-runs, so the gutter stayed empty until a keystroke.
@@ -121,7 +136,11 @@ export function TestFileEditor({ file }: Props) {
     };
   }, [code, file.metadata.path, editorReady]);
 
+  const assistant = useEditorHandles();
+  useAssistantEditor({ ...assistant, file });
+
   const onMount: OnMount = (editor, monaco) => {
+    assistant.capture(editor, monaco);
     // @ts-ignore — @monaco-editor/react resolves its own nested monaco-editor
     // version, which structurally diverges from the root one; see the same
     // workaround in debug-view.tsx's onMount.
@@ -150,6 +169,7 @@ export function TestFileEditor({ file }: Props) {
       const monaco = monacoRef.current;
       if (!monaco) return null;
       lastRunWasFiltered.current = !!filter?.length;
+      ownRunAt.current = Date.now();
       // Save first: the runner reads the project from the file system, not
       // the editor buffer. Quietly — the user asked for a run, not a save.
       await save({ silent: true });
@@ -164,32 +184,11 @@ export function TestFileEditor({ file }: Props) {
 
   // The rail reports the last run, so the last run has to outlive this editor.
   useEffect(() => {
-    if (state.status !== "done") return;
+    // Own state only: a run from the assistant files its own verdicts.
+    if (ownState.status !== "done") return;
     if (lastRunWasFiltered.current) return;
-
-    const projectRoot = findProjectOfFolder(fs, projectId);
-    if (!projectRoot) return;
-
-    const contract = contractOfProject(
-      fs.listFilesRecursive(projectRoot),
-    )?.contract;
-    fs.status.recordTests(projectRoot, file.metadata.id, {
-      sourceModified: file.metadata.lastModified,
-      contractModified: contract?.lastModified ?? 0,
-      // `counts` is already kept by the reducer; re-deriving it from `rows`
-      // would be a second definition of the same number. A timeout is a
-      // failure the user needs to see as one.
-      passed: state.counts.passed,
-      failed: state.counts.failed + state.counts.timedout,
-    });
-  }, [
-    state.status,
-    state.counts,
-    fs,
-    projectId,
-    file.metadata.id,
-    file.metadata.lastModified,
-  ]);
+    recordTestVerdicts(fs, projectId, ownState, [file.metadata.path]);
+  }, [ownState, fs, projectId, file.metadata.path, file.metadata.lastModified]);
 
   const runSingleTest = useCallback(
     (path: string[]) => {

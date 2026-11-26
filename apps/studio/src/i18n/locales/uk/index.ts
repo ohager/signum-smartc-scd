@@ -8,6 +8,7 @@ import testbed from "./testbed.json";
 import smartcEditor from "./smartc-editor.json";
 import asmEditor from "./asm-editor.json";
 import inspector from "./inspector.json";
+import assistant from "./assistant.json";
 import editorDocs from "./editor-docs.json";
 
 /** Українська. Keys follow `../en`; anything missing falls back to English. */
@@ -21,6 +22,7 @@ const messages: Messages = {
   "smartc-editor": smartcEditor,
   "asm-editor": asmEditor,
   inspector,
+  assistant,
   "editor-docs": editorDocs,
 };
 

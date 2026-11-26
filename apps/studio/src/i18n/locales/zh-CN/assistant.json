@@ -1,0 +1,97 @@
+{
+  "connect": {
+    "action": "连接助手",
+    "title": "连接助手",
+    "description": "通过本机上的本地中继，让 AI 助手处理你的项目。",
+    "port": "端口",
+    "portInvalid": "请输入 1 到 65535 之间的整数，不能是 6876 或 6877。",
+    "hint": "注册后，代理会自行启动中继。然后在这里连接。",
+    "submit": "连接",
+    "preparing": "准备中…",
+    "setup": {
+      "other": "其他",
+      "register": "注册中继",
+      "registerOther": "把以下内容添加到你的代理的 MCP 配置中",
+      "skill": "安装 SmartC 技能",
+      "restart": "重启 {agent}，使其加载两者",
+      "restartOther": "重启你的代理，使其加载两者",
+      "show": "显示设置",
+      "hide": "隐藏设置",
+      "copy": "复制",
+      "copied": "已复制",
+      "copyFailed": "无法复制。请选中命令后自行复制。"
+    }
+  },
+  "approval": {
+    "title": "助手访问",
+    "request": "**{client}** 想要访问你的工作区。",
+    "unknownClient": "一个助手",
+    "allow": "允许",
+    "deny": "拒绝",
+    "occupiedTitle": "助手已连接",
+    "occupied": "另一个 Studio 标签页已连接到助手。要在此接管吗？",
+    "takeOver": "接管",
+    "cancel": "取消"
+  },
+  "status": {
+    "connected": "{client} 已连接",
+    "connecting": "正在连接端口 {port}…",
+    "cancel": "取消",
+    "disconnect": "断开连接",
+    "activity": "活动",
+    "takenOver": "另一个标签页接管了助手。",
+    "mismatchReload": "请重新加载 Studio 以使用此版本的助手。",
+    "reload": "重新加载",
+    "mismatchUpdate": "助手中继已过时。请用 `npx @smartc-studio/mcp@latest` 更新，并重启你的代理。",
+    "failed": "无法连接到端口 {port} 上的中继。",
+    "closed": "助手连接已关闭。"
+  },
+  "lock": {
+    "banner": "AI 助手正在处理此项目",
+    "takeOver": "接管",
+    "readOnly": "AI 助手正在处理此项目。接管后才能编辑。",
+    "blocked": "AI 助手正在处理此项目。接管后才能编辑。"
+  },
+  "follow": {
+    "label": "跟随",
+    "hint": "打开助手在此项目中修改的文件"
+  },
+  "gutter": {
+    "added": "由助手添加",
+    "changed": "由助手修改。点击查看之前的文本。",
+    "deleted": "由助手删除。点击查看已删除的文本。",
+    "previous": "之前的文本"
+  },
+  "touched": "由助手修改",
+  "feed": {
+    "title": "助手活动",
+    "description": "助手在本次会话中做了什么，按轮次分组。",
+    "empty": "助手还没有做任何事。",
+    "running": "运行中",
+    "loose": "其他调用",
+    "unknownProject": "未知项目",
+    "compile": "编译",
+    "tests": "{passed}/{total} 个测试",
+    "lint": "lint：{count}",
+    "gas": "gas：激活金额过低",
+    "error": "错误：{code}",
+    "viewDiff": "查看更改",
+    "diffTitle": "{path} 中的更改",
+    "noTests": "0 个测试"
+  },
+  "restore": {
+    "action": "恢复到本轮之前",
+    "title": "恢复到本轮之前？",
+    "body": "项目将回到本轮开始时的状态。",
+    "userChanges": "本轮之后更改过的文件。恢复会丢弃这些更改：",
+    "laterRounds": "此项目中之后的助手轮次也会被丢弃。",
+    "confirm": "恢复",
+    "done": "项目已恢复。",
+    "undo": "撤销恢复",
+    "undone": "已撤销恢复。",
+    "redo": "重做恢复",
+    "redone": "已重做恢复。",
+    "failed": "无法恢复项目。",
+    "fileDeleted": "文件已被删除"
+  }
+}

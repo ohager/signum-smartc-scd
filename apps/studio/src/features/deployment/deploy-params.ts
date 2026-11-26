@@ -1,5 +1,7 @@
 import type { LabelMap, SlotLabel } from "@/features/inspector/model/label-map";
 import { decimalToBigInt, slotToBigInt, type FormatContext } from "@/features/inspector/model/decode";
+import { generateLabels } from "@/features/inspector/compiler/label-generator";
+import { resolveLabelMap, type IndexedLabelMap } from "@/features/inspector/model/resolve-label-map";
 import { encodeValue, toContractData, type EncodeError } from "@/features/inspector/model/encode";
 
 /**
@@ -113,4 +115,18 @@ export function buildDataStack(args: {
   const tooLarge = length > capacity;
   const invalid = fields.some((f) => f.error);
   return { fields, rows, data: tooLarge || invalid ? null : rows.map((r) => toContractData(r.raw)), tooLarge };
+}
+
+/**
+ * The parameters of a contract from its source: compiles once for the code
+ * hash and the generated labels, picks the Label Map that lists that hash,
+ * and lays it over the generator's suggestions (TESTBED-convention variables).
+ * `[]` when the source does not compile.
+ */
+export function deployParamsFor(source: string, labelMaps: IndexedLabelMap[]): SlotLabel[] {
+  const generated = generateLabels(source);
+  if (!generated.ok) return [];
+  const resolution = resolveLabelMap(generated.labels.codeHash, undefined, labelMaps);
+  const map = resolution.kind === "hash" ? resolution.entry.map : null;
+  return paramSlots(generated.labels.slots, map);
 }

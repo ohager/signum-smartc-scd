@@ -6,9 +6,10 @@ import { EditorFileActions } from "@/components/ui/editor/file-actions.tsx";
 import type { File } from "@/lib/file-system";
 import { t } from "@/i18n/runtime";
 import { addContracts, moveContract, parseWatchlist, removeContract, updateContract, type WatchEntry } from "../model/watchlist";
-import { useFollowedFile } from "../workspace/use-followed-file";
+import { useFollowedFile } from "@/components/ui/editor/use-followed-file.ts";
 import { JsoncSourceEditor } from "./jsonc-source-editor";
 import { writeThrough } from "./write-through";
+import { isFileLocked } from "@/features/assistant/lock";
 import { ContractView } from "./contract-view";
 import { entryKey, WatchlistPanel } from "./watchlist-panel";
 import { AddContractDialog } from "./add-contract-dialog";
@@ -34,7 +35,7 @@ export function InspectorEditor({ file }: { file: File }) {
 
   const write = (edit: (text: string) => string) => {
     try {
-      void writeThrough(editor, edit);
+      void writeThrough(editor, edit, () => isFileLocked(file));
     } catch (e) {
       toast.error((e as Error).message);
     }
@@ -70,7 +71,7 @@ export function InspectorEditor({ file }: { file: File }) {
         readout={<EditorFileActions isDirty={editor.isDirty} onSave={editor.saveNow} onDownload={editor.download} />}
       />
       {view === "json" || !parsed.ok ? (
-        <JsoncSourceEditor editor={editor} path={file.metadata.path} />
+        <JsoncSourceEditor editor={editor} path={file.metadata.path} file={file} />
       ) : (
         <div className="flex min-h-0 flex-1">
           <WatchlistPanel

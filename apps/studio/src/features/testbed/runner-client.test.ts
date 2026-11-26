@@ -94,4 +94,41 @@ describe("runTests", () => {
 
     expect(seen.filter((e) => e.type === "test:end").every((e: any) => e.status === "passed")).toBe(true);
   });
+
+  it("abort terminates and ends the run", async () => {
+    const { transport, state, send } = fakeTransport();
+    const seen: TestEvent[] = [];
+    const controller = new AbortController();
+    const done = runTests(emptyRequest, transport, (e) => seen.push(e), { signal: controller.signal });
+
+    send({ type: "test:start", id: "a#0", name: "t", path: ["t"], file: "a" });
+    controller.abort();
+    await done;
+
+    expect(seen.map((e) => e.type)).toEqual(["test:start", "test:end", "run:end"]);
+    expect((seen[1] as { status: string }).status).toBe("timedout");
+    expect(state.terminated).toBe(true);
+  });
+
+  it("an already aborted signal ends immediately without a test:end", async () => {
+    const { transport, state } = fakeTransport();
+    const seen: TestEvent[] = [];
+    const controller = new AbortController();
+    controller.abort();
+    await runTests(emptyRequest, transport, (e) => seen.push(e), { signal: controller.signal });
+    expect(seen.map((e) => e.type)).toEqual(["run:end"]);
+    expect(state.terminated).toBe(true);
+  });
+
+  it("ignores events and aborts that arrive after the run ended", async () => {
+    const { transport, send } = fakeTransport();
+    const seen: TestEvent[] = [];
+    const controller = new AbortController();
+    const done = runTests(emptyRequest, transport, (e) => seen.push(e), { signal: controller.signal });
+    send({ type: "run:end", durationMs: 0 });
+    await done;
+    send({ type: "test:start", id: "a#0", name: "t", path: ["t"], file: "a" });
+    controller.abort();
+    expect(seen.map((e) => e.type)).toEqual(["run:end"]);
+  });
 });

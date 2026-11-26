@@ -8,6 +8,7 @@ import testbed from "./testbed.json";
 import smartcEditor from "./smartc-editor.json";
 import asmEditor from "./asm-editor.json";
 import inspector from "./inspector.json";
+import assistant from "./assistant.json";
 
 /**
  * English is the source of every key, and the fallback for every locale.
@@ -25,6 +26,7 @@ const en = {
   "smartc-editor": smartcEditor,
   "asm-editor": asmEditor,
   inspector,
+  assistant,
 } satisfies Messages;
 
 export default en;

@@ -1,22 +1,26 @@
 import { serve } from "bun";
 import index from "./src/index.html";
 
-const WORKER_ENTRYPOINT = "./src/features/testbed/runner/worker.ts";
+/** Fixed URL -> entry, mirroring the standalone files build.ts emits. */
+const WORKERS: Record<string, string> = {
+  "/testbed-worker.js": "./src/features/testbed/runner/worker.ts",
+  "/analysis-worker.js": "./src/features/analysis/worker/analysis-worker.ts",
+};
 
-let workerCache: { mtimeMs: number; code: string } | null = null;
+const workerCache = new Map<string, { mtimeMs: number; code: string }>();
 
-async function buildWorker(): Promise<Response> {
-  const workerFile = Bun.file(WORKER_ENTRYPOINT);
-  const { mtimeMs } = await workerFile.stat();
+async function buildWorker(entrypoint: string): Promise<Response> {
+  const { mtimeMs } = await Bun.file(entrypoint).stat();
+  const cached = workerCache.get(entrypoint);
 
-  if (workerCache && workerCache.mtimeMs === mtimeMs) {
-    return new Response(workerCache.code, {
+  if (cached && cached.mtimeMs === mtimeMs) {
+    return new Response(cached.code, {
       headers: { "Content-Type": "text/javascript" },
     });
   }
 
   const result = await Bun.build({
-    entrypoints: [WORKER_ENTRYPOINT],
+    entrypoints: [entrypoint],
     target: "browser",
     splitting: false,
   });
@@ -27,7 +31,7 @@ async function buildWorker(): Promise<Response> {
   }
 
   const code = await result.outputs[0].text();
-  workerCache = { mtimeMs, code };
+  workerCache.set(entrypoint, { mtimeMs, code });
 
   return new Response(code, {
     headers: { "Content-Type": "text/javascript" },
@@ -36,7 +40,7 @@ async function buildWorker(): Promise<Response> {
 
 const server = serve({
   routes: {
-    "/testbed-worker.js": () => buildWorker(),
+    ...Object.fromEntries(Object.entries(WORKERS).map(([url, entry]) => [url, () => buildWorker(entry)])),
     "/*": index,
   },
   development: process.env.NODE_ENV !== "production",

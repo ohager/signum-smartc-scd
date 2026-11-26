@@ -18,7 +18,8 @@ import { downloadBlob } from "@/lib/download.ts";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
 import { NameInputDialog } from "./name-input-dialog";
 import { useEffect, useRef, useState } from "react";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { touchedFilesAtom } from "@/features/assistant/state";
 import { revealFileRequestAtom } from "@/stores/project-tree-atoms";
 import { toast } from "sonner";
 import { t } from "@/i18n/runtime";
@@ -49,6 +50,18 @@ export function FileSidebarItem({ file, projectId }: Props) {
     rowRef.current?.scrollIntoView({ block: "nearest" });
     setRevealRequest(null);
   }, [revealRequest, file.id]);
+
+  /* The assistant's dot goes away once the user has looked at the file. */
+  const touched = useAtomValue(touchedFilesAtom).has(file.id);
+  const setTouchedFiles = useSetAtom(touchedFilesAtom);
+  useEffect(() => {
+    if (!isActive || !touched) return;
+    setTouchedFiles((prev) => {
+      const next = new Set(prev);
+      next.delete(file.id);
+      return next;
+    });
+  }, [isActive, touched, file.id, setTouchedFiles]);
 
   const siblingNames = new Set(
     fs
@@ -88,6 +101,14 @@ export function FileSidebarItem({ file, projectId }: Props) {
         >
           <FileIcon className="h-4 w-4" />
           <span>{file.name}</span>
+          {touched && (
+            <span
+              role="img"
+              aria-label={t("assistant.touched")}
+              title={t("assistant.touched")}
+              className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent-2)]"
+            />
+          )}
         </SidebarMenuSubButton>
 
         <DropdownMenu>

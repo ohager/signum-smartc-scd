@@ -1,0 +1,97 @@
+{
+  "connect": {
+    "action": "Conectar asistente",
+    "title": "Conectar asistente",
+    "description": "Deja que un asistente de IA trabaje en tus proyectos mediante un relay local en este equipo.",
+    "port": "Puerto",
+    "portInvalid": "Introduce un número entero de 1 a 65535, distinto de 6876 y 6877.",
+    "hint": "Una vez registrado, tu agente inicia el relay por sí mismo. Luego conecta aquí.",
+    "submit": "Conectar",
+    "preparing": "Preparando…",
+    "setup": {
+      "other": "Otros",
+      "register": "Registrar el relay",
+      "registerOther": "Añade esto a la configuración MCP de tu agente",
+      "skill": "Instalar el skill de SmartC",
+      "restart": "Reiniciar {agent} para que cargue ambos",
+      "restartOther": "Reiniciar tu agente para que cargue ambos",
+      "show": "Mostrar configuración",
+      "hide": "Ocultar configuración",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "copyFailed": "No se pudo copiar. Selecciona el comando y cópialo tú mismo."
+    }
+  },
+  "approval": {
+    "title": "Acceso del asistente",
+    "request": "**{client}** quiere acceder a tu espacio de trabajo.",
+    "unknownClient": "Un asistente",
+    "allow": "Permitir",
+    "deny": "Denegar",
+    "occupiedTitle": "Asistente ya conectado",
+    "occupied": "Otra pestaña de Studio está conectada al asistente. ¿Tomar el control aquí?",
+    "takeOver": "Tomar el control",
+    "cancel": "Cancelar"
+  },
+  "status": {
+    "connected": "{client} conectado",
+    "connecting": "Conectando en el puerto {port}…",
+    "cancel": "Cancelar",
+    "disconnect": "Desconectar",
+    "activity": "Actividad",
+    "takenOver": "Otra pestaña tomó el control del asistente.",
+    "mismatchReload": "Recarga Studio para usar esta versión del asistente.",
+    "reload": "Recargar",
+    "mismatchUpdate": "El relay del asistente está desactualizado. Actualízalo con `npx @smartc-studio/mcp@latest` y reinicia tu agente.",
+    "failed": "No se pudo alcanzar el relay en el puerto {port}.",
+    "closed": "Se cerró la conexión con el asistente."
+  },
+  "lock": {
+    "banner": "El asistente de IA está trabajando en este proyecto",
+    "takeOver": "Tomar el control",
+    "readOnly": "El asistente de IA está trabajando en este proyecto. Toma el control para editar.",
+    "blocked": "El asistente de IA está trabajando en este proyecto. Toma el control para editar."
+  },
+  "follow": {
+    "label": "Seguir",
+    "hint": "Abrir los archivos de este proyecto que cambia el asistente"
+  },
+  "gutter": {
+    "added": "Añadido por el asistente",
+    "changed": "Cambiado por el asistente. Haz clic para ver el texto anterior.",
+    "deleted": "Eliminado por el asistente. Haz clic para ver el texto eliminado.",
+    "previous": "Texto anterior"
+  },
+  "touched": "Cambiado por el asistente",
+  "feed": {
+    "title": "Actividad del asistente",
+    "description": "Lo que hizo el asistente en esta sesión, agrupado por rondas.",
+    "empty": "El asistente aún no ha hecho nada.",
+    "running": "en curso",
+    "loose": "Otras llamadas",
+    "unknownProject": "Proyecto desconocido",
+    "compile": "compilar",
+    "tests": "{passed}/{total} pruebas",
+    "lint": "lint: {count}",
+    "gas": "gas: importe de activación demasiado bajo",
+    "error": "error: {code}",
+    "viewDiff": "Ver cambios",
+    "diffTitle": "Cambios en {path}",
+    "noTests": "0 pruebas"
+  },
+  "restore": {
+    "action": "Restaurar al estado previo a esta ronda",
+    "title": "¿Restaurar al estado previo a esta ronda?",
+    "body": "El proyecto vuelve a como estaba cuando empezó esta ronda.",
+    "userChanges": "Archivos cambiados desde esta ronda. Al restaurar se descartan esos cambios:",
+    "laterRounds": "También se descartan las rondas posteriores del asistente en este proyecto.",
+    "confirm": "Restaurar",
+    "done": "Proyecto restaurado.",
+    "undo": "Deshacer restauración",
+    "undone": "Restauración deshecha.",
+    "redo": "Rehacer restauración",
+    "redone": "Restauración rehecha.",
+    "failed": "No se pudo restaurar el proyecto.",
+    "fileDeleted": "El archivo fue eliminado"
+  }
+}

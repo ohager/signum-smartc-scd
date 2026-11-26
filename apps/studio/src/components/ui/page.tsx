@@ -2,6 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { useMatch } from "react-router";
 import { WorkflowRail } from "@/features/workflow/rail";
+import { AssistantStatus } from "@/features/assistant/ui/assistant-status";
 
 interface PageProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -39,10 +40,12 @@ const PageHeader = React.forwardRef<HTMLElement, PageHeaderProps>(
     // The home page has no contract to report on and keeps its own strip.
     const inProject = !!useMatch("/projects/:projectId/*");
 
-    // The header carries identity and the rail, and nothing else. Features
-    // used to push their buttons in here through a global atom, which is why
-    // its contents depended on which one mounted last; each verb now belongs
-    // to the surface it acts on.
+    // The header carries identity, the rail and the assistant, and nothing
+    // else. Features used to push their buttons in here through a global atom,
+    // which is why its contents depended on which one mounted last; each verb
+    // now belongs to the surface it acts on. The assistant is the exception
+    // that proves it: it acts on the whole workspace, not on this page, and
+    // the header renders it itself.
     return (
       <header
         ref={ref}
@@ -60,6 +63,7 @@ const PageHeader = React.forwardRef<HTMLElement, PageHeaderProps>(
           {children}
         </div>
         {inProject && <WorkflowRail />}
+        <AssistantStatus />
       </header>
     );
   },

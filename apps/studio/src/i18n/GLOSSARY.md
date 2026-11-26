@@ -5,7 +5,7 @@ then everywhere it is used — nine languages drift apart otherwise.
 
 ## Never translated
 
-SIGNA · Signum · SmartC · Studio · SmartC Studio · XT Wallet · AT · SC-Simulator ·
+SIGNA · Signum · SmartC · Studio · SmartC Studio · XT Wallet · Claude Code · Codex · AT · SC-Simulator ·
 Nexus · Dawn · Solaris · Terminal · Testnet · Mainnet ·
 API function names (`Get_A1`, `Send_To_Address_In_B`, …) · opcodes (`JMP`, `SET`, …) ·
 directive and pragma names (`#program`, `#pragma maxAuxVars`, `^declare`, …) ·

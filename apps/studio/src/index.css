@@ -55,3 +55,31 @@
   opacity: 1;
   text-decoration: underline;
 }
+
+/* Assistant gutter markers: a bar per change since the round's checkpoint. Same tokens as the test markers. */
+.assistant-gutter-added,
+.assistant-gutter-changed,
+.assistant-gutter-deleted {
+  margin-left: 4px;
+  width: 4px !important;
+}
+.assistant-gutter-added { background: var(--green); }
+.assistant-gutter-changed { background: var(--accent-2); cursor: pointer; }
+/* A removal has no line of its own to colour, so it is a short bar at the line it followed. */
+.assistant-gutter-deleted { background: var(--mag); cursor: pointer; height: 4px !important; margin-top: 14px; }
+
+/* The old text shown under a changed line. */
+.assistant-old-text {
+  margin: 0;
+  padding: 2px 8px;
+  overflow: auto;
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--dim);
+  background: color-mix(in srgb, var(--mag) 8%, transparent);
+  border-left: 3px solid var(--mag);
+}
+
+/* Brief flash on the lines a followed write changed. */
+.assistant-follow-highlight { background: color-mix(in srgb, var(--accent-2) 22%, transparent); }

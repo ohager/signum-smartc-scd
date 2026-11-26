@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+### Highlights
+
+- **AI Assistant** — let Claude Code, Codex or another MCP agent work on your
+  projects. Connect it from Studio; see the [setup guide](docs/assistant.md).
+  - The agent can read and edit files, compile, lint, analyse gas and run tests.
+    It has no access to wallets, accounts, networks or deployment.
+  - Every agent round is checkpointed and locks its project. Take over at any
+    moment, follow the changes live, see gutter markers, browse the activity
+    feed, and restore a round with one click (and undo the restore).
+- **Gas analysis and lint in the editor** — worst-case gas against
+  `activationAmount`, and checks for missing sender checks, unbounded loops,
+  missing `default:` and `catch`, pragma drift and more. They work without an
+  agent and are translated into all nine languages.
+- **`@smartc-studio/mcp`** — the local MCP relay between your agent and Studio.
+  Start it with `npx @smartc-studio/mcp`.
+
 ## 0.3.0-alpha.1 — 2026-09-30
 
 Studio can look at contracts that are already on chain. Still **experimental**:

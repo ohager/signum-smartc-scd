@@ -8,13 +8,14 @@ import {
   ToolbarDiagnostic,
 } from "@/components/ui/surface-toolbar.tsx";
 import { useFileSystem } from "@/hooks/use-file-system.ts";
+import { useAssistantEditor, useEditorHandles } from "@/features/assistant/ui/use-assistant-editor";
 import { findProjectOfFolder } from "@/features/project/project-root";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import {
   EditorFileActions,
   registerEditorFileActions,
 } from "@/components/ui/editor/file-actions.tsx";
-import { useEditorFile } from "@/components/ui/editor/use-editor-file.ts";
+import { useFollowedFile } from "@/components/ui/editor/use-followed-file.ts";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog.tsx";
 import { registerAsmLanguage } from "./language-definitions/asm-language-definitions.ts";
 import { type File } from "@/lib/file-system";
@@ -58,7 +59,7 @@ function AsmCodeEditor({ file, onSave }: Props) {
     onChange: handleEditorChange,
     saveNow: saveAsmFile,
     download,
-  } = useEditorFile({ file, onSaved: reportMachineCode });
+  } = useFollowedFile(file, { onSaved: reportMachineCode });
 
   const handleEditorBeforeMount: BeforeMount = (monaco) => {
     registerAsmLanguage(monaco);
@@ -69,7 +70,11 @@ function AsmCodeEditor({ file, onSave }: Props) {
     setValidationError(error ?? "");
   };
 
+  const assistant = useEditorHandles();
+  useAssistantEditor({ ...assistant, file });
+
   const handleEditorDidMount: OnMount = (editor, monaco) => {
+    assistant.capture(editor, monaco);
     registerEditorFileActions(editor, monaco, { onDownload: download });
   };
   return (

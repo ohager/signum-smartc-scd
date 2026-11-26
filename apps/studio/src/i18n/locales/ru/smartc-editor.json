@@ -23,5 +23,67 @@
     "keyword": "**Ключевое слово SmartC**",
     "variable": "Переменная SmartC (строка {line})",
     "userFunction": "Функция SmartC"
+  },
+  "analysis": {
+    "senderCheck": {
+      "message": "Обработчик `{handler}` {what}, не проверяя, кто отправил транзакцию.",
+      "writesGlobals": "записывает {globals}",
+      "writesMaps": "записывает значения map",
+      "sendsFunds": "отправляет средства",
+      "and": " и ",
+      "hint": "Сравните отправителя с владельцем перед изменением состояния: `if (getSender(currentTX.txId) != owner) { continue; }` в цикле диспетчеризации или `if (currentTX.sender != getCreator()) { return; }` в начале обработчика."
+    },
+    "sendWithoutCheck": {
+      "message": "Перед `{call}` нет проверки баланса или суммы.",
+      "hintAmount": "Сначала проверьте средства: `if (getCurrentBalance() >= amount) { sendAmount(amount, recipient); }`.",
+      "hintBalance": "Сначала проверьте средства: `if (getCurrentBalance() > 0) { sendBalance(recipient); }`."
+    },
+    "unboundedLoop": {
+      "message": "У этого цикла нет распознаваемой границы; условие не зависит ни от чего, что меняет тело цикла.",
+      "hint": "Считайте до предела, который проверяет условие: `for (i = 0; i < 10; i++) { … }`, или перенесите работу в цикл `getNextTx`, чтобы каждая активация выполняла ограниченный объём работы."
+    },
+    "activationBelowGas": {
+      "message": "Худший случай стоит {cost}, но activationAmount равен {activation} SIGNA.",
+      "messageNoDirective": "activationAmount не задан; худший случай стоит {cost}.",
+      "cost": "{worstCase} SIGNA{where}",
+      "costAtLeast": "не менее {worstCase} SIGNA{where}",
+      "where": " (обработчик `{handler}`)",
+      "whereMethod": " (обработчик `{handler}`, метод {method})",
+      "hint": "Задайте `#program activationAmount {required}` ({requiredSigna} SIGNA, худший случай, округлённый вверх до 0,01 SIGNA).",
+      "hintLoopCap": "Предполагалось, что циклы выполняются {loopCap} раз; более долгий цикл стоит дороже.",
+      "hintNoSwitch": "В контракте нет диспетчера `switch`, поэтому анализ не смог пройти все пути, и реальный максимум может быть выше."
+    },
+    "switchNoDefault": {
+      "message": "В этом `switch` нет `default:`, поэтому неизвестные методы принимаются молча.",
+      "hint": "Добавьте `default:`, который отклоняет или возвращает средства, например `default: sendAmount(currentTX.amount, currentTX.sender); break;`."
+    },
+    "pragmaVersion": {
+      "missing": {
+        "message": "Отсутствует `#pragma version`.",
+        "hint": "Зафиксируйте компилятор: `#pragma version {recommended}` в начале файла."
+      },
+      "differs": {
+        "message": "`#pragma version {found}` отличается от компилятора Studio ({compiler}).",
+        "hint": "Измените на `#pragma version {recommended}` и протестируйте снова либо компилируйте подходящим компилятором."
+      },
+      "missingOptimization": {
+        "message": "Отсутствует `#pragma optimizationLevel`.",
+        "hint": "Задайте его явно, например `#pragma optimizationLevel 2`, чтобы результат не зависел от значения компилятора по умолчанию."
+      }
+    },
+    "noCatch": {
+      "message": "Нет обработчика `catch`: после фатальной ошибки контракт остаётся мёртвым.",
+      "messageSends": "Нет обработчика `catch`: после фатальной ошибки контракт остаётся мёртвым, а его баланс заблокирован внутри.",
+      "hint": "Добавьте глобальный обработчик ошибок. Продолжить работу: `void catch() { asm { JMP :__fn_main } }` — транзакция, вызвавшая сбой, уже потреблена `getNextTx`, так что контракт продолжит со следующей. Завершить работу: `void catch() { sendBalance(getCreator()); exit; }`."
+    },
+    "catchRecurringFault": {
+      "message": "Сбой здесь повторяется при каждой активации и сжигает gas, пока не закончится баланс.",
+      "hintDivision": "Обработчик `catch` возобновляет работу с `main`, который снова выполняет это деление. Защитите его (проверьте делитель, ограничьте рекурсию), перенесите в обработчик или завершите работу: `void catch() { sendBalance(getCreator()); exit; }`.",
+      "hintRecursion": "Обработчик `catch` возобновляет работу с `main`, который снова выполняет этот рекурсивный вызов. Защитите его (проверьте делитель, ограничьте рекурсию), перенесите в обработчик или завершите работу: `void catch() { sendBalance(getCreator()); exit; }`."
+    },
+    "overwrittenParam": {
+      "message": "`{name}` — параметр развёртывания, но эта строка записывает его до запуска `main`, поэтому развёрнутое значение заменяется при первой активации.",
+      "hint": "Уберите запись или присваивайте, только если слот ещё не задан (`if (x == 0) { x = … }`), внутри `main`."
+    }
   }
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { Glob } from "bun";
 
 /**
- * The header carries identity and the rail. Nothing else.
+ * The header carries identity, the rail and the assistant. Nothing else.
  *
  * Actions used to be pushed into it from three features through a global atom,
  * which is why its contents depended on which feature mounted last and why the

@@ -21,12 +21,13 @@ import {
   upsertSlot,
 } from "../model/label-map-edits";
 import { applyMerge } from "../model/merge-labels";
-import { useFollowedFile } from "../workspace/use-followed-file";
+import { useFollowedFile } from "@/components/ui/editor/use-followed-file.ts";
 import { enumToLines, parseEnumLines } from "./enum-lines";
 import { GenerateLabelsDialog } from "./generate-labels-dialog";
 import { JsoncSourceEditor } from "./jsonc-source-editor";
 import { ROW_HOVER, ROW_SELECTED } from "./selection";
 import { writeThrough } from "./write-through";
+import { isFileLocked } from "@/features/assistant/lock";
 import { MapGroupDialog } from "./map-group-dialog";
 import { SlotLabelDialog } from "./slot-label-dialog";
 
@@ -48,7 +49,7 @@ export function LabelMapEditor({ file }: { file: File }) {
 
   const write = (edit: (text: string) => string) => {
     try {
-      void writeThrough(editor, edit);
+      void writeThrough(editor, edit, () => isFileLocked(file));
     } catch (e) {
       toast.error((e as Error).message);
     }
@@ -84,7 +85,7 @@ export function LabelMapEditor({ file }: { file: File }) {
       />
 
       {view === "json" || !map ? (
-        <JsoncSourceEditor editor={editor} path={file.metadata.path} />
+        <JsoncSourceEditor editor={editor} path={file.metadata.path} file={file} />
       ) : (
         <Tabs defaultValue="slots" className="flex min-h-0 flex-1 flex-col">
           <TabsList className="mx-4 mt-2 self-start">

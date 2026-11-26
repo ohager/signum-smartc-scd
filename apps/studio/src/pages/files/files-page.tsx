@@ -13,6 +13,10 @@ import { TestFileEditor } from "@/features/testbed/ui/test-file-editor";
 import { InspectorEditor } from "@/features/inspector/ui/inspector-editor";
 import { LabelMapEditor } from "@/features/inspector/ui/label-map-editor";
 import { t } from "@/i18n/runtime";
+import { useAtomValue } from "jotai";
+import { findProjectOfFolder } from "@/features/project/project-root";
+import { lockedProjectsAtom } from "@/features/assistant/state";
+import { LockBanner } from "@/features/assistant/ui/lock-banner";
 
 type FilesPageParams = {
   projectId: string;
@@ -24,6 +28,7 @@ export function FilesPage() {
   const { fileId = "", projectId = "" } = useParams<FilesPageParams>();
 
   const navigate = useNavigate();
+  const lockedProjects = useAtomValue(lockedProjectsAtom);
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -118,6 +123,9 @@ export function FilesPage() {
   }
 
   const {name, type, id} = file!.metadata
+  // The lock set holds top-level project ids and the URL's projectId may be a subfolder.
+  const lockedProject = findProjectOfFolder(fs, file!.metadata.folderId);
+  const isLocked = lockedProject !== null && lockedProjects.has(lockedProject);
   return (
     <Page>
       <PageHeader>
@@ -129,6 +137,7 @@ export function FilesPage() {
           broke the height chain: a block box between them gives the editors no
           flex context, so their `flex-1` means nothing, they size to content,
           and Monaco — which has no intrinsic height — collapses to zero. */}
+      {isLocked && <LockBanner projectId={lockedProject!} />}
       <PageContent className="overflow-hidden">
         {type === FileTypes.SmartC && (
           <SmartCFileEditor key={id} file={file!} />

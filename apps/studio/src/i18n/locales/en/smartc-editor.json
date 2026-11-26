@@ -23,5 +23,67 @@
     "keyword": "**SmartC Keyword**",
     "variable": "SmartC variable (line {line})",
     "userFunction": "SmartC function"
+  },
+  "analysis": {
+    "senderCheck": {
+      "message": "Handler `{handler}` {what} without checking who sent the transaction.",
+      "writesGlobals": "writes {globals}",
+      "writesMaps": "writes map values",
+      "sendsFunds": "sends funds",
+      "and": " and ",
+      "hint": "Compare the sender with the owner before changing state: `if (getSender(currentTX.txId) != owner) { continue; }` in the dispatch loop, or `if (currentTX.sender != getCreator()) { return; }` at the top of the handler."
+    },
+    "sendWithoutCheck": {
+      "message": "`{call}` is not preceded by a balance or amount check.",
+      "hintAmount": "Check the funds first: `if (getCurrentBalance() >= amount) { sendAmount(amount, recipient); }`.",
+      "hintBalance": "Check the funds first: `if (getCurrentBalance() > 0) { sendBalance(recipient); }`."
+    },
+    "unboundedLoop": {
+      "message": "This loop has no recognisable bound; the condition is not driven by anything the body changes.",
+      "hint": "Count towards a limit the condition tests: `for (i = 0; i < 10; i++) { … }`, or move the work into the `getNextTx` loop so each activation does a bounded amount."
+    },
+    "activationBelowGas": {
+      "message": "The worst case costs {cost}, but activationAmount is {activation} SIGNA.",
+      "messageNoDirective": "No activationAmount set; the worst case costs {cost}.",
+      "cost": "{worstCase} SIGNA{where}",
+      "costAtLeast": "at least {worstCase} SIGNA{where}",
+      "where": " (handler `{handler}`)",
+      "whereMethod": " (handler `{handler}`, method {method})",
+      "hint": "Set `#program activationAmount {required}` ({requiredSigna} SIGNA, the worst case rounded up to 0.01 SIGNA).",
+      "hintLoopCap": "Loops were assumed to run {loopCap} times; a loop that runs longer costs more.",
+      "hintNoSwitch": "The contract has no `switch` dispatcher, so the analysis could not follow every path and the real maximum may be higher."
+    },
+    "switchNoDefault": {
+      "message": "This `switch` has no `default:`, so unknown methods are accepted silently.",
+      "hint": "Add a `default:` that rejects or refunds, e.g. `default: sendAmount(currentTX.amount, currentTX.sender); break;`."
+    },
+    "pragmaVersion": {
+      "missing": {
+        "message": "`#pragma version` is missing.",
+        "hint": "Pin the compiler: `#pragma version {recommended}` at the top of the file."
+      },
+      "differs": {
+        "message": "`#pragma version {found}` differs from the Studio's compiler ({compiler}).",
+        "hint": "Change it to `#pragma version {recommended}` and re-test, or compile with a matching compiler."
+      },
+      "missingOptimization": {
+        "message": "`#pragma optimizationLevel` is missing.",
+        "hint": "Set it explicitly, e.g. `#pragma optimizationLevel 2`, so the output does not depend on the compiler default."
+      }
+    },
+    "noCatch": {
+      "message": "No `catch` handler: after a fatal fault the contract stays dead.",
+      "messageSends": "No `catch` handler: after a fatal fault the contract stays dead, with its balance locked in it.",
+      "hint": "Add a global error handler. Resume: `void catch() { asm { JMP :__fn_main } }` — the faulting transaction was already consumed by `getNextTx`, so the contract carries on with the next one. Wind down: `void catch() { sendBalance(getCreator()); exit; }`."
+    },
+    "catchRecurringFault": {
+      "message": "A fault here recurs on every activation and burns gas until the balance is gone.",
+      "hintDivision": "The `catch` handler resumes at `main`, which runs this division again. Guard it (check the divisor, bound the recursion), move it into a handler, or wind down instead: `void catch() { sendBalance(getCreator()); exit; }`.",
+      "hintRecursion": "The `catch` handler resumes at `main`, which runs this recursive call again. Guard it (check the divisor, bound the recursion), move it into a handler, or wind down instead: `void catch() { sendBalance(getCreator()); exit; }`."
+    },
+    "overwrittenParam": {
+      "message": "`{name}` is a deploy parameter, but this line writes it before `main` runs, so the deployed value is replaced on first activation.",
+      "hint": "Drop the write, or only assign when the slot is still unset (`if (x == 0) { x = … }`) inside `main`."
+    }
   }
 }

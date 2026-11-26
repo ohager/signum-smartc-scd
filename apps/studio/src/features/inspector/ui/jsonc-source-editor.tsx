@@ -2,8 +2,10 @@ import Editor, { type OnMount } from "@monaco-editor/react";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import { EDITOR_SCROLLBAR, registerClimateThemes } from "@/theme/monaco-themes";
 import { registerEditorFileActions } from "@/components/ui/editor/file-actions.tsx";
+import type { File } from "@/lib/file-system";
 import type { EditorFile } from "@/components/ui/editor/use-editor-file.ts";
 import { registerStudioJson } from "../monaco/register-json";
+import { useAssistantEditor, useEditorHandles } from "@/features/assistant/ui/use-assistant-editor";
 
 /**
  * The raw-text view of a watchlist or Label Map. The model's `path` is the
@@ -13,13 +15,17 @@ import { registerStudioJson } from "../monaco/register-json";
 export function JsoncSourceEditor({
   editor,
   path,
+  file,
   onMount,
 }: {
   editor: EditorFile;
   path: string;
+  file: File;
   onMount?: Parameters<OnMount>[0] extends infer E ? (editor: E) => void : never;
 }) {
   const monacoTheme = useMonacoTheme("json");
+  const assistant = useEditorHandles();
+  useAssistantEditor({ ...assistant, file });
   return (
     <div className="min-h-0 flex-1 rounded">
       <Editor
@@ -34,6 +40,7 @@ export function JsoncSourceEditor({
           registerStudioJson(monaco);
         }}
         onMount={(instance, monaco) => {
+          assistant.capture(instance, monaco);
           registerEditorFileActions(instance, monaco, { onDownload: editor.download });
           onMount?.(instance);
         }}
