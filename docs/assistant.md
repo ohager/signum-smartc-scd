@@ -19,7 +19,7 @@ The quickest way: open the Connect dialog in Studio (assistant icon, top right).
    Claude Code:
 
    ```sh
-   claude mcp add smartc-studio -- npx -y @smartc-studio/mcp
+   claude mcp add --scope user smartc-studio -- npx -y @smartc-studio/mcp
    ```
 
    Codex:
@@ -37,7 +37,7 @@ The quickest way: open the Connect dialog in Studio (assistant icon, top right).
 2. Install the [signum-smartc skill](https://github.com/ohager/signum-smartc-skill). It teaches the agent the SmartC language and the testing flow, so the results are much better. One command installs it into Claude Code, Codex and the other agents it finds:
 
    ```sh
-   npx skills add ohager/signum-smartc-skill
+   npx skills add ohager/signum-smartc-skill -g
    ```
 
 3. Restart your agent so it loads both.
@@ -67,7 +67,7 @@ args = ["-y", "@smartc-studio/mcp", "--allow-origin", "https://studio.example.co
 A Studio dev server runs on `http://localhost`, and the relay refuses localhost origins by default. Any local web server can serve a page from localhost (another project's dev server, a script from a package you installed), and such a page could then connect in Studio's place and ask for your Allow. When you work on Studio itself, start the relay with `--dev` (or `SMARTC_STUDIO_DEV=1`) to accept `http://localhost` and `http://127.0.0.1` on any port:
 
 ```sh
-claude mcp add smartc-studio -- npx -y @smartc-studio/mcp --dev
+claude mcp add --scope user smartc-studio -- npx -y @smartc-studio/mcp --dev
 ```
 
 To allow just one local origin without `--dev`, name it: `--allow-origin http://localhost:3000`.

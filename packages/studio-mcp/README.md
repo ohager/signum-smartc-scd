@@ -11,7 +11,7 @@ The Connect dialog in SmartC Studio (assistant icon, top right) shows these step
 Claude Code:
 
 ```sh
-claude mcp add smartc-studio -- npx -y @smartc-studio/mcp
+claude mcp add --scope user smartc-studio -- npx -y @smartc-studio/mcp
 ```
 
 Codex:
@@ -29,7 +29,7 @@ Other MCP clients:
 Install the [signum-smartc skill](https://github.com/ohager/signum-smartc-skill) too (Claude Code, Codex and other agents):
 
 ```sh
-npx skills add ohager/signum-smartc-skill
+npx skills add ohager/signum-smartc-skill -g
 ```
 
 Restart your agent, then open SmartC Studio, click the assistant icon (top right) and choose **Connect assistant**. Update with `npx @smartc-studio/mcp@latest`.

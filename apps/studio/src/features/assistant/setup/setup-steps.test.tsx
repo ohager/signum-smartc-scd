@@ -8,7 +8,7 @@ import { SetupSteps } from "./setup-steps";
 afterEach(() => resetMessages());
 
 const target = { port: 6890, origin: "https://smartc-studio.signum-network.dev" };
-const CLAUDE = "claude mcp add smartc-studio -- npx -y @smartc-studio/mcp";
+const CLAUDE = "claude mcp add --scope user smartc-studio -- npx -y @smartc-studio/mcp";
 
 function render() {
   return renderToStaticMarkup(
@@ -22,11 +22,15 @@ describe("SetupSteps", () => {
   it("shows the Claude Code command by default", () => {
     const html = render();
     expect(html).toContain(CLAUDE);
-    expect(html).toContain("npx skills add ohager/signum-smartc-skill");
+    expect(html).toContain("npx skills add ohager/signum-smartc-skill -g");
   });
 
   it("wraps long commands", () => {
     expect(render()).toMatch(/<code[^>]*class="[^"]*break-all/);
+  });
+
+  it("scrolls the steps itself so Connect stays reachable on short screens", () => {
+    expect(render()).toMatch(/class="[^"]*max-h-\[[^"]*overflow-y-auto/);
   });
 
   it("keeps commands untranslated", () => {

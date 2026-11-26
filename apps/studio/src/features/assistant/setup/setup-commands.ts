@@ -12,7 +12,8 @@ export interface SetupTarget {
 
 const SERVER_NAME = "smartc-studio";
 
-export const SKILL_COMMAND = "npx skills add ohager/signum-smartc-skill";
+/* -g: global, like the relay's user scope; the default installs into the current folder only. */
+export const SKILL_COMMAND = "npx skills add ohager/signum-smartc-skill -g";
 
 /*
  * The relay's command line, matching this Studio: a port other than the default must be
@@ -30,7 +31,8 @@ export function registerCommand(agent: AgentTab, target: SetupTarget): string {
   const args = relayArgs(target);
   switch (agent) {
     case "claude":
-      return `claude mcp add ${SERVER_NAME} -- npx ${args.join(" ")}`;
+      // User scope: Claude Code's default (local) would register the relay for whatever folder the terminal is in.
+      return `claude mcp add --scope user ${SERVER_NAME} -- npx ${args.join(" ")}`;
     case "codex":
       return `codex mcp add ${SERVER_NAME} -- npx ${args.join(" ")}`;
     case "other":

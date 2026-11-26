@@ -1,11 +1,14 @@
 import { describe, expect, it } from "bun:test";
-import { registerCommand, relayArgs } from "./setup-commands";
+import { SKILL_COMMAND, registerCommand, relayArgs } from "./setup-commands";
 
 const prod = { port: 6890, origin: "https://smartc-studio.signum-network.dev" };
 
 describe("setup commands", () => {
   it("registers with Claude Code", () =>
-    expect(registerCommand("claude", prod)).toBe("claude mcp add smartc-studio -- npx -y @smartc-studio/mcp"));
+    expect(registerCommand("claude", prod)).toBe("claude mcp add --scope user smartc-studio -- npx -y @smartc-studio/mcp"));
+
+  it("installs the skill for every project, not just the current folder", () =>
+    expect(SKILL_COMMAND.split(" ")).toContain("-g"));
 
   it("registers with Codex", () =>
     expect(registerCommand("codex", prod)).toBe("codex mcp add smartc-studio -- npx -y @smartc-studio/mcp"));

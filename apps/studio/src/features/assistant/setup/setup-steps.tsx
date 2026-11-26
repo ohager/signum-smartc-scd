@@ -68,7 +68,8 @@ export function SetupSteps({ target }: { target: SetupTarget }) {
         {expanded ? t("assistant.connect.setup.hide") : t("assistant.connect.setup.show")}
       </Button>
       {expanded && (
-        <Tabs value={tab} onValueChange={(v) => setTab(v as AgentTab)}>
+        /* Scrolls on its own so the port field and Connect stay on screen, even with the JSON tab on a short display. */
+        <Tabs value={tab} onValueChange={(v) => setTab(v as AgentTab)} className="max-h-[45vh] overflow-y-auto">
           <TabsList>
             {AGENT_TABS.map((agent) => (
               <TabsTrigger key={agent} value={agent}>

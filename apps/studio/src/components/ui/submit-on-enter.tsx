@@ -7,6 +7,16 @@ interface SubmitOnEnterProps {
   excludeElements?: string[]; // Elements to exclude (textareas, etc.)
 }
 
+const OWN_ENTER_TAGS = ["button", "a"];
+const OWN_ENTER_ROLES = ["button", "link", "tab", "menuitem"];
+
+/* A focused control that acts on Enter by itself (a Copy button, a tab) must keep it, or Enter submits the form instead. */
+export function handlesEnterItself(el: Element | null): boolean {
+  if (!el) return false;
+  const role = el.getAttribute("role")?.toLowerCase();
+  return OWN_ENTER_TAGS.includes(el.tagName.toLowerCase()) || (role !== undefined && OWN_ENTER_ROLES.includes(role));
+}
+
 export function SubmitOnEnter({
   children,
   onSubmit,
@@ -36,7 +46,7 @@ export function SubmitOnEnter({
         return;
       }
 
-      if (event.key === "Enter") {
+      if (event.key === "Enter" && !handlesEnterItself(activeElement)) {
         if (preventPropagation) {
           event.preventDefault();
           event.stopPropagation();

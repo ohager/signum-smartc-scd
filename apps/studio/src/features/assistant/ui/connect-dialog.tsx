@@ -44,7 +44,7 @@ export function ConnectDialog({ close }: { close: () => void }) {
         <SetupSteps target={{ port, origin: location.origin }} />
         <section className="flex flex-col gap-y-2 my-4 border-t pt-4">
           <Label htmlFor="assistant-port">{t("assistant.connect.port")}</Label>
-          <Input id="assistant-port" inputMode="numeric" value={raw} onChange={(e) => setRaw(e.target.value)} aria-invalid={port === null} />
+          <Input id="assistant-port" inputMode="numeric" value={raw} onChange={(e) => setRaw(e.target.value)} aria-invalid={port === null} autoFocus />
           {port === null && <p className="text-xs text-destructive">{t("assistant.connect.portInvalid")}</p>}
           <p className="text-xs text-muted-foreground">
             <RichText text={t("assistant.connect.hint")} />
