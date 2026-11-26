@@ -30,10 +30,12 @@ import { useFollowedFile } from "@/components/ui/editor/use-followed-file.ts";
 import type { File } from "@/lib/file-system";
 import { serializeScenario } from "@/features/simulator/scenario/scenario-io";
 import { configureTypeScriptForTests } from "../monaco-setup";
+import { registerImportCompletion } from "../import-completion";
 import { useTestRun } from "../use-test-run";
 import { toDebugScenario } from "../to-debug-scenario";
 import { TestResultsPanel } from "./test-results-panel";
 import { useTestDecorations } from "./use-test-decorations";
+import { useProjectModels } from "../use-project-models";
 import { findTests, type FoundTest } from "../instrument/find-tests";
 import { useCursorTest } from "./use-cursor-test";
 import { transpileAll } from "../transpile";
@@ -57,6 +59,10 @@ export function TestFileEditor({ file }: Props) {
   const { projectId = "" } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const fs = useFileSystem();
+  // The route's `:projectId` is the file's own folder (files-page.tsx), so for
+  // `tests/a.test.ts` it is `tests/`. A run must snapshot the whole project, or
+  // `../contract.smart.c?raw` and other files outside that folder are missing.
+  const projectRoot = findProjectOfFolder(fs, projectId) ?? projectId;
   const monacoTheme = useMonacoTheme();
   const monacoRef = useRef<typeof Monaco | null>(null);
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -147,6 +153,7 @@ export function TestFileEditor({ file }: Props) {
     editorRef.current = editor;
     monacoRef.current = monaco;
     configureTypeScriptForTests(monaco);
+    registerImportCompletion(monaco, () => fs.listFilesRecursive().map((f) => f.path));
     registerEditorFileActions(editor, monaco, { onDownload: download });
     setEditorReady(true);
   };
@@ -173,13 +180,13 @@ export function TestFileEditor({ file }: Props) {
       // Save first: the runner reads the project from the file system, not
       // the editor buffer. Quietly — the user asked for a run, not a save.
       await save({ silent: true });
-      return run(monaco, projectId, {
+      return run(monaco, projectRoot, {
         entryPath: file.metadata.path,
         debug: debugRun,
         filter,
       });
     },
-    [save, file.metadata.path, projectId, run, debugRun],
+    [save, file.metadata.path, projectRoot, run, debugRun],
   );
 
   // The rail reports the last run, so the last run has to outlive this editor.
@@ -209,6 +216,9 @@ export function TestFileEditor({ file }: Props) {
     foundTests,
     runSingleTest,
   );
+
+  // Sibling .ts files as models, so imports resolve and complete before any run.
+  useProjectModels(editorReady ? monacoRef.current : null, fs, projectRoot, file.metadata.path);
 
   // The cursor picks the active test, whose values the editor annotates. Rows
   // are matched by name path rather than id: ids are collection-order counters

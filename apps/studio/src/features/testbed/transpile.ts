@@ -1,6 +1,7 @@
 import type * as Monaco from "monaco-editor";
 import type { CompiledModule } from "./runner/types";
 import { configureTypeScriptForTests } from "./monaco-setup";
+import { ensureModel } from "./model-sync";
 
 /**
  * Transpiles project TypeScript to CommonJS using Monaco's own TypeScript
@@ -28,19 +29,16 @@ export async function transpileAll(
   for (const [path, content] of Object.entries(files)) {
     // `file://` + the absolute file system path, so uri.path round-trips to the key.
     const uri = monaco.Uri.parse("file://" + path);
-    const existing = monaco.editor.getModel(uri);
-    if (existing) {
-      if (existing.getValue() !== content) existing.setValue(content);
-    } else {
-      monaco.editor.createModel(content, "typescript", uri);
-    }
+    ensureModel(monaco.editor, uri, content);
     uris.push(uri);
   }
 
   const getWorker = await monaco.languages.typescript.getTypeScriptWorker();
   const out: Record<string, CompiledModule> = {};
 
+  // Again before every emit, after all awaits: a test editor closing meanwhile disposes the models it mirrored.
   for (const uri of uris) {
+    for (const other of uris) ensureModel(monaco.editor, other, files[other.path]!);
     const client = await getWorker(uri);
     const emitted = await client.getEmitOutput(uri.toString());
     const js = emitted.outputFiles.find((f) => f.name.endsWith(".js"));
