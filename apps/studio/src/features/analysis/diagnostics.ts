@@ -70,6 +70,16 @@ function textFor(f: LintFinding): Text {
 const severityOf = (f: LintFinding, s: SeverityMap) =>
   f.severity === "error" ? s.Error : f.severity === "warning" ? s.Warning : s.Info;
 
+type MarkerLike = Pick<Monaco.editor.IMarker, "owner" | "severity" | "message">;
+
+/**
+ * The marker that blocks compiling, if any. Only compile errors do: analysis
+ * markers are advice, so they never block, whatever their severity.
+ */
+export function firstBlockingMarker<M extends MarkerLike>(markers: M[], errorSeverity: number): M | undefined {
+  return markers.find((m) => m.owner !== ANALYSIS_OWNER && m.severity === errorSeverity);
+}
+
 /** Wide enough for any line: Monaco clamps the end column to the line length. */
 const LINE_END = 100_000;
 

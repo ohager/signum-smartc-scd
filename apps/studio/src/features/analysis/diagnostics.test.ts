@@ -3,7 +3,7 @@ import { deployParamsFor } from "@/features/deployment/deploy-params";
 import { fixture } from "./lint/__fixtures__/load";
 import { lintContract } from "./lint/lint";
 import type { LintFinding } from "./lint/types";
-import { ANALYSIS_OWNER, toMarkers } from "./diagnostics";
+import { ANALYSIS_OWNER, firstBlockingMarker, toMarkers } from "./diagnostics";
 
 // Monaco's MarkerSeverity numbers, passed in so the module never imports monaco.
 const SEVERITY = { Error: 8, Warning: 4, Info: 2 };
@@ -55,6 +55,25 @@ describe("toMarkers", () => {
 
   it("exposes its own marker owner", () => {
     expect(ANALYSIS_OWNER).toBe("smartc-analysis");
+  });
+});
+
+describe("firstBlockingMarker", () => {
+  const marker = (owner: string, severity: number, message = `${owner}:${severity}`) => ({ owner, severity, message });
+
+  it("returns the first error marker of the compiler", () => {
+    const markers = [marker("smartc", SEVERITY.Warning), marker("smartc", SEVERITY.Error, "boom")];
+    expect(firstBlockingMarker(markers, SEVERITY.Error)?.message).toBe("boom");
+  });
+
+  it("never lets analysis markers block, whatever their severity", () => {
+    const markers = [marker(ANALYSIS_OWNER, SEVERITY.Error), marker(ANALYSIS_OWNER, SEVERITY.Warning)];
+    expect(firstBlockingMarker(markers, SEVERITY.Error)).toBeUndefined();
+  });
+
+  it("skips an analysis error that comes before a compile error", () => {
+    const markers = [marker(ANALYSIS_OWNER, SEVERITY.Error), marker("smartc", SEVERITY.Error, "compile")];
+    expect(firstBlockingMarker(markers, SEVERITY.Error)?.message).toBe("compile");
   });
 });
 

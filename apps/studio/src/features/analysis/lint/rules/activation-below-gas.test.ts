@@ -8,7 +8,7 @@ const run = (source: string) => runFull(source).map(({ rule, severity, line }) =
 
 describe("activation-below-gas", () => {
   test("fires on the #program activationAmount line", () => {
-    expect(run(fixture("activation-below-gas-fires"))).toEqual([{ rule: "activation-below-gas", severity: "error", line: 3 }]);
+    expect(run(fixture("activation-below-gas-fires"))).toEqual([{ rule: "activation-below-gas", severity: "warning", line: 3 }]);
   });
 
   test("names the worst case, the handler and the amount to set", () => {
@@ -24,9 +24,9 @@ describe("activation-below-gas", () => {
     expect(run(fixture("activation-below-gas-quiet"))).toEqual([]);
   });
 
-  test("without the directive the error sits on line 1 and asks for one", () => {
+  test("without the directive the warning sits on line 1 and asks for one", () => {
     const [f] = runFull(fixture("activation-below-gas-missing"));
-    expect({ line: f!.line, severity: f!.severity }).toEqual({ line: 1, severity: "error" });
+    expect({ line: f!.line, severity: f!.severity }).toEqual({ line: 1, severity: "warning" });
     expect(f!.message).toContain("No activationAmount set");
     expect(f!.hint).toMatch(/#program activationAmount \d+/);
   });

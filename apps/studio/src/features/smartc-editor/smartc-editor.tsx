@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import Editor, { type OnMount } from "@monaco-editor/react";
+import Editor, { type OnMount, type OnValidate } from "@monaco-editor/react";
 import { Code2 } from "lucide-react";
 import { useMonacoTheme } from "@/theme/use-monaco-theme";
 import { registerSmartC, SMARTC_LANGUAGE_ID } from "./language/register.ts";
@@ -25,6 +25,7 @@ import { isContractFile } from "@/features/project/contract";
 import { analyzeWithCompiler } from "./language/compiler-symbols";
 import { EDITOR_SCROLLBAR } from "@/theme/monaco-themes";
 import { t } from "@/i18n/runtime";
+import { firstBlockingMarker } from "@/features/analysis/diagnostics";
 
 async function createAssemblyFile(
   folderId: string,
@@ -167,13 +168,10 @@ function SmartCEditor({ file }: Props) {
     registerEditorFileActions(editor, monaco, { onDownload: download });
   };
 
-  const handleValidate = (markers: any[]) => {
-    // Only compile errors block save/compile; warnings are informational.
+  const handleValidate: OnValidate = (markers) => {
+    // Only compile errors block save/compile; warnings and analysis markers are informational.
     const MARKER_SEVERITY_ERROR = 8; // monaco.MarkerSeverity.Error
-    const firstError = markers.find(
-      (m) => m.severity === MARKER_SEVERITY_ERROR,
-    );
-    setValidationError(firstError?.message ?? "");
+    setValidationError(firstBlockingMarker(markers, MARKER_SEVERITY_ERROR)?.message ?? "");
   };
 
   return (

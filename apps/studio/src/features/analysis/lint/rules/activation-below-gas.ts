@@ -2,9 +2,10 @@ import { gasReport } from "../../gas/gas-report";
 import type { LintFinding, Rule } from "../types";
 
 /**
- * Rule 4: the activation amount must pay for the costliest handler. A call
- * that runs out of gas is a fatal fault, so this is the one error-level rule.
- * The numbers come from the gas analyzer; nothing is recomputed here.
+ * Rule 4: the activation amount should pay for the costliest handler. A call
+ * that runs out of gas is a fatal fault, but the figure is an estimate (loops
+ * are capped, paths may be missed), so this is a warning and never blocks
+ * compiling. The numbers come from the gas analyzer; nothing is recomputed here.
  */
 
 const PLANCK_PER_SIGNA = 100_000_000n;
@@ -36,7 +37,7 @@ export const activationBelowGas: Rule = (ctx) => {
 
   const finding: LintFinding = {
     rule: "activation-below-gas",
-    severity: "error",
+    severity: "warning",
     line: report.activationLine ?? 1,
     message: hasDirective
       ? `The worst case costs ${cost}, but activationAmount is ${formatSigna(report.activationAmountPlanck)} SIGNA.` // i18n-ignore
