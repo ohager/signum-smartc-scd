@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.4.0-alpha.2 — 2026-11-27
+
+### Highlights
+
+- **One-command setup for Claude Code** — the Connect dialog's Quick Start now
+  installs the [signum-smartc plugin](https://github.com/ohager/signum-smartc-skill):
+  `claude plugin install signum-smartc --marketplace ohager/signum-smartc-skill`
+  brings the SmartC skill and the relay together, and `/plugin` keeps both up
+  to date. With a custom port or a self-hosted Studio the dialog keeps the
+  manual steps. Codex and other agents are unchanged.
+- The SmartC skill (1.1.0) now tells the agent to use Studio's compile, lint,
+  gas and test tools whenever Studio is connected.
+
+### Docs
+
+- [Setup guide](docs/assistant.md): the plugin route, a fallback for older
+  Claude Code versions, and a note for native Windows (`cmd /c npx …`).
+
 ## 0.4.0-alpha.1 — 2026-11-26
 
 A coding agent can now work on your contracts inside Studio, and contracts can be
