@@ -297,6 +297,34 @@ describe("GitSync pull", () => {
     expect(Object.keys(p.remote).sort()).toEqual(["b.ts", "x.smart.c"]);
   });
 
+  it("follows a remote rename of an unchanged base contract", async () => {
+    const { gh, sync, links, projectId, local } = await setup();
+    await gh.seed(ref, "main", { "c/a.smart.c": null, "c/z.smart.c": "int z;" });
+    const p = (await sync.preparePull(projectId))!;
+    expect(p.skipped).toEqual([]);
+    expect(p.actions).toEqual([
+      { kind: "delete", relPath: "a.smart.c" },
+      { kind: "write", relPath: "z.smart.c" },
+    ]);
+    await sync.applyPull(p, {});
+    expect(await local()).toEqual({ "z.smart.c": "int z;", "b.ts": "b", "README.md": "# r" });
+    expect(links.get(projectId)!.baseFiles["z.smart.c"]).toBe(await gitBlobSha("int z;"));
+    expect(links.get(projectId)!.baseFiles["a.smart.c"]).toBeUndefined();
+  });
+
+  it("keeps a locally edited contract when the remote renamed it", async () => {
+    const { gh, sync, projectId, local, edit } = await setup();
+    await edit("a.smart.c", "edited");
+    await gh.seed(ref, "main", { "c/a.smart.c": null, "c/z.smart.c": "int z;" });
+    const p = (await sync.preparePull(projectId))!;
+    expect(p.skipped).toEqual(["z.smart.c"]);
+    expect(p.actions).toEqual([]);
+    expect(p.conflicts).toEqual([{ relPath: "a.smart.c", local: await gitBlobSha("edited"), remote: null }]);
+    await expect(sync.applyPull(p, {})).rejects.toThrow();
+    await sync.applyPull(p, { "a.smart.c": "mine" });
+    expect(await local()).toEqual({ "a.smart.c": "edited", "b.ts": "b", "README.md": "# r" });
+  });
+
   it("refuses a resolution that leaves two contracts", async () => {
     const { gh, sync, links, projectId, local, add, remove } = await setup();
     const before = links.get(projectId);

@@ -381,7 +381,8 @@ export class GitSync {
   /**
    * The remote files a project tracks below `folder`: text only, and at most one contract.
    * The contract kept is, in order: the base one, the local one (if the remote has it at
-   * the same path), none if local holds a different contract, else the first by path.
+   * the same path), none if local holds a different contract that survives the pull, else
+   * the first by path.
    * Everything else lands in `skipped`. `texts` maps the sha of every selected file to its
    * text; shas in `knownText` are taken from there instead of being fetched.
    */
@@ -411,10 +412,13 @@ export class GitSync {
     // A project holds one contract (FileTransfer.importEntries enforces it on import only).
     const contracts = text.filter((t) => isContractFile(baseName(t.relPath))).map((t) => t.relPath).sort();
     const { base = {}, local = {} } = opts;
+    // Past rules 1 and 2 no local contract is in the remote set, so an unchanged one
+    // (local sha == base sha) is deleted by the pull and must not block a remote one.
+    const survivesPull = (p: string) => !(Object.hasOwn(base, p) && base[p] === local[p]);
     const keep =
       contracts.find((p) => Object.hasOwn(base, p)) ??
       contracts.find((p) => Object.hasOwn(local, p)) ??
-      (countContracts(Object.keys(local)) > 0 ? undefined : contracts[0]);
+      (countContracts(Object.keys(local).filter(survivesPull)) > 0 ? undefined : contracts[0]);
     skipped.push(...contracts.filter((p) => p !== keep));
     const files = text.filter((t) => !isContractFile(baseName(t.relPath)) || t.relPath === keep);
     return { files, skipped: skipped.sort(), texts };
