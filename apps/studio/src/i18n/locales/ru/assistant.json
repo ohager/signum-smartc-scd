@@ -36,6 +36,7 @@
   },
   "status": {
     "connected": "{client} подключён",
+    "working": "{client} работает…",
     "connecting": "Подключение к порту {port}…",
     "cancel": "Отмена",
     "disconnect": "Отключить",

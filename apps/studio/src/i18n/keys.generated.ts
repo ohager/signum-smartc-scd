@@ -688,6 +688,7 @@ export type MessageParams = {
   "assistant.approval.takeOver": undefined;
   "assistant.approval.cancel": undefined;
   "assistant.status.connected": { client: string | number };
+  "assistant.status.working": { client: string | number };
   "assistant.status.connecting": { port: string | number };
   "assistant.status.cancel": undefined;
   "assistant.status.disconnect": undefined;
