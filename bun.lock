@@ -17,7 +17,7 @@
     },
     "apps/studio": {
       "name": "@signum-smartc-scd/studio",
-      "version": "0.4.0-alpha.2",
+      "version": "0.4.0-alpha.3",
       "dependencies": {
         "@hookform/resolvers": "^5.2.2",
         "@jridgewell/trace-mapping": "^0.3.31",
