@@ -73,7 +73,9 @@
       "forget": "Forget token",
       "signedIn": "Signed in as {login}",
       "stored": "A token is stored in this browser.",
-    "done": "Done"
+    "done": "Done",
+    "change": "Change token",
+    "open": "GitHub token…"
     },
     "import": {
       "button": "Import from GitHub",

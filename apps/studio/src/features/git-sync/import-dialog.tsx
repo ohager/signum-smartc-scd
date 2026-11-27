@@ -30,6 +30,8 @@ import { MARKER_FILE, SUPPORTED_FORMAT } from "@/lib/git-sync/marker";
 import type { RepoRef } from "@/lib/git-sync/provider";
 import { t } from "@/i18n/runtime";
 import { gitErrorMessage } from "./git-error-message";
+import { toastGitError } from "./git-error-toast";
+import { importableFolders, nestedMarkerFolders } from "./marker-folders";
 import { useGitSync } from "./git-sync-context";
 import { parseRepo } from "./parse-repo";
 import type { RepoProbe } from "./sync-service";
@@ -40,6 +42,8 @@ interface Props {
 }
 
 const isBelow = (path: string, folder: string) => folder === "" || path.startsWith(`${folder}/`);
+/** Radix Select reads "" as "no value", so the repo root travels as this sentinel. */
+const ROOT = "/";
 const folderLabel = (folder: string) => folder || t("project.git.import.rootFolder");
 
 /** A folder may hold a marker only if no other marker folder lies above or below it. */
@@ -50,7 +54,7 @@ function canInitialize(probe: RepoProbe, folder: string): boolean {
 }
 
 export function ImportFromGitHubDialog({ open, onOpenChange }: Props) {
-  const { sync, tokens, requireToken } = useGitSync();
+  const { sync, tokens, requireToken, openTokenDialog } = useGitSync();
   const fs = useFileSystem();
   const navigate = useNavigate();
 
@@ -76,11 +80,17 @@ export function ImportFromGitHubDialog({ open, onOpenChange }: Props) {
     setBusy(null);
   }, [open]);
 
+  /** Token problems get a toast with a "Change token" action; everything else shows inline. */
+  const report = (e: unknown) => {
+    if (e instanceof GitSyncError && (e.code === "auth" || e.code === "forbidden")) toastGitError(e, openTokenDialog);
+    else setError(gitErrorMessage(e));
+  };
+
   const runProbe = async (target: RepoRef, branchName: string) => {
     const result = await sync.probe(target, branchName);
     setProbe(result);
     setBranch(branchName);
-    setFolder(result.markers.find((m) => m.marker && m.marker.format <= SUPPORTED_FORMAT)?.folder ?? null);
+    setFolder(importableFolders(result)[0] ?? null);
     const invalid = result.markers.find((m) => !m.marker);
     const free = result.folders.find((f) => canInitialize(result, f));
     setInitFolder(invalid?.folder ?? free ?? "");
@@ -106,7 +116,7 @@ export function ImportFromGitHubDialog({ open, onOpenChange }: Props) {
       setRef(parsed);
       await runProbe(parsed, defaultBranch);
     } catch (e) {
-      setError(gitErrorMessage(e));
+      report(e);
     } finally {
       setBusy(null);
     }
@@ -119,7 +129,7 @@ export function ImportFromGitHubDialog({ open, onOpenChange }: Props) {
     try {
       await runProbe(ref, name);
     } catch (e) {
-      setError(gitErrorMessage(e));
+      report(e);
     } finally {
       setBusy(null);
     }
@@ -147,7 +157,7 @@ export function ImportFromGitHubDialog({ open, onOpenChange }: Props) {
     try {
       await finish(ref, branch, folder);
     } catch (e) {
-      setError(gitErrorMessage(e));
+      report(e);
     } finally {
       setBusy(null);
     }
@@ -163,12 +173,14 @@ export function ImportFromGitHubDialog({ open, onOpenChange }: Props) {
       await sync.initialize(ref, probe.branches.length === 0 ? null : target, initFolder);
       await finish(ref, target, initFolder);
     } catch (e) {
-      setError(gitErrorMessage(e));
+      report(e);
     } finally {
       setBusy(null);
     }
   };
 
+  const importable = probe ? importableFolders(probe) : [];
+  const nestedFolders = probe ? nestedMarkerFolders(probe) : [];
   const invalidAtInit = probe?.markers.find((m) => m.folder === initFolder && !m.marker);
   const canOfferInit = probe !== null && (probe.markers.length === 0 || probe.markers.some((m) => !m.marker));
   const validMarkers = probe?.markers.filter((m) => m.marker) ?? [];
@@ -236,8 +248,7 @@ export function ImportFromGitHubDialog({ open, onOpenChange }: Props) {
               {validMarkers.map(({ folder: f, marker }) => {
                 const stats = probe.folderStats(f);
                 const unsupported = marker!.format > SUPPORTED_FORMAT;
-                const nested = probe.nested.includes(f);
-                const disabled = unsupported || nested;
+                const disabled = !importable.includes(f);
                 return (
                   <div key={f || "/"} className="flex items-start gap-2">
                     <RadioGroupItem id={`folder-${f}`} value={f} disabled={disabled} className="mt-1" />
@@ -256,9 +267,9 @@ export function ImportFromGitHubDialog({ open, onOpenChange }: Props) {
           </div>
         )}
 
-        {probe && probe.nested.length > 0 && (
+        {probe && nestedFolders.length > 0 && (
           <p className="text-sm text-muted-foreground">
-            {t("project.git.import.nested", { paths: probe.nested.map(folderLabel).join(", ") })}
+            {t("project.git.import.nested", { paths: nestedFolders.map(folderLabel).join(", ") })}
           </p>
         )}
 
@@ -285,9 +296,9 @@ export function ImportFromGitHubDialog({ open, onOpenChange }: Props) {
             <div className="space-y-1.5">
               <Label>{t("project.git.import.initFolder")}</Label>
               <Select
-                value={initFolder}
+                value={initFolder === "" ? ROOT : initFolder}
                 onValueChange={(v) => {
-                  setInitFolder(v);
+                  setInitFolder(v === ROOT ? "" : v);
                   setConfirmed(false);
                 }}
               >
@@ -296,7 +307,7 @@ export function ImportFromGitHubDialog({ open, onOpenChange }: Props) {
                 </SelectTrigger>
                 <SelectContent>
                   {initFolders.map((f) => (
-                    <SelectItem key={f || "/"} value={f}>
+                    <SelectItem key={f || ROOT} value={f === "" ? ROOT : f}>
                       {folderLabel(f)} · {t("project.git.import.folderStats", probe.folderStats(f))}
                     </SelectItem>
                   ))}
@@ -336,6 +347,14 @@ export function ImportFromGitHubDialog({ open, onOpenChange }: Props) {
             {error}
           </p>
         )}
+
+        <button
+          type="button"
+          className="self-start text-xs text-muted-foreground underline underline-offset-2"
+          onClick={() => void openTokenDialog()}
+        >
+          {t("project.git.token.open")}
+        </button>
 
         {probe && (
           <DialogFooter>

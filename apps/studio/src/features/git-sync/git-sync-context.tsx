@@ -29,6 +29,8 @@ export interface GitSyncApi {
   tokens: TokenStore;
   /** Resolves true when a token is stored; opens the token dialog first when there is none. */
   requireToken(): Promise<boolean>;
+  /** Always opens the token dialog (to replace or forget the stored token); resolves true if a token is stored when it closes. */
+  openTokenDialog(): Promise<boolean>;
 }
 
 const GitSyncContext = createContext<GitSyncApi | null>(null);
@@ -77,15 +79,24 @@ export function GitSyncProvider({ children }: { children: ReactNode }) {
     for (const resolve of waiters.current.splice(0)) resolve(ok);
   }, []);
 
-  const requireToken = useCallback(() => {
-    if (api.tokens.get()) return Promise.resolve(true);
-    return new Promise<boolean>((resolve) => {
-      waiters.current.push(resolve);
-      setDialogOpen(true);
-    });
-  }, [api]);
+  const openTokenDialog = useCallback(
+    () =>
+      new Promise<boolean>((resolve) => {
+        waiters.current.push(resolve);
+        setDialogOpen(true);
+      }),
+    [],
+  );
 
-  const value = useMemo<GitSyncApi>(() => ({ ...api, requireToken }), [api, requireToken]);
+  const requireToken = useCallback(
+    () => (api.tokens.get() ? Promise.resolve(true) : openTokenDialog()),
+    [api, openTokenDialog],
+  );
+
+  const value = useMemo<GitSyncApi>(
+    () => ({ ...api, requireToken, openTokenDialog }),
+    [api, requireToken, openTokenDialog],
+  );
 
   return (
     <GitSyncContext.Provider value={value}>

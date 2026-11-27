@@ -169,6 +169,8 @@ export type MessageParams = {
   "project.git.token.signedIn": { login: string | number };
   "project.git.token.stored": undefined;
   "project.git.token.done": undefined;
+  "project.git.token.change": undefined;
+  "project.git.token.open": undefined;
   "project.git.import.button": undefined;
   "project.git.import.buttonShort": undefined;
   "project.git.import.title": undefined;
