@@ -33,7 +33,7 @@ interface RequestOptions {
 export class GitHubProvider implements GitProvider {
   constructor(
     private readonly token: string,
-    private readonly fetchFn: typeof fetch = fetch,
+    private readonly fetchFn: typeof fetch = (input, init) => fetch(input, init),
   ) {}
 
   private repoPath({ owner, repo }: RepoRef): string {
@@ -57,7 +57,8 @@ export class GitHubProvider implements GitProvider {
     }
     let response: Response;
     try {
-      response = await this.fetchFn(url, init);
+      const send = this.fetchFn; // unbound: a browser fetch rejects a foreign receiver
+      response = await send(url, init);
     } catch (e) {
       throw new GitSyncError("network", e instanceof Error ? e.message : "Network request failed");
     }

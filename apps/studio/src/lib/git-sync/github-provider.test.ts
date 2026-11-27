@@ -148,4 +148,19 @@ describe("GitHubProvider", () => {
     expect(calls[1]!.url).toBe(next);
     expect(await provider.listBranches(ref)).toEqual([]);
   });
+
+  it("calls the default fetch unbound", async () => {
+    const original = globalThis.fetch;
+    let receiver: unknown = "unset";
+    globalThis.fetch = function (this: unknown) {
+      receiver = this;
+      return Promise.resolve(json({ login: "me" }));
+    } as unknown as typeof fetch;
+    try {
+      expect(await new GitHubProvider("tkn").getUser()).toEqual({ login: "me" });
+    } finally {
+      globalThis.fetch = original;
+    }
+    expect(receiver === undefined || receiver === globalThis).toBe(true);
+  });
 });
