@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { NewProjectDialog } from "@/features/project/new-project-dialog";
-import { UploadIcon, PlusIcon } from "lucide-react";
+import { UploadIcon, PlusIcon, GithubIcon } from "lucide-react";
 import { useState } from "react";
 import { RegisterMark } from "@/components/brand/register-mark";
 import { t } from "@/i18n/runtime";
@@ -10,9 +10,10 @@ import { AssistantStatus } from "@/features/assistant/ui/assistant-status";
 interface Props {
   variant: "full" | "band";
   onImportClick: () => void;
+  onImportGitHubClick: () => void;
 }
 
-export function Hero({ variant, onImportClick }: Props) {
+export function Hero({ variant, onImportClick, onImportGitHubClick }: Props) {
   const [isNewProjectOpen, setIsNewProjectOpen] = useState(false);
 
   const createLabel = variant === "full" ? t("home.hero.createFirst") : t("home.hero.newProject");
@@ -36,6 +37,14 @@ export function Hero({ variant, onImportClick }: Props) {
       >
         <UploadIcon className="h-4 w-4" />
         {importLabel}
+      </Button>
+      <Button
+        variant="outline"
+        size={variant === "full" ? "lg" : "sm"}
+        onClick={onImportGitHubClick}
+      >
+        <GithubIcon className="h-4 w-4" />
+        {variant === "full" ? t("project.git.import.button") : t("project.git.import.buttonShort")}
       </Button>
     </div>
   );

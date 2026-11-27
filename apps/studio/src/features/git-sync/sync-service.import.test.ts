@@ -134,6 +134,7 @@ describe("GitSync import", () => {
       "x/b.smart.c": "b",
       "a.smart.c": "a",
       "p.json": "{}",
+      "y/z/c.md": "c",
     });
     const probe = await sync.probe(ref, "main");
     expect(probe.markers.map((m) => m.folder)).toEqual(["", "x"]);
@@ -141,14 +142,15 @@ describe("GitSync import", () => {
     expect(probe.branches).toEqual(["main"]);
     expect(probe.defaultBranch).toBe("main");
     expect(probe.canPush).toBe(true);
-    expect(probe.folderStats("")).toEqual({ tracked: 1, skipped: 1 });
+    expect(probe.folders).toEqual(["", "x", "y", "y/z"]);
+    expect(probe.folderStats("")).toEqual({ tracked: 2, skipped: 1 });
   });
 
   it("probes an empty repo without branches or markers", async () => {
     const { gh, sync } = setup();
     gh.createEmptyRepo(ref, "trunk");
     const probe = await sync.probe(ref, "trunk");
-    expect(probe).toMatchObject({ branches: [], defaultBranch: "trunk", markers: [], nested: [] });
+    expect(probe).toMatchObject({ branches: [], defaultBranch: "trunk", markers: [], nested: [], folders: [""] });
   });
 
   it("initialize commits only the marker with the fixed message, also on an empty repo", async () => {

@@ -13,6 +13,7 @@ import { uniqueName } from "@/features/project/file-naming";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { t } from "@/i18n/runtime";
+import { ImportFromGitHubDialog } from "@/features/git-sync/import-dialog";
 
 export function HomePage() {
   const fs = useFileSystem();
@@ -33,6 +34,7 @@ export function HomePage() {
     };
   }, []);
 
+  const [isGitHubImportOpen, setIsGitHubImportOpen] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
 
   const onImportProject = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,11 +66,14 @@ export function HomePage() {
       <PageContent className="overflow-y-auto">
         <input ref={importInputRef} type="file" accept=".zip" hidden onChange={onImportProject} />
 
+        <ImportFromGitHubDialog open={isGitHubImportOpen} onOpenChange={setIsGitHubImportOpen} />
+
         <SmallScreenNotice />
 
         <Hero
           variant={isEmptyWorkspace ? "full" : "band"}
           onImportClick={() => importInputRef.current?.click()}
+          onImportGitHubClick={() => setIsGitHubImportOpen(true)}
         />
 
         <div className="flex flex-col lg:flex-row">

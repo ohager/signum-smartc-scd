@@ -56,6 +56,8 @@ export interface RepoProbe {
   /** marker null + error: the marker file exists but is invalid. */
   markers: { folder: string; marker: Marker | null; error?: string }[];
   nested: string[];
+  /** Every folder of the branch, repo root ("") first, sorted by path. */
+  folders: string[];
   folderStats(folder: string): { tracked: number; skipped: number };
 }
 
@@ -88,6 +90,16 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promis
   };
   await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
   return out;
+}
+
+/** Folder paths of a tree: the root plus every directory entry and every parent of a blob. */
+function repoFolders(blobPaths: string[], entries: TreeEntry[]): string[] {
+  const out = new Set<string>([""]);
+  for (const e of entries) if (e.type === "tree") out.add(e.path);
+  for (const p of blobPaths) {
+    for (let i = p.indexOf("/"); i !== -1; i = p.indexOf("/", i + 1)) out.add(p.slice(0, i));
+  }
+  return [...out].sort();
 }
 
 const isBelow = (path: string, folder: string) => folder === "" || path.startsWith(`${folder}/`);
@@ -488,6 +500,7 @@ export class GitSync {
       canPush: repoInfo.canPush,
       markers,
       nested,
+      folders: repoFolders(paths, entries),
       folderStats: (folder) => {
         const inner = folders.filter((f) => f !== folder && f !== "" && isBelow(f, folder));
         const own = entries.filter((e) => !inner.some((f) => isBelow(e.path, f)));
