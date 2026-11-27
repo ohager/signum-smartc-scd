@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { SKILL_COMMAND, registerCommand, relayArgs } from "./setup-commands";
+import { PLUGIN_COMMAND, SKILL_COMMAND, registerCommand, relayArgs, usesPlugin } from "./setup-commands";
 
 const prod = { port: 6890, origin: "https://smartc-studio.signum-network.dev" };
 
@@ -40,5 +40,22 @@ describe("setup commands", () => {
     const local = { port: 6999, origin: "http://localhost:3000" };
     expect(registerCommand("claude", local)).toEndWith("--port 6999 --allow-origin http://localhost:3000");
     expect(JSON.parse(registerCommand("other", local)).mcpServers["smartc-studio"].args).toEqual(relayArgs(local));
+  });
+
+  it("installs the plugin, and its marketplace, in one command", () =>
+    expect(PLUGIN_COMMAND).toBe("claude plugin install signum-smartc --marketplace ohager/signum-smartc-skill"));
+
+  it("uses the plugin for Claude Code with the default relay", () => expect(usesPlugin("claude", prod)).toBe(true));
+
+  it("keeps the plugin while the port is being typed", () => expect(usesPlugin("claude", { ...prod, port: null })).toBe(true));
+
+  it("falls back to manual commands for a custom port", () => expect(usesPlugin("claude", { ...prod, port: 6999 })).toBe(false));
+
+  it("falls back to manual commands for a dev origin", () =>
+    expect(usesPlugin("claude", { port: 6890, origin: "http://localhost:3000" })).toBe(false));
+
+  it("never uses the plugin for other agents", () => {
+    expect(usesPlugin("codex", prod)).toBe(false);
+    expect(usesPlugin("other", prod)).toBe(false);
   });
 });
