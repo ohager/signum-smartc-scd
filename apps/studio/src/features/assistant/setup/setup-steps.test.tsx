@@ -8,21 +8,29 @@ import { SetupSteps } from "./setup-steps";
 afterEach(() => resetMessages());
 
 const target = { port: 6890, origin: "https://smartc-studio.signum-network.dev" };
-const CLAUDE = "claude mcp add --scope user smartc-studio -- npx -y @smartc-studio/mcp";
+const PLUGIN = "claude plugin install signum-smartc --marketplace ohager/signum-smartc-skill";
 
-function render() {
+function render(t = target) {
   return renderToStaticMarkup(
     <Provider store={createStore()}>
-      <SetupSteps target={target} />
+      <SetupSteps target={t} />
     </Provider>,
   );
 }
 
 describe("SetupSteps", () => {
-  it("shows the Claude Code command by default", () => {
+  it("shows the Claude Code plugin by default", () => {
     const html = render();
-    expect(html).toContain(CLAUDE);
+    expect(html).toContain(PLUGIN);
+    expect(html).not.toContain("claude mcp add");
+    expect(html).not.toContain("npx skills add");
+  });
+
+  it("shows the manual commands when the plugin's relay cannot reach this Studio", () => {
+    const html = render({ port: 6999, origin: target.origin });
+    expect(html).toContain("claude mcp add --scope user smartc-studio -- npx -y @smartc-studio/mcp --port 6999");
     expect(html).toContain("npx skills add ohager/signum-smartc-skill -g");
+    expect(html).not.toContain(PLUGIN);
   });
 
   it("wraps long commands", () => {
@@ -36,7 +44,7 @@ describe("SetupSteps", () => {
   it("keeps commands untranslated", () => {
     setMessages("de", de);
     const html = render();
-    expect(html).toContain(CLAUDE);
-    expect(html).toContain((de.assistant as any).connect.setup.register);
+    expect(html).toContain(PLUGIN);
+    expect(html).toContain((de.assistant as any).connect.setup.plugin);
   });
 });

@@ -670,6 +670,7 @@ export type MessageParams = {
   "assistant.connect.setup.register": undefined;
   "assistant.connect.setup.registerOther": undefined;
   "assistant.connect.setup.skill": undefined;
+  "assistant.connect.setup.plugin": undefined;
   "assistant.connect.setup.restart": { agent: string | number };
   "assistant.connect.setup.restartOther": undefined;
   "assistant.connect.setup.show": undefined;

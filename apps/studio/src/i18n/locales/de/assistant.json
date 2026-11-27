@@ -13,6 +13,7 @@
       "register": "Relay registrieren",
       "registerOther": "Füge das in die MCP-Konfiguration deines Agenten ein",
       "skill": "SmartC-Skill installieren",
+      "plugin": "Plugin installieren, es bringt Relay und SmartC-Skill mit",
       "restart": "{agent} neu starten, damit beides geladen wird",
       "restartOther": "Agenten neu starten, damit beides geladen wird",
       "show": "Einrichtung anzeigen",
