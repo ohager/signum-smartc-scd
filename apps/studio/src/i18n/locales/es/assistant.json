@@ -36,6 +36,7 @@
   },
   "status": {
     "connected": "{client} conectado",
+    "working": "{client} está trabajando…",
     "connecting": "Conectando en el puerto {port}…",
     "cancel": "Cancelar",
     "disconnect": "Desconectar",

@@ -155,6 +155,30 @@ export function hasActivity(state: FeedState): boolean {
   return state.rounds.length > 0 || state.loose.length > 0;
 }
 
+/* How long the agent still counts as active after its last call: it bridges the pauses between read-only calls. */
+export const ACTIVE_WINDOW_MS = 10_000;
+
+/*
+ * Until when the agent counts as active, for the header icon. An open round (the agent holds
+ * a project) or a running call keeps it active until the feed changes, hence Infinity;
+ * otherwise it stays active for one window after its last call. Null when it never called.
+ */
+export function agentActiveUntil(state: FeedState, windowMs: number = ACTIVE_WINDOW_MS): number | null {
+  let last = -Infinity;
+  for (const round of state.rounds) {
+    if (round.endedAt === null) return Infinity;
+    for (const entry of round.entries) {
+      if (entry.status === "running") return Infinity;
+      if (entry.at > last) last = entry.at;
+    }
+  }
+  for (const entry of state.loose) {
+    if (entry.status === "running") return Infinity;
+    if (entry.at > last) last = entry.at;
+  }
+  return last === -Infinity ? null : last + windowMs;
+}
+
 /*
  * Restoring a round puts the whole project back to that round's start, so every newer
  * round of the same project is undone with it; the confirm dialog must say so.
