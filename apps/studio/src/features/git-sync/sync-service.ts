@@ -359,11 +359,8 @@ export class GitSync {
     this.assertUnlocked(projectId);
     const link = this.link(projectId);
     const { shas: local, texts } = await this.localFiles(projectId);
-    const changes = localChanges(link.baseFiles, local);
-    const assertSomethingToPush = (upserts: string[], deletes: string[]) => {
-      if (upserts.length + deletes.length === 0) throw new GitSyncError("nothing_to_push", "Nothing to push.");
-    };
-    assertSomethingToPush(changes.upserts, changes.deletes);
+    const { upserts, deletes } = localChanges(link.baseFiles, local);
+    if (upserts.length + deletes.length === 0) throw new GitSyncError("nothing_to_push", "Nothing to push.");
 
     const ref = this.refOf(link);
     const git = this.deps.provider();
@@ -373,11 +370,16 @@ export class GitSync {
     }
     // At the base commit every remote path outside baseFiles is untracked or skipped.
     const remotePaths = new Set((await git.getTree(ref, head.tree)).map((e) => e.path));
-    const upserts = changes.upserts.filter(
-      (p) => Object.hasOwn(link.baseFiles, p) || !remotePaths.has(toRepoPath(link.path, p)),
+    const taken = upserts.filter(
+      (p) => !Object.hasOwn(link.baseFiles, p) && remotePaths.has(toRepoPath(link.path, p)),
     );
-    const { deletes } = changes;
-    assertSomethingToPush(upserts, deletes);
+    if (taken.length > 0) {
+      throw new GitSyncError(
+        "path_taken",
+        `GitHub already has files Studio does not sync at ${taken.join(", ")} — rename them, then push again.`,
+        { paths: taken },
+      );
+    }
 
     const blobs = await mapLimit(upserts, MAX_BLOBS_IN_FLIGHT, (p) => git.createBlob(ref, texts.get(local[p])!));
     const tree = await git.createTree(ref, head.tree, [
@@ -385,7 +387,14 @@ export class GitSync {
       ...deletes.map((p) => ({ path: toRepoPath(link.path, p), sha: null })),
     ]);
     const commit = await git.createCommit(ref, message, tree, [head.commit]);
-    await git.updateRef(ref, link.branch, commit);
+    try {
+      await git.updateRef(ref, link.branch, commit);
+    } catch (e) {
+      if (e instanceof GitSyncError && e.code === "not_fast_forward") {
+        throw new GitSyncError("not_fast_forward", "The branch moved on GitHub — pull first.", e.detail);
+      }
+      throw e;
+    }
 
     const baseFiles: Shas = { ...link.baseFiles };
     for (const p of upserts) baseFiles[p] = local[p];
@@ -398,7 +407,8 @@ export class GitSync {
    * Links an existing project to `folder`, initializing the marker if needed (`branch`
    * null = empty repo, use the default branch). The link starts without a common base,
    * so the first pull brings in the remote files: applied right away without conflicts
-   * (null), otherwise returned for the caller to resolve via `applyPull`.
+   * (null), otherwise returned for the caller to resolve via `applyPull`. Pending undos
+   * of the project are dropped so none can bring back the old link.
    */
   async linkProject(
     projectId: string,
@@ -430,6 +440,7 @@ export class GitSync {
     });
     try {
       const prepared = await this.preparePull(projectId);
+      this.dropUndos(projectId);
       if (prepared && prepared.conflicts.length === 0) {
         await this.applyPull(prepared, {});
         return null;
@@ -445,6 +456,10 @@ export class GitSync {
   /** Drops the link and any pending undo that would bring it back. */
   unlink(projectId: string): void {
     this.deps.links.removeProject(projectId);
+    this.dropUndos(projectId);
+  }
+
+  private dropUndos(projectId: string): void {
     for (const [token, undo] of this.undos) {
       if (undo.projectId === projectId) this.undos.delete(token);
     }

@@ -14,6 +14,7 @@ export type GitSyncErrorCode =
   | "stale"
   | "nothing_to_push"
   | "multiple_contracts"
+  | "path_taken"
   | "network";
 
 export class GitSyncError extends Error {
@@ -22,7 +23,7 @@ export class GitSyncError extends Error {
   constructor(
     code: GitSyncErrorCode,
     message: string,
-    readonly detail?: { resetAt?: number; status?: number },
+    readonly detail?: { resetAt?: number; status?: number; paths?: string[] },
   ) {
     super(message);
     this.name = "GitSyncError";

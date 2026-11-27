@@ -161,17 +161,21 @@ describe("GitSync push", () => {
     expect(after["c/x.ts"]).toBe(before["c/x.ts"]);
   });
 
-  it("push never overwrites a skipped remote file with a local file of the same path", async () => {
+  it("refuses a local file at the path of a skipped remote file and names it", async () => {
     const { gh, sync, links, projectId, add, edit } = await setup();
     const before = await remoteShas(gh);
+    const commits = gh.commitsOn(ref, "main");
+    const link = links.get(projectId);
     await add("x.ts", "text");
-    expect((await codeOf(sync.push(projectId, "msg"))).code).toBe("nothing_to_push");
     await edit("a.smart.c", "int a2;");
-    await sync.push(projectId, "msg");
-    const after = await remoteShas(gh);
-    expect(after["c/x.ts"]).toBe(before["c/x.ts"]);
-    expect(after["c/a.smart.c"]).toBe(await gitBlobSha("int a2;"));
-    expect(Object.hasOwn(links.get(projectId)!.baseFiles, "x.ts")).toBe(false);
+    const err = await codeOf(sync.push(projectId, "msg"));
+    expect(err.code).toBe("path_taken");
+    expect(err.detail?.paths).toEqual(["x.ts"]);
+    expect(err.message).toContain("x.ts");
+    expect(err.message).toContain("rename");
+    expect(await remoteShas(gh)).toEqual(before);
+    expect(gh.commitsOn(ref, "main")).toEqual(commits);
+    expect(links.get(projectId)).toEqual(link);
   });
 
   it("refuses when the branch moved and says pull first", async () => {
@@ -189,8 +193,14 @@ describe("GitSync push", () => {
     const { gh, sync, links, projectId, edit } = await setup();
     await edit("a.smart.c", "int a2;");
     const before = links.get(projectId);
-    gh.beforeUpdateRef = () => gh.seed(ref, "main", { "c/b.ts": "someone else" });
-    expect((await codeOf(sync.push(projectId, "msg"))).code).toBe("not_fast_forward");
+    gh.beforeUpdateRef = async () => {
+      await gh.seed(ref, "main", { "c/b.ts": "someone else" });
+      // the real provider's 422 message differs from the fixed copy
+      throw new GitSyncError("not_fast_forward", "Update is not a fast forward");
+    };
+    const err = await codeOf(sync.push(projectId, "msg"));
+    expect(err.code).toBe("not_fast_forward");
+    expect(err.message).toBe("The branch moved on GitHub — pull first.");
     expect(links.get(projectId)).toEqual(before);
     expect(gh.files(ref, "main")["c/a.smart.c"]).toBe("int a;");
   });
@@ -290,6 +300,19 @@ describe("GitSync push", () => {
     expect((await codeOf(sync.linkProject(projectId, ref, null, ""))).code).toBe("locked");
     expect(gh.commitsOn(ref, "main")).toEqual([]);
     expect(links.get(projectId)).toBeNull();
+  });
+
+  it("relinking drops pending undos so they cannot restore the old link", async () => {
+    const { gh, sync, links, projectId } = await setup();
+    await gh.seed(ref, "main", { "c/b.ts": "theirs" });
+    const { undoToken } = await sync.applyPull((await sync.preparePull(projectId))!, {});
+    const other: RepoRef = { owner: "o", repo: "other" };
+    gh.createEmptyRepo(other);
+    expect(await sync.linkProject(projectId, other, null, "")).toBeNull();
+    const relinked = links.get(projectId);
+    expect(relinked).toMatchObject({ repo: "other", path: "" });
+    await expect(sync.undoPull(undoToken)).rejects.toThrow("Unknown undo token.");
+    expect(links.get(projectId)).toEqual(relinked);
   });
 
   it("a failed link leaves no link behind", async () => {
