@@ -266,7 +266,7 @@ it("token set/get/clear", () => { /* get() null → set("t") → "t" → clear()
 
 Endpoints: `GET /user`; `GET /repos/{o}/{r}` (`default_branch`, `permissions.push`); `GET /repos/{o}/{r}/branches?per_page=100` (follow `Link: rel="next"`; `409` → `[]`); `GET /repos/{o}/{r}/branches/{b}` (`commit.sha`, `commit.commit.tree.sha`; `404`/`409` → `null`); `GET …/git/trees/{sha}?recursive=1`; `GET …/git/blobs/{sha}` (base64, strip newlines); `POST …/git/blobs {content, encoding: "utf-8"}`; `POST …/git/trees {base_tree, tree: [{path, mode: "100644", type: "blob", sha}]}`; `POST …/git/commits {message, tree, parents}`; `PATCH …/git/refs/heads/{b} {sha, force: false}`; `PUT …/contents/{path} {message, content: base64(utf8), branch?, sha?}` → `commit.sha`. Path segments and branch names are URI-encoded per segment.
 
-Error mapping: `401` → `auth`; `403`/`429` with `x-ratelimit-remaining: 0` → `rate_limited` (`resetAt` = `x-ratelimit-reset` × 1000); other `403` → `forbidden`; `404` → `not_found` (except where mapped to `null`/`[]` above); `422` on `updateRef` → `not_fast_forward`; `fetch` rejection → `network`.
+Error mapping: `401` → `auth`; `403`/`429` with `x-ratelimit-remaining: 0` → `rate_limited` (`resetAt` = `x-ratelimit-reset` × 1000); other `403` → `forbidden`; `404` → `not_found` (except where mapped to `null`/`[]` above); `422` on `updateRef` → `not_fast_forward`; `409` (empty repo) on any other endpoint → `not_found`; any other non-2xx → `network` with `detail.status`; `fetch` rejection → `network`.
 
 - [ ] **Step 1: Write the failing tests** — a recording fake `fetchFn` returning queued `Response`s:
 
@@ -425,7 +425,7 @@ it("status counts local changes and sees the remote ahead", async () => { /* edi
 - Produces (methods on `GitSync`):
   - `pendingChanges(projectId: string): Promise<{ upserts: string[]; deletes: string[] }>` — for the commit dialog
   - `push(projectId: string, message: string): Promise<{ commit: string }>`
-  - `linkProject(projectId: string, ref: RepoRef, branch: string | null, folder: string): Promise<PreparedPull | null>` — initializes first if the folder has no marker (empty repo: `branch` null → default branch). It then stores a link with `baseFiles = {}` and `baseCommit` = the head after initialization, and returns `preparePull(projectId)`, so the overlap with existing remote files goes through the normal conflict path
+  - `linkProject(projectId: string, ref: RepoRef, branch: string | null, folder: string): Promise<PreparedPull | null>` — initializes first if the folder has no marker (empty repo: `branch` null → default branch). It then stores a link with `baseFiles = {}` and **`baseCommit = ""`** (no common base yet, so `preparePull` never short-circuits and `push` refuses with `not_fast_forward` until the first pull is applied). Then it runs `preparePull(projectId)`: without conflicts it applies the plan right away (`applyPull(prepared, {})`) and returns `null`; with conflicts it returns the `PreparedPull` for the UI to resolve via `applyPull`. So the overlap with existing remote files always goes through the normal conflict path and a push can never overwrite remote files the link has not seen
   - `unlink(projectId: string): void`
 
 Behaviour of `push`: throws `locked` while locked. It flushes, computes `localChanges(link.baseFiles, localShas)`, and throws `nothing_to_push` if both lists are empty. If `getHead` ≠ `link.baseCommit` it throws `not_fast_forward` with the message "The branch moved on GitHub — pull first.". Otherwise it creates a blob per upsert, then `createTree(head.tree, upserts with blob shas + deletes with null, paths via toRepoPath(link.path, …))`, `createCommit(message, tree, [head.commit])` and `updateRef`. Only after `updateRef` succeeds does it update the link (`baseCommit` = new commit; `baseFiles` with upserts set and deletes removed). Untracked and skipped remote files are never named in `changes`.
@@ -450,11 +450,11 @@ it("rejected ref update leaves the link unchanged", async () => {
 it("push flushes pending saves before reading", async () => { /* flush spy called before the first loadFile (order recorded) */ });
 it("refuses with nothing to push and while locked", async () => { /* "nothing_to_push"; "locked" */ });
 it("links a project to an empty repo: marker commit first, then a push uploads all files", async () => {
-  /* local project with 2 files; linkProject(p, ref, null, "") → null or plan without conflicts; push → remote has marker + 2 files;
+  /* local project with 2 files; linkProject(p, ref, null, "") → null (auto-applied, link.baseCommit = marker commit); push → remote has marker + 2 files;
      commitsOn(main) messages ["Initialize SmartC Studio project", <push message>] */
 });
 it("links to a folder with existing files via conflicts", async () => {
-  /* remote has marker and a.smart.c differing from local → linkProject returns conflicts [a.smart.c] */
+  /* remote has marker and a.smart.c differing from local → linkProject returns conflicts [a.smart.c]; push before applyPull → code "not_fast_forward" */
 });
 it("unlink removes the link", async () => {});
 ```
