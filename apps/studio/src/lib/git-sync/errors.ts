@@ -13,6 +13,7 @@ export type GitSyncErrorCode =
   | "locked"
   | "stale"
   | "nothing_to_push"
+  | "multiple_contracts"
   | "network";
 
 export class GitSyncError extends Error {

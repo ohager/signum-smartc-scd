@@ -94,6 +94,17 @@ const isBelow = (path: string, folder: string) => folder === "" || path.startsWi
 const baseName = (path: string) => path.slice(path.lastIndexOf("/") + 1);
 const toText = (content: unknown) => (typeof content === "string" ? content : String(content ?? ""));
 
+/** Throws nested_markers if `folder` lies below another marker folder or holds one below it. */
+function assertNotNested(folders: string[], nested: string[], folder: string): void {
+  const hasNestedBelow = folders.some((f) => f !== folder && isBelow(f, folder));
+  if (nested.includes(folder) || hasNestedBelow) {
+    throw new GitSyncError("nested_markers", "Markers may not be nested.");
+  }
+}
+
+const countContracts = (relPaths: Iterable<string>) =>
+  [...relPaths].filter((p) => isContractFile(baseName(p))).length;
+
 /** The marker if this Studio can work with it; throws invalid_marker / format_unsupported otherwise. */
 function supportedMarker(marker: Marker | null, error?: string): Marker {
   if (!marker) throw new GitSyncError("invalid_marker", error ?? "Invalid marker.");
@@ -111,7 +122,7 @@ function sameShas(a: Shas, b: Shas): boolean {
 export class GitSync {
   private readonly undos = new Map<
     string,
-    { projectId: string; checkpointId: string; previousLink: RepoLink }
+    { projectId: string; checkpointId: string; previousLink: RepoLink; afterPull: Shas }
   >();
 
   constructor(private readonly deps: GitSyncDeps) {}
@@ -123,10 +134,7 @@ export class GitSync {
   async importProject(ref: RepoRef, branch: string, folder: string) {
     const { probe, head, entries } = await this.read(ref, branch);
     if (!head) throw new GitSyncError("not_found", `Branch ${branch} not found.`);
-    const hasNestedBelow = probe.markers.some((m) => m.folder !== folder && isBelow(m.folder, folder));
-    if (probe.nested.includes(folder) || hasNestedBelow) {
-      throw new GitSyncError("nested_markers", "Markers may not be nested.");
-    }
+    assertNotNested(probe.markers.map((m) => m.folder), probe.nested, folder);
     const found = probe.markers.find((m) => m.folder === folder);
     if (!found) throw new GitSyncError("no_marker", "This folder has no SmartC Studio marker.");
     const marker = supportedMarker(found.marker, found.error);
@@ -184,13 +192,21 @@ export class GitSync {
 
   /** Blob SHAs of the project's tracked files, keyed by path relative to the project. Flushes first. */
   async localShas(projectId: string): Promise<Shas> {
+    return (await this.localFiles(projectId)).shas;
+  }
+
+  /** `localShas` plus the text behind each sha. */
+  private async localFiles(projectId: string): Promise<{ shas: Shas; texts: Map<string, string> }> {
     await this.deps.flush();
     const shas: Shas = {};
+    const texts = new Map<string, string>();
     for (const f of await captureProject(this.deps.fs, projectId)) {
       if (trackedType(baseName(f.relPath)) === null) continue;
-      shas[f.relPath] = await gitBlobSha(toText(f.content));
+      const text = toText(f.content);
+      shas[f.relPath] = await gitBlobSha(text);
+      texts.set(shas[f.relPath], text);
     }
-    return shas;
+    return { shas, texts };
   }
 
   /** `remoteAhead` is null unless `remote` is set and the head could be read. */
@@ -224,23 +240,28 @@ export class GitSync {
     if (head.commit === link.baseCommit) return null;
 
     const entries = await git.getTree(ref, head.tree);
+    const { folders, nested } = findMarkerFolders(entries.filter((e) => e.type === "blob").map((e) => e.path));
+    assertNotNested(folders, nested, link.path);
     const markerEntry = entries.find((e) => e.type === "blob" && e.path === markerPath(link.path));
     if (!markerEntry) throw new GitSyncError("no_marker", "This folder has no SmartC Studio marker.");
     const parsed = parseMarker(new TextDecoder().decode(await git.getBlob(ref, markerEntry.sha)));
     const marker = parsed.ok ? supportedMarker(parsed.marker) : supportedMarker(null, parsed.error);
 
-    const local = await this.localShas(projectId);
-    const knownText = new Set([...Object.values(link.baseFiles), ...Object.values(local)]);
+    const { shas: local, texts: localTexts } = await this.localFiles(projectId);
     const { files, skipped, texts } = await this.selectRemote(ref, entries, link.path, {
-      knownText,
-      preferred: link.baseFiles,
+      knownText: localTexts,
+      base: link.baseFiles,
+      local,
     });
     const remote: Shas = {};
     for (const f of files) remote[f.relPath] = f.sha;
     const { actions, conflicts } = planPull(link.baseFiles, local, remote);
     const remoteText: Record<string, string> = {};
     for (const { relPath } of [...actions.filter((a) => a.kind === "write"), ...conflicts]) {
-      if (Object.hasOwn(remote, relPath)) remoteText[relPath] = texts.get(remote[relPath])!;
+      if (!Object.hasOwn(remote, relPath)) continue;
+      const text = texts.get(remote[relPath]);
+      if (text === undefined) throw new Error(`No remote text for ${relPath}.`);
+      remoteText[relPath] = text;
     }
     return { projectId, head, marker, remote, local, actions, conflicts, remoteText, skipped };
   }
@@ -257,10 +278,17 @@ export class GitSync {
       throw new GitSyncError("stale", "Local files changed since the pull was prepared.");
     }
 
+    for (const a of actions) {
+      if (a.kind === "write" && !Object.hasOwn(prepared.remoteText, a.relPath)) {
+        throw new Error(`No remote text for ${a.relPath}.`);
+      }
+    }
+
     const { fs, checkpoints: store, clock } = this.deps;
     const files = new Map<string, CheckpointFile>(
       (await captureProject(fs, projectId)).map((f) => [f.relPath, f]),
     );
+    const contractsBefore = countContracts(files.keys());
     for (const action of actions) {
       if (action.kind === "delete") {
         files.delete(action.relPath);
@@ -268,6 +296,11 @@ export class GitSync {
         const type = files.get(action.relPath)?.type ?? trackedType(baseName(action.relPath))!;
         files.set(action.relPath, { relPath: action.relPath, type, content: prepared.remoteText[action.relPath] });
       }
+    }
+    // One contract per project; a workspace that already breaks the rule may keep its count.
+    const contractsAfter = countContracts(files.keys());
+    if (contractsAfter > 1 && contractsAfter > contractsBefore) {
+      throw new GitSyncError("multiple_contracts", "The pull would leave this project with more than one contract.");
     }
     const { undoCheckpointId } = await restoreWithUndo({ fs, store, clock }, projectId, {
       id: crypto.randomUUID(),
@@ -284,7 +317,8 @@ export class GitSync {
       marker: prepared.marker,
     });
     const undoToken = crypto.randomUUID();
-    this.undos.set(undoToken, { projectId, checkpointId: undoCheckpointId, previousLink });
+    const afterPull = await this.localShas(projectId);
+    this.undos.set(undoToken, { projectId, checkpointId: undoCheckpointId, previousLink, afterPull });
     this.deps.markTookOver(projectId);
     return {
       undoToken,
@@ -297,12 +331,14 @@ export class GitSync {
   async undoPull(undoToken: string): Promise<void> {
     const undo = this.undos.get(undoToken);
     if (!undo) throw new Error("Unknown undo token.");
-    const { projectId, checkpointId, previousLink } = undo;
+    const { projectId, checkpointId, previousLink, afterPull } = undo;
     this.assertUnlocked(projectId);
     const { fs, checkpoints: store, clock } = this.deps;
     const checkpoint = await store.get(checkpointId);
     if (!checkpoint) throw new Error("The undo checkpoint is gone.");
-    await this.deps.flush();
+    if (!sameShas(await this.localShas(projectId), afterPull)) {
+      throw new GitSyncError("stale", "Files changed since the pull; undo would overwrite them.");
+    }
     await restoreWithUndo({ fs, store, clock }, projectId, checkpoint);
     this.deps.links.set(projectId, previousLink);
     this.undos.delete(undoToken);
@@ -343,20 +379,26 @@ export class GitSync {
   }
 
   /**
-   * The remote files a project tracks below `folder`: text only, and at most one contract
-   * (the one in `preferred`, else the first by path). Everything else lands in `skipped`.
-   * Blobs whose sha is in `knownText` are not fetched; `texts` maps every fetched sha to its text.
+   * The remote files a project tracks below `folder`: text only, and at most one contract.
+   * The contract kept is, in order: the base one, the local one (if the remote has it at
+   * the same path), none if local holds a different contract, else the first by path.
+   * Everything else lands in `skipped`. `texts` maps the sha of every selected file to its
+   * text; shas in `knownText` are taken from there instead of being fetched.
    */
   private async selectRemote(
     ref: RepoRef,
     entries: TreeEntry[],
     folder: string,
-    opts: { knownText?: Set<string>; preferred?: Shas } = {},
+    opts: { knownText?: Map<string, string>; base?: Shas; local?: Shas } = {},
   ) {
     const { tracked, skipped } = selectTracked(entries, folder, trackedType);
     const git = this.deps.provider();
-    const toFetch = [...new Set(tracked.map((t) => t.sha))].filter((sha) => !opts.knownText?.has(sha));
     const texts = new Map<string, string>();
+    for (const { sha } of tracked) {
+      const known = opts.knownText?.get(sha);
+      if (known !== undefined) texts.set(sha, known);
+    }
+    const toFetch = [...new Set(tracked.map((t) => t.sha))].filter((sha) => !texts.has(sha));
     const binary = new Set<string>();
     await mapLimit(toFetch, MAX_BLOBS_IN_FLIGHT, async (sha) => {
       const text = decodeTextOrNull(await git.getBlob(ref, sha));
@@ -368,8 +410,11 @@ export class GitSync {
 
     // A project holds one contract (FileTransfer.importEntries enforces it on import only).
     const contracts = text.filter((t) => isContractFile(baseName(t.relPath))).map((t) => t.relPath).sort();
-    const preferred = opts.preferred;
-    const keep = contracts.find((p) => preferred && Object.hasOwn(preferred, p)) ?? contracts[0];
+    const { base = {}, local = {} } = opts;
+    const keep =
+      contracts.find((p) => Object.hasOwn(base, p)) ??
+      contracts.find((p) => Object.hasOwn(local, p)) ??
+      (countContracts(Object.keys(local)) > 0 ? undefined : contracts[0]);
     skipped.push(...contracts.filter((p) => p !== keep));
     const files = text.filter((t) => !isContractFile(baseName(t.relPath)) || t.relPath === keep);
     return { files, skipped: skipped.sort(), texts };

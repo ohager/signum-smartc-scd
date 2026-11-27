@@ -8,6 +8,7 @@ import type { RepoRef } from "@/lib/git-sync/provider";
 import { RepoLinks } from "@/lib/git-sync/repo-links";
 import { FakeGitHub } from "./fake-provider";
 import { GitSync } from "./sync-service";
+import { trackedType } from "./tracked-type";
 
 const ref: RepoRef = { owner: "o", repo: "repo" };
 const marker = serializeMarker({ format: 1 });
@@ -43,7 +44,12 @@ async function setup(files: Record<string, string> = seedFiles) {
     const meta = fs.listFilesRecursive(projectId).find((m) => m.path === path)!;
     await fs.saveFile(meta.id, text);
   };
-  return { gh, fs, links, sync, state, projectId, local, edit };
+  const add = (name: string, text: string) => fs.addFile(projectId, name, trackedType(name)!, text);
+  const remove = async (relPath: string) => {
+    const path = `${fs.getFolder(projectId).path}/${relPath}`;
+    await fs.deleteFile(fs.listFilesRecursive(projectId).find((m) => m.path === path)!.id);
+  };
+  return { gh, fs, links, sync, state, projectId, local, edit, add, remove };
 }
 
 const codeOf = async (p: Promise<unknown>) => {
@@ -240,5 +246,85 @@ describe("GitSync pull", () => {
     expect(p.remote["x.ts"]).toBeUndefined();
     await sync.applyPull(p, {});
     expect(Object.keys(await local()).sort()).toEqual(["README.md", "a.smart.c", "b.ts"]);
+  });
+
+  it("writes a remote rename whose content is already known", async () => {
+    const { gh, sync, links, projectId, local } = await setup();
+    await gh.seed(ref, "main", { "c/README.md": null, "c/docs.md": "# r" });
+    const p = (await sync.preparePull(projectId))!;
+    expect(p.remoteText).toEqual({ "docs.md": "# r" });
+    await sync.applyPull(p, {});
+    expect(await local()).toEqual({ "a.smart.c": "int a;", "b.ts": "b", "docs.md": "# r" });
+    expect(Object.keys(links.get(projectId)!.baseFiles).sort()).toEqual(["a.smart.c", "b.ts", "docs.md"]);
+    expect((await sync.status(projectId)).localChanges).toBe(0);
+  });
+
+  it("writes a remote copy of a local-only text", async () => {
+    const { gh, sync, projectId, local, edit } = await setup();
+    await edit("b.ts", "mine");
+    await gh.seed(ref, "main", { "c/n.ts": "mine" });
+    const p = (await sync.preparePull(projectId))!;
+    expect(p.remoteText).toEqual({ "n.ts": "mine" });
+    await sync.applyPull(p, {});
+    expect(await local()).toMatchObject({ "b.ts": "mine", "n.ts": "mine" });
+  });
+
+  it("refuses to apply a write without remote text", async () => {
+    const { gh, sync, projectId, local } = await setup();
+    await gh.seed(ref, "main", { "c/n.ts": "n" });
+    const p = (await sync.preparePull(projectId))!;
+    await expect(sync.applyPull({ ...p, remoteText: {} }, {})).rejects.toThrow(/n\.ts/);
+    expect(Object.keys(await local())).not.toContain("n.ts");
+  });
+
+  it("never pulls a second contract next to a local-only one", async () => {
+    const { gh, sync, projectId, local, add } = await setup({ "c/.smartc-studio": marker, "c/b.ts": "b" });
+    await add("x.smart.c", "x");
+    await gh.seed(ref, "main", { "c/y.smart.c": "y" });
+    const p = (await sync.preparePull(projectId))!;
+    expect(p.skipped).toEqual(["y.smart.c"]);
+    expect(p.remote["y.smart.c"]).toBeUndefined();
+    await sync.applyPull(p, {});
+    expect(await local()).toEqual({ "b.ts": "b", "x.smart.c": "x" });
+  });
+
+  it("prefers the local contract when the remote has it too", async () => {
+    const { gh, sync, projectId, add } = await setup({ "c/.smartc-studio": marker, "c/b.ts": "b" });
+    await add("x.smart.c", "x");
+    await gh.seed(ref, "main", { "c/a.smart.c": "a", "c/x.smart.c": "x" });
+    const p = (await sync.preparePull(projectId))!;
+    expect(p.skipped).toEqual(["a.smart.c"]);
+    expect(Object.keys(p.remote).sort()).toEqual(["b.ts", "x.smart.c"]);
+  });
+
+  it("refuses a resolution that leaves two contracts", async () => {
+    const { gh, sync, links, projectId, local, add, remove } = await setup();
+    const before = links.get(projectId);
+    await remove("a.smart.c");
+    await add("x.smart.c", "int a;");
+    await gh.seed(ref, "main", { "c/a.smart.c": "int a2;" });
+    const p = (await sync.preparePull(projectId))!;
+    expect(p.conflicts.map((c) => c.relPath)).toEqual(["a.smart.c"]);
+    expect((await codeOf(sync.applyPull(p, { "a.smart.c": "theirs" }))).code).toBe("multiple_contracts");
+    expect(Object.keys(await local()).sort()).toEqual(["README.md", "b.ts", "x.smart.c"]);
+    expect(links.get(projectId)).toEqual(before);
+  });
+
+  it("refuses an undo that would overwrite edits made after the pull", async () => {
+    const { gh, sync, links, projectId, local, edit } = await setup();
+    await gh.seed(ref, "main", { "c/a.smart.c": "int a2;" });
+    const { undoToken } = await sync.applyPull((await sync.preparePull(projectId))!, {});
+    const after = links.get(projectId);
+    await edit("b.ts", "later");
+    expect((await codeOf(sync.undoPull(undoToken))).code).toBe("stale");
+    expect(await local()).toMatchObject({ "a.smart.c": "int a2;", "b.ts": "later" });
+    expect(links.get(projectId)).toEqual(after);
+  });
+
+  it("stops when a nested marker appeared below the project folder", async () => {
+    const { gh, sync, projectId, local } = await setup();
+    await gh.seed(ref, "main", { "c/sub/.smartc-studio": marker, "c/a.smart.c": "int a2;" });
+    expect((await codeOf(sync.preparePull(projectId))).code).toBe("nested_markers");
+    expect((await local())["a.smart.c"]).toBe("int a;");
   });
 });
