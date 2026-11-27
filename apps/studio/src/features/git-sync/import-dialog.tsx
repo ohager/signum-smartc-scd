@@ -31,7 +31,7 @@ import type { RepoRef } from "@/lib/git-sync/provider";
 import { t } from "@/i18n/runtime";
 import { gitErrorMessage } from "./git-error-message";
 import { toastGitError } from "./git-error-toast";
-import { importableFolders, nestedMarkerFolders } from "./marker-folders";
+import { canInitialize, importableFolders, nestedMarkerFolders } from "./marker-folders";
 import { useGitSync } from "./git-sync-context";
 import { parseRepo } from "./parse-repo";
 import type { RepoProbe } from "./sync-service";
@@ -41,17 +41,9 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
-const isBelow = (path: string, folder: string) => folder === "" || path.startsWith(`${folder}/`);
 /** Radix Select reads "" as "no value", so the repo root travels as this sentinel. */
 const ROOT = "/";
 const folderLabel = (folder: string) => folder || t("project.git.import.rootFolder");
-
-/** A folder may hold a marker only if no other marker folder lies above or below it. */
-function canInitialize(probe: RepoProbe, folder: string): boolean {
-  return !probe.markers.some(
-    (m) => m.folder !== folder && (isBelow(m.folder, folder) || isBelow(folder, m.folder)),
-  ) && !probe.markers.some((m) => m.folder === folder && m.marker);
-}
 
 export function ImportFromGitHubDialog({ open, onOpenChange }: Props) {
   const { sync, tokens, requireToken, openTokenDialog } = useGitSync();

@@ -75,7 +75,7 @@ let openings = 0;
  * The widget itself is disposed afterwards by DiffEditor's cleanup, which is then harmless.
  * Each mount gets its own model paths, so a reopen never finds a disposed model.
  */
-function RoundDiff({ checkpointId, relPath, language, diff, theme }: { checkpointId: string; relPath: string; language: string; diff: { original: string; modified: string }; theme: string }) {
+export function RoundDiff({ checkpointId, relPath, language, diff, theme }: { checkpointId: string; relPath: string; language: string; diff: { original: string; modified: string }; theme: string }) {
   const editorRef = useRef<Parameters<DiffOnMount>[0] | null>(null);
   const [paths] = useState(() => diffModelPaths(checkpointId, relPath, ++openings));
 

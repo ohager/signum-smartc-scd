@@ -39,6 +39,7 @@ import { NameInputDialog } from "./name-input-dialog";
 import { NewFileDialog } from "./new-file-dialog";
 import { isContractFile } from "./contract";
 import { findProjectOfFolder } from "./project-root";
+import { useProjectGit } from "@/features/git-sync/project-git-menu";
 import { FileSidebarItem, FILE_DND_MIME } from "./file-sidebar-item";
 import { uniqueName } from "./file-naming";
 import { revealFileRequestAtom } from "@/stores/project-tree-atoms";
@@ -54,6 +55,8 @@ export function FolderNode({ folder }: { folder: FolderMetadata }) {
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [showRename, setShowRename] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const isProjectRoot = findProjectOfFolder(fs, folder.id) === folder.id;
+  const git = useProjectGit(folder.id);
 
   // Expand on the way to a revealed file. Children mount only once their
   // parent is expanded, so the chain unfolds level by level.
@@ -199,7 +202,7 @@ export function FolderNode({ folder }: { folder: FolderMetadata }) {
                 <MoreVerticalIcon className="h-8 w-8" />
               </SidebarMenuAction>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[160px]">
+            <DropdownMenuContent align="end" className="w-[190px]">
               <DropdownMenuItem onClick={() => setShowNewFile(true)}>
                 <FilePlus2 className="h-4 w-4" />
                 {t("project.folder.addFile")}
@@ -224,6 +227,7 @@ export function FolderNode({ folder }: { folder: FolderMetadata }) {
                 <FolderInputIcon className="h-4 w-4" />
                 {t("project.folder.importFolder")}
               </DropdownMenuItem>
+              {isProjectRoot && git.items}
               <DropdownMenuItem onClick={() => setShowRename(true)}>
                 <EditIcon className="h-4 w-4" />
                 {t("common.actions.rename")}
@@ -327,6 +331,8 @@ export function FolderNode({ folder }: { folder: FolderMetadata }) {
           }
         }}
       />
+
+      {isProjectRoot && git.dialogs}
 
       <ConfirmationDialog
         open={showDelete}

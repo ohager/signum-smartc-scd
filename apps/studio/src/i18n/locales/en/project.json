@@ -77,6 +77,57 @@
     "change": "Change token",
     "open": "GitHub token…"
     },
+    "link": {
+      "menu": "Link to GitHub…",
+      "title": "Link to GitHub",
+      "description": "Sync this project with a folder of a GitHub repo.",
+      "link": "Link",
+      "linking": "Linking…",
+      "existingFolder": "Use an existing project folder",
+      "newFolder": "Initialize a new folder",
+      "initCommit": "Linking creates a commit on GitHub that adds the marker file.",
+      "linked": "Linked to {repo}."
+    },
+    "menu": {
+      "pull": "Pull",
+      "commit": "Commit & Push…",
+      "unlink": "Unlink",
+      "locked": "The assistant is working on this project.",
+      "unlinked": "Unlinked from GitHub.",
+      "unlinkTitle": "Unlink from GitHub?",
+      "unlinkConfirm": "The project stays as it is. Nothing is deleted on GitHub or here."
+    },
+    "pull": {
+      "upToDate": "Already up to date.",
+      "done": "Pulled: {written} written, {deleted} deleted.",
+      "skipped": "Skipped: {names}",
+      "undo": "Undo pull",
+      "undone": "Pull undone."
+    },
+    "conflict": {
+      "title": "Resolve conflicts",
+      "description": "These files changed here and on GitHub. Choose which version to keep for each.",
+      "files": "Conflicting files",
+      "mine": "Mine",
+      "theirs": "Theirs",
+      "local": "Local (mine)",
+      "remote": "GitHub (theirs)",
+      "deleted": "deleted",
+      "apply": "Apply",
+      "applying": "Applying…"
+    },
+    "commit": {
+      "title": "Commit & Push",
+      "description": "Commit the local changes to {repo} on {branch}.",
+      "message": "Commit message",
+      "changes": "Changes",
+      "none": "There is nothing to push.",
+      "loading": "Loading…",
+      "push": "Commit & Push",
+      "pushing": "Pushing…",
+      "pullNow": "Pull now",
+      "pushed": "Pushed {commit}."
+    },
     "import": {
       "button": "Import from GitHub",
       "buttonShort": "GitHub",

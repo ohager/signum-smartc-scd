@@ -19,3 +19,11 @@ export function importableFolders(probe: Probe): string[] {
     .filter((m) => m.marker && m.marker.format <= SUPPORTED_FORMAT && !nested.has(m.folder))
     .map((m) => m.folder);
 }
+
+/** A folder may hold a marker only if no other marker folder lies above or below it. */
+export function canInitialize(probe: Probe, folder: string): boolean {
+  return (
+    !probe.markers.some((m) => m.folder !== folder && (isBelow(m.folder, folder) || isBelow(folder, m.folder))) &&
+    !probe.markers.some((m) => m.folder === folder && m.marker)
+  );
+}
