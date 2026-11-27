@@ -32,7 +32,7 @@ import {
 } from "@/lib/git-sync/plan";
 import type { BranchHead, GitProvider, RepoRef, TreeEntry } from "@/lib/git-sync/provider";
 import type { RepoLink, RepoLinks } from "@/lib/git-sync/repo-links";
-import { selectTracked } from "@/lib/git-sync/tracked";
+import { selectTracked, toRepoPath } from "@/lib/git-sync/tracked";
 import { trackedType } from "./tracked-type";
 
 export type SyncFs = WorkspaceFs & Pick<FileSystem, "transfer">;
@@ -343,6 +343,111 @@ export class GitSync {
     this.deps.links.set(projectId, previousLink);
     this.undos.delete(undoToken);
     this.deps.markTookOver(projectId);
+  }
+
+  /** Local changes against the last synced state, for the commit dialog. */
+  async pendingChanges(projectId: string): Promise<{ upserts: string[]; deletes: string[] }> {
+    return localChanges(this.link(projectId).baseFiles, await this.localShas(projectId));
+  }
+
+  /**
+   * Commits the local changes on top of the base commit and fast-forwards the branch.
+   * The commit builds on the head tree, so remote files the link does not track stay
+   * untouched; a local file at the path of one (e.g. a skipped binary) is left out.
+   */
+  async push(projectId: string, message: string): Promise<{ commit: string }> {
+    this.assertUnlocked(projectId);
+    const link = this.link(projectId);
+    const { shas: local, texts } = await this.localFiles(projectId);
+    const changes = localChanges(link.baseFiles, local);
+    const assertSomethingToPush = (upserts: string[], deletes: string[]) => {
+      if (upserts.length + deletes.length === 0) throw new GitSyncError("nothing_to_push", "Nothing to push.");
+    };
+    assertSomethingToPush(changes.upserts, changes.deletes);
+
+    const ref = this.refOf(link);
+    const git = this.deps.provider();
+    const head = await git.getHead(ref, link.branch);
+    if (!head || head.commit !== link.baseCommit) {
+      throw new GitSyncError("not_fast_forward", "The branch moved on GitHub — pull first.");
+    }
+    // At the base commit every remote path outside baseFiles is untracked or skipped.
+    const remotePaths = new Set((await git.getTree(ref, head.tree)).map((e) => e.path));
+    const upserts = changes.upserts.filter(
+      (p) => Object.hasOwn(link.baseFiles, p) || !remotePaths.has(toRepoPath(link.path, p)),
+    );
+    const { deletes } = changes;
+    assertSomethingToPush(upserts, deletes);
+
+    const blobs = await mapLimit(upserts, MAX_BLOBS_IN_FLIGHT, (p) => git.createBlob(ref, texts.get(local[p])!));
+    const tree = await git.createTree(ref, head.tree, [
+      ...upserts.map((p, i) => ({ path: toRepoPath(link.path, p), sha: blobs[i] })),
+      ...deletes.map((p) => ({ path: toRepoPath(link.path, p), sha: null })),
+    ]);
+    const commit = await git.createCommit(ref, message, tree, [head.commit]);
+    await git.updateRef(ref, link.branch, commit);
+
+    const baseFiles: Shas = { ...link.baseFiles };
+    for (const p of upserts) baseFiles[p] = local[p];
+    for (const p of deletes) delete baseFiles[p];
+    this.deps.links.set(projectId, { ...link, baseCommit: commit, baseFiles });
+    return { commit };
+  }
+
+  /**
+   * Links an existing project to `folder`, initializing the marker if needed (`branch`
+   * null = empty repo, use the default branch). The link starts without a common base,
+   * so the first pull brings in the remote files: applied right away without conflicts
+   * (null), otherwise returned for the caller to resolve via `applyPull`.
+   */
+  async linkProject(
+    projectId: string,
+    ref: RepoRef,
+    branch: string | null,
+    folder: string,
+  ): Promise<PreparedPull | null> {
+    this.assertUnlocked(projectId);
+    const git = this.deps.provider();
+    const name = branch ?? (await git.getRepo(ref)).defaultBranch;
+    const head = await git.getHead(ref, name);
+    if (head) {
+      const paths = (await git.getTree(ref, head.tree)).filter((e) => e.type === "blob").map((e) => e.path);
+      const { folders, nested } = findMarkerFolders([...new Set([...paths, markerPath(folder)])]);
+      assertNotNested(folders, nested, folder);
+    }
+    await this.initialize(ref, head ? name : branch, folder);
+
+    const previous = this.deps.links.get(projectId);
+    this.deps.links.set(projectId, {
+      provider: "github",
+      owner: ref.owner,
+      repo: ref.repo,
+      branch: name,
+      path: folder,
+      marker: { format: SUPPORTED_FORMAT },
+      baseCommit: "",
+      baseFiles: {},
+    });
+    try {
+      const prepared = await this.preparePull(projectId);
+      if (prepared && prepared.conflicts.length === 0) {
+        await this.applyPull(prepared, {});
+        return null;
+      }
+      return prepared;
+    } catch (e) {
+      if (previous) this.deps.links.set(projectId, previous);
+      else this.deps.links.removeProject(projectId);
+      throw e;
+    }
+  }
+
+  /** Drops the link and any pending undo that would bring it back. */
+  unlink(projectId: string): void {
+    this.deps.links.removeProject(projectId);
+    for (const [token, undo] of this.undos) {
+      if (undo.projectId === projectId) this.undos.delete(token);
+    }
   }
 
   /** Head, tree and parsed markers of a branch; an empty repo or missing branch gives an empty probe. */

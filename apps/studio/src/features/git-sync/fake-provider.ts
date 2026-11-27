@@ -46,6 +46,8 @@ const toBytes = (v: string | Uint8Array) => (typeof v === "string" ? new TextEnc
 export class FakeGitHub implements GitProvider {
   private readonly repos = new Map<string, Repo>();
   private counter = 0;
+  /** One-shot hook run inside the next `updateRef`, before the fast-forward check. */
+  beforeUpdateRef: (() => unknown) | null = null;
 
   /** Registers an empty repo (no commits, no branches). */
   createEmptyRepo(ref: RepoRef, defaultBranch = "main", canPush = true): void {
@@ -159,6 +161,9 @@ export class FakeGitHub implements GitProvider {
   }
 
   async updateRef(ref: RepoRef, branch: string, commit: string) {
+    const hook = this.beforeUpdateRef;
+    this.beforeUpdateRef = null;
+    await hook?.();
     const repo = this.writable(ref);
     const head = repo.refs.get(branch);
     if (!head) throw new GitSyncError("not_found", `Unknown branch ${branch}`);
