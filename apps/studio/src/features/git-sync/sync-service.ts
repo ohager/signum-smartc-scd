@@ -90,8 +90,21 @@ export class GitSync {
       ...t,
       text: decodeTextOrNull(await git.getBlob(ref, t.sha)),
     }));
-    const texts = fetched.filter((f): f is typeof f & { text: string } => f.text !== null);
     skipped.push(...fetched.filter((f) => f.text === null).map((f) => f.relPath));
+    // A project holds one contract; importEntries keeps the first, so mirror that here.
+    let contractTaken = false;
+    const texts: (typeof fetched[number] & { text: string })[] = [];
+    for (const f of fetched) {
+      if (f.text === null) continue;
+      if (f.relPath.toLowerCase().endsWith(".smart.c")) {
+        if (contractTaken) {
+          skipped.push(f.relPath);
+          continue;
+        }
+        contractTaken = true;
+      }
+      texts.push({ ...f, text: f.text });
+    }
 
     const fs = this.deps.fs;
     const rootNames = fs.listFolderContents(fs.rootFolderId).folders.map((f) => f.metadata.name);
@@ -126,7 +139,11 @@ export class GitSync {
       const head = await git.getHead(ref, branch);
       if (head) {
         const existing = (await git.getTree(ref, head.tree)).find((e) => e.path === path);
-        if (existing) sha = existing.sha;
+        if (existing) {
+          const text = new TextDecoder().decode(await git.getBlob(ref, existing.sha));
+          if (parseMarker(text).ok) return; // a valid marker is never overwritten
+          sha = existing.sha;
+        }
       }
     }
     await git.putFile(ref, {

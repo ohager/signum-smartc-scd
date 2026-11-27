@@ -79,6 +79,19 @@ describe("GitSync import", () => {
     expect(Object.keys(links.get(res.projectId)!.baseFiles)).toEqual(["y.ts"]);
   });
 
+  it("keeps one contract per project and reports the others as skipped", async () => {
+    const { gh, links, sync } = setup();
+    await gh.seed(ref, "main", {
+      "c/.smartc-studio": marker,
+      "c/a.smart.c": "a",
+      "c/lib/b.smart.c": "b",
+    });
+    const res = await sync.importProject(ref, "main", "c");
+    expect(res.imported).toBe(1);
+    expect(res.skipped).toEqual(["lib/b.smart.c"]);
+    expect(Object.keys(links.get(res.projectId)!.baseFiles)).toEqual(["a.smart.c"]);
+  });
+
   it("refuses no marker, nested markers, invalid markers and newer formats", async () => {
     const { gh, sync } = setup();
     await gh.seed(ref, "main", {
@@ -157,6 +170,16 @@ describe("GitSync import", () => {
     await sync.initialize(ref, "main", "c");
     const result = parseMarker(gh.files(ref, "main")["c/.smartc-studio"]);
     expect(result).toEqual({ ok: true, marker: { format: 1 } });
+  });
+
+  it("initialize leaves a valid marker alone", async () => {
+    const { gh, sync } = setup();
+    const valid = serializeMarker({ format: 2, extra: true });
+    await gh.seed(ref, "main", { "c/.smartc-studio": valid });
+    const before = gh.commitsOn(ref, "main");
+    await sync.initialize(ref, "main", "c");
+    expect(gh.commitsOn(ref, "main")).toEqual(before);
+    expect(gh.files(ref, "main")["c/.smartc-studio"]).toBe(valid);
   });
 
   it("needs a token", async () => {

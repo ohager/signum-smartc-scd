@@ -108,6 +108,13 @@ describe("GitHubProvider", () => {
     expect("sha" in body).toBe(false);
   });
 
+  it("putFile maps 409 and 422 to stale", async () => {
+    const { provider } = setup(json({}, { status: 409 }), json({}, { status: 422 }));
+    const args = { path: "a", text: "x", message: "m", sha: "old" };
+    expect((await codeOf(provider.putFile(ref, args))).code).toBe("stale");
+    expect((await codeOf(provider.putFile(ref, args))).code).toBe("stale");
+  });
+
   it("maps 401, rate limit, plain 403 and network failure", async () => {
     const { provider } = setup(
       json({}, { status: 401 }),

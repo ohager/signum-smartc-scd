@@ -27,13 +27,17 @@ interface RequestOptions {
   /** Statuses returned as-is (no error) instead of being mapped. */
   passStatuses?: number[];
   /** Error code for a 422 response. */
-  on422?: "not_fast_forward";
+  on422?: "not_fast_forward" | "stale";
+  /** Error code for a 409 response (instead of the empty-repo mapping). */
+  on409?: "stale";
 }
+
+type FetchFn = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
 export class GitHubProvider implements GitProvider {
   constructor(
     private readonly token: string,
-    private readonly fetchFn: typeof fetch = (input, init) => fetch(input, init),
+    private readonly fetchFn: FetchFn = (input, init) => fetch(input, init),
   ) {}
 
   private repoPath({ owner, repo }: RepoRef): string {
@@ -81,6 +85,9 @@ export class GitHubProvider implements GitProvider {
     if (status === 404) return new GitSyncError("not_found", "Not found on GitHub", detail);
     if (status === 422 && options.on422) {
       return new GitSyncError(options.on422, "The branch moved on GitHub", detail);
+    }
+    if (status === 409 && options.on409) {
+      return new GitSyncError(options.on409, "The file changed on GitHub", detail);
     }
     if (status === 409) return new GitSyncError("not_found", "The repository is empty", detail);
     return new GitSyncError("network", `GitHub request failed (${status})`, detail);
@@ -191,6 +198,8 @@ export class GitHubProvider implements GitProvider {
       `${this.repoPath(ref)}/contents/${encodePath(args.path)}`,
       {
         method: "PUT",
+        on409: "stale",
+        on422: "stale",
         body: {
           message: args.message,
           content: toBase64(args.text),
