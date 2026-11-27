@@ -13,6 +13,7 @@
       "register": "Registra il relay",
       "registerOther": "Aggiungi questo alla configurazione MCP del tuo agente",
       "skill": "Installa lo skill SmartC",
+      "plugin": "Installa il plugin, che porta il relay e lo skill SmartC",
       "restart": "Riavvia {agent} perché carichi entrambi",
       "restartOther": "Riavvia il tuo agente perché carichi entrambi",
       "show": "Mostra configurazione",

@@ -14,6 +14,16 @@ The relay listens on `127.0.0.1` only. Only the Studio's own origins may connect
 
 The quickest way: open the Connect dialog in Studio (assistant icon, top right). It shows these steps for Claude Code, Codex and other agents, with the commands already filled in for your port, ready to copy.
 
+**Claude Code:** one command installs the [signum-smartc skill](https://github.com/ohager/signum-smartc-skill) together with the relay, as a plugin:
+
+```sh
+claude plugin install signum-smartc --marketplace ohager/signum-smartc-skill
+```
+
+Restart Claude Code. `/plugin` keeps skill and relay up to date. On Claude Code older than 2.1.275, run `claude plugin marketplace add ohager/signum-smartc-skill` first, then `claude plugin install signum-smartc@signum`. A relay you registered by hand with the default command (`claude mcp add --scope user smartc-studio -- npx -y @smartc-studio/mcp`) keeps working; Claude Code skips the plugin's identical copy. A hand-registered relay with other arguments is not identical: remove it first with `claude mcp remove smartc-studio --scope user`, or the agent sees two relays. The plugin's relay uses the default port and the hosted Studio; for anything else, use the manual steps below (the Connect dialog switches to them by itself).
+
+**Codex, other agents, or a custom port or origin:**
+
 1. Register the relay with your agent.
 
    Claude Code:
@@ -34,13 +44,15 @@ The quickest way: open the Connect dialog in Studio (assistant icon, top right).
    { "mcpServers": { "smartc-studio": { "command": "npx", "args": ["-y", "@smartc-studio/mcp"] } } }
    ```
 
-2. Install the [signum-smartc skill](https://github.com/ohager/signum-smartc-skill). It teaches the agent the SmartC language and the testing flow, so the results are much better. One command installs it into Claude Code, Codex and the other agents it finds:
+2. Install the signum-smartc skill. It teaches the agent the SmartC language and the testing flow, so the results are much better. One command installs it into Claude Code, Codex and the other agents it finds:
 
    ```sh
    npx skills add ohager/signum-smartc-skill -g
    ```
 
 3. Restart your agent so it loads both.
+
+**Windows:** on native Windows (not WSL), agents cannot start `npx` directly as an MCP server. Wrap it in `cmd /c`, e.g. `claude mcp add --scope user smartc-studio -- cmd /c npx -y @smartc-studio/mcp` or `codex mcp add smartc-studio -- cmd /c npx -y @smartc-studio/mcp`, and `"command": "cmd", "args": ["/c", "npx", "-y", "@smartc-studio/mcp"]` in JSON configurations. If the plugin's relay does not start on Windows, disable it in `/mcp` and register the relay this way.
 
 Requires Node 20 or newer. Update the relay with `npx @smartc-studio/mcp@latest`.
 

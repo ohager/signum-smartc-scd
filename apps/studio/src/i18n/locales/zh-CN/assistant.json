@@ -13,6 +13,7 @@
       "register": "注册中继",
       "registerOther": "把以下内容添加到你的代理的 MCP 配置中",
       "skill": "安装 SmartC 技能",
+      "plugin": "安装插件，它包含中继和 SmartC 技能",
       "restart": "重启 {agent}，使其加载两者",
       "restartOther": "重启你的代理，使其加载两者",
       "show": "显示设置",

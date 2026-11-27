@@ -8,7 +8,13 @@ The agent can read and edit project files, compile, lint, analyse gas and run te
 
 The Connect dialog in SmartC Studio (assistant icon, top right) shows these steps with the commands filled in for your port.
 
-Claude Code:
+Claude Code, simplest: the [signum-smartc plugin](https://github.com/ohager/signum-smartc-skill) brings this relay (default port and origin) together with the SmartC skill, and `/plugin` updates both:
+
+```sh
+claude plugin install signum-smartc --marketplace ohager/signum-smartc-skill
+```
+
+Claude Code, by hand (also for a custom port or origin):
 
 ```sh
 claude mcp add --scope user smartc-studio -- npx -y @smartc-studio/mcp
@@ -31,6 +37,8 @@ Install the [signum-smartc skill](https://github.com/ohager/signum-smartc-skill)
 ```sh
 npx skills add ohager/signum-smartc-skill -g
 ```
+
+On native Windows (not WSL), wrap `npx` in `cmd /c`: `claude mcp add --scope user smartc-studio -- cmd /c npx -y @smartc-studio/mcp`, `codex mcp add smartc-studio -- cmd /c npx -y @smartc-studio/mcp`, or `"command": "cmd", "args": ["/c", "npx", "-y", "@smartc-studio/mcp"]` in JSON.
 
 Restart your agent, then open SmartC Studio, click the assistant icon (top right) and choose **Connect assistant**. Update with `npx @smartc-studio/mcp@latest`.
 

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { t } from "@/i18n/runtime";
 import { setupDoneAtom, setupTabAtom } from "../state";
-import { AGENT_TABS, SKILL_COMMAND, registerCommand, type AgentTab, type SetupTarget } from "./setup-commands";
+import { AGENT_TABS, PLUGIN_COMMAND, SKILL_COMMAND, registerCommand, usesPlugin, type AgentTab, type SetupTarget } from "./setup-commands";
 
 /* Product names, never translated (see GLOSSARY.md). */
 const PRODUCT: Record<Exclude<AgentTab, "other">, string> = {
@@ -51,8 +51,9 @@ function Step({ n, title, children }: { n: number; title: string; children?: Rea
 }
 
 /*
- * Per-agent setup: register the relay, install the skill, restart. The commands come from the
- * dialog's live port and this tab's origin, so what is copied is what will connect.
+ * Per-agent setup: register the relay, install the skill, restart. Claude Code gets both in
+ * one plugin when the relay needs no extra arguments. The commands come from the dialog's live
+ * port and this tab's origin, so what is copied is what will connect.
  */
 export function SetupSteps({ target }: { target: SetupTarget }) {
   const [tab, setTab] = useAtom(setupTabAtom);
@@ -79,18 +80,27 @@ export function SetupSteps({ target }: { target: SetupTarget }) {
           </TabsList>
           {AGENT_TABS.map((agent) => (
             <TabsContent key={agent} value={agent}>
-              <ol className="mt-2 flex flex-col gap-3">
-                <Step n={1} title={agent === "other" ? t("assistant.connect.setup.registerOther") : t("assistant.connect.setup.register")}>
-                  <Command text={registerCommand(agent, target)} />
-                </Step>
-                <Step n={2} title={t("assistant.connect.setup.skill")}>
-                  <Command text={SKILL_COMMAND} />
-                </Step>
-                <Step
-                  n={3}
-                  title={agent === "other" ? t("assistant.connect.setup.restartOther") : t("assistant.connect.setup.restart", { agent: PRODUCT[agent] })}
-                />
-              </ol>
+              {usesPlugin(agent, target) ? (
+                <ol className="mt-2 flex flex-col gap-3">
+                  <Step n={1} title={t("assistant.connect.setup.plugin")}>
+                    <Command text={PLUGIN_COMMAND} />
+                  </Step>
+                  <Step n={2} title={t("assistant.connect.setup.restart", { agent: PRODUCT.claude })} />
+                </ol>
+              ) : (
+                <ol className="mt-2 flex flex-col gap-3">
+                  <Step n={1} title={agent === "other" ? t("assistant.connect.setup.registerOther") : t("assistant.connect.setup.register")}>
+                    <Command text={registerCommand(agent, target)} />
+                  </Step>
+                  <Step n={2} title={t("assistant.connect.setup.skill")}>
+                    <Command text={SKILL_COMMAND} />
+                  </Step>
+                  <Step
+                    n={3}
+                    title={agent === "other" ? t("assistant.connect.setup.restartOther") : t("assistant.connect.setup.restart", { agent: PRODUCT[agent] })}
+                  />
+                </ol>
+              )}
             </TabsContent>
           ))}
         </Tabs>

@@ -11,6 +11,7 @@ export interface SetupTarget {
 }
 
 const SERVER_NAME = "smartc-studio";
+const RELAY_PACKAGE = ["-y", "@smartc-studio/mcp"] as const;
 
 /* -g: global, like the relay's user scope; the default installs into the current folder only. */
 export const SKILL_COMMAND = "npx skills add ohager/signum-smartc-skill -g";
@@ -21,10 +22,21 @@ export const SKILL_COMMAND = "npx skills add ohager/signum-smartc-skill -g";
  * allowed, or the commands look right and the connection silently fails.
  */
 export function relayArgs({ port, origin }: SetupTarget): string[] {
-  const args = ["-y", "@smartc-studio/mcp"];
+  const args: string[] = [...RELAY_PACKAGE];
   if (port !== null && port !== DEFAULT_RELAY_PORT) args.push("--port", String(port));
   if (!isAllowedOrigin(origin)) args.push("--allow-origin", origin);
   return args;
+}
+
+/*
+ * Claude Code plugin from the skill repo: the skill plus a relay with default arguments, and
+ * --marketplace adds the repo's marketplace on the way. One command, updated through /plugin.
+ */
+export const PLUGIN_COMMAND = "claude plugin install signum-smartc --marketplace ohager/signum-smartc-skill";
+
+/* The plugin's relay has fixed defaults; a custom port or origin needs the manual registration. */
+export function usesPlugin(agent: AgentTab, target: SetupTarget): boolean {
+  return agent === "claude" && relayArgs(target).length === RELAY_PACKAGE.length;
 }
 
 export function registerCommand(agent: AgentTab, target: SetupTarget): string {
