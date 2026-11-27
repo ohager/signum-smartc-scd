@@ -20,7 +20,7 @@ The quickest way: open the Connect dialog in Studio (assistant icon, top right).
 claude plugin install signum-smartc --marketplace ohager/signum-smartc-skill
 ```
 
-Restart Claude Code. `/plugin` keeps skill and relay up to date. On Claude Code older than 2.1.275, run `claude plugin marketplace add ohager/signum-smartc-skill` first, then `claude plugin install signum-smartc@signum`. A relay you registered by hand before keeps working; Claude Code skips the plugin's copy. The plugin's relay uses the default port and the hosted Studio; for anything else, use the manual steps below (the Connect dialog switches to them by itself).
+Restart Claude Code. `/plugin` keeps skill and relay up to date. On Claude Code older than 2.1.275, run `claude plugin marketplace add ohager/signum-smartc-skill` first, then `claude plugin install signum-smartc@signum`. A relay you registered by hand with the default command (`claude mcp add --scope user smartc-studio -- npx -y @smartc-studio/mcp`) keeps working; Claude Code skips the plugin's identical copy. A hand-registered relay with other arguments is not identical: remove it first with `claude mcp remove smartc-studio --scope user`, or the agent sees two relays. The plugin's relay uses the default port and the hosted Studio; for anything else, use the manual steps below (the Connect dialog switches to them by itself).
 
 **Codex, other agents, or a custom port or origin:**
 
