@@ -1,7 +1,8 @@
 import { GitSyncError } from "@/lib/git-sync/errors";
 import type { BranchHead, GitProvider, RepoRef, TreeEntry } from "@/lib/git-sync/provider";
 
-type Files = Record<string, string | Uint8Array>;
+/** `null` deletes the path. */
+type Files = Record<string, string | Uint8Array | null>;
 interface Commit {
   tree: string;
   parents: string[];
@@ -58,7 +59,7 @@ export class FakeGitHub implements GitProvider {
     });
   }
 
-  /** Adds a commit on `branch` (created if missing) that sets the given files; creates the repo if needed. */
+  /** Adds a commit on `branch` (created if missing) that sets (or, for `null`, deletes) the given files; creates the repo if needed. */
   async seed(ref: RepoRef, branch: string, files: Files, message = "seed"): Promise<string> {
     if (!this.repos.has(key(ref))) this.createEmptyRepo(ref, branch);
     const repo = this.repos.get(key(ref))!;
@@ -66,7 +67,8 @@ export class FakeGitHub implements GitProvider {
     const base = head ? repo.trees.get(repo.commits.get(head)!.tree)! : {};
     const next = { ...base };
     for (const [path, value] of Object.entries(files)) {
-      next[path] = await this.storeBlob(repo, toBytes(value));
+      if (value === null) delete next[path];
+      else next[path] = await this.storeBlob(repo, toBytes(value));
     }
     const tree = await this.storeTree(repo, next);
     const commit = await this.storeCommit(repo, message, tree, head ? [head] : []);

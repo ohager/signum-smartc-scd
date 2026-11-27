@@ -148,7 +148,7 @@ export async function restoreProject(
 
 /* The undo checkpoint is stored before anything is touched, so a failed restore can still be undone. */
 export async function restoreWithUndo(
-  deps: { fs: WorkspaceFs; store: CheckpointStore; clock: Clock },
+  deps: { fs: WorkspaceFs; store: CheckpointStore; clock: Pick<Clock, "now"> },
   projectId: string,
   target: Checkpoint,
 ): Promise<{ undoCheckpointId: string }> {
