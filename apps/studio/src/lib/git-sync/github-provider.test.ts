@@ -130,6 +130,33 @@ describe("GitHubProvider", () => {
     expect((await codeOf(provider.getUser())).code as GitSyncErrorCode).toBe("network");
   });
 
+  it("maps secondary rate limits (retry-after or message) to rate_limited", async () => {
+    const { provider } = setup(
+      json({ message: "x" }, { status: 403, headers: { "retry-after": "60" } }),
+      json({ message: "You have exceeded a secondary rate limit." }, { status: 403 }),
+      json({}, { status: 429 }),
+    );
+    const before = Date.now();
+    const retry = await codeOf(provider.getUser());
+    expect(retry.code).toBe("rate_limited");
+    expect(retry.detail?.resetAt).toBeGreaterThanOrEqual(before + 60_000);
+    expect(retry.detail?.resetAt).toBeLessThanOrEqual(Date.now() + 60_000);
+    const secondary = await codeOf(provider.getUser());
+    expect(secondary.code).toBe("rate_limited");
+    expect(secondary.detail?.resetAt).toBeUndefined();
+    expect((await codeOf(provider.getUser())).code).toBe("rate_limited");
+  });
+
+  it("keeps the status of other error answers", async () => {
+    const { provider } = setup(json({}, { status: 500 }), new TypeError("offline"));
+    const server = await codeOf(provider.getUser());
+    expect(server.code).toBe("network");
+    expect(server.detail?.status).toBe(500);
+    const offline = await codeOf(provider.getUser());
+    expect(offline.code).toBe("network");
+    expect(offline.detail?.status).toBeUndefined();
+  });
+
   it("encodes branch and path segments", async () => {
     const { provider, calls } = setup(
       json({ commit: { sha: "c", commit: { tree: { sha: "t" } } } }),
@@ -139,7 +166,7 @@ describe("GitHubProvider", () => {
     await provider.getHead(ref, "feat/x y");
     await provider.updateRef(ref, "feat/x y", "c");
     await provider.putFile(ref, { path: "a b/.smartc-studio", text: "x", message: "m" });
-    expect(calls[0]!.url).toBe("https://api.github.com/repos/o/r/branches/feat%2Fx%20y");
+    expect(calls[0]!.url).toBe("https://api.github.com/repos/o/r/branches/feat/x%20y");
     expect(calls[1]!.url).toBe("https://api.github.com/repos/o/r/git/refs/heads/feat/x%20y");
     expect(calls[2]!.url).toBe("https://api.github.com/repos/o/r/contents/a%20b/.smartc-studio");
   });

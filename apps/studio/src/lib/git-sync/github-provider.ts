@@ -5,6 +5,16 @@ const API = "https://api.github.com";
 
 const encodePath = (path: string) => path.split("/").map(encodeURIComponent).join("/");
 
+/** A 403 for too many requests in a short time: a `retry-after` header or GitHub's message says so. */
+async function isSecondaryRateLimit(response: Response): Promise<boolean> {
+  if (response.headers.has("retry-after")) return true;
+  try {
+    return /secondary rate limit/i.test(await response.text());
+  } catch {
+    return false;
+  }
+}
+
 function toBase64(text: string): string {
   const bytes = new TextEncoder().encode(text);
   let binary = "";
@@ -67,10 +77,10 @@ export class GitHubProvider implements GitProvider {
       throw new GitSyncError("network", e instanceof Error ? e.message : "Network request failed");
     }
     if (response.ok || options.passStatuses?.includes(response.status)) return response;
-    throw this.mapError(response, options);
+    throw await this.mapError(response, options);
   }
 
-  private mapError(response: Response, options: RequestOptions): GitSyncError {
+  private async mapError(response: Response, options: RequestOptions): Promise<GitSyncError> {
     const status = response.status;
     const detail = { status };
     if (status === 401) return new GitSyncError("auth", "GitHub rejected the token", detail);
@@ -79,6 +89,13 @@ export class GitHubProvider implements GitProvider {
       return new GitSyncError("rate_limited", "GitHub rate limit reached", {
         status,
         ...(Number.isFinite(reset) && reset > 0 ? { resetAt: reset * 1000 } : {}),
+      });
+    }
+    if (status === 429 || (status === 403 && (await isSecondaryRateLimit(response)))) {
+      const retryAfter = Number(response.headers.get("retry-after") ?? NaN);
+      return new GitSyncError("rate_limited", "GitHub secondary rate limit reached", {
+        status,
+        ...(Number.isFinite(retryAfter) && retryAfter >= 0 ? { resetAt: Date.now() + retryAfter * 1000 } : {}),
       });
     }
     if (status === 403) return new GitSyncError("forbidden", "GitHub denied access", detail);
@@ -126,7 +143,7 @@ export class GitHubProvider implements GitProvider {
 
   async getHead(ref: RepoRef, branch: string): Promise<BranchHead | null> {
     const response = await this.request(
-      `${this.repoPath(ref)}/branches/${encodeURIComponent(branch)}`,
+      `${this.repoPath(ref)}/branches/${encodePath(branch)}`,
       { passStatuses: [404, 409] },
     );
     if (response.status === 404 || response.status === 409) return null;
