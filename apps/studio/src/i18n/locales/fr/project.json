@@ -59,7 +59,11 @@
       "nothing_to_push": "Il n'y a rien à pousser.",
       "multiple_contracts": "Le projet contiendrait alors plus d'un contrat.",
       "path_taken": "Ces chemins sont ignorés par la synchronisation et existent déjà sur GitHub : {paths}",
-      "network": "Impossible de joindre GitHub. Vérifiez votre connexion."
+      "network": "Impossible de joindre GitHub. Vérifiez votre connexion.",
+      "http_error": "GitHub a répondu par une erreur ({status}). Réessayez plus tard.",
+      "marker_changed": "Le marqueur sur GitHub a changé entre-temps — recherchez à nouveau le dépôt.",
+      "undo_expired": "Cette annulation n'est plus disponible.",
+      "unresolved_conflicts": "Choisissez d'abord une version pour chaque conflit."
     },
     "token": {
       "title": "Jeton GitHub",

@@ -59,7 +59,11 @@
       "nothing_to_push": "没有可推送的内容。",
       "multiple_contracts": "这会使项目包含多个合约。",
       "path_taken": "同步会跳过这些路径，而它们已存在于 GitHub 上：{paths}",
-      "network": "无法连接到 GitHub。请检查网络连接。"
+      "network": "无法连接到 GitHub。请检查网络连接。",
+      "http_error": "GitHub 返回了错误（{status}）。请稍后重试。",
+      "marker_changed": "GitHub 上的标记在此期间已更改——请重新查找仓库。",
+      "undo_expired": "此撤销操作已不可用。",
+      "unresolved_conflicts": "请先为每个冲突选择一个版本。"
     },
     "token": {
       "title": "GitHub 令牌",

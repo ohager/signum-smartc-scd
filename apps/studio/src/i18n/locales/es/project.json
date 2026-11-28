@@ -59,7 +59,11 @@
       "nothing_to_push": "No hay nada que enviar con push.",
       "multiple_contracts": "El proyecto quedaría con más de un contrato.",
       "path_taken": "La sincronización omite estas rutas y ya existen en GitHub: {paths}",
-      "network": "No se pudo conectar con GitHub. Comprueba tu conexión."
+      "network": "No se pudo conectar con GitHub. Comprueba tu conexión.",
+      "http_error": "GitHub respondió con un error ({status}). Inténtalo de nuevo más tarde.",
+      "marker_changed": "El marcador en GitHub cambió entretanto — vuelve a buscar el repositorio.",
+      "undo_expired": "Ya no se puede deshacer esta acción.",
+      "unresolved_conflicts": "Primero elige una versión para cada conflicto."
     },
     "token": {
       "title": "Token de GitHub",

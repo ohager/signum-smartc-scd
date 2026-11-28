@@ -59,7 +59,11 @@
       "nothing_to_push": "Es gibt nichts zu pushen.",
       "multiple_contracts": "Das Projekt hätte danach mehr als einen Contract.",
       "path_taken": "Diese Pfade überspringt die Synchronisierung, und sie existieren bereits auf GitHub: {paths}",
-      "network": "GitHub ist nicht erreichbar. Prüfe deine Verbindung."
+      "network": "GitHub ist nicht erreichbar. Prüfe deine Verbindung.",
+      "http_error": "GitHub hat mit einem Fehler geantwortet ({status}). Versuche es später erneut.",
+      "marker_changed": "Die Markierung auf GitHub hat sich in der Zwischenzeit geändert — schlage das Repo erneut nach.",
+      "undo_expired": "Dieses Rückgängigmachen ist nicht mehr verfügbar.",
+      "unresolved_conflicts": "Wähle zuerst für jeden Konflikt eine Version."
     },
     "token": {
       "title": "GitHub-Token",
