@@ -181,6 +181,10 @@ export type MessageParams = {
   "project.git.link.initCommit": undefined;
   "project.git.link.linked": { deleted: string | number; repo: string | number; written: string | number };
   "project.git.link.cancelled": undefined;
+  "project.git.status.in_sync": undefined;
+  "project.git.status.local": { count: number };
+  "project.git.status.remote": undefined;
+  "project.git.status.diverged": undefined;
   "project.git.menu.pull": undefined;
   "project.git.menu.commit": undefined;
   "project.git.menu.unlink": undefined;

@@ -89,6 +89,12 @@
       "linked": "Linked to {repo}: {written} written, {deleted} deleted.",
       "cancelled": "Linked, but the pull was not finished. Pull to finish linking."
     },
+    "status": {
+      "in_sync": "In sync with GitHub",
+      "local": { "one": "{count} local change not pushed", "other": "{count} local changes not pushed" },
+      "remote": "GitHub has new changes — pull",
+      "diverged": "Local changes and new changes on GitHub"
+    },
     "menu": {
       "pull": "Pull",
       "commit": "Commit & Push…",

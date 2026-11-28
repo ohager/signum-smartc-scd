@@ -39,6 +39,7 @@ import { NameInputDialog } from "./name-input-dialog";
 import { NewFileDialog } from "./new-file-dialog";
 import { isContractFile } from "./contract";
 import { findProjectOfFolder } from "./project-root";
+import { SyncStatusBadge } from "@/features/git-sync/sync-status-badge";
 import { useProjectGit } from "@/features/git-sync/project-git-menu";
 import { FileSidebarItem, FILE_DND_MIME } from "./file-sidebar-item";
 import { uniqueName } from "./file-naming";
@@ -194,6 +195,7 @@ export function FolderNode({ folder }: { folder: FolderMetadata }) {
               </>
             )}
             <span>{folder.name}</span>
+            {isProjectRoot && <SyncStatusBadge projectId={folder.id} />}
           </SidebarMenuButton>
 
           <DropdownMenu>

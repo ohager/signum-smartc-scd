@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
 import type { ProjectSummary } from "@/features/home/project-summary";
+import { SyncStatusBadge } from "@/features/git-sync/sync-status-badge";
 import { findFolderChainToFile } from "@/features/project/tree-reveal";
 import { useFileSystem } from "@/hooks/use-file-system";
 import { revealFileRequestAtom } from "@/stores/project-tree-atoms";
@@ -45,6 +46,7 @@ export function ProjectGrid({ projects }: Props) {
                 <div className="flex items-center gap-2">
                   <FolderIcon className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-[var(--accent-2)]" />
                   <span className="truncate text-sm font-medium">{project.name}</span>
+                  <SyncStatusBadge projectId={project.id} />
                 </div>
 
                 <p className="font-mono text-[11px] tabular-nums text-muted-foreground">
