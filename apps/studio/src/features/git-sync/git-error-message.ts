@@ -1,7 +1,7 @@
 import { t } from "@/i18n/runtime";
 import { GitSyncError, type GitSyncErrorCode } from "@/lib/git-sync/errors";
 
-const MESSAGES: Record<Exclude<GitSyncErrorCode, "rate_limited" | "path_taken">, () => string> = {
+const MESSAGES: Record<Exclude<GitSyncErrorCode, "rate_limited" | "path_taken" | "network">, () => string> = {
   no_token: () => t("project.git.errors.no_token"),
   auth: () => t("project.git.errors.auth"),
   forbidden: () => t("project.git.errors.forbidden"),
@@ -16,7 +16,9 @@ const MESSAGES: Record<Exclude<GitSyncErrorCode, "rate_limited" | "path_taken">,
   stale: () => t("project.git.errors.stale"),
   nothing_to_push: () => t("project.git.errors.nothing_to_push"),
   multiple_contracts: () => t("project.git.errors.multiple_contracts"),
-  network: () => t("project.git.errors.network"),
+  marker_changed: () => t("project.git.errors.marker_changed"),
+  undo_expired: () => t("project.git.errors.undo_expired"),
+  unresolved_conflicts: () => t("project.git.errors.unresolved_conflicts"),
 };
 
 /** User-facing text for any error from sync; other errors keep their own message. */
@@ -29,6 +31,11 @@ export function gitErrorMessage(e: unknown): string {
   }
   if (e.code === "path_taken") {
     return t("project.git.errors.path_taken", { paths: (e.detail?.paths ?? []).join(", ") });
+  }
+  if (e.code === "network") {
+    return e.detail?.status
+      ? t("project.git.errors.http_error", { status: String(e.detail.status) })
+      : t("project.git.errors.network");
   }
   return MESSAGES[e.code]();
 }

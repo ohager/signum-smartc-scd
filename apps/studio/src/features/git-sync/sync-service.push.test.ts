@@ -371,7 +371,7 @@ describe("GitSync push", () => {
     expect((await sync.linkProject(projectId, other, null, "")).prepared).toBeNull();
     const relinked = links.get(projectId);
     expect(relinked).toMatchObject({ repo: "other", path: "" });
-    await expect(sync.undoPull(undoToken)).rejects.toThrow("Unknown undo token.");
+    expect((await codeOf(sync.undoPull(undoToken))).code).toBe("undo_expired");
     expect(links.get(projectId)).toEqual(relinked);
   });
 
@@ -389,7 +389,7 @@ describe("GitSync push", () => {
     sync.unlink(projectId);
     expect(links.get(projectId)).toBeNull();
     expect((await codeOf(sync.push(projectId, "msg"))).code).toBe("not_found");
-    await expect(sync.undoPull(undoToken)).rejects.toThrow("Unknown undo token.");
+    expect((await codeOf(sync.undoPull(undoToken))).code).toBe("undo_expired");
     expect(links.get(projectId)).toBeNull();
   });
 });

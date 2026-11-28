@@ -157,6 +157,10 @@ export type MessageParams = {
   "project.git.errors.multiple_contracts": undefined;
   "project.git.errors.path_taken": { paths: string | number };
   "project.git.errors.network": undefined;
+  "project.git.errors.http_error": { status: string | number };
+  "project.git.errors.marker_changed": undefined;
+  "project.git.errors.undo_expired": undefined;
+  "project.git.errors.unresolved_conflicts": undefined;
   "project.git.token.title": undefined;
   "project.git.token.description": undefined;
   "project.git.token.createLink": undefined;

@@ -26,11 +26,12 @@ async function setup(files: Record<string, string> = seedFiles) {
   const { fs, storage } = createTestFs();
   const links = new RepoLinks(storage);
   const state = { locked: false, tookOver: [] as string[] };
+  const checkpoints = new MemoryCheckpointStore();
   const sync = new GitSync({
     fs,
     links,
     provider: () => gh,
-    checkpoints: new MemoryCheckpointStore(),
+    checkpoints,
     clock: { now: () => 0 },
     flush: async () => {},
     isLocked: () => state.locked,
@@ -50,7 +51,7 @@ async function setup(files: Record<string, string> = seedFiles) {
     const path = `${fs.getFolder(projectId).path}/${relPath}`;
     await fs.deleteFile(fs.listFilesRecursive(projectId).find((m) => m.path === path)!.id);
   };
-  return { gh, fs, links, sync, state, projectId, local, edit, add, remove };
+  return { gh, fs, links, sync, state, checkpoints, projectId, local, edit, add, remove };
 }
 
 const codeOf = async (p: Promise<unknown>) => {
@@ -181,6 +182,26 @@ describe("GitSync pull", () => {
     expect(await local()).toEqual(files0);
     expect(links.get(projectId)).toEqual(l0);
     expect((await sync.status(projectId, { remote: true })).state).toBe("remote");
+  });
+
+  it("an unknown token or a lost checkpoint is undo_expired", async () => {
+    const { gh, sync, checkpoints, projectId } = await setup();
+    expect((await codeOf(sync.undoPull("nope"))).code).toBe("undo_expired");
+    await gh.seed(ref, "main", { "c/a.smart.c": "int a2;" });
+    const { undoToken } = await sync.applyPull((await sync.preparePull(projectId))!, {});
+    checkpoints.get = async () => undefined;
+    expect((await codeOf(sync.undoPull(undoToken))).code).toBe("undo_expired");
+  });
+
+  it("a missing conflict choice is unresolved_conflicts", async () => {
+    const { gh, sync, projectId, local, edit } = await setup();
+    await edit("a.smart.c", "local");
+    await gh.seed(ref, "main", { "c/a.smart.c": "remote" });
+    const p = (await sync.preparePull(projectId))!;
+    const err = await codeOf(sync.applyPull(p, {}));
+    expect(err.code).toBe("unresolved_conflicts");
+    expect(err.detail?.paths).toEqual(["a.smart.c"]);
+    expect((await local())["a.smart.c"]).toBe("local");
   });
 
   it("marks the assistant as taken over after pull and undo", async () => {

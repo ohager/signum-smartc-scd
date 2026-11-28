@@ -5,7 +5,7 @@ import { gitErrorMessage } from "./git-error-message";
 const CODES: GitSyncErrorCode[] = [
   "no_token", "auth", "forbidden", "rate_limited", "not_found", "not_fast_forward", "truncated", "no_marker",
   "nested_markers", "format_unsupported", "invalid_marker", "locked", "stale", "nothing_to_push",
-  "multiple_contracts", "path_taken", "network",
+  "multiple_contracts", "path_taken", "network", "marker_changed", "undo_expired", "unresolved_conflicts",
 ];
 
 describe("gitErrorMessage", () => {
@@ -24,6 +24,14 @@ describe("gitErrorMessage", () => {
       new Date(resetAt).toLocaleTimeString(),
     );
     expect(gitErrorMessage(new GitSyncError("path_taken", "x", { paths: ["a.ts", "b/c.ts"] }))).toContain("a.ts, b/c.ts");
+  });
+
+  it("tells an error answer from GitHub apart from an unreachable GitHub", () => {
+    const offline = gitErrorMessage(new GitSyncError("network", "x"));
+    const answered = gitErrorMessage(new GitSyncError("network", "x", { status: 502 }));
+    expect(answered).toContain("502");
+    expect(answered).not.toBe(offline);
+    expect(offline).not.toContain("502");
   });
 
   it("falls back to the message of other errors", () => {

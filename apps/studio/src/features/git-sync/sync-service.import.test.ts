@@ -184,6 +184,27 @@ describe("GitSync import", () => {
     expect(gh.files(ref, "main")["c/.smartc-studio"]).toBe(valid);
   });
 
+  it("initialize reports a marker that changed on GitHub meanwhile as marker_changed", async () => {
+    const gh = new FakeGitHub();
+    await gh.seed(ref, "main", { "c/.smartc-studio": "nope" });
+    const racing = new Proxy(gh, {
+      get(target, prop) {
+        if (prop === "putFile") {
+          return async (...args: Parameters<GitProvider["putFile"]>) => {
+            await gh.seed(ref, "main", { "c/.smartc-studio": "someone else" });
+            return gh.putFile(...args);
+          };
+        }
+        const value = Reflect.get(target, prop);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+    const { sync } = setup(() => racing);
+    const err = await codeOf(sync.initialize(ref, "main", "c"));
+    expect(err.code).toBe("marker_changed");
+    expect(gh.files(ref, "main")["c/.smartc-studio"]).toBe("someone else");
+  });
+
   it("needs a token", async () => {
     const { sync } = setup(() => {
       throw new GitSyncError("no_token", "");

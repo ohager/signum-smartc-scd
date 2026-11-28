@@ -230,13 +230,21 @@ export class GitSync {
         }
       }
     }
-    await git.putFile(ref, {
-      path,
-      text: serializeMarker({ format: SUPPORTED_FORMAT }),
-      message: INIT_MESSAGE,
-      ...(branch !== null ? { branch } : {}),
-      ...(sha ? { sha } : {}),
-    });
+    try {
+      await git.putFile(ref, {
+        path,
+        text: serializeMarker({ format: SUPPORTED_FORMAT }),
+        message: INIT_MESSAGE,
+        ...(branch !== null ? { branch } : {}),
+        ...(sha ? { sha } : {}),
+      });
+    } catch (e) {
+      // putFile's stale (409/422) is about the marker on GitHub, not about local files.
+      if (e instanceof GitSyncError && e.code === "stale") {
+        throw new GitSyncError("marker_changed", "The marker on GitHub changed meanwhile.", e.detail);
+      }
+      throw e;
+    }
   }
 
   /** Blob SHAs of the project's tracked files, keyed by path relative to the project. Flushes first. */
@@ -389,12 +397,12 @@ export class GitSync {
   /** Puts back the files and the link as they were before the pull. */
   async undoPull(undoToken: string): Promise<void> {
     const undo = this.undos.get(undoToken);
-    if (!undo) throw new Error("Unknown undo token.");
+    if (!undo) throw new GitSyncError("undo_expired", "Unknown undo token.");
     const { projectId, checkpointId, previousLink, afterPull } = undo;
     this.assertUnlocked(projectId);
     const { fs, checkpoints: store, clock } = this.deps;
     const checkpoint = await store.get(checkpointId);
-    if (!checkpoint) throw new Error("The undo checkpoint is gone.");
+    if (!checkpoint) throw new GitSyncError("undo_expired", "The undo checkpoint is gone.");
     await this.deps.flush();
     const { added, removed, changed } = diffSnapshots(afterPull, await captureProject(fs, projectId));
     if (added.length + removed.length + changed.length > 0) {

@@ -15,6 +15,10 @@ export type GitSyncErrorCode =
   | "nothing_to_push"
   | "multiple_contracts"
   | "path_taken"
+  | "marker_changed"
+  | "undo_expired"
+  | "unresolved_conflicts"
+  /** No answer from GitHub, or (with `detail.status`) an error answer no other code covers. */
   | "network";
 
 export class GitSyncError extends Error {

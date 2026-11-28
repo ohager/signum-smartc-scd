@@ -1,3 +1,5 @@
+import { GitSyncError } from "./errors.ts";
+
 /** relPath -> git blob SHA. */
 export type Shas = Record<string, string>;
 
@@ -46,17 +48,19 @@ export function planPull(
   return { actions, conflicts };
 }
 
-/** Applies per-conflict choices; "theirs" becomes an action, "mine" nothing. Throws on a missing choice. */
+/** Applies per-conflict choices; "theirs" becomes an action, "mine" nothing. Throws unresolved_conflicts on a missing choice. */
 export function resolvePull(
   plan: { actions: PullAction[]; conflicts: Conflict[] },
   choices: Record<string, "mine" | "theirs">,
   remote: Shas,
 ): PullAction[] {
+  const open = plan.conflicts.map((c) => c.relPath).filter((p) => !Object.hasOwn(choices, p));
+  if (open.length > 0) {
+    throw new GitSyncError("unresolved_conflicts", `No choice for conflict: ${open.join(", ")}`, { paths: open });
+  }
   const actions = [...plan.actions];
   for (const { relPath } of plan.conflicts) {
-    const choice = Object.hasOwn(choices, relPath) ? choices[relPath] : undefined;
-    if (choice === undefined) throw new Error(`No choice for conflict: ${relPath}`);
-    if (choice === "theirs") actions.push(takeRemote(relPath, remote));
+    if (choices[relPath] === "theirs") actions.push(takeRemote(relPath, remote));
   }
   return actions.sort(byPath);
 }

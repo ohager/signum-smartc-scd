@@ -59,7 +59,11 @@
       "nothing_to_push": "There is nothing to push.",
       "multiple_contracts": "This would leave the project with more than one contract.",
       "path_taken": "These paths are skipped by sync and already exist on GitHub: {paths}",
-      "network": "Could not reach GitHub. Check your connection."
+      "network": "Could not reach GitHub. Check your connection.",
+      "http_error": "GitHub answered with an error ({status}). Try again later.",
+      "marker_changed": "The marker on GitHub changed meanwhile — look up the repo again.",
+      "undo_expired": "This undo is no longer available.",
+      "unresolved_conflicts": "Choose a version for every conflict first."
     },
     "token": {
       "title": "GitHub token",

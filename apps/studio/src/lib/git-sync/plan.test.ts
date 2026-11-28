@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import { GitSyncError } from "./errors.ts";
 import { localChanges, planPull, resolvePull, syncState } from "./plan.ts";
 
 describe("plan", () => {
@@ -29,7 +30,15 @@ describe("plan", () => {
       { kind: "write", relPath: "a" }, { kind: "delete", relPath: "b" },
     ]);
     expect(resolvePull(plan, { a: "mine", b: "mine" }, { a: "3" })).toEqual([]);
-    expect(() => resolvePull(plan, { a: "mine" }, { a: "3" })).toThrow();
+    let error: unknown;
+    try {
+      resolvePull(plan, { a: "mine" }, { a: "3" });
+    } catch (e) {
+      error = e;
+    }
+    expect(error).toBeInstanceOf(GitSyncError);
+    expect((error as GitSyncError).code).toBe("unresolved_conflicts");
+    expect((error as GitSyncError).detail?.paths).toEqual(["b"]);
   });
   it("localChanges lists upserts and deletes", () => {
     expect(localChanges({ a: "1", b: "1", c: "1" }, { a: "1", b: "2", n: "3" })).toEqual({ upserts: ["b", "n"], deletes: ["c"] });
