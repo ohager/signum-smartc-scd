@@ -205,6 +205,67 @@ describe("GitSync import", () => {
     expect(gh.files(ref, "main")["c/.smartc-studio"]).toBe("someone else");
   });
 
+  it("initialize creates a new nested folder with exactly one commit holding only its marker", async () => {
+    const { gh, sync } = setup();
+    const head = await gh.seed(ref, "main", { "contracts/a/.smartc-studio": marker, "contracts/a/a.smart.c": "a" });
+    const before = gh.files(ref, "main");
+    await sync.initialize(ref, "main", "contracts/b");
+    const commits = gh.commitsOn(ref, "main");
+    expect(commits.length).toBe(2);
+    expect(commits[1]).toBe(head);
+    expect(gh.files(ref, "main")).toEqual({ ...before, "contracts/b/.smartc-studio": marker });
+  });
+
+  it("initialize refuses a folder above or below another marker without committing", async () => {
+    const { gh, sync } = setup();
+    const head = await gh.seed(ref, "main", { "contracts/a/.smartc-studio": marker, "x/.smartc-studio": "nope" });
+    for (const folder of ["contracts/a/sub", "contracts", "", "x/y"]) {
+      expect((await codeOf(sync.initialize(ref, "main", folder))).code).toBe("nested_markers");
+    }
+    expect(gh.commitsOn(ref, "main")).toEqual([head]);
+  });
+
+  it("initialize refuses a folder at or below a remote file and names the file", async () => {
+    const { gh, sync } = setup();
+    const head = await gh.seed(ref, "main", { LICENSE: "MIT", "docs/guide": "text" });
+    const below = await codeOf(sync.initialize(ref, "main", "LICENSE/x"));
+    expect(below.code).toBe("folder_taken");
+    expect(below.detail?.paths).toEqual(["LICENSE"]);
+    const at = await codeOf(sync.initialize(ref, "main", "docs/guide"));
+    expect(at.code).toBe("folder_taken");
+    expect(at.detail?.paths).toEqual(["docs/guide"]);
+    expect(gh.commitsOn(ref, "main")).toEqual([head]);
+  });
+
+  it("initialize refuses a folder path that is not normalized, without committing", async () => {
+    const { gh, sync } = setup();
+    const head = await gh.seed(ref, "main", { "x/.smartc-studio": marker, "contracts/a/.smartc-studio": marker });
+    for (const folder of ["contracts/a/../b", "x/..", "/a", "a/", " a", "a//b", "./a", "a\\b"]) {
+      expect((await codeOf(sync.initialize(ref, "main", folder))).code).toBe("invalid_folder");
+    }
+    expect(gh.commitsOn(ref, "main")).toEqual([head]);
+
+    const empty: RepoRef = { owner: "o", repo: "empty" };
+    gh.createEmptyRepo(empty);
+    expect((await codeOf(sync.initialize(empty, null, "x/.."))).code).toBe("invalid_folder");
+    expect(gh.commitsOn(empty, "main")).toEqual([]);
+  });
+
+  it("probe tells files, folders and missing paths apart", async () => {
+    const { gh, sync } = setup();
+    await gh.seed(ref, "main", { LICENSE: "MIT", "a/b/c.ts": "c" });
+    const probe = await sync.probe(ref, "main");
+    expect(probe.pathKind("")).toBe("tree");
+    expect(probe.pathKind("LICENSE")).toBe("blob");
+    expect(probe.pathKind("a")).toBe("tree");
+    expect(probe.pathKind("a/b")).toBe("tree");
+    expect(probe.pathKind("a/b/c.ts")).toBe("blob");
+    expect(probe.pathKind("nope")).toBeNull();
+
+    gh.createEmptyRepo({ owner: "o", repo: "empty" });
+    expect((await sync.probe({ owner: "o", repo: "empty" }, "main")).pathKind("")).toBe("tree");
+  });
+
   it("needs a token", async () => {
     const { sync } = setup(() => {
       throw new GitSyncError("no_token", "");

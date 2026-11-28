@@ -1,4 +1,5 @@
 import { describe, it, expect } from "bun:test";
+import { acceptedFileType } from "@/features/project/filetype-icons";
 import { buildZip, parseZip, dirsForEntries, decodeTextOrNull, type TransferEntry } from "./transfer";
 
 const byPath = (a: { path: string }, b: { path: string }) => a.path.localeCompare(b.path);
@@ -221,6 +222,16 @@ describe("FileTransfer collect/export round-trip", () => {
     expect(fs.listFolderContents(sub.id).files.map((f) => f.metadata.name)).toEqual([
       "s1.scenario.json",
     ]);
+  });
+
+  it("imports a .md entry as a doc", async () => {
+    const fs = new FakeFs();
+    const target = await fs.createFolder("root", "proj");
+    const t = new FileTransfer(fs);
+    const zip = buildZip([{ path: "README.md", content: "# Hi" }]);
+    const res = await t.importZip(target, zip, acceptedFileType);
+    expect(res.imported).toBe(1);
+    expect(fs.listFolderContents(target).files[0].metadata.type).toBe("doc");
   });
 
   it("imports at most one contract, because a project holds exactly one", async () => {

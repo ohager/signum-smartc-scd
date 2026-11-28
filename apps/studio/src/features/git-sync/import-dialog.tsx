@@ -175,13 +175,14 @@ export function ImportFromGitHubDialog({ open, onOpenChange }: Props) {
   const importable = probe ? importableFolders(probe) : [];
   const nestedFolders = probe ? nestedMarkerFolders(probe) : [];
   const invalidAtInit = probe?.markers.find((m) => m.folder === initFolder && !m.marker);
-  const canOfferInit = probe !== null && (probe.markers.length === 0 || probe.markers.some((m) => !m.marker));
   const validMarkers = probe?.markers.filter((m) => m.marker) ?? [];
   const invalidMarkers = probe?.markers.filter((m) => !m.marker) ?? [];
   const initFolders = useMemo(
     () => (probe ? probe.folders.filter((f) => canInitialize(probe, f)) : []),
     [probe],
   );
+  // Import keeps to existing folders: a new, empty folder would import nothing.
+  const canOfferInit = probe !== null && (initFolders.length > 0 || invalidMarkers.length > 0);
   const repoName = ref ? `${ref.owner}/${ref.repo}` : "";
 
   return (

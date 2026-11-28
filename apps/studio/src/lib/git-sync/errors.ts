@@ -15,6 +15,10 @@ export type GitSyncErrorCode =
   | "nothing_to_push"
   | "multiple_contracts"
   | "path_taken"
+  /** `initialize`: a file on GitHub sits at the folder or at a parent of it (`detail.paths`). */
+  | "folder_taken"
+  /** A folder path that is not a normalized relative repo path. */
+  | "invalid_folder"
   | "marker_changed"
   | "undo_expired"
   | "unresolved_conflicts"

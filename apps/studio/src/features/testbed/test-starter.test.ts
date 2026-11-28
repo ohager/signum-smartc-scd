@@ -36,6 +36,6 @@ describe("acceptedFileType", () => {
   });
 
   it("rejects unknown extensions", () => {
-    expect(acceptedFileType("notes.md")).toBeNull();
+    expect(acceptedFileType("notes.txt")).toBeNull();
   });
 });

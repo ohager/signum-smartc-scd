@@ -130,6 +130,7 @@ export type MessageParams = {
   "project.newFile.test": undefined;
   "project.newFile.watchlist": undefined;
   "project.newFile.labelMap": undefined;
+  "project.newFile.markdown": undefined;
   "project.newProject.title": undefined;
   "project.newProject.createDescription": undefined;
   "project.newProject.inspectDescription": undefined;
@@ -161,6 +162,8 @@ export type MessageParams = {
   "project.git.errors.marker_changed": undefined;
   "project.git.errors.undo_expired": undefined;
   "project.git.errors.unresolved_conflicts": undefined;
+  "project.git.errors.invalid_folder": undefined;
+  "project.git.errors.folder_taken": { paths: string | number };
   "project.git.token.title": undefined;
   "project.git.token.description": undefined;
   "project.git.token.createLink": undefined;
@@ -185,6 +188,13 @@ export type MessageParams = {
   "project.git.link.initCommit": undefined;
   "project.git.link.linked": { deleted: string | number; repo: string | number; written: string | number };
   "project.git.link.cancelled": undefined;
+  "project.git.link.folderCreated": undefined;
+  "project.git.link.pickExisting": undefined;
+  "project.git.link.pickExistingPlaceholder": undefined;
+  "project.git.link.problem.invalid": undefined;
+  "project.git.link.problem.nested": undefined;
+  "project.git.link.problem.file_exists": undefined;
+  "project.git.link.problem.has_marker": undefined;
   "project.git.status.in_sync": undefined;
   "project.git.status.local": { count: number };
   "project.git.status.remote": undefined;

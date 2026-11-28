@@ -36,6 +36,7 @@ const EXT: Record<string, string> = {
   [FileTypes.Test]: ".test.ts",
   [FileTypes.LabelMap]: ".labels.json",
   [FileTypes.Watchlist]: ".inspect.json",
+  [FileTypes.Doc]: ".md",
 };
 
 interface Props {
@@ -79,7 +80,9 @@ export function NewFileDialog({
         ? serializeScenario(defaultScenario())
         : type === FileTypes.Test
           ? testStarter(finalName, contract)
-          : type === FileTypes.LabelMap
+          : type === FileTypes.Doc
+            ? ""
+            : type === FileTypes.LabelMap
             ? emptyLabelMap(base)
             : type === FileTypes.Watchlist
               ? emptyWatchlist()
@@ -113,6 +116,7 @@ export function NewFileDialog({
                 <SelectItem value={FileTypes.Test}>{t("project.newFile.test")}</SelectItem>
                 <SelectItem value={FileTypes.Watchlist}>{t("project.newFile.watchlist")}</SelectItem>
                 <SelectItem value={FileTypes.LabelMap}>{t("project.newFile.labelMap")}</SelectItem>
+                <SelectItem value={FileTypes.Doc}>{t("project.newFile.markdown")}</SelectItem>
               </SelectContent>
             </Select>
             <Label htmlFor="new-file-name">{t("project.newFile.name")}</Label>

@@ -27,7 +27,8 @@
     "scenario": "Escenario (.scenario.json)",
     "test": "Prueba (.test.ts)",
     "watchlist": "Lista de seguimiento de inspección",
-    "labelMap": "Label Map"
+    "labelMap": "Label Map",
+    "markdown": "Markdown (.md)"
   },
   "newProject": {
     "title": "Nuevo proyecto",
@@ -63,7 +64,9 @@
       "http_error": "GitHub respondió con un error ({status}). Inténtalo de nuevo más tarde.",
       "marker_changed": "El marcador en GitHub cambió entretanto — vuelve a buscar el repositorio.",
       "undo_expired": "Ya no se puede deshacer esta acción.",
-      "unresolved_conflicts": "Primero elige una versión para cada conflicto."
+      "unresolved_conflicts": "Primero elige una versión para cada conflicto.",
+      "invalid_folder": "Esta ruta de carpeta no es válida. Usa una ruta relativa a la raíz del repositorio, sin partes vacías, . o ..",
+      "folder_taken": "Un archivo en GitHub ya usa esta ruta: {paths}. Elige otra carpeta."
     },
     "token": {
       "title": "Token de GitHub",
@@ -91,7 +94,16 @@
       "newFolder": "Inicializar una carpeta nueva",
       "initCommit": "Al vincular se crea en GitHub un commit que añade el archivo marcador.",
       "linked": "Vinculado con {repo}: {written} escritos, {deleted} eliminados.",
-      "cancelled": "Vinculado, pero el pull no se terminó. Haz pull para terminar la vinculación."
+      "cancelled": "Vinculado, pero el pull no se terminó. Haz pull para terminar la vinculación.",
+      "folderCreated": "Esta carpeta aún no existe en GitHub. El commit la crea.",
+      "pickExisting": "O elige una carpeta existente",
+      "pickExistingPlaceholder": "Carpetas sin marcador",
+      "problem": {
+        "invalid": "Introduce una ruta de carpeta relativa a la raíz del repositorio, como contracts/token — sin / inicial, sin \\, sin partes vacías, . o ..",
+        "nested": "Otro marcador de SmartC Studio está por encima o por debajo de esta carpeta. Los marcadores no pueden estar anidados.",
+        "file_exists": "GitHub tiene un archivo en esta ruta o en una de sus carpetas superiores.",
+        "has_marker": "Esta carpeta ya es un proyecto de SmartC Studio. Vincúlala como carpeta de proyecto existente."
+      }
     },
     "status": {
       "in_sync": "Sincronizado con GitHub",

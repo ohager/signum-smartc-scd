@@ -27,7 +27,8 @@
     "scenario": "Scénario (.scenario.json)",
     "test": "Test (.test.ts)",
     "watchlist": "Liste de suivi d’inspection",
-    "labelMap": "Label Map"
+    "labelMap": "Label Map",
+    "markdown": "Markdown (.md)"
   },
   "newProject": {
     "title": "Nouveau projet",
@@ -63,7 +64,9 @@
       "http_error": "GitHub a répondu par une erreur ({status}). Réessayez plus tard.",
       "marker_changed": "Le marqueur sur GitHub a changé entre-temps — recherchez à nouveau le dépôt.",
       "undo_expired": "Cette annulation n'est plus disponible.",
-      "unresolved_conflicts": "Choisissez d'abord une version pour chaque conflit."
+      "unresolved_conflicts": "Choisissez d'abord une version pour chaque conflit.",
+      "invalid_folder": "Ce chemin de dossier n'est pas valide. Utilisez un chemin relatif à la racine du dépôt, sans partie vide, . ou ..",
+      "folder_taken": "Un fichier sur GitHub utilise déjà ce chemin : {paths}. Choisissez un autre dossier."
     },
     "token": {
       "title": "Jeton GitHub",
@@ -91,7 +94,16 @@
       "newFolder": "Initialiser un nouveau dossier",
       "initCommit": "La liaison crée sur GitHub un commit qui ajoute le fichier marqueur.",
       "linked": "Lié à {repo} : {written} écrits, {deleted} supprimés.",
-      "cancelled": "Lié, mais le pull n'a pas été terminé. Faites un pull pour terminer la liaison."
+      "cancelled": "Lié, mais le pull n'a pas été terminé. Faites un pull pour terminer la liaison.",
+      "folderCreated": "Ce dossier n'existe pas encore sur GitHub. Le commit le crée.",
+      "pickExisting": "Ou choisissez un dossier existant",
+      "pickExistingPlaceholder": "Dossiers sans marqueur",
+      "problem": {
+        "invalid": "Saisissez un chemin de dossier relatif à la racine du dépôt, comme contracts/token — sans / au début, sans \\, sans partie vide, . ou ..",
+        "nested": "Un autre marqueur SmartC Studio se trouve au-dessus ou en dessous de ce dossier. Les marqueurs ne peuvent pas être imbriqués.",
+        "file_exists": "GitHub contient un fichier à ce chemin ou à l'un de ses dossiers parents.",
+        "has_marker": "Ce dossier est déjà un projet SmartC Studio. Liez-le comme dossier de projet existant."
+      }
     },
     "status": {
       "in_sync": "Synchronisé avec GitHub",

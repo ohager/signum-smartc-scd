@@ -264,7 +264,7 @@ export function FolderNode({ folder }: { folder: FolderMetadata }) {
         // Native pickers match only the last dot-component, so ".smart.c" /
         // ".scenario.json" grey those files out. Filter on the single-part
         // extensions here; `acceptedFileType` enforces the real suffixes.
-        accept=".c,.json,.asm"
+        accept=".c,.json,.asm,.ts,.md"
         hidden
         onChange={onUploadFiles}
       />

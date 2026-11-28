@@ -279,3 +279,26 @@ file system (same structural-interface style as `TransferFs`).
   walking the tree from the chosen folder, or fail with a clear message.
 - Nested markers (a marker below another marker's folder): v1 may simply refuse such a
   layout with a clear message.
+
+## Addendum (2026-11-27): a new project into a folder that does not exist yet
+
+**Need (user):** start with contract A linked to `contracts/a`, create contract B in Studio,
+and write B into the same repo. With only existing folders offered for initialization,
+there is no place for B (root and `contracts/` are blocked by A's marker below them).
+
+**Decided with the user:**
+
+- **Link dialog:** initializing accepts a **new folder path** typed by the user, besides the
+  existing free folders. Prefilled with a sibling of the first valid marker folder, named
+  after the project (`contracts/a` + project "B" → `contracts/b`); without markers, the
+  project name at the repo root. Names are slugged (lowercase, spaces → `-`, unsafe
+  characters dropped); the user can edit.
+- **Validation** (UI and service): relative path, no leading/trailing `/`, no empty, `.` or
+  `..` segments, no `\`; no marker above or below it; no file on GitHub at the path or at
+  any of its parent folders. An existing folder without a marker below/above stays allowed.
+- Flow unchanged: one commit with only `<folder>/.smartc-studio` (Contents API creates the
+  folders), then the normal link → (empty) pull → push.
+- **Import dialog:** "Initialize" is offered whenever at least one existing folder can take a
+  marker — not only when the repo has no marker. (Import keeps to existing folders; a new
+  empty folder would import nothing.)
+- Not in scope: initializing several folders in one commit, importing all marker folders at once.

@@ -39,13 +39,17 @@ In the project list, choose "Import from GitHub", enter `owner/repo` (or a githu
 
 ## Initialize a folder
 
-If the repo has no marker yet, or is empty, choose a folder to initialize (the repo root works too). Studio asks you to confirm, then creates one commit on GitHub, "Initialize SmartC Studio project", that contains only the marker. If the folder already has an invalid marker, the commit overwrites it, after you confirm. A valid marker is left alone. Your token must be able to push to the repo.
+If the repo has no marker yet, is empty, or has an existing folder that can still take a marker, choose a folder to initialize (the repo root works too). Studio asks you to confirm, then creates one commit on GitHub, "Initialize SmartC Studio project", that contains only the marker. If the folder already has an invalid marker, the commit overwrites it, after you confirm. A valid marker is left alone. Your token must be able to push to the repo.
 
 ## Link an existing project
 
 For a project you started in Studio, choose "Link to GitHub…" in the project menu and pick a repo, a branch and a folder: an existing project folder, or a new one to initialize. Linking a folder without a marker initializes it first, so your first push is a second commit. Linking can also pull files in, and it shows what it wrote and skipped.
 
 If a link-time conflict dialog is cancelled, the project stays linked but needs a pull to finish.
+
+### Another contract in the same repo
+
+To add a second contract to a repo that already holds one, say `contracts/a`, link the new project and choose "Initialize a new folder". You can type a folder that does not exist yet: Studio suggests a sibling of the first project folder, named after your project (project "B" gives `contracts/b`), and you can edit it or pick an existing folder without a marker instead. The folder must be a relative path, may not lie above or below another marker folder, and may not be, or sit below, a file on GitHub. Studio commits only `contracts/b/.smartc-studio` (GitHub creates the folder with it), and your first push adds B's files there; `contracts/a` is not touched. Import keeps to existing folders and offers "Initialize" whenever at least one existing folder can take a marker.
 
 A status badge shows where you stand: in sync, local changes, remote ahead, or both. Studio checks GitHub when you open the project and when the window gets focus, at most every 30 seconds.
 

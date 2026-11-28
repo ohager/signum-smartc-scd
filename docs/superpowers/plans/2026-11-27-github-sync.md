@@ -596,3 +596,53 @@ it("allows one remote check per project per interval", () => {
   - limits: GitHub only, no branches/PRs in Studio, empty folders are not pushed, generated `.asm` files are tracked like any other.
 - [ ] **Step 4: Add the changelog entry** under `## Unreleased` and the README pointer.
 - [ ] **Step 5: Commit** `docs(git-sync): translations, guide and changelog`.
+
+---
+
+### Task 12: Initialize into a new folder (addendum)
+
+**Spec:** the "Addendum" section at the end of the spec.
+
+**Files:**
+- Modify: `apps/studio/src/features/git-sync/marker-folders.ts` (+ `marker-folders.test.ts`)
+- Modify: `apps/studio/src/features/git-sync/sync-service.ts` (`RepoProbe`, `initialize`) (+ `sync-service.import.test.ts`)
+- Modify: `apps/studio/src/features/git-sync/link-dialog.tsx`, `import-dialog.tsx`
+- Modify: `apps/studio/src/i18n/locales/*/project.json` (new keys in all 9 locales), then `bun run i18n:types`
+
+**Interfaces:**
+- Produces in `marker-folders.ts`:
+  - `type NewFolderProblem = "invalid" | "nested" | "file_exists" | "has_marker"`
+  - `normalizeFolder(input: string): string | null` — trims, drops one trailing `/`; `null` for leading `/`, `\`, empty/`.`/`..` segments; `""` stays root
+  - `checkNewFolder(probe: Pick<RepoProbe, "markers" | "nested" | "pathKind">, folder: string): NewFolderProblem | null` — `has_marker` if a valid marker is exactly there; `nested` if `!canInitialize`; `file_exists` if `pathKind` of the folder or any parent is `"blob"`
+  - `slugFolderName(name: string): string` — lowercase, whitespace runs → `-`, keep `[a-z0-9._-]`, trim `-`/`.` at ends; fallback `"contract"` when empty
+  - `suggestNewFolder(probe: Pick<RepoProbe, "markers">, projectName: string): string` — sibling of the first valid marker folder (`parent/slug`, or `slug` when that marker is at a root-level folder or the root), else `slug`; if taken by a marker, append `-2`, `-3`, …
+- `RepoProbe` gains `pathKind(path: string): "blob" | "tree" | null` (from the head tree; `""` → `"tree"`).
+- `GitSync.initialize` validates before committing: `nested_markers` if a marker lies above/below; `path_taken` (with `detail.paths`) if the folder or a parent is a blob on GitHub.
+
+- [ ] **Step 1: Failing tests** in `marker-folders.test.ts`:
+  - `normalizeFolder`: `"contracts/b/"`→`"contracts/b"`, `" a "`→`"a"`, `""`→`""`; `"/a"`, `"a//b"`, `"a/../b"`, `"./a"`, `"a\\b"` → `null`
+  - `slugFolderName("Veridibloc - Item Contract")` → `"veridibloc-item-contract"`; `"  "` → `"contract"`
+  - `suggestNewFolder` with marker `contracts/a`, name "B" → `"contracts/b"`; no markers → `"b"`; marker at `"x"` → `"b"`; marker already at `contracts/b` → `"contracts/b-2"`
+  - `checkNewFolder`: under a marker folder → `nested`; above one → `nested`; `LICENSE/x` where `LICENSE` is a blob → `file_exists`; `contracts/b` free → `null`
+- [ ] **Step 2: Failing service tests** in `sync-service.import.test.ts`: `initialize` into a new nested path (`contracts/b` while `contracts/a` has a marker) creates exactly one commit with only `contracts/b/.smartc-studio`; `initialize` below an existing marker → `nested_markers`, no commit; below a remote file → `path_taken`, no commit. In `sync-service.push.test.ts`: project B linked to a new folder `contracts/b` in a repo that has `contracts/a` → after push the remote has A's files unchanged and B's files under `contracts/b`.
+- [ ] **Step 3: Implement**; link dialog: in "new folder" mode a text input (prefilled with `suggestNewFolder(probe, projectName)`) plus a list of existing free folders to pick from; inline problem text per `NewFolderProblem`; the confirmation text names the marker path. Import dialog: `canOfferInit` = some existing folder passes `canInitialize` (or an invalid marker exists).
+- [ ] **Step 4: Verify** — `cd apps/studio && bun test src/lib/git-sync src/features/git-sync src/i18n` and `bun run build`.
+- [ ] **Step 5: Commit** `feat(git-sync): initialize a project into a new folder`; update `docs/git-sync.md` (one paragraph: adding another contract to the same repo) in a `docs(git-sync): …` commit.
+
+---
+
+### Task 13: Markdown files editable (addendum, user request)
+
+Decided with the user: `.md` files open in a Monaco editor with **Markdown syntax highlighting** (`language="markdown"`), word wrap on, **no preview/rendering**. Creatable via "New File", accepted by upload, ZIP and folder import.
+
+**Files:**
+- Create: `apps/studio/src/features/doc-editor/doc-file-editor.tsx` (follow `features/testbed/ui/test-file-editor.tsx` / `features/asm-editor/...` for structure: `useFollowedFile` for autosave, lock and follow mode; same toolbar/file-actions conventions where they apply)
+- Modify: `apps/studio/src/pages/files/files-page.tsx` (route `FileTypes.Doc` → `DocFileEditor`)
+- Modify: `apps/studio/src/features/project/filetype-icons.tsx` (`acceptedFileType`: `.md` → `FileTypes.Doc`, + test), `apps/studio/src/features/git-sync/tracked-type.ts` (drop the `.md` special case — `acceptedFileType` covers it; keep its test green)
+- Modify: `apps/studio/src/features/project/new-file-dialog.tsx` (option "Markdown (.md)", empty content), `apps/studio/src/features/project/folder-node.tsx` (upload input `accept` gains `.md`, and `.ts` if missing)
+- Modify: i18n keys (all 9 locales) for the new labels; `CHANGELOG.md` (`## Unreleased` bullet); `docs/git-sync.md` only if it claims `.md` cannot be edited
+
+- [ ] **Step 1: Failing tests** — `acceptedFileType("README.md")` and `("notes.MD")` → `FileTypes.Doc`; `trackedType` unchanged behaviour for `.md`; `FileTransfer.importZip` with a `.md` entry imports it (type `doc`).
+- [ ] **Step 2: Implement** editor, routing, dialog option, accept lists.
+- [ ] **Step 3: Verify** — `cd apps/studio && bun test` and `bun run build`.
+- [ ] **Step 4: Commit** `feat(studio): edit Markdown files`.

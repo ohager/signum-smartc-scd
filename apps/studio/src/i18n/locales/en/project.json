@@ -27,7 +27,8 @@
     "scenario": "Scenario (.scenario.json)",
     "test": "Test (.test.ts)",
     "watchlist": "Inspection watchlist",
-    "labelMap": "Label Map"
+    "labelMap": "Label Map",
+    "markdown": "Markdown (.md)"
   },
   "newProject": {
     "title": "New Project",
@@ -63,7 +64,9 @@
       "http_error": "GitHub answered with an error ({status}). Try again later.",
       "marker_changed": "The marker on GitHub changed meanwhile — look up the repo again.",
       "undo_expired": "This undo is no longer available.",
-      "unresolved_conflicts": "Choose a version for every conflict first."
+      "unresolved_conflicts": "Choose a version for every conflict first.",
+      "invalid_folder": "This folder path is not valid. Use a path relative to the repo root, without empty, . or .. parts.",
+      "folder_taken": "A file on GitHub already uses this path: {paths}. Choose another folder."
     },
     "token": {
       "title": "GitHub token",
@@ -77,9 +80,9 @@
       "forget": "Forget token",
       "signedIn": "Signed in as {login}",
       "stored": "A token is stored in this browser.",
-    "done": "Done",
-    "change": "Change token",
-    "open": "GitHub token…"
+      "done": "Done",
+      "change": "Change token",
+      "open": "GitHub token…"
     },
     "link": {
       "menu": "Link to GitHub…",
@@ -91,11 +94,23 @@
       "newFolder": "Initialize a new folder",
       "initCommit": "Linking creates a commit on GitHub that adds the marker file.",
       "linked": "Linked to {repo}: {written} written, {deleted} deleted.",
-      "cancelled": "Linked, but the pull was not finished. Pull to finish linking."
+      "cancelled": "Linked, but the pull was not finished. Pull to finish linking.",
+      "folderCreated": "This folder does not exist on GitHub yet. The commit creates it.",
+      "pickExisting": "Or pick an existing folder",
+      "pickExistingPlaceholder": "Folders without a marker",
+      "problem": {
+        "invalid": "Enter a folder path relative to the repo root, like contracts/token — no leading /, no \\, no empty, . or .. parts.",
+        "nested": "Another SmartC Studio marker lies above or below this folder. Markers may not be nested.",
+        "file_exists": "GitHub has a file at this path or at one of its parent folders.",
+        "has_marker": "This folder is already a SmartC Studio project. Link it as an existing project folder."
+      }
     },
     "status": {
       "in_sync": "In sync with GitHub",
-      "local": { "one": "{count} local change not pushed", "other": "{count} local changes not pushed" },
+      "local": {
+        "one": "{count} local change not pushed",
+        "other": "{count} local changes not pushed"
+      },
       "remote": "GitHub has new changes — pull",
       "diverged": "Local changes and new changes on GitHub"
     },

@@ -34,6 +34,7 @@ import {
 import type { BranchHead, GitProvider, RepoRef, TreeEntry } from "@/lib/git-sync/provider";
 import type { RepoLink, RepoLinks } from "@/lib/git-sync/repo-links";
 import { selectTracked, toRepoPath } from "@/lib/git-sync/tracked";
+import { normalizeFolder, parentFolders } from "./marker-folders";
 import { trackedType } from "./tracked-type";
 
 export type SyncFs = WorkspaceFs & Pick<FileSystem, "transfer">;
@@ -60,6 +61,8 @@ export interface RepoProbe {
   /** Every folder of the branch, repo root ("") first, sorted by path. */
   folders: string[];
   folderStats(folder: string): { tracked: number; skipped: number };
+  /** What the branch holds at `path`: a file, a folder or nothing; the root "" is a folder. */
+  pathKind(path: string): "blob" | "tree" | null;
 }
 
 export interface PreparedPull {
@@ -118,6 +121,31 @@ function assertNotNested(folders: string[], nested: string[], folder: string): v
   const hasNestedBelow = folders.some((f) => f !== folder && isBelow(f, folder));
   if (nested.includes(folder) || hasNestedBelow) {
     throw new GitSyncError("nested_markers", "Markers may not be nested.");
+  }
+}
+
+/**
+ * Throws nested_markers if another marker folder lies above or below `folder`, and
+ * folder_taken (naming the files) if GitHub holds a file at `folder` or at a parent of it.
+ */
+function assertFreeFolder(entries: TreeEntry[], folder: string): void {
+  const blobs = new Set(entries.filter((e) => e.type !== "tree").map((e) => e.path));
+  const { folders } = findMarkerFolders(entries.filter((e) => e.type === "blob").map((e) => e.path));
+  if (folders.some((f) => f !== folder && (isBelow(f, folder) || isBelow(folder, f)))) {
+    throw new GitSyncError("nested_markers", "Markers may not be nested.");
+  }
+  const taken = folder === "" ? [] : [...parentFolders(folder), folder].filter((p) => blobs.has(p));
+  if (taken.length > 0) {
+    throw new GitSyncError("folder_taken", `A file on GitHub already uses this path: ${taken.join(", ")}.`, {
+      paths: taken,
+    });
+  }
+}
+
+/** Throws invalid_folder unless `folder` is a normalized relative repo path ("" = root). */
+function assertFolderSyntax(folder: string): void {
+  if (normalizeFolder(folder) !== folder) {
+    throw new GitSyncError("invalid_folder", `Not a valid folder path: ${JSON.stringify(folder)}.`);
   }
 }
 
@@ -216,13 +244,16 @@ export class GitSync {
   }
 
   async initialize(ref: RepoRef, branch: string | null, folder: string): Promise<void> {
+    assertFolderSyntax(folder);
     const git = this.deps.provider();
     const path = markerPath(folder);
     let sha: string | undefined;
     if (branch !== null) {
       const head = await git.getHead(ref, branch);
       if (head) {
-        const existing = (await git.getTree(ref, head.tree)).find((e) => e.path === path);
+        const entries = await git.getTree(ref, head.tree);
+        assertFreeFolder(entries, folder);
+        const existing = entries.find((e) => e.path === path);
         if (existing) {
           const text = new TextDecoder().decode(await git.getBlob(ref, existing.sha));
           if (parseMarker(text).ok) return; // a valid marker is never overwritten
@@ -482,6 +513,7 @@ export class GitSync {
     folder: string,
   ): Promise<LinkResult> {
     this.assertUnlocked(projectId);
+    assertFolderSyntax(folder);
     const git = this.deps.provider();
     const name = branch ?? (await git.getRepo(ref)).defaultBranch;
     const head = await git.getHead(ref, name);
@@ -547,19 +579,24 @@ export class GitSync {
           : { folder, marker: null, error: result.error };
       }),
     );
+    const repoTrees = repoFolders(paths, entries);
+    // A submodule ("commit") occupies its path like a file.
+    const kinds = new Map<string, "blob" | "tree">(entries.map((e) => [e.path, e.type === "tree" ? "tree" : "blob"]));
+    for (const f of repoTrees) kinds.set(f, "tree");
     const probe: RepoProbe = {
       branches,
       defaultBranch: repoInfo.defaultBranch,
       canPush: repoInfo.canPush,
       markers,
       nested,
-      folders: repoFolders(paths, entries),
+      folders: repoTrees,
       folderStats: (folder) => {
         const inner = folders.filter((f) => f !== folder && f !== "" && isBelow(f, folder));
         const own = entries.filter((e) => !inner.some((f) => isBelow(e.path, f)));
         const { tracked, skipped } = selectTracked(own, folder, trackedType);
         return { tracked: tracked.length, skipped: skipped.filter((p) => !p.endsWith(MARKER_FILE)).length };
       },
+      pathKind: (path) => kinds.get(path) ?? null,
     };
     return { probe, head, entries };
   }

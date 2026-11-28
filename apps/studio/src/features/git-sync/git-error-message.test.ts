@@ -6,6 +6,7 @@ const CODES: GitSyncErrorCode[] = [
   "no_token", "auth", "forbidden", "rate_limited", "not_found", "not_fast_forward", "truncated", "no_marker",
   "nested_markers", "format_unsupported", "invalid_marker", "locked", "stale", "nothing_to_push",
   "multiple_contracts", "path_taken", "network", "marker_changed", "undo_expired", "unresolved_conflicts",
+  "invalid_folder", "folder_taken",
 ];
 
 describe("gitErrorMessage", () => {
@@ -24,6 +25,14 @@ describe("gitErrorMessage", () => {
       new Date(resetAt).toLocaleTimeString(),
     );
     expect(gitErrorMessage(new GitSyncError("path_taken", "x", { paths: ["a.ts", "b/c.ts"] }))).toContain("a.ts, b/c.ts");
+    expect(gitErrorMessage(new GitSyncError("folder_taken", "x", { paths: ["LICENSE"] }))).toContain("LICENSE");
+  });
+
+  it("words a file in the way of a new folder differently from a push collision", () => {
+    const detail = { paths: ["LICENSE"] };
+    expect(gitErrorMessage(new GitSyncError("folder_taken", "x", detail))).not.toBe(
+      gitErrorMessage(new GitSyncError("path_taken", "x", detail)),
+    );
   });
 
   it("tells an error answer from GitHub apart from an unreachable GitHub", () => {

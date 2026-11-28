@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SubmitOnEnter } from "@/components/ui/submit-on-enter";
+import { useFileSystem } from "@/hooks/use-file-system";
 import { GitHubProvider } from "@/lib/git-sync/github-provider";
 import { GitSyncError } from "@/lib/git-sync/errors";
 import { MARKER_FILE, SUPPORTED_FORMAT } from "@/lib/git-sync/marker";
@@ -27,7 +28,15 @@ import type { RepoRef } from "@/lib/git-sync/provider";
 import { t } from "@/i18n/runtime";
 import { gitErrorMessage } from "./git-error-message";
 import { toastGitError } from "./git-error-toast";
-import { canInitialize, importableFolders, nestedMarkerFolders } from "./marker-folders";
+import {
+  canInitialize,
+  checkNewFolder,
+  importableFolders,
+  nestedMarkerFolders,
+  normalizeFolder,
+  suggestNewFolder,
+  type NewFolderProblem,
+} from "./marker-folders";
 import { useGitSync } from "./git-sync-context";
 import { parseRepo } from "./parse-repo";
 import { toastPulled } from "./pull-toast";
@@ -45,8 +54,16 @@ interface Props {
 const ROOT = "/";
 const folderLabel = (folder: string) => folder || t("project.git.import.rootFolder");
 
+const PROBLEM_TEXT: Record<NewFolderProblem, () => string> = {
+  invalid: () => t("project.git.link.problem.invalid"),
+  nested: () => t("project.git.link.problem.nested"),
+  file_exists: () => t("project.git.link.problem.file_exists"),
+  has_marker: () => t("project.git.link.problem.has_marker"),
+};
+
 export function LinkDialog({ projectId, open, onOpenChange, onConflicts }: Props) {
   const { sync, tokens, requireToken, openTokenDialog } = useGitSync();
+  const fs = useFileSystem();
 
   const [repoText, setRepoText] = useState("");
   const [ref, setRef] = useState<RepoRef | null>(null);
@@ -55,6 +72,8 @@ export function LinkDialog({ projectId, open, onOpenChange, onConflicts }: Props
   const [mode, setMode] = useState<"existing" | "init">("existing");
   const [folder, setFolder] = useState<string | null>(null);
   const [initFolder, setInitFolder] = useState("");
+  /** The user typed or picked a folder: a new lookup keeps it instead of prefilling a suggestion. */
+  const initEdited = useRef(false);
   const [confirmed, setConfirmed] = useState(false);
   const [busy, setBusy] = useState<"lookup" | "link" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -64,6 +83,7 @@ export function LinkDialog({ projectId, open, onOpenChange, onConflicts }: Props
     setProbe(null);
     setRef(null);
     setFolder(null);
+    initEdited.current = false;
     setConfirmed(false);
     setError(null);
     setBusy(null);
@@ -78,13 +98,11 @@ export function LinkDialog({ projectId, open, onOpenChange, onConflicts }: Props
   const runProbe = async (target: RepoRef, branchName: string) => {
     const result = await sync.probe(target, branchName);
     const first = importableFolders(result)[0] ?? null;
-    const invalid = result.markers.find((m) => !m.marker);
-    const free = result.folders.find((f) => canInitialize(result, f));
     setProbe(result);
     setBranch(branchName);
     setFolder(first);
     setMode(first !== null ? "existing" : "init");
-    setInitFolder(invalid?.folder ?? free ?? "");
+    if (!initEdited.current) setInitFolder(suggestNewFolder(result, projectName()));
     setConfirmed(false);
   };
 
@@ -125,12 +143,23 @@ export function LinkDialog({ projectId, open, onOpenChange, onConflicts }: Props
     }
   };
 
+  /** The Studio project folder's name; the suggested new folder is named after it. */
+  const projectName = () => {
+    try {
+      return fs.getFolder(projectId).name;
+    } catch {
+      return "";
+    }
+  };
+
   const emptyRepo = probe?.branches.length === 0;
-  const targetFolder = mode === "existing" ? folder : initFolder;
+  const newFolder = normalizeFolder(initFolder);
+  const problem = probe ? (newFolder === null ? "invalid" : checkNewFolder(probe, newFolder)) : null;
+  const targetFolder = mode === "existing" ? folder : newFolder;
   const canLink =
     probe !== null &&
     targetFolder !== null &&
-    (mode === "existing" || (probe.canPush && confirmed && initFolders(probe).length > 0));
+    (mode === "existing" || (probe.canPush && confirmed && problem === null));
 
   const runLink = async () => {
     if (!ref || !probe || targetFolder === null || busy || !canLink) return;
@@ -164,7 +193,7 @@ export function LinkDialog({ projectId, open, onOpenChange, onConflicts }: Props
   const nestedFolders = probe ? nestedMarkerFolders(probe) : [];
   const validMarkers = probe?.markers.filter((m) => m.marker) ?? [];
   const invalidMarkers = probe?.markers.filter((m) => !m.marker) ?? [];
-  const invalidAtInit = probe?.markers.find((m) => m.folder === initFolder && !m.marker);
+  const invalidAtInit = probe?.markers.find((m) => m.folder === newFolder && !m.marker);
   const initChoices = useMemo(() => (probe ? initFolders(probe) : []), [probe]);
   const repoName = ref ? `${ref.owner}/${ref.repo}` : "";
 
@@ -254,7 +283,7 @@ export function LinkDialog({ projectId, open, onOpenChange, onConflicts }: Props
               </div>
             )}
             <div className="flex items-center gap-2">
-              <RadioGroupItem id="mode-init" value="init" disabled={initChoices.length === 0} />
+              <RadioGroupItem id="mode-init" value="init" />
               <Label htmlFor="mode-init">{t("project.git.link.newFolder")}</Label>
             </div>
           </RadioGroup>
@@ -287,39 +316,78 @@ export function LinkDialog({ projectId, open, onOpenChange, onConflicts }: Props
         {probe && mode === "init" && (
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <Label>{t("project.git.import.initFolder")}</Label>
-              <Select
-                value={initFolder === "" ? ROOT : initFolder}
-                onValueChange={(v) => {
-                  setInitFolder(v === ROOT ? "" : v);
+              <Label htmlFor="link-init-folder">{t("project.git.import.initFolder")}</Label>
+              <Input
+                id="link-init-folder"
+                value={initFolder}
+                placeholder={t("project.git.import.rootFolder")}
+                spellCheck={false}
+                autoComplete="off"
+                className="font-mono"
+                aria-invalid={problem !== null}
+                aria-describedby="link-init-folder-note"
+                disabled={busy !== null}
+                onChange={(e) => {
+                  initEdited.current = true;
+                  setInitFolder(e.target.value);
                   setConfirmed(false);
                 }}
+              />
+              <p
+                id="link-init-folder-note"
+                role={problem ? "alert" : undefined}
+                className={problem ? "text-xs text-destructive" : "text-xs text-muted-foreground"}
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {initChoices.map((f) => (
-                    <SelectItem key={f || ROOT} value={f === "" ? ROOT : f}>
-                      {folderLabel(f)} · {t("project.git.import.folderStats", probe.folderStats(f))}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                {problem
+                  ? PROBLEM_TEXT[problem]()
+                  : newFolder !== null && probe.pathKind(newFolder) === null
+                    ? t("project.git.link.folderCreated")
+                    : t("project.git.import.folderStats", probe.folderStats(newFolder ?? ""))}
+              </p>
             </div>
-            {probe.canPush ? (
+            {initChoices.length > 0 && (
+              <div className="space-y-1.5">
+                <Label>{t("project.git.link.pickExisting")}</Label>
+                <Select
+                  value={newFolder !== null && initChoices.includes(newFolder) ? newFolder || ROOT : ""}
+                  disabled={busy !== null}
+                  onValueChange={(v) => {
+                    initEdited.current = true;
+                    setInitFolder(v === ROOT ? "" : v);
+                    setConfirmed(false);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("project.git.link.pickExistingPlaceholder")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {initChoices.map((f) => (
+                      <SelectItem key={f || ROOT} value={f === "" ? ROOT : f}>
+                        {folderLabel(f)} · {t("project.git.import.folderStats", probe.folderStats(f))}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {!probe.canPush ? (
+              <p role="alert" className="text-sm text-destructive">
+                {t("project.git.import.cannotPush")}
+              </p>
+            ) : problem === null ? (
               <div className="space-y-2">
                 <p className="text-sm">
                   {t(invalidAtInit ? "project.git.import.initConfirmOverwrite" : "project.git.import.initConfirm", {
                     repo: repoName,
                     branch: emptyRepo ? probe.defaultBranch : branch,
-                    marker: initFolder ? `${initFolder}/${MARKER_FILE}` : MARKER_FILE,
+                    marker: newFolder ? `${newFolder}/${MARKER_FILE}` : MARKER_FILE,
                   })}
                 </p>
                 <div className="flex items-center gap-2">
                   <Checkbox
                     id="link-init-confirm"
                     checked={confirmed}
+                    disabled={busy !== null}
                     onCheckedChange={(v) => setConfirmed(v === true)}
                   />
                   <Label htmlFor="link-init-confirm" className="font-normal">
@@ -327,11 +395,7 @@ export function LinkDialog({ projectId, open, onOpenChange, onConflicts }: Props
                   </Label>
                 </div>
               </div>
-            ) : (
-              <p role="alert" className="text-sm text-destructive">
-                {t("project.git.import.cannotPush")}
-              </p>
-            )}
+            ) : null}
           </div>
         )}
 
