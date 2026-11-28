@@ -231,7 +231,7 @@ describe("GitSync push", () => {
   it("links a project to an empty repo: marker commit first, then a push uploads all files", async () => {
     const { gh, sync, links, projectId } = await localProject({ "a.smart.c": "int a;", "lib/b.ts": "b" });
     gh.createEmptyRepo(ref);
-    expect(await sync.linkProject(projectId, ref, null, "")).toBeNull();
+    expect((await sync.linkProject(projectId, ref, null, "")).prepared).toBeNull();
     const [markerCommit] = gh.commitsOn(ref, "main");
     expect(links.get(projectId)).toMatchObject({ branch: "main", path: "", baseCommit: markerCommit, baseFiles: {} });
 
@@ -247,7 +247,9 @@ describe("GitSync push", () => {
   it("links to a folder with existing files via conflicts", async () => {
     const { gh, sync, links, projectId, local } = await localProject({ "a.smart.c": "local", "b.ts": "b" });
     await gh.seed(ref, "main", { "c/.smartc-studio": marker, "c/a.smart.c": "remote", "c/b.ts": "b" });
-    const prepared = (await sync.linkProject(projectId, ref, "main", "c"))!;
+    const linked = await sync.linkProject(projectId, ref, "main", "c");
+    expect(linked.applied).toBeNull();
+    const prepared = linked.prepared!;
     expect(prepared.conflicts).toEqual([
       { relPath: "a.smart.c", local: await gitBlobSha("local"), remote: await gitBlobSha("remote") },
     ]);
@@ -269,7 +271,10 @@ describe("GitSync push", () => {
       "c/n.ts": "n",
       "c/x.ts": new Uint8Array([0]),
     });
-    expect(await sync.linkProject(projectId, ref, "main", "c")).toBeNull();
+    const linked = await sync.linkProject(projectId, ref, "main", "c");
+    expect(linked.prepared).toBeNull();
+    expect(linked.applied).toMatchObject({ written: ["n.ts"], deleted: [], skipped: ["x.ts"] });
+    expect(typeof linked.applied!.undoToken).toBe("string");
     expect(gh.commitsOn(ref, "main")).toEqual([head]);
     expect(await local()).toEqual({ "a.smart.c": "int a;", "n.ts": "n" });
     expect(links.get(projectId)).toMatchObject({ baseCommit: head, baseFiles: { "n.ts": await gitBlobSha("n") } });
@@ -279,7 +284,7 @@ describe("GitSync push", () => {
   it("linking overwrites an invalid marker", async () => {
     const { gh, sync, links, projectId } = await localProject({ "a.smart.c": "int a;" });
     await gh.seed(ref, "main", { "c/.smartc-studio": "not json" });
-    expect(await sync.linkProject(projectId, ref, "main", "c")).toBeNull();
+    expect((await sync.linkProject(projectId, ref, "main", "c")).prepared).toBeNull();
     expect(gh.files(ref, "main")["c/.smartc-studio"]).toBe(marker);
     expect(links.get(projectId)!.baseCommit).toBe(gh.commitsOn(ref, "main")[0]);
   });
@@ -308,7 +313,7 @@ describe("GitSync push", () => {
     const { undoToken } = await sync.applyPull((await sync.preparePull(projectId))!, {});
     const other: RepoRef = { owner: "o", repo: "other" };
     gh.createEmptyRepo(other);
-    expect(await sync.linkProject(projectId, other, null, "")).toBeNull();
+    expect((await sync.linkProject(projectId, other, null, "")).prepared).toBeNull();
     const relinked = links.get(projectId);
     expect(relinked).toMatchObject({ repo: "other", path: "" });
     await expect(sync.undoPull(undoToken)).rejects.toThrow("Unknown undo token.");

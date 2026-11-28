@@ -3,7 +3,7 @@ import { useAtomValue } from "jotai";
 import { toast } from "sonner";
 import { GitBranchIcon, GitCommitHorizontalIcon, GitPullRequestArrowIcon, UnlinkIcon } from "lucide-react";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { DropdownMenuItem, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { lockedProjectsAtom } from "@/features/assistant/state";
 import { t } from "@/i18n/runtime";
 import { CommitDialog } from "./commit-dialog";
@@ -35,30 +35,39 @@ export function useProjectGit(projectId: string): { items: ReactNode; dialogs: R
     }
   };
 
+  const lockNote = lockReason && (
+    <DropdownMenuLabel className="max-w-[190px] whitespace-normal text-xs font-normal text-muted-foreground">
+      {lockReason}
+    </DropdownMenuLabel>
+  );
+
   const items = link ? (
     <>
-      <DropdownMenuItem disabled={locked || busy} title={lockReason} onClick={() => void pull()}>
+      <DropdownMenuItem disabled={locked || busy} onClick={() => void pull()}>
         <GitPullRequestArrowIcon className="h-4 w-4" />
         {t("project.git.menu.pull")}
       </DropdownMenuItem>
       <DropdownMenuItem
-        disabled={locked}
-        title={lockReason}
+        disabled={locked || busy}
         onClick={() => void openIfToken(() => setCommitOpen(true))}
       >
         <GitCommitHorizontalIcon className="h-4 w-4" />
         {t("project.git.menu.commit")}
       </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => setUnlinkOpen(true)}>
+      <DropdownMenuItem disabled={busy} onClick={() => setUnlinkOpen(true)}>
         <UnlinkIcon className="h-4 w-4" />
         {t("project.git.menu.unlink")}
       </DropdownMenuItem>
+      {lockNote}
     </>
   ) : (
-    <DropdownMenuItem disabled={locked} title={lockReason} onClick={() => void openIfToken(() => setLinkOpen(true))}>
+    <>
+    <DropdownMenuItem disabled={locked} onClick={() => void openIfToken(() => setLinkOpen(true))}>
       <GitBranchIcon className="h-4 w-4" />
       {t("project.git.link.menu")}
     </DropdownMenuItem>
+    {lockNote}
+    </>
   );
 
   const dialogs = (

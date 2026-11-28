@@ -34,6 +34,7 @@ import { toastGitError } from "./git-error-toast";
 import { canInitialize, importableFolders, nestedMarkerFolders } from "./marker-folders";
 import { useGitSync } from "./git-sync-context";
 import { parseRepo } from "./parse-repo";
+import { skippedDescription } from "./pull-toast";
 import type { RepoProbe } from "./sync-service";
 
 interface Props {
@@ -134,7 +135,7 @@ export function ImportFromGitHubDialog({ open, onOpenChange }: Props) {
         ? t("common.import.doneWithSkipped", { count: res.imported, skipped: res.skipped.length })
         : t("common.import.done", { count: res.imported }),
       res.skipped.length
-        ? { description: t("project.git.import.skippedNames", { names: res.skipped.join(", ") }) }
+        ? { description: skippedDescription(res.skipped) }
         : undefined,
     );
     onOpenChange(false);

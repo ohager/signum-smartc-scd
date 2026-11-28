@@ -86,7 +86,8 @@
       "existingFolder": "Use an existing project folder",
       "newFolder": "Initialize a new folder",
       "initCommit": "Linking creates a commit on GitHub that adds the marker file.",
-      "linked": "Linked to {repo}."
+      "linked": "Linked to {repo}: {written} written, {deleted} deleted.",
+      "cancelled": "Linked, but the pull was not finished. Pull to finish linking."
     },
     "menu": {
       "pull": "Pull",
@@ -101,6 +102,7 @@
       "upToDate": "Already up to date.",
       "done": "Pulled: {written} written, {deleted} deleted.",
       "skipped": "Skipped: {names}",
+      "andMore": "{names} and {count} more",
       "undo": "Undo pull",
       "undone": "Pull undone."
     },
@@ -155,7 +157,6 @@
       "initConfirmOverwrite": "This creates a commit on GitHub, in {repo} on {branch}, that overwrites the invalid marker file {marker}.",
       "initConfirmLabel": "I understand, create the commit",
       "cannotPush": "Your token cannot push to this repo, so it cannot be initialized.",
-      "skippedNames": "Skipped: {names}",
       "back": "Back"
     }
   }

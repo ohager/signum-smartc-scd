@@ -4,6 +4,7 @@ import { t } from "@/i18n/runtime";
 import { ConflictDialog } from "./conflict-dialog";
 import { toastGitError } from "./git-error-toast";
 import { useGitSync } from "./git-sync-context";
+import { toastPulled } from "./pull-toast";
 import type { PreparedPull } from "./sync-service";
 
 export interface PullApi {
@@ -37,34 +38,27 @@ export function usePull(projectId: string): PullApi {
   };
 
   const apply = useCallback(
-    async (prepared: PreparedPull) => {
+    async (prepared: PreparedPull): Promise<boolean> => {
       let choices: Record<string, "mine" | "theirs"> = {};
       if (prepared.conflicts.length > 0) {
         const chosen = await ask(prepared);
         if (!chosen) {
           setAsking(null);
-          return;
+          return false;
         }
         choices = chosen;
         setApplying(true);
       }
       try {
         const res = await sync.applyPull(prepared, choices);
-        toast.success(t("project.git.pull.done", { written: res.written.length, deleted: res.deleted.length }), {
-          description: prepared.skipped.length
-            ? t("project.git.pull.skipped", { names: prepared.skipped.join(", ") })
-            : undefined,
-          duration: 15000,
-          action: {
-            label: t("project.git.pull.undo"),
-            onClick: () => {
-              sync
-                .undoPull(res.undoToken)
-                .then(() => toast.success(t("project.git.pull.undone")))
-                .catch((e) => toastGitError(e, openTokenDialog));
-            },
-          },
-        });
+        toastPulled(
+          t("project.git.pull.done", { written: res.written.length, deleted: res.deleted.length }),
+          prepared.skipped,
+          res.undoToken,
+          sync,
+          openTokenDialog,
+        );
+        return true;
       } finally {
         setApplying(false);
         setAsking(null);
@@ -76,7 +70,7 @@ export function usePull(projectId: string): PullApi {
   const resolve = useCallback(
     async (prepared: PreparedPull) => {
       try {
-        await apply(prepared);
+        if (!(await apply(prepared))) toast.warning(t("project.git.link.cancelled"));
       } catch (e) {
         toastGitError(e, openTokenDialog);
       }

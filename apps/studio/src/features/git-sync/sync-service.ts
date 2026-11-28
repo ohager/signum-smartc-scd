@@ -75,6 +75,12 @@ export interface PreparedPull {
   skipped: string[];
 }
 
+/** `applied`: the link-time pull went through without conflicts; `prepared`: conflicts to resolve via `applyPull`. */
+export interface LinkResult {
+  prepared: PreparedPull | null;
+  applied: { written: string[]; deleted: string[]; skipped: string[]; undoToken: string } | null;
+}
+
 const MAX_BLOBS_IN_FLIGHT = 8;
 const INIT_MESSAGE = "Initialize SmartC Studio project";
 
@@ -427,7 +433,7 @@ export class GitSync {
     ref: RepoRef,
     branch: string | null,
     folder: string,
-  ): Promise<PreparedPull | null> {
+  ): Promise<LinkResult> {
     this.assertUnlocked(projectId);
     const git = this.deps.provider();
     const name = branch ?? (await git.getRepo(ref)).defaultBranch;
@@ -454,10 +460,10 @@ export class GitSync {
       const prepared = await this.preparePull(projectId);
       this.dropUndos(projectId);
       if (prepared && prepared.conflicts.length === 0) {
-        await this.applyPull(prepared, {});
-        return null;
+        const { undoToken, written, deleted } = await this.applyPull(prepared, {});
+        return { prepared: null, applied: { written, deleted, skipped: prepared.skipped, undoToken } };
       }
-      return prepared;
+      return { prepared, applied: null };
     } catch (e) {
       if (previous) this.deps.links.set(projectId, previous);
       else this.deps.links.removeProject(projectId);

@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -31,6 +30,7 @@ import { toastGitError } from "./git-error-toast";
 import { canInitialize, importableFolders, nestedMarkerFolders } from "./marker-folders";
 import { useGitSync } from "./git-sync-context";
 import { parseRepo } from "./parse-repo";
+import { toastPulled } from "./pull-toast";
 import type { PreparedPull, RepoProbe } from "./sync-service";
 
 interface Props {
@@ -137,10 +137,22 @@ export function LinkDialog({ projectId, open, onOpenChange, onConflicts }: Props
     setBusy("link");
     setError(null);
     try {
-      const prepared = await sync.linkProject(projectId, ref, emptyRepo ? null : branch, targetFolder);
+      const { prepared, applied } = await sync.linkProject(projectId, ref, emptyRepo ? null : branch, targetFolder);
       onOpenChange(false);
       if (prepared) onConflicts(prepared);
-      else toast.success(t("project.git.link.linked", { repo: `${ref.owner}/${ref.repo}` }));
+      else if (applied) {
+        toastPulled(
+          t("project.git.link.linked", {
+            repo: `${ref.owner}/${ref.repo}`,
+            written: applied.written.length,
+            deleted: applied.deleted.length,
+          }),
+          applied.skipped,
+          applied.undoToken,
+          sync,
+          openTokenDialog,
+        );
+      }
     } catch (e) {
       report(e);
     } finally {

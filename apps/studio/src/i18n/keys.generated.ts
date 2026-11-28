@@ -179,7 +179,8 @@ export type MessageParams = {
   "project.git.link.existingFolder": undefined;
   "project.git.link.newFolder": undefined;
   "project.git.link.initCommit": undefined;
-  "project.git.link.linked": { repo: string | number };
+  "project.git.link.linked": { deleted: string | number; repo: string | number; written: string | number };
+  "project.git.link.cancelled": undefined;
   "project.git.menu.pull": undefined;
   "project.git.menu.commit": undefined;
   "project.git.menu.unlink": undefined;
@@ -190,6 +191,7 @@ export type MessageParams = {
   "project.git.pull.upToDate": undefined;
   "project.git.pull.done": { deleted: string | number; written: string | number };
   "project.git.pull.skipped": { names: string | number };
+  "project.git.pull.andMore": { count: string | number; names: string | number };
   "project.git.pull.undo": undefined;
   "project.git.pull.undone": undefined;
   "project.git.conflict.title": undefined;
@@ -238,7 +240,6 @@ export type MessageParams = {
   "project.git.import.initConfirmOverwrite": { branch: string | number; marker: string | number; repo: string | number };
   "project.git.import.initConfirmLabel": undefined;
   "project.git.import.cannotPush": undefined;
-  "project.git.import.skippedNames": { names: string | number };
   "project.git.import.back": undefined;
   "workflow.rail.label": undefined;
   "workflow.rail.write": undefined;
