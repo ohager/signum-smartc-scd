@@ -91,7 +91,16 @@
       "newFolder": "Inizializza una nuova cartella",
       "initCommit": "Il collegamento crea su GitHub un commit che aggiunge il file marcatore.",
       "linked": "Collegato a {repo}: {written} scritti, {deleted} eliminati.",
-      "cancelled": "Collegato, ma il pull non è stato completato. Esegui un pull per completare il collegamento."
+      "cancelled": "Collegato, ma il pull non è stato completato. Esegui un pull per completare il collegamento.",
+      "folderCreated": "Questa cartella non esiste ancora su GitHub. Il commit la crea.",
+      "pickExisting": "Oppure scegli una cartella esistente",
+      "pickExistingPlaceholder": "Cartelle senza marcatore",
+      "problem": {
+        "invalid": "Inserisci un percorso di cartella relativo alla radice del repo, come contracts/token — senza / iniziale, senza \\, senza parti vuote, . o ..",
+        "nested": "Un altro marcatore SmartC Studio si trova sopra o sotto questa cartella. I marcatori non possono essere annidati.",
+        "file_exists": "GitHub ha un file in questo percorso o in una delle sue cartelle superiori.",
+        "has_marker": "Questa cartella è già un progetto SmartC Studio. Collegala come cartella di progetto esistente."
+      }
     },
     "status": {
       "in_sync": "Sincronizzato con GitHub",

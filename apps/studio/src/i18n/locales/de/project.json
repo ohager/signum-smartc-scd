@@ -91,7 +91,16 @@
       "newFolder": "Neuen Ordner initialisieren",
       "initCommit": "Beim Verknüpfen entsteht auf GitHub ein Commit, der die Markierungsdatei hinzufügt.",
       "linked": "Mit {repo} verknüpft: {written} geschrieben, {deleted} gelöscht.",
-      "cancelled": "Verknüpft, aber der Pull wurde nicht abgeschlossen. Führe einen Pull aus, um die Verknüpfung abzuschließen."
+      "cancelled": "Verknüpft, aber der Pull wurde nicht abgeschlossen. Führe einen Pull aus, um die Verknüpfung abzuschließen.",
+      "folderCreated": "Diesen Ordner gibt es auf GitHub noch nicht. Der Commit legt ihn an.",
+      "pickExisting": "Oder wähle einen vorhandenen Ordner",
+      "pickExistingPlaceholder": "Ordner ohne Markierung",
+      "problem": {
+        "invalid": "Gib einen Ordnerpfad relativ zum Repo-Stammverzeichnis ein, etwa contracts/token — ohne führenden /, ohne \\, ohne leere, . oder .. als Teile.",
+        "nested": "Über oder unter diesem Ordner liegt bereits eine SmartC-Studio-Markierung. Markierungen dürfen nicht verschachtelt sein.",
+        "file_exists": "Auf GitHub liegt an diesem Pfad oder an einem seiner übergeordneten Ordner eine Datei.",
+        "has_marker": "Dieser Ordner ist bereits ein SmartC-Studio-Projekt. Verknüpfe ihn als vorhandenen Projektordner."
+      }
     },
     "status": {
       "in_sync": "Mit GitHub synchron",

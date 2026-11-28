@@ -91,7 +91,16 @@
       "newFolder": "Inicializar una carpeta nueva",
       "initCommit": "Al vincular se crea en GitHub un commit que añade el archivo marcador.",
       "linked": "Vinculado con {repo}: {written} escritos, {deleted} eliminados.",
-      "cancelled": "Vinculado, pero el pull no se terminó. Haz pull para terminar la vinculación."
+      "cancelled": "Vinculado, pero el pull no se terminó. Haz pull para terminar la vinculación.",
+      "folderCreated": "Esta carpeta aún no existe en GitHub. El commit la crea.",
+      "pickExisting": "O elige una carpeta existente",
+      "pickExistingPlaceholder": "Carpetas sin marcador",
+      "problem": {
+        "invalid": "Introduce una ruta de carpeta relativa a la raíz del repositorio, como contracts/token — sin / inicial, sin \\, sin partes vacías, . o ..",
+        "nested": "Otro marcador de SmartC Studio está por encima o por debajo de esta carpeta. Los marcadores no pueden estar anidados.",
+        "file_exists": "GitHub tiene un archivo en esta ruta o en una de sus carpetas superiores.",
+        "has_marker": "Esta carpeta ya es un proyecto de SmartC Studio. Vincúlala como carpeta de proyecto existente."
+      }
     },
     "status": {
       "in_sync": "Sincronizado con GitHub",

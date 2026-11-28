@@ -91,7 +91,16 @@
       "newFolder": "Inicializar uma nova pasta",
       "initCommit": "Ao vincular, é criado no GitHub um commit que adiciona o arquivo marcador.",
       "linked": "Vinculado a {repo}: {written} gravados, {deleted} excluídos.",
-      "cancelled": "Vinculado, mas o pull não foi concluído. Faça pull para concluir a vinculação."
+      "cancelled": "Vinculado, mas o pull não foi concluído. Faça pull para concluir a vinculação.",
+      "folderCreated": "Esta pasta ainda não existe no GitHub. O commit a cria.",
+      "pickExisting": "Ou escolha uma pasta existente",
+      "pickExistingPlaceholder": "Pastas sem marcador",
+      "problem": {
+        "invalid": "Informe um caminho de pasta relativo à raiz do repositório, como contracts/token — sem / no início, sem \\, sem partes vazias, . ou ..",
+        "nested": "Outro marcador do SmartC Studio está acima ou abaixo desta pasta. Os marcadores não podem ser aninhados.",
+        "file_exists": "O GitHub tem um arquivo neste caminho ou em uma de suas pastas superiores.",
+        "has_marker": "Esta pasta já é um projeto do SmartC Studio. Vincule-a como pasta de projeto existente."
+      }
     },
     "status": {
       "in_sync": "Sincronizado com o GitHub",

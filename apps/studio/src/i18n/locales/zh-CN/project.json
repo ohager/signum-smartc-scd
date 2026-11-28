@@ -91,7 +91,16 @@
       "newFolder": "初始化新文件夹",
       "initCommit": "关联时会在 GitHub 上创建一个添加标记文件的提交（Commit）。",
       "linked": "已关联到 {repo}：写入 {written} 个，删除 {deleted} 个。",
-      "cancelled": "已关联，但拉取（Pull）尚未完成。请拉取以完成关联。"
+      "cancelled": "已关联，但拉取（Pull）尚未完成。请拉取以完成关联。",
+      "folderCreated": "GitHub 上还没有此文件夹，提交会创建它。",
+      "pickExisting": "或选择一个现有文件夹",
+      "pickExistingPlaceholder": "没有标记的文件夹",
+      "problem": {
+        "invalid": "请输入相对于仓库根目录的文件夹路径，例如 contracts/token——不能以 / 开头，不能包含 \\，也不能有空的、. 或 .. 部分。",
+        "nested": "此文件夹的上级或下级已有另一个 SmartC Studio 标记。标记不能嵌套。",
+        "file_exists": "GitHub 上的此路径或其某个上级文件夹处已有文件。",
+        "has_marker": "此文件夹已经是 SmartC Studio 项目。请将其作为现有项目文件夹关联。"
+      }
     },
     "status": {
       "in_sync": "与 GitHub 同步",

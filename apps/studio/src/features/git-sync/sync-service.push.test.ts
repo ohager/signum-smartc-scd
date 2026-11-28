@@ -353,6 +353,29 @@ describe("GitSync push", () => {
     expect(links.get(projectId)).toBeNull();
   });
 
+  it("links a second project to a new folder next to the first and pushes it there", async () => {
+    const { gh, sync, links, projectId } = await localProject({ "b.smart.c": "int b;", "lib/u.ts": "u" });
+    const aFiles = { "contracts/a/.smartc-studio": marker, "contracts/a/a.smart.c": "int a;", "contracts/a/x.md": "x" };
+    await gh.seed(ref, "main", aFiles);
+    expect((await sync.linkProject(projectId, ref, "main", "contracts/b")).prepared).toBeNull();
+    expect(links.get(projectId)).toMatchObject({ path: "contracts/b", baseFiles: {} });
+    await sync.push(projectId, "add b");
+    expect(gh.files(ref, "main")).toEqual({
+      ...aFiles,
+      "contracts/b/.smartc-studio": marker,
+      "contracts/b/b.smart.c": "int b;",
+      "contracts/b/lib/u.ts": "u",
+    });
+  });
+
+  it("refuses to link a new folder below a remote file and leaves no link behind", async () => {
+    const { gh, sync, links, projectId } = await localProject({ "a.smart.c": "int a;" });
+    const head = await gh.seed(ref, "main", { LICENSE: "MIT" });
+    expect((await codeOf(sync.linkProject(projectId, ref, "main", "LICENSE/c"))).code).toBe("path_taken");
+    expect(gh.commitsOn(ref, "main")).toEqual([head]);
+    expect(links.get(projectId)).toBeNull();
+  });
+
   it("refuses to link while locked", async () => {
     const { gh, sync, state, links, projectId } = await localProject({ "a.smart.c": "int a;" });
     gh.createEmptyRepo(ref);
