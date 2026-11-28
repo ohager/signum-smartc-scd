@@ -205,6 +205,15 @@ describe("GitSync push", () => {
     expect(gh.files(ref, "main")["c/a.smart.c"]).toBe("int a;");
   });
 
+  it("status flushes by default and not with flush:false", async () => {
+    const { sync, state, projectId } = await setup();
+    state.order = [];
+    await sync.status(projectId, { flush: false });
+    expect(state.order).not.toContain("flush");
+    await sync.status(projectId);
+    expect(state.order).toEqual(["flush"]);
+  });
+
   it("push flushes pending saves before reading", async () => {
     const { gh, fs, sync, state, projectId, edit } = await setup();
     const load = fs.loadFile.bind(fs);

@@ -209,13 +209,16 @@ export class GitSync {
   }
 
   /** Blob SHAs of the project's tracked files, keyed by path relative to the project. Flushes first. */
-  async localShas(projectId: string): Promise<Shas> {
-    return (await this.localFiles(projectId)).shas;
+  async localShas(projectId: string, flush = true): Promise<Shas> {
+    return (await this.localFiles(projectId, flush)).shas;
   }
 
   /** `localShas` plus the text behind each sha. */
-  private async localFiles(projectId: string): Promise<{ shas: Shas; texts: Map<string, string> }> {
-    await this.deps.flush();
+  private async localFiles(
+    projectId: string,
+    flush = true,
+  ): Promise<{ shas: Shas; texts: Map<string, string> }> {
+    if (flush) await this.deps.flush();
     const shas: Shas = {};
     const texts = new Map<string, string>();
     for (const f of await captureProject(this.deps.fs, projectId)) {
@@ -227,13 +230,19 @@ export class GitSync {
     return { shas, texts };
   }
 
-  /** `remoteAhead` is null unless `remote` is set and the head could be read. */
+  /**
+   * `remoteAhead` is null unless `remote` is set and the head could be read.
+   * `flush: false` skips flushing pending editor saves (a background badge must not cut an autosave short).
+   */
   async status(
     projectId: string,
-    opts: { remote?: boolean } = {},
+    opts: { remote?: boolean; flush?: boolean } = {},
   ): Promise<{ state: SyncState; localChanges: number; remoteAhead: boolean | null }> {
     const link = this.link(projectId);
-    const { upserts, deletes } = localChanges(link.baseFiles, await this.localShas(projectId));
+    const { upserts, deletes } = localChanges(
+      link.baseFiles,
+      await this.localShas(projectId, opts.flush ?? true),
+    );
     let remoteAhead: boolean | null = null;
     if (opts.remote) {
       try {
