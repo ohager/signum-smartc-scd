@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { captureProject, MemoryCheckpointStore } from "@/features/assistant/rounds/checkpoints";
 import { createTestFs } from "@/features/assistant/tools/test-fs";
+import { FileTypes } from "@/features/project/filetype-icons";
 import { gitBlobSha } from "@/lib/git-sync/blob-sha";
 import { GitSyncError } from "@/lib/git-sync/errors";
 import { serializeMarker } from "@/lib/git-sync/marker";
@@ -346,6 +347,17 @@ describe("GitSync pull", () => {
     await edit("b.ts", "later");
     expect((await codeOf(sync.undoPull(undoToken))).code).toBe("stale");
     expect(await local()).toMatchObject({ "a.smart.c": "int a2;", "b.ts": "later" });
+    expect(links.get(projectId)).toEqual(after);
+  });
+
+  it("refuses an undo that would overwrite edits to files sync does not track", async () => {
+    const { gh, fs, sync, links, projectId, local } = await setup();
+    await gh.seed(ref, "main", { "c/a.smart.c": "int a2;" });
+    const { undoToken } = await sync.applyPull((await sync.preparePull(projectId))!, {});
+    const after = links.get(projectId);
+    await fs.addFile(projectId, "notes.txt", FileTypes.Doc, "written after the pull");
+    expect((await codeOf(sync.undoPull(undoToken))).code).toBe("stale");
+    expect(await local()).toMatchObject({ "a.smart.c": "int a2;", "notes.txt": "written after the pull" });
     expect(links.get(projectId)).toEqual(after);
   });
 

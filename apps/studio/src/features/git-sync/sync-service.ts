@@ -3,6 +3,7 @@ import { decodeTextOrNull } from "@/lib/file-system/transfer";
 import type { WorkspaceFs } from "@/features/assistant/tools/paths";
 import {
   captureProject,
+  diffSnapshots,
   restoreWithUndo,
   type CheckpointFile,
   type CheckpointStore,
@@ -170,7 +171,7 @@ function sameShas(a: Shas, b: Shas): boolean {
 export class GitSync {
   private readonly undos = new Map<
     string,
-    { projectId: string; checkpointId: string; previousLink: RepoLink; afterPull: Shas }
+    { projectId: string; checkpointId: string; previousLink: RepoLink; afterPull: CheckpointFile[] }
   >();
 
   constructor(private readonly deps: GitSyncDeps) {}
@@ -374,7 +375,8 @@ export class GitSync {
       marker: prepared.marker,
     });
     const undoToken = crypto.randomUUID();
-    const afterPull = await this.localShas(projectId);
+    // Every file, not only tracked ones: undo restores the whole checkpoint.
+    const afterPull = await captureProject(fs, projectId);
     this.undos.set(undoToken, { projectId, checkpointId: undoCheckpointId, previousLink, afterPull });
     this.deps.markTookOver(projectId);
     return {
@@ -393,7 +395,9 @@ export class GitSync {
     const { fs, checkpoints: store, clock } = this.deps;
     const checkpoint = await store.get(checkpointId);
     if (!checkpoint) throw new Error("The undo checkpoint is gone.");
-    if (!sameShas(await this.localShas(projectId), afterPull)) {
+    await this.deps.flush();
+    const { added, removed, changed } = diffSnapshots(afterPull, await captureProject(fs, projectId));
+    if (added.length + removed.length + changed.length > 0) {
       throw new GitSyncError("stale", "Files changed since the pull; undo would overwrite them.");
     }
     await restoreWithUndo({ fs, store, clock }, projectId, checkpoint);
