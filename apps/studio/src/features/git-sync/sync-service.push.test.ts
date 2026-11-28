@@ -371,7 +371,17 @@ describe("GitSync push", () => {
   it("refuses to link a new folder below a remote file and leaves no link behind", async () => {
     const { gh, sync, links, projectId } = await localProject({ "a.smart.c": "int a;" });
     const head = await gh.seed(ref, "main", { LICENSE: "MIT" });
-    expect((await codeOf(sync.linkProject(projectId, ref, "main", "LICENSE/c"))).code).toBe("path_taken");
+    expect((await codeOf(sync.linkProject(projectId, ref, "main", "LICENSE/c"))).code).toBe("folder_taken");
+    expect(gh.commitsOn(ref, "main")).toEqual([head]);
+    expect(links.get(projectId)).toBeNull();
+  });
+
+  it("refuses to link a folder path that is not normalized and leaves no link behind", async () => {
+    const { gh, sync, links, projectId } = await localProject({ "a.smart.c": "int a;" });
+    const head = await gh.seed(ref, "main", { "x/.smartc-studio": marker, "contracts/a/.smartc-studio": marker });
+    for (const folder of ["contracts/a/../b", "x/..", "/a"]) {
+      expect((await codeOf(sync.linkProject(projectId, ref, "main", folder))).code).toBe("invalid_folder");
+    }
     expect(gh.commitsOn(ref, "main")).toEqual([head]);
     expect(links.get(projectId)).toBeNull();
   });

@@ -63,7 +63,9 @@
       "http_error": "GitHub respondió con un error ({status}). Inténtalo de nuevo más tarde.",
       "marker_changed": "El marcador en GitHub cambió entretanto — vuelve a buscar el repositorio.",
       "undo_expired": "Ya no se puede deshacer esta acción.",
-      "unresolved_conflicts": "Primero elige una versión para cada conflicto."
+      "unresolved_conflicts": "Primero elige una versión para cada conflicto.",
+      "invalid_folder": "Esta ruta de carpeta no es válida. Usa una ruta relativa a la raíz del repositorio, sin partes vacías, . o ..",
+      "folder_taken": "Un archivo en GitHub ya usa esta ruta: {paths}. Elige otra carpeta."
     },
     "token": {
       "title": "Token de GitHub",

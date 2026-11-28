@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -72,6 +72,8 @@ export function LinkDialog({ projectId, open, onOpenChange, onConflicts }: Props
   const [mode, setMode] = useState<"existing" | "init">("existing");
   const [folder, setFolder] = useState<string | null>(null);
   const [initFolder, setInitFolder] = useState("");
+  /** The user typed or picked a folder: a new lookup keeps it instead of prefilling a suggestion. */
+  const initEdited = useRef(false);
   const [confirmed, setConfirmed] = useState(false);
   const [busy, setBusy] = useState<"lookup" | "link" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -81,6 +83,7 @@ export function LinkDialog({ projectId, open, onOpenChange, onConflicts }: Props
     setProbe(null);
     setRef(null);
     setFolder(null);
+    initEdited.current = false;
     setConfirmed(false);
     setError(null);
     setBusy(null);
@@ -99,7 +102,7 @@ export function LinkDialog({ projectId, open, onOpenChange, onConflicts }: Props
     setBranch(branchName);
     setFolder(first);
     setMode(first !== null ? "existing" : "init");
-    setInitFolder(suggestNewFolder(result, projectName()));
+    if (!initEdited.current) setInitFolder(suggestNewFolder(result, projectName()));
     setConfirmed(false);
   };
 
@@ -323,7 +326,9 @@ export function LinkDialog({ projectId, open, onOpenChange, onConflicts }: Props
                 className="font-mono"
                 aria-invalid={problem !== null}
                 aria-describedby="link-init-folder-note"
+                disabled={busy !== null}
                 onChange={(e) => {
+                  initEdited.current = true;
                   setInitFolder(e.target.value);
                   setConfirmed(false);
                 }}
@@ -345,7 +350,9 @@ export function LinkDialog({ projectId, open, onOpenChange, onConflicts }: Props
                 <Label>{t("project.git.link.pickExisting")}</Label>
                 <Select
                   value={newFolder !== null && initChoices.includes(newFolder) ? newFolder || ROOT : ""}
+                  disabled={busy !== null}
                   onValueChange={(v) => {
+                    initEdited.current = true;
                     setInitFolder(v === ROOT ? "" : v);
                     setConfirmed(false);
                   }}
@@ -380,6 +387,7 @@ export function LinkDialog({ projectId, open, onOpenChange, onConflicts }: Props
                   <Checkbox
                     id="link-init-confirm"
                     checked={confirmed}
+                    disabled={busy !== null}
                     onCheckedChange={(v) => setConfirmed(v === true)}
                   />
                   <Label htmlFor="link-init-confirm" className="font-normal">

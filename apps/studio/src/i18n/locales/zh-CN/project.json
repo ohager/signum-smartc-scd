@@ -63,7 +63,9 @@
       "http_error": "GitHub 返回了错误（{status}）。请稍后重试。",
       "marker_changed": "GitHub 上的标记在此期间已更改——请重新查找仓库。",
       "undo_expired": "此撤销操作已不可用。",
-      "unresolved_conflicts": "请先为每个冲突选择一个版本。"
+      "unresolved_conflicts": "请先为每个冲突选择一个版本。",
+      "invalid_folder": "此文件夹路径无效。请使用相对于仓库根目录的路径，不能有空的、. 或 .. 部分。",
+      "folder_taken": "GitHub 上已有文件使用此路径：{paths}。请选择其他文件夹。"
     },
     "token": {
       "title": "GitHub 令牌",

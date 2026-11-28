@@ -63,7 +63,9 @@
       "http_error": "GitHub ha risposto con un errore ({status}). Riprova più tardi.",
       "marker_changed": "Nel frattempo il marcatore su GitHub è cambiato — cerca di nuovo il repo.",
       "undo_expired": "Questo annullamento non è più disponibile.",
-      "unresolved_conflicts": "Scegli prima una versione per ogni conflitto."
+      "unresolved_conflicts": "Scegli prima una versione per ogni conflitto.",
+      "invalid_folder": "Questo percorso di cartella non è valido. Usa un percorso relativo alla radice del repo, senza parti vuote, . o ..",
+      "folder_taken": "Un file su GitHub usa già questo percorso: {paths}. Scegli un'altra cartella."
     },
     "token": {
       "title": "Token GitHub",

@@ -63,7 +63,9 @@
       "http_error": "GitHub answered with an error ({status}). Try again later.",
       "marker_changed": "The marker on GitHub changed meanwhile — look up the repo again.",
       "undo_expired": "This undo is no longer available.",
-      "unresolved_conflicts": "Choose a version for every conflict first."
+      "unresolved_conflicts": "Choose a version for every conflict first.",
+      "invalid_folder": "This folder path is not valid. Use a path relative to the repo root, without empty, . or .. parts.",
+      "folder_taken": "A file on GitHub already uses this path: {paths}. Choose another folder."
     },
     "token": {
       "title": "GitHub token",

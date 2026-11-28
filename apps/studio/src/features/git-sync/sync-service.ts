@@ -34,7 +34,7 @@ import {
 import type { BranchHead, GitProvider, RepoRef, TreeEntry } from "@/lib/git-sync/provider";
 import type { RepoLink, RepoLinks } from "@/lib/git-sync/repo-links";
 import { selectTracked, toRepoPath } from "@/lib/git-sync/tracked";
-import { parentFolders } from "./marker-folders";
+import { normalizeFolder, parentFolders } from "./marker-folders";
 import { trackedType } from "./tracked-type";
 
 export type SyncFs = WorkspaceFs & Pick<FileSystem, "transfer">;
@@ -126,7 +126,7 @@ function assertNotNested(folders: string[], nested: string[], folder: string): v
 
 /**
  * Throws nested_markers if another marker folder lies above or below `folder`, and
- * path_taken (naming the files) if GitHub holds a file at `folder` or at a parent of it.
+ * folder_taken (naming the files) if GitHub holds a file at `folder` or at a parent of it.
  */
 function assertFreeFolder(entries: TreeEntry[], folder: string): void {
   const blobs = new Set(entries.filter((e) => e.type !== "tree").map((e) => e.path));
@@ -136,7 +136,16 @@ function assertFreeFolder(entries: TreeEntry[], folder: string): void {
   }
   const taken = folder === "" ? [] : [...parentFolders(folder), folder].filter((p) => blobs.has(p));
   if (taken.length > 0) {
-    throw new GitSyncError("path_taken", `GitHub already has a file at ${taken.join(", ")}.`, { paths: taken });
+    throw new GitSyncError("folder_taken", `A file on GitHub already uses this path: ${taken.join(", ")}.`, {
+      paths: taken,
+    });
+  }
+}
+
+/** Throws invalid_folder unless `folder` is a normalized relative repo path ("" = root). */
+function assertFolderSyntax(folder: string): void {
+  if (normalizeFolder(folder) !== folder) {
+    throw new GitSyncError("invalid_folder", `Not a valid folder path: ${JSON.stringify(folder)}.`);
   }
 }
 
@@ -235,6 +244,7 @@ export class GitSync {
   }
 
   async initialize(ref: RepoRef, branch: string | null, folder: string): Promise<void> {
+    assertFolderSyntax(folder);
     const git = this.deps.provider();
     const path = markerPath(folder);
     let sha: string | undefined;
@@ -503,6 +513,7 @@ export class GitSync {
     folder: string,
   ): Promise<LinkResult> {
     this.assertUnlocked(projectId);
+    assertFolderSyntax(folder);
     const git = this.deps.provider();
     const name = branch ?? (await git.getRepo(ref)).defaultBranch;
     const head = await git.getHead(ref, name);

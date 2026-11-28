@@ -44,19 +44,41 @@ describe("new folders", () => {
     expect(slugFolderName("Über Vertrag")).toBe("uber-vertrag");
   });
 
+  /** A probe whose markers sit at `folders`, with the given blobs; folders are derived. */
+  const repo = (markers: { folder: string; marker: { format: number } | null; error?: string }[], blobs: string[] = []) => {
+    const files = new Set([...blobs, ...markers.map((m) => (m.folder ? `${m.folder}/.smartc-studio` : ".smartc-studio"))]);
+    const trees = new Set([""]);
+    for (const f of files) for (let i = f.indexOf("/"); i !== -1; i = f.indexOf("/", i + 1)) trees.add(f.slice(0, i));
+    return {
+      markers,
+      nested: [],
+      pathKind: (p: string) => (files.has(p) ? ("blob" as const) : trees.has(p) ? ("tree" as const) : null),
+    };
+  };
+
   it("suggests a sibling of the first valid marker folder, named after the project", () => {
-    expect(suggestNewFolder({ markers: [ok("contracts/a")] }, "B")).toBe("contracts/b");
-    expect(suggestNewFolder({ markers: [] }, "B")).toBe("b");
-    expect(suggestNewFolder({ markers: [ok("x")] }, "B")).toBe("b");
-    expect(suggestNewFolder({ markers: [ok("")] }, "B")).toBe("b");
-    expect(suggestNewFolder({ markers: [{ folder: "bad/a", marker: null, error: "x" }, ok("c/a")] }, "B")).toBe("c/b");
+    expect(suggestNewFolder(repo([ok("contracts/a")]), "B")).toBe("contracts/b");
+    expect(suggestNewFolder(repo([]), "B")).toBe("b");
+    expect(suggestNewFolder(repo([ok("x")]), "B")).toBe("b");
+    expect(suggestNewFolder(repo([{ folder: "bad/a", marker: null, error: "x" }, ok("c/a")]), "B")).toBe("c/b");
   });
 
   it("appends a number when the suggestion is taken by a marker", () => {
-    expect(suggestNewFolder({ markers: [ok("contracts/a"), ok("contracts/b")] }, "B")).toBe("contracts/b-2");
-    expect(suggestNewFolder({ markers: [ok("contracts/a"), ok("contracts/b"), ok("contracts/b-2")] }, "B")).toBe(
+    expect(suggestNewFolder(repo([ok("contracts/a"), ok("contracts/b")]), "B")).toBe("contracts/b-2");
+    expect(suggestNewFolder(repo([ok("contracts/a"), ok("contracts/b"), ok("contracts/b-2")]), "B")).toBe(
       "contracts/b-3",
     );
+  });
+
+  it("skips candidates that already exist on GitHub, as a folder or a file", () => {
+    expect(suggestNewFolder(repo([ok("contracts/a")], ["contracts/b/notes.md", "contracts/b-2"]), "B")).toBe(
+      "contracts/b-3",
+    );
+    expect(suggestNewFolder(repo([], ["b", "b-2/x.ts"]), "B")).toBe("b-3");
+  });
+
+  it("falls back to the plain name when no numbered candidate can take a marker", () => {
+    expect(suggestNewFolder(repo([ok("")]), "B")).toBe("b");
   });
 
   it("checks a new folder against markers and remote files", () => {

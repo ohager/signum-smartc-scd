@@ -63,7 +63,9 @@
       "http_error": "GitHub hat mit einem Fehler geantwortet ({status}). Versuche es später erneut.",
       "marker_changed": "Die Markierung auf GitHub hat sich in der Zwischenzeit geändert — schlage das Repo erneut nach.",
       "undo_expired": "Dieses Rückgängigmachen ist nicht mehr verfügbar.",
-      "unresolved_conflicts": "Wähle zuerst für jeden Konflikt eine Version."
+      "unresolved_conflicts": "Wähle zuerst für jeden Konflikt eine Version.",
+      "invalid_folder": "Dieser Ordnerpfad ist ungültig. Verwende einen Pfad relativ zum Repo-Stammverzeichnis, ohne leere, . oder .. als Teile.",
+      "folder_taken": "Eine Datei auf GitHub belegt diesen Pfad bereits: {paths}. Wähle einen anderen Ordner."
     },
     "token": {
       "title": "GitHub-Token",

@@ -63,7 +63,9 @@
       "http_error": "GitHub a répondu par une erreur ({status}). Réessayez plus tard.",
       "marker_changed": "Le marqueur sur GitHub a changé entre-temps — recherchez à nouveau le dépôt.",
       "undo_expired": "Cette annulation n'est plus disponible.",
-      "unresolved_conflicts": "Choisissez d'abord une version pour chaque conflit."
+      "unresolved_conflicts": "Choisissez d'abord une version pour chaque conflit.",
+      "invalid_folder": "Ce chemin de dossier n'est pas valide. Utilisez un chemin relatif à la racine du dépôt, sans partie vide, . ou ..",
+      "folder_taken": "Un fichier sur GitHub utilise déjà ce chemin : {paths}. Choisissez un autre dossier."
     },
     "token": {
       "title": "Jeton GitHub",

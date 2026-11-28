@@ -77,17 +77,24 @@ export function slugFolderName(name: string): string {
   return slug || "contract";
 }
 
+const MAX_SUGGESTIONS = 100;
+
 /**
  * A folder for a new project: next to the first valid marker folder (at the root when that
  * marker sits at the root or in a root-level folder), named after the project; numbered
- * `-2`, `-3`, … while a marker already sits there.
+ * `-2`, `-3`, … while the candidate exists on GitHub (file or folder) or cannot take a
+ * marker. Falls back to the plain name when no candidate fits (e.g. below a root marker,
+ * where every sibling is nested); the dialog then shows the problem.
  */
-export function suggestNewFolder(probe: Pick<RepoProbe, "markers">, projectName: string): string {
+export function suggestNewFolder(
+  probe: Pick<RepoProbe, "markers" | "nested" | "pathKind">,
+  projectName: string,
+): string {
   const first = probe.markers.find((m) => m.marker)?.folder;
   const parent = first ? first.slice(0, Math.max(0, first.lastIndexOf("/"))) : "";
   const base = (parent ? `${parent}/` : "") + slugFolderName(projectName);
-  const taken = new Set(probe.markers.map((m) => m.folder));
-  let candidate = base;
-  for (let n = 2; taken.has(candidate); n++) candidate = `${base}-${n}`;
-  return candidate;
+  const fits = (candidate: string) => probe.pathKind(candidate) === null && checkNewFolder(probe, candidate) === null;
+  if (fits(base)) return base;
+  for (let n = 2; n <= MAX_SUGGESTIONS; n++) if (fits(`${base}-${n}`)) return `${base}-${n}`;
+  return base;
 }
