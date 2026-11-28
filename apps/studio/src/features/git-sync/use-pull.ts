@@ -12,6 +12,7 @@ export interface PullApi {
   pull(): Promise<void>;
   /** Resolves the conflicts of an already prepared pull (e.g. from linking) and applies it. */
   resolve(prepared: PreparedPull): Promise<void>;
+  /** A pull or a resolve is running (including while its conflicts are open). */
   busy: boolean;
   /** Render this once next to the component that calls `usePull`. */
   dialog: ReactElement;
@@ -67,12 +68,16 @@ export function usePull(projectId: string): PullApi {
     [ask, sync, openTokenDialog],
   );
 
+  // busy while the conflicts are open too, so a pull cannot take over the pending answer
   const resolve = useCallback(
     async (prepared: PreparedPull) => {
+      setBusy(true);
       try {
         if (!(await apply(prepared))) toast.warning(t("project.git.link.cancelled"));
       } catch (e) {
         toastGitError(e, openTokenDialog);
+      } finally {
+        setBusy(false);
       }
     },
     [apply, openTokenDialog],
