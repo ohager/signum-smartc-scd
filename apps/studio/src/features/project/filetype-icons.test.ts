@@ -13,7 +13,6 @@ describe("acceptedFileType", () => {
   });
 
   it("rejects everything else", () => {
-    expect(acceptedFileType("README.md")).toBeNull();
     expect(acceptedFileType("logo.png")).toBeNull();
     expect(acceptedFileType("data.json")).toBeNull();
     expect(acceptedFileType("Makefile")).toBeNull();
@@ -26,5 +25,12 @@ describe("inspection file types", () => {
     expect(acceptedFileType("nft.labels.json")).toBe(FileTypes.LabelMap);
     expect(acceptedFileType("deployments.inspect.json")).toBe(FileTypes.Watchlist);
     expect(acceptedFileType("x.scenario.json")).toBe(FileTypes.Scenario);
+  });
+});
+
+describe("markdown files", () => {
+  it("accepts .md as a doc, case-insensitively", () => {
+    expect(acceptedFileType("README.md")).toBe(FileTypes.Doc);
+    expect(acceptedFileType("notes.MD")).toBe(FileTypes.Doc);
   });
 });

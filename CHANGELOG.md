@@ -4,6 +4,9 @@
 
 ### Highlights
 
+- **Edit Markdown files** — `.md` files open in the editor with Markdown
+  highlighting and word wrap. Create them with New File; upload, ZIP and
+  folder import accept them too.
 - **GitHub sync** — import a contract folder from a GitHub repo, link a project
   to one, pull changes (with per-file conflict choices and Undo pull), and
   commit and push from the project menu. A status badge shows whether you are

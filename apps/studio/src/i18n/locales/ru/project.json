@@ -27,7 +27,8 @@
     "scenario": "Сценарий (.scenario.json)",
     "test": "Тест (.test.ts)",
     "watchlist": "Список наблюдения для инспекции",
-    "labelMap": "Label Map"
+    "labelMap": "Label Map",
+    "markdown": "Markdown (.md)"
   },
   "newProject": {
     "title": "Новый проект",

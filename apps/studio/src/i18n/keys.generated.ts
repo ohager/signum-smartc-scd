@@ -130,6 +130,7 @@ export type MessageParams = {
   "project.newFile.test": undefined;
   "project.newFile.watchlist": undefined;
   "project.newFile.labelMap": undefined;
+  "project.newFile.markdown": undefined;
   "project.newProject.title": undefined;
   "project.newProject.createDescription": undefined;
   "project.newProject.inspectDescription": undefined;

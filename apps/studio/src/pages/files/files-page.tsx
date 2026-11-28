@@ -12,6 +12,7 @@ import { ScenarioEditor } from "@/features/simulator/scenario/scenario-editor.ts
 import { TestFileEditor } from "@/features/testbed/ui/test-file-editor";
 import { InspectorEditor } from "@/features/inspector/ui/inspector-editor";
 import { LabelMapEditor } from "@/features/inspector/ui/label-map-editor";
+import { DocFileEditor } from "@/features/doc-editor/doc-file-editor";
 import { t } from "@/i18n/runtime";
 import { useAtomValue } from "jotai";
 import { findProjectOfFolder } from "@/features/project/project-root";
@@ -149,7 +150,8 @@ export function FilesPage() {
         {type === FileTypes.Test && <TestFileEditor key={id} file={file!} />}
         {type === FileTypes.Watchlist && <InspectorEditor key={id} file={file!} />}
         {type === FileTypes.LabelMap && <LabelMapEditor key={id} file={file!} />}
-        {type !== FileTypes.SmartC && type !== FileTypes.ASM && type !== FileTypes.Scenario && type !== FileTypes.Test && type !== FileTypes.Watchlist && type !== FileTypes.LabelMap && (
+        {type === FileTypes.Doc && <DocFileEditor key={id} file={file!} />}
+        {type !== FileTypes.SmartC && type !== FileTypes.ASM && type !== FileTypes.Scenario && type !== FileTypes.Test && type !== FileTypes.Watchlist && type !== FileTypes.LabelMap && type !== FileTypes.Doc && (
           <div className="p-4 text-sm text-muted-foreground">
             {t("common.files.unsupported", { type })}
           </div>

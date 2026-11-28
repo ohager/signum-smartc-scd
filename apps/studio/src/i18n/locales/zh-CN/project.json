@@ -27,7 +27,8 @@
     "scenario": "场景（.scenario.json）",
     "test": "测试（.test.ts）",
     "watchlist": "检查观察列表",
-    "labelMap": "Label Map"
+    "labelMap": "Label Map",
+    "markdown": "Markdown (.md)"
   },
   "newProject": {
     "title": "新建项目",

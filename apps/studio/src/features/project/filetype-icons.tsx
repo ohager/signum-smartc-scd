@@ -54,5 +54,6 @@ export function acceptedFileType(name: string): FileTypes | null {
   if (lower.endsWith(".asm")) return FileTypes.ASM;
   // `.test.ts` files are run; plain `.ts` files are helpers they import.
   if (lower.endsWith(".ts")) return FileTypes.Test;
+  if (lower.endsWith(".md")) return FileTypes.Doc;
   return null;
 }
