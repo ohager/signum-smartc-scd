@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test";
 import type { ToolOutcome } from "@smartc-studio/assistant-protocol";
-import { feedReducer, hasActivity, hasLaterRound, summarize, LOOSE_CAP, ROUND_ENTRY_CAP, type FeedEvent, type FeedState } from "./feed-model";
+import { agentActiveUntil, feedReducer, hasActivity, hasLaterRound, summarize, ACTIVE_WINDOW_MS, LOOSE_CAP, ROUND_ENTRY_CAP, type FeedEvent, type FeedState } from "./feed-model";
 
 const empty: FeedState = { rounds: [], loose: [] };
 const run = (events: FeedEvent[], from: FeedState = empty) => events.reduce(feedReducer, from);
@@ -128,5 +128,50 @@ describe("summarize", () => {
 describe("summarize edge", () => {
   it("run_tests with nothing run totals 0", () => {
     expect(summarize("run_tests", { ok: true, data: { passed: 0, failed: 0 } }, [], null)).toEqual({ kind: "tests", passed: 0, total: 0 });
+  });
+});
+
+describe("agentActiveUntil", () => {
+  const callEnd = (callId: string, at: number): FeedEvent => ({ type: "call:end", callId, outcome: ok(), touched: [], at });
+  const roundEnd = (roundId: string, at: number): FeedEvent => ({ type: "round:end", roundId, at });
+
+  it("is null before the agent ever called", () => {
+    expect(agentActiveUntil(empty)).toBeNull();
+  });
+
+  it("lasts while a round is open, even between calls", () => {
+    const s = run([roundStart("r1", "p1", 1), callStart("1", "p1", "write_file", "/p/a", 2), callEnd("1", 3)]);
+    expect(agentActiveUntil(s)).toBe(Infinity);
+  });
+
+  it("lasts while a call outside any round runs", () => {
+    const s = run([callStart("1", null, "list_projects", null, 5)]);
+    expect(agentActiveUntil(s)).toBe(Infinity);
+  });
+
+  it("ends one window after the last call once nothing runs", () => {
+    const s = run([callStart("1", null, "list_projects", null, 5), callEnd("1", 6), callStart("2", "p9", "compile", "/p9/c", 40), callEnd("2", 41)]);
+    expect(agentActiveUntil(s)).toBe(40 + ACTIVE_WINDOW_MS);
+  });
+
+  it("counts calls in ended rounds", () => {
+    const s = run([roundStart("r1", "p1", 1), callStart("1", "p1", "write_file", "/p/a", 70), callEnd("1", 71), roundEnd("r1", 100)]);
+    expect(agentActiveUntil(s)).toBe(70 + ACTIVE_WINDOW_MS);
+  });
+
+  it("takes the latest call across rounds and loose calls", () => {
+    const s = run([
+      roundStart("r1", "p1", 1),
+      callStart("1", "p1", "write_file", "/p/a", 10),
+      callEnd("1", 11),
+      roundEnd("r1", 20),
+      callStart("2", null, "list_projects", null, 30),
+      callEnd("2", 31),
+      roundStart("r2", "p2", 40),
+      callStart("3", "p2", "write_file", "/p2/a", 50),
+      callEnd("3", 51),
+      roundEnd("r2", 60),
+    ]);
+    expect(agentActiveUntil(s, 5)).toBe(55);
   });
 });

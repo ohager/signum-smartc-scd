@@ -36,6 +36,7 @@
   },
   "status": {
     "connected": "{client} 已连接",
+    "working": "{client} 正在工作…",
     "connecting": "正在连接端口 {port}…",
     "cancel": "取消",
     "disconnect": "断开连接",

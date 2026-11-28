@@ -20,6 +20,7 @@ import { assistantPortAtom, feedAtom } from "../state";
 import { ActivityPanel } from "./activity-panel";
 import { ConnectDialog } from "./connect-dialog";
 import { RichText } from "./rich-text";
+import { useAgentActive } from "./use-agent-active";
 
 /* The dot says how the connection stands at a glance; the menu says why. */
 function dotColor(state: ConnectionState): string | null {
@@ -38,10 +39,12 @@ function dotColor(state: ConnectionState): string | null {
   }
 }
 
-function statusMessage(state: ConnectionState, port: number): string | null {
+function statusMessage(state: ConnectionState, port: number, working: boolean): string | null {
   switch (state.kind) {
-    case "connected":
-      return t("assistant.status.connected", { client: state.client?.name ?? t("assistant.approval.unknownClient") });
+    case "connected": {
+      const client = state.client?.name ?? t("assistant.approval.unknownClient");
+      return working ? t("assistant.status.working", { client }) : t("assistant.status.connected", { client });
+    }
     case "taken-over":
       return t("assistant.status.takenOver");
     case "mismatch":
@@ -59,15 +62,18 @@ function statusMessage(state: ConnectionState, port: number): string | null {
  * Header entry: a bot icon whose dot carries the connection state, and a menu with the
  * explanation and whatever can be done about it. It is app-wide, not a verb of the page
  * it sits on, which is why the header renders it itself rather than a feature pushing it in.
+ * While the agent works, the icon pulses and the dot pings, so its activity shows from any
+ * page; with reduced motion only the colour remains.
  */
 export function AssistantStatus() {
   const { state, disconnect } = useAssistant();
   const port = useAtomValue(assistantPortAtom);
   const feed = useAtomValue(feedAtom);
+  const working = useAgentActive(state.kind === "connected");
   const [connectOpen, setConnectOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
 
-  const message = statusMessage(state, port);
+  const message = statusMessage(state, port, working);
   const dot = dotColor(state);
   const busy = state.kind === "connecting" || state.kind === "awaiting-approval";
   /* The feed outlives the connection, so Restore stays reachable until there is nothing to show. */
@@ -81,7 +87,17 @@ export function AssistantStatus() {
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative shrink-0" aria-label={label}>
-                <BotIcon className="size-5" />
+                <BotIcon
+                  className={"size-5" + (working ? " motion-safe:animate-pulse" : "")}
+                  style={working ? { color: "var(--green)" } : undefined}
+                />
+                {dot && working && (
+                  <span
+                    aria-hidden
+                    className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full opacity-75 motion-safe:animate-ping"
+                    style={{ background: dot }}
+                  />
+                )}
                 {dot && (
                   <span
                     aria-hidden

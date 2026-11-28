@@ -10,6 +10,17 @@
   in sync. The token stays in your browser, and the AI assistant cannot reach
   sync. See the [guide](docs/git-sync.md).
 
+## 0.4.0-alpha.3 — 2026-11-27
+
+### Highlights
+
+- **See when the agent is working** — the assistant icon at the top right
+  pulses green while the agent works, and its tooltip says "… is working".
+  It counts as working while it holds a project (the same round that locks the
+  editor), while a call runs, and for a few seconds after its last call, so
+  read-only steps such as compiling or running tests show too. With reduced
+  motion enabled only the colour changes.
+
 ## 0.4.0-alpha.2 — 2026-11-27
 
 ### Highlights
