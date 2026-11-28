@@ -26,6 +26,10 @@ bun start
 
 Studio can let a coding agent such as Claude Code or Codex work on your projects. See the [AI Assistant guide](../../docs/assistant.md).
 
+## GitHub sync
+
+Studio can import, pull and push a project against a folder of a GitHub repo. See the [GitHub sync guide](../../docs/git-sync.md).
+
 ## Languages
 
 Studio speaks English, Deutsch, Português (Brasil), Français, Español, Italiano,

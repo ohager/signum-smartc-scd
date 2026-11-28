@@ -5,6 +5,7 @@ import { SidebarResizer } from "./sidebar-resizer";
 import { Outlet } from "react-router";
 import { Toaster } from "@/components/ui/sonner";
 import { AssistantProvider } from "@/features/assistant/ui/assistant-provider";
+import { GitSyncProvider } from "@/features/git-sync/git-sync-context";
 import { useEffect, useState, type CSSProperties } from "react";
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -22,11 +23,13 @@ export function AppLayout() {
     <div className="h-screen flex flex-col">
       <TooltipProvider>
         <AssistantProvider>
+        <GitSyncProvider>
         <SidebarProvider style={{ "--sidebar-width": sidebarWidth } as CSSProperties}>
           <LeftSidebar />
           <SidebarResizer onCommit={setSidebarWidth} />
           <Outlet />
         </SidebarProvider>
+        </GitSyncProvider>
         </AssistantProvider>
         <Toaster />
       </TooltipProvider>

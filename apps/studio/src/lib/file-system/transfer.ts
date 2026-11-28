@@ -48,12 +48,13 @@ export function buildZip(entries: TransferEntry[]): Uint8Array {
 /**
  * Decode bytes as strict UTF-8 text, or return null if they look binary
  * (contain a NUL byte, or aren't valid UTF-8). The byte→text boundary shared
- * by ZIP parsing and the UI file pickers.
+ * by ZIP parsing, the UI file pickers and git sync. A leading byte order mark
+ * is dropped unless `keepBom` is set (git sync needs the exact bytes back).
  */
-export function decodeTextOrNull(bytes: Uint8Array): string | null {
+export function decodeTextOrNull(bytes: Uint8Array, opts: { keepBom?: boolean } = {}): string | null {
   for (let i = 0; i < bytes.length; i++) if (bytes[i] === 0) return null;
   try {
-    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    return new TextDecoder("utf-8", { fatal: true, ignoreBOM: opts.keepBom === true }).decode(bytes);
   } catch {
     return null;
   }

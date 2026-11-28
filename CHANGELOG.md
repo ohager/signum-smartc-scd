@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Highlights
+
+- **GitHub sync** — import a contract folder from a GitHub repo, link a project
+  to one, pull changes (with per-file conflict choices and Undo pull), and
+  commit and push from the project menu. A status badge shows whether you are
+  in sync. The token stays in your browser, and the AI assistant cannot reach
+  sync. See the [guide](docs/git-sync.md).
+
 ## 0.4.0-alpha.3 — 2026-11-27
 
 ### Highlights
