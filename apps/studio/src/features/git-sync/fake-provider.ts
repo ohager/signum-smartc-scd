@@ -38,10 +38,29 @@ export function gitBlobShaOfBytes(body: Uint8Array): Promise<string> {
 
 const toBytes = (v: string | Uint8Array) => (typeof v === "string" ? new TextEncoder().encode(v) : v);
 
+/** Every folder that holds a path of `paths` (root excluded), sorted. */
+function foldersOf(paths: string[]): string[] {
+  const out = new Set<string>();
+  for (const p of paths) {
+    for (let i = p.indexOf("/"); i !== -1; i = p.indexOf("/", i + 1)) out.add(p.slice(0, i));
+  }
+  return [...out].sort();
+}
+
+/** Like Git, a path cannot be a file and a folder at once (directory/file conflict). */
+function assertNoPathConflict(flat: Record<string, string>): void {
+  const clashes = foldersOf(Object.keys(flat)).filter((f) => Object.hasOwn(flat, f));
+  if (clashes.length > 0) {
+    throw new GitSyncError("network", `A file and a folder share the path ${clashes.join(", ")}`, { status: 422 });
+  }
+}
+
 /**
  * In-memory GitHub for tests. Mirrors the real provider: Git Data writes on an
  * empty repo fail like GitHub's 409 (`not_found`), `getHead` is null for a missing
- * branch, `updateRef` only fast-forwards, `putFile` works on empty repos.
+ * branch, `updateRef` only fast-forwards, `putFile` works on empty repos. `getTree`
+ * lists folders as `tree` entries like the recursive GitHub tree, and every write
+ * that would make a path a file and a folder at once fails (422).
  */
 export class FakeGitHub implements GitProvider {
   private readonly repos = new Map<string, Repo>();
@@ -131,7 +150,9 @@ export class FakeGitHub implements GitProvider {
   async getTree(ref: RepoRef, tree: string): Promise<TreeEntry[]> {
     const flat = this.repo(ref).trees.get(tree);
     if (!flat) throw new GitSyncError("not_found", `Unknown tree ${tree}`);
-    return Object.entries(flat).map(([path, sha]) => ({ path, sha, type: "blob" as const }));
+    const folders = foldersOf(Object.keys(flat)).map((path) => ({ path, sha: `tree:${path}`, type: "tree" as const }));
+    const blobs = Object.entries(flat).map(([path, sha]) => ({ path, sha, type: "blob" as const }));
+    return [...folders, ...blobs].sort((a, b) => (a.path < b.path ? -1 : 1));
   }
 
   async getBlob(ref: RepoRef, sha: string) {
@@ -215,6 +236,7 @@ export class FakeGitHub implements GitProvider {
   }
 
   private async storeTree(repo: Repo, flat: Record<string, string>) {
+    assertNoPathConflict(flat);
     const sorted = Object.fromEntries(Object.entries(flat).sort(([a], [b]) => (a < b ? -1 : 1)));
     const sha = await sha1(new TextEncoder().encode(`tree ${JSON.stringify(sorted)}`));
     repo.trees.set(sha, sorted);

@@ -132,6 +132,36 @@ function supportedMarker(marker: Marker | null, error?: string): Marker {
   return marker;
 }
 
+/**
+ * Project paths a push may not write because GitHub holds something Studio does not
+ * sync there. Checked against the tree the push would produce (head minus `deletes`
+ * plus `upserts`): an upsert at an untracked remote file, an upsert below a remote
+ * file (named by that file's path) and an upsert at a remote folder. At the base
+ * commit every remote path outside baseFiles is untracked or skipped.
+ */
+function takenPaths(link: RepoLink, entries: TreeEntry[], upserts: string[], deletes: string[]): string[] {
+  const repoPath = (p: string) => toRepoPath(link.path, p);
+  const prefix = link.path === "" ? "" : `${link.path}/`;
+  const removed = new Set(deletes.map(repoPath));
+  const files = new Set(entries.filter((e) => e.type !== "tree" && !removed.has(e.path)).map((e) => e.path));
+  const written = upserts.map(repoPath);
+  const folders = new Set<string>();
+  for (const p of [...files, ...written]) {
+    for (let i = p.indexOf("/"); i !== -1; i = p.indexOf("/", i + 1)) folders.add(p.slice(0, i));
+  }
+  const taken = new Set<string>();
+  for (const p of upserts) {
+    const rp = repoPath(p);
+    if (!Object.hasOwn(link.baseFiles, p) && files.has(rp)) taken.add(p);
+    if (folders.has(rp)) taken.add(p);
+    for (let i = rp.indexOf("/"); i !== -1; i = rp.indexOf("/", i + 1)) {
+      const parent = rp.slice(0, i);
+      if (files.has(parent) && parent.startsWith(prefix)) taken.add(parent.slice(prefix.length));
+    }
+  }
+  return [...taken].sort();
+}
+
 function sameShas(a: Shas, b: Shas): boolean {
   const keys = Object.keys(a);
   return keys.length === Object.keys(b).length && keys.every((k) => Object.hasOwn(b, k) && a[k] === b[k]);
@@ -395,11 +425,7 @@ export class GitSync {
     if (!head || head.commit !== link.baseCommit) {
       throw new GitSyncError("not_fast_forward", "The branch moved on GitHub — pull first.");
     }
-    // At the base commit every remote path outside baseFiles is untracked or skipped.
-    const remotePaths = new Set((await git.getTree(ref, head.tree)).map((e) => e.path));
-    const taken = upserts.filter(
-      (p) => !Object.hasOwn(link.baseFiles, p) && remotePaths.has(toRepoPath(link.path, p)),
-    );
+    const taken = takenPaths(link, await git.getTree(ref, head.tree), upserts, deletes);
     if (taken.length > 0) {
       throw new GitSyncError(
         "path_taken",

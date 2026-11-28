@@ -178,6 +178,39 @@ describe("GitSync push", () => {
     expect(links.get(projectId)).toEqual(link);
   });
 
+  it("refuses a local folder at the path of an untracked remote file", async () => {
+    const { gh, sync, links, projectId, add } = await setup({ ...seedFiles, "c/LICENSE": "MIT" });
+    const before = await remoteShas(gh);
+    const link = links.get(projectId);
+    await add("LICENSE/notes.md", "n");
+    const err = await codeOf(sync.push(projectId, "msg"));
+    expect(err.code).toBe("path_taken");
+    expect(err.detail?.paths).toEqual(["LICENSE"]);
+    expect(await remoteShas(gh)).toEqual(before);
+    expect(gh.files(ref, "main")["c/LICENSE"]).toBe("MIT");
+    expect(links.get(projectId)).toEqual(link);
+  });
+
+  it("refuses a local file at the path of a remote folder", async () => {
+    const { gh, sync, projectId, add } = await setup({ ...seedFiles, "c/docs.md/keep.bin": "k" });
+    const before = await remoteShas(gh);
+    await add("docs.md", "d");
+    const err = await codeOf(sync.push(projectId, "msg"));
+    expect(err.code).toBe("path_taken");
+    expect(err.detail?.paths).toEqual(["docs.md"]);
+    expect(await remoteShas(gh)).toEqual(before);
+  });
+
+  it("allows replacing a deleted tracked file by a folder of the same name", async () => {
+    const { gh, sync, projectId, add, remove } = await setup({ ...seedFiles, "c/n.md": "n" });
+    await remove("n.md");
+    await add("n.md/inner.ts", "i");
+    await sync.push(projectId, "msg");
+    const remote = gh.files(ref, "main");
+    expect(Object.hasOwn(remote, "c/n.md")).toBe(false);
+    expect(remote["c/n.md/inner.ts"]).toBe("i");
+  });
+
   it("refuses when the branch moved and says pull first", async () => {
     const { gh, sync, links, projectId, edit } = await setup();
     await gh.seed(ref, "main", { "c/b.ts": "theirs" });
