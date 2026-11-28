@@ -576,7 +576,8 @@ export class GitSync {
     const toFetch = [...new Set(tracked.map((t) => t.sha))].filter((sha) => !texts.has(sha));
     const binary = new Set<string>();
     await mapLimit(toFetch, MAX_BLOBS_IN_FLIGHT, async (sha) => {
-      const text = decodeTextOrNull(await git.getBlob(ref, sha));
+      // keepBom: a dropped BOM would change the blob sha (local change, conflicts, lost on push)
+      const text = decodeTextOrNull(await git.getBlob(ref, sha), { keepBom: true });
       if (text === null) binary.add(sha);
       else texts.set(sha, text);
     });

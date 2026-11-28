@@ -211,6 +211,19 @@ describe("GitSync push", () => {
     expect(remote["c/n.md/inner.ts"]).toBe("i");
   });
 
+  it("keeps a UTF-8 byte order mark: in sync after import, byte-identical after a push", async () => {
+    const bom = new Uint8Array([0xef, 0xbb, 0xbf, 0x61, 0x0a]);
+    const { gh, sync, projectId, edit } = await setup({ ...seedFiles, "c/bom.md": bom });
+    expect(await sync.status(projectId)).toMatchObject({ state: "in_sync", localChanges: 0 });
+    const before = (await remoteShas(gh))["c/bom.md"];
+    await edit("a.smart.c", "int a2;");
+    await sync.push(projectId, "msg");
+    const after = (await remoteShas(gh))["c/bom.md"];
+    expect(after).toBe(before);
+    expect(await gh.getBlob(ref, after)).toEqual(bom);
+    expect(await sync.status(projectId)).toMatchObject({ state: "in_sync", localChanges: 0 });
+  });
+
   it("refuses when the branch moved and says pull first", async () => {
     const { gh, sync, links, projectId, edit } = await setup();
     await gh.seed(ref, "main", { "c/b.ts": "theirs" });

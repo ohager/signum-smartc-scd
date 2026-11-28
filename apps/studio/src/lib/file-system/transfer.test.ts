@@ -46,6 +46,13 @@ describe("decodeTextOrNull", () => {
     // Lone 0xFF/0xFE are invalid UTF-8 start bytes.
     expect(decodeTextOrNull(new Uint8Array([0xff, 0xfe, 0xfd]))).toBeNull();
   });
+
+  it("drops a leading BOM unless keepBom is set", () => {
+    const bytes = new Uint8Array([0xef, 0xbb, 0xbf, 0x61, 0x0a]);
+    expect(decodeTextOrNull(bytes)).toBe("a\n");
+    expect(decodeTextOrNull(bytes, { keepBom: true })).toBe("\ufeffa\n");
+    expect(decodeTextOrNull(new Uint8Array([0xef, 0xbb, 0xbf, 0]), { keepBom: true })).toBeNull();
+  });
 });
 
 import { FileTransfer, type TransferFs, type ResolveType } from "./transfer";
