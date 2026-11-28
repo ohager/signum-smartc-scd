@@ -628,3 +628,21 @@ it("allows one remote check per project per interval", () => {
 - [ ] **Step 3: Implement**; link dialog: in "new folder" mode a text input (prefilled with `suggestNewFolder(probe, projectName)`) plus a list of existing free folders to pick from; inline problem text per `NewFolderProblem`; the confirmation text names the marker path. Import dialog: `canOfferInit` = some existing folder passes `canInitialize` (or an invalid marker exists).
 - [ ] **Step 4: Verify** — `cd apps/studio && bun test src/lib/git-sync src/features/git-sync src/i18n` and `bun run build`.
 - [ ] **Step 5: Commit** `feat(git-sync): initialize a project into a new folder`; update `docs/git-sync.md` (one paragraph: adding another contract to the same repo) in a `docs(git-sync): …` commit.
+
+---
+
+### Task 13: Markdown files editable (addendum, user request)
+
+Decided with the user: `.md` files open in a Monaco editor with **Markdown syntax highlighting** (`language="markdown"`), word wrap on, **no preview/rendering**. Creatable via "New File", accepted by upload, ZIP and folder import.
+
+**Files:**
+- Create: `apps/studio/src/features/doc-editor/doc-file-editor.tsx` (follow `features/testbed/ui/test-file-editor.tsx` / `features/asm-editor/...` for structure: `useFollowedFile` for autosave, lock and follow mode; same toolbar/file-actions conventions where they apply)
+- Modify: `apps/studio/src/pages/files/files-page.tsx` (route `FileTypes.Doc` → `DocFileEditor`)
+- Modify: `apps/studio/src/features/project/filetype-icons.tsx` (`acceptedFileType`: `.md` → `FileTypes.Doc`, + test), `apps/studio/src/features/git-sync/tracked-type.ts` (drop the `.md` special case — `acceptedFileType` covers it; keep its test green)
+- Modify: `apps/studio/src/features/project/new-file-dialog.tsx` (option "Markdown (.md)", empty content), `apps/studio/src/features/project/folder-node.tsx` (upload input `accept` gains `.md`, and `.ts` if missing)
+- Modify: i18n keys (all 9 locales) for the new labels; `CHANGELOG.md` (`## Unreleased` bullet); `docs/git-sync.md` only if it claims `.md` cannot be edited
+
+- [ ] **Step 1: Failing tests** — `acceptedFileType("README.md")` and `("notes.MD")` → `FileTypes.Doc`; `trackedType` unchanged behaviour for `.md`; `FileTransfer.importZip` with a `.md` entry imports it (type `doc`).
+- [ ] **Step 2: Implement** editor, routing, dialog option, accept lists.
+- [ ] **Step 3: Verify** — `cd apps/studio && bun test` and `bun run build`.
+- [ ] **Step 4: Commit** `feat(studio): edit Markdown files`.
